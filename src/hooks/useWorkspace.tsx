@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Workspace, Project, Conversation } from '@/types/database';
 import { useAuth } from './useAuth';
@@ -13,13 +13,28 @@ export function useWorkspace() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Computed current items
+  const currentWorkspace = useMemo(
+    () => workspaces.find(w => w.id === selectedWorkspaceId) || null,
+    [workspaces, selectedWorkspaceId]
+  );
+
+  const currentProject = useMemo(
+    () => projects.find(p => p.id === selectedProjectId) || null,
+    [projects, selectedProjectId]
+  );
+
+  const currentConversation = useMemo(
+    () => conversations.find(c => c.id === selectedConversationId) || null,
+    [conversations, selectedConversationId]
+  );
+
   // Fetch all data
   const fetchData = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Fetch workspaces
       const { data: workspacesData } = await supabase
         .from('workspaces')
         .select('*')
@@ -34,7 +49,6 @@ export function useWorkspace() {
         }
       }
 
-      // Fetch projects
       const { data: projectsData } = await supabase
         .from('projects')
         .select('*')
@@ -49,7 +63,6 @@ export function useWorkspace() {
         }
       }
 
-      // Fetch conversations
       const { data: conversationsData } = await supabase
         .from('conversations')
         .select('*')
@@ -71,6 +84,19 @@ export function useWorkspace() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Setters with object support
+  const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
+    setSelectedWorkspaceId(workspace?.id || null);
+  }, []);
+
+  const setCurrentProject = useCallback((project: Project | null) => {
+    setSelectedProjectId(project?.id || null);
+  }, []);
+
+  const setCurrentConversation = useCallback((conversation: Conversation | null) => {
+    setSelectedConversationId(conversation?.id || null);
+  }, []);
 
   // Create new conversation
   const createConversation = useCallback(async (projectId: string, title = 'New Conversation') => {
@@ -97,14 +123,14 @@ export function useWorkspace() {
     return newConversation;
   }, [user]);
 
-  // Create new project
-  const createProject = useCallback(async (workspaceId: string, name: string, description?: string) => {
-    if (!user) return null;
+  // Create new project - simplified signature
+  const createProject = useCallback(async (name: string, description?: string) => {
+    if (!user || !selectedWorkspaceId) return null;
 
     const { data, error } = await supabase
       .from('projects')
       .insert({
-        workspace_id: workspaceId,
+        workspace_id: selectedWorkspaceId,
         user_id: user.id,
         name,
         description,
@@ -119,8 +145,9 @@ export function useWorkspace() {
 
     const newProject = data as Project;
     setProjects(prev => [...prev, newProject]);
+    setSelectedProjectId(newProject.id);
     return newProject;
-  }, [user]);
+  }, [user, selectedWorkspaceId]);
 
   // Update conversation
   const updateConversation = useCallback(async (id: string, updates: Partial<Conversation>) => {
@@ -167,12 +194,18 @@ export function useWorkspace() {
     conversations,
     workspaceProjects,
     projectConversations,
+    currentWorkspace,
+    currentProject,
+    currentConversation,
     selectedWorkspaceId,
     selectedProjectId,
     selectedConversationId,
     setSelectedWorkspaceId,
     setSelectedProjectId,
     setSelectedConversationId,
+    setCurrentWorkspace,
+    setCurrentProject,
+    setCurrentConversation,
     createConversation,
     createProject,
     updateConversation,
