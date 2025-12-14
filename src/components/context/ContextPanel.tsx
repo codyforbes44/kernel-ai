@@ -7,7 +7,9 @@ import {
   Code,
   Lightbulb,
   ExternalLink,
+  BarChart3,
 } from "lucide-react";
+import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 
 interface ContextPanelProps {
   onClose: () => void;
@@ -79,11 +81,15 @@ export function ContextPanel({ onClose }: ContextPanelProps) {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="snippets" className="flex-1 flex flex-col">
-        <TabsList className="mx-4 mt-4 grid grid-cols-3">
+      <Tabs defaultValue="analytics" className="flex-1 flex flex-col">
+        <TabsList className="mx-4 mt-4 grid grid-cols-4">
+          <TabsTrigger value="analytics" className="text-xs">
+            <BarChart3 className="h-3 w-3 mr-1" />
+            Stats
+          </TabsTrigger>
           <TabsTrigger value="snippets" className="text-xs">
             <Code className="h-3 w-3 mr-1" />
-            Snippets
+            Code
           </TabsTrigger>
           <TabsTrigger value="tips" className="text-xs">
             <Lightbulb className="h-3 w-3 mr-1" />
@@ -91,11 +97,15 @@ export function ContextPanel({ onClose }: ContextPanelProps) {
           </TabsTrigger>
           <TabsTrigger value="resources" className="text-xs">
             <BookOpen className="h-3 w-3 mr-1" />
-            Resources
+            Docs
           </TabsTrigger>
         </TabsList>
 
         <ScrollArea className="flex-1 p-4">
+          <TabsContent value="analytics" className="m-0">
+            <AnalyticsDashboard />
+          </TabsContent>
+
           <TabsContent value="snippets" className="m-0 space-y-4">
             {quickReference.map((item, index) => (
               <div

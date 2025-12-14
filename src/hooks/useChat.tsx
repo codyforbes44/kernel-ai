@@ -2,6 +2,39 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Message } from '@/types/database';
 import { useAuth } from './useAuth';
+import { format } from 'date-fns';
+
+// Helper to track usage analytics
+async function trackUsage(userId: string, messagesSent: number = 0, tokensUsed: number = 0) {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Try to update existing record first
+  const { data: existing } = await supabase
+    .from('usage_analytics')
+    .select('id, messages_sent, tokens_used')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from('usage_analytics')
+      .update({
+        messages_sent: (existing.messages_sent || 0) + messagesSent,
+        tokens_used: (existing.tokens_used || 0) + tokensUsed,
+      })
+      .eq('id', existing.id);
+  } else {
+    await supabase
+      .from('usage_analytics')
+      .insert({
+        user_id: userId,
+        date: today,
+        messages_sent: messagesSent,
+        tokens_used: tokensUsed,
+      });
+  }
+}
 
 export function useChat() {
   const { user } = useAuth();
@@ -113,6 +146,9 @@ export function useChat() {
         }
       }
 
+      // Estimate tokens (rough: ~4 chars per token)
+      const estimatedTokens = Math.ceil(fullContent.length / 4);
+
       // Save assistant message
       await supabase
         .from('messages')
@@ -122,7 +158,11 @@ export function useChat() {
           role: 'assistant' as const,
           content: fullContent,
           model: 'google/gemini-2.5-flash',
+          tokens_used: estimatedTokens,
         });
+
+      // Track usage analytics (2 messages: user + assistant)
+      await trackUsage(user.id, 2, estimatedTokens);
 
       setIsStreaming(false);
       setStreamingMessage('');
