@@ -11,7 +11,7 @@ import type { Message } from "@/types/database";
 
 export function ChatPanel() {
   const { currentConversation } = useWorkspace();
-  const { messages, loading: messagesLoading } = useMessages(currentConversation?.id);
+  const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +24,8 @@ export function ChatPanel() {
   const handleSendMessage = async (content: string) => {
     if (!currentConversation) return;
     await sendMessage(content, currentConversation.id);
+    // Refetch messages to get persisted messages with proper IDs
+    setTimeout(() => refresh(), 100);
   };
 
   const streamingMessageObj: Message | null = streamingMessage ? {
