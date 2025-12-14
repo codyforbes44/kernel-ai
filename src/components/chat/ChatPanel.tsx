@@ -7,6 +7,7 @@ import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
 import { EmptyState } from "./EmptyState";
+import type { Message } from "@/types/database";
 
 export function ChatPanel() {
   const { currentConversation } = useWorkspace();
@@ -14,7 +15,6 @@ export function ChatPanel() {
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -25,6 +25,22 @@ export function ChatPanel() {
     if (!currentConversation) return;
     await sendMessage(content, currentConversation.id);
   };
+
+  const streamingMessageObj: Message | null = streamingMessage ? {
+    id: "streaming",
+    content: streamingMessage,
+    role: "assistant",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    user_id: "",
+    conversation_id: currentConversation?.id || "",
+    is_starred: false,
+    is_pinned: false,
+    is_helpful: null,
+    tokens_used: 0,
+    model: null,
+    metadata: null,
+  } : null;
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -45,19 +61,8 @@ export function ChatPanel() {
               {messages.map((message) => (
                 <ChatMessage key={message.id} message={message} />
               ))}
-              {streamingMessage && (
-                <ChatMessage
-                  message={{
-                    id: "streaming",
-                    content: streamingMessage,
-                    role: "assistant",
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    user_id: "",
-                    conversation_id: currentConversation?.id || "",
-                  }}
-                  isStreaming
-                />
+              {streamingMessageObj && (
+                <ChatMessage message={streamingMessageObj} isStreaming />
               )}
             </>
           )}

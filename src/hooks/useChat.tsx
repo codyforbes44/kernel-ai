@@ -1,29 +1,31 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Message } from '@/types/database';
+import { useAuth } from './useAuth';
 
-interface UseChatOptions {
-  conversationId: string;
-  userId: string;
-  onMessageSaved?: (message: Message) => void;
-}
-
-export function useChat({ conversationId, userId, onMessageSaved }: UseChatOptions) {
+export function useChat() {
+  const { user } = useAuth();
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingContent, setStreamingContent] = useState('');
+  const [streamingMessage, setStreamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const sendMessage = useCallback(async (content: string, previousMessages: Message[]) => {
+  const sendMessage = useCallback(async (content: string, conversationId: string) => {
+    if (!user) return null;
+    
     setIsStreaming(true);
-    setStreamingContent('');
+    setStreamingMessage('');
     setError(null);
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
 
     // Save user message first
     const { data: userMessage, error: userError } = await supabase
       .from('messages')
       .insert({
         conversation_id: conversationId,
-        user_id: userId,
+        user_id: user.id,
         role: 'user' as const,
         content,
       })
@@ -36,13 +38,17 @@ export function useChat({ conversationId, userId, onMessageSaved }: UseChatOptio
       return null;
     }
 
-    onMessageSaved?.(userMessage as Message);
+    // Get previous messages for context
+    const { data: previousMessages } = await supabase
+      .from('messages')
+      .select('role, content')
+      .eq('conversation_id', conversationId)
+      .order('created_at');
 
-    // Prepare messages for AI
-    const messages = [
-      ...previousMessages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user' as const, content }
-    ];
+    const messages = previousMessages?.map(m => ({ 
+      role: m.role as 'user' | 'assistant' | 'system', 
+      content: m.content 
+    })) || [];
 
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
@@ -52,10 +58,17 @@ export function useChat({ conversationId, userId, onMessageSaved }: UseChatOptio
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ messages }),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        }
+        if (response.status === 402) {
+          throw new Error('Usage limit reached. Please add credits to continue.');
+        }
         throw new Error(errorData.error || 'Failed to get AI response');
       }
 
@@ -91,10 +104,9 @@ export function useChat({ conversationId, userId, onMessageSaved }: UseChatOptio
             const deltaContent = parsed.choices?.[0]?.delta?.content;
             if (deltaContent) {
               fullContent += deltaContent;
-              setStreamingContent(fullContent);
+              setStreamingMessage(fullContent);
             }
           } catch {
-            // Incomplete JSON, put back
             buffer = line + '\n' + buffer;
             break;
           }
@@ -102,47 +114,48 @@ export function useChat({ conversationId, userId, onMessageSaved }: UseChatOptio
       }
 
       // Save assistant message
-      const { data: assistantMessage, error: assistantError } = await supabase
+      await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
-          user_id: userId,
+          user_id: user.id,
           role: 'assistant' as const,
           content: fullContent,
           model: 'google/gemini-2.5-flash',
-        })
-        .select()
-        .single();
-
-      if (assistantError) {
-        console.error('Error saving assistant message:', assistantError);
-      } else {
-        onMessageSaved?.(assistantMessage as Message);
-      }
+        });
 
       setIsStreaming(false);
-      setStreamingContent('');
+      setStreamingMessage('');
       return fullContent;
 
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setIsStreaming(false);
+        setStreamingMessage('');
+        return null;
+      }
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
       setIsStreaming(false);
-      setStreamingContent('');
+      setStreamingMessage('');
       return null;
     }
-  }, [conversationId, userId, onMessageSaved]);
+  }, [user]);
 
-  const cancelStream = useCallback(() => {
+  const stopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
     setIsStreaming(false);
-    setStreamingContent('');
+    setStreamingMessage('');
   }, []);
 
   return {
     sendMessage,
-    cancelStream,
+    stopStreaming,
     isStreaming,
-    streamingContent,
+    streamingMessage,
     error,
   };
 }
