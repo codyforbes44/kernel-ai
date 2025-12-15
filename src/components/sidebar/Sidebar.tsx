@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { usePWA } from "@/hooks/usePWA";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -31,6 +34,8 @@ import {
   FileText,
   Pin,
   Archive,
+  Shield,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
@@ -42,7 +47,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
+  const { isInstallable, installApp } = usePWA();
   const { currentWorkspace, currentProject, createConversation } = useWorkspace();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"conversations" | "templates">("conversations");
@@ -125,6 +133,38 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         <div className="flex-1" />
 
         <div className="p-2 flex flex-col items-center gap-2">
+          {isInstallable && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={installApp}
+                  className="hover:bg-sidebar-accent text-primary"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Install App</TooltipContent>
+            </Tooltip>
+          )}
+
+          {isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/admin')}
+                  className="hover:bg-sidebar-accent"
+                >
+                  <Shield className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Admin Panel</TooltipContent>
+            </Tooltip>
+          )}
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="hover:bg-sidebar-accent">
@@ -275,6 +315,24 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[200px]">
+            {isInstallable && (
+              <>
+                <DropdownMenuItem onClick={installApp}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Install App
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            {isAdmin && (
+              <>
+                <DropdownMenuItem onClick={() => navigate('/admin')}>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin Panel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem>
               <Settings className="h-4 w-4 mr-2" />
               Settings
