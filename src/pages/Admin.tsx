@@ -1,0 +1,289 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Users, MessageSquare, Shield, Clock, Hash } from 'lucide-react';
+import { format } from 'date-fns';
+import type { Message } from '@/types/database';
+
+export default function Admin() {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading, users, conversations, fetchAllUsers, fetchAllConversations, getConversationMessages } = useAdmin();
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (!adminLoading && !isAdmin && user) {
+      navigate('/');
+    }
+  }, [isAdmin, adminLoading, user, navigate]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAllUsers();
+      fetchAllConversations();
+    }
+  }, [isAdmin]);
+
+  const handleViewConversation = async (conversationId: string) => {
+    setSelectedConversation(conversationId);
+    setMessagesLoading(true);
+    const msgs = await getConversationMessages(conversationId);
+    setMessages(msgs);
+    setMessagesLoading(false);
+  };
+
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
+
+  const totalMessages = users.reduce((sum, u) => sum + (u.message_count || 0), 0);
+  const totalConversations = users.reduce((sum, u) => sum + (u.conversation_count || 0), 0);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <h1 className="text-xl font-semibold">Admin Panel</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalConversations}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+              <Hash className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalMessages}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+            <TabsTrigger value="conversations" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Conversations
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>View all registered users and their activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Conversations</TableHead>
+                        <TableHead>Messages</TableHead>
+                        <TableHead>Last Active</TableHead>
+                        <TableHead>Joined</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((u) => (
+                        <TableRow key={u.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium">
+                                {u.display_name?.charAt(0).toUpperCase() || '?'}
+                              </div>
+                              <div>
+                                <div className="font-medium">{u.display_name || 'Unknown'}</div>
+                                <div className="text-xs text-muted-foreground">{u.id.slice(0, 8)}...</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{u.conversation_count}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{u.message_count}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {u.last_active ? format(new Date(u.last_active), 'MMM d, yyyy') : '-'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(u.created_at), 'MMM d, yyyy')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="conversations">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Conversations</CardTitle>
+                <CardDescription>View and inspect all system conversations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Messages</TableHead>
+                        <TableHead>Tokens</TableHead>
+                        <TableHead>Updated</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {conversations.map((conv) => (
+                        <TableRow key={conv.id}>
+                          <TableCell>
+                            <div className="max-w-[200px] truncate font-medium">
+                              {conv.title}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-muted-foreground">
+                              {conv.user_name}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{conv.message_count}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{conv.token_count?.toLocaleString()}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(conv.updated_at), 'MMM d, HH:mm')}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewConversation(conv.id)}
+                            >
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      {/* Message Viewer Dialog */}
+      <Dialog open={!!selectedConversation} onOpenChange={() => setSelectedConversation(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Conversation Messages
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] pr-4">
+            {messagesLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-pulse text-muted-foreground">Loading messages...</div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`p-3 rounded-lg ${
+                      msg.role === 'user'
+                        ? 'bg-primary/10 ml-8'
+                        : msg.role === 'assistant'
+                        ? 'bg-muted mr-8'
+                        : 'bg-accent/50 text-center text-sm'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant={msg.role === 'user' ? 'default' : 'secondary'} className="text-xs">
+                        {msg.role}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(msg.created_at), 'MMM d, HH:mm:ss')}
+                      </span>
+                      {msg.tokens_used > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          • {msg.tokens_used} tokens
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
