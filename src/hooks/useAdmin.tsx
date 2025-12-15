@@ -8,6 +8,7 @@ interface UserWithStats extends Profile {
   conversation_count?: number;
   message_count?: number;
   last_active?: string;
+  is_admin?: boolean;
 }
 
 interface ConversationWithUser extends Conversation {
@@ -84,11 +85,20 @@ export function useAdmin() {
           .limit(1)
           .single();
 
+        // Check if user is admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', profile.id)
+          .eq('role', 'admin')
+          .single();
+
         return {
           ...profile,
           conversation_count: convCount || 0,
           message_count: msgCount || 0,
           last_active: lastConv?.updated_at || profile.updated_at,
+          is_admin: !!roleData,
         } as UserWithStats;
       })
     );
@@ -146,6 +156,40 @@ export function useAdmin() {
     return (data || []) as Message[];
   };
 
+  const promoteToAdmin = async (userId: string): Promise<boolean> => {
+    if (!isAdmin) return false;
+
+    const { error } = await supabase
+      .from('user_roles')
+      .insert({ user_id: userId, role: 'admin' });
+
+    if (error) {
+      console.error('Error promoting user:', error);
+      return false;
+    }
+
+    await fetchAllUsers();
+    return true;
+  };
+
+  const demoteFromAdmin = async (userId: string): Promise<boolean> => {
+    if (!isAdmin || userId === user?.id) return false; // Can't demote yourself
+
+    const { error } = await supabase
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('role', 'admin');
+
+    if (error) {
+      console.error('Error demoting user:', error);
+      return false;
+    }
+
+    await fetchAllUsers();
+    return true;
+  };
+
   return {
     isAdmin,
     loading,
@@ -154,5 +198,7 @@ export function useAdmin() {
     fetchAllUsers,
     fetchAllConversations,
     getConversationMessages,
+    promoteToAdmin,
+    demoteFromAdmin,
   };
 }

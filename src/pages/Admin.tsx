@@ -9,17 +9,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Users, MessageSquare, Shield, Clock, Hash } from 'lucide-react';
+import { ArrowLeft, Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Hash } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import type { Message } from '@/types/database';
 
 export default function Admin() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: adminLoading, users, conversations, fetchAllUsers, fetchAllConversations, getConversationMessages } = useAdmin();
+  const { isAdmin, loading: adminLoading, users, conversations, fetchAllUsers, fetchAllConversations, getConversationMessages, promoteToAdmin, demoteFromAdmin } = useAdmin();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [roleLoading, setRoleLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -46,6 +48,32 @@ export default function Admin() {
     const msgs = await getConversationMessages(conversationId);
     setMessages(msgs);
     setMessagesLoading(false);
+  };
+
+  const handlePromote = async (userId: string) => {
+    setRoleLoading(userId);
+    const success = await promoteToAdmin(userId);
+    if (success) {
+      toast.success('User promoted to admin');
+    } else {
+      toast.error('Failed to promote user');
+    }
+    setRoleLoading(null);
+  };
+
+  const handleDemote = async (userId: string) => {
+    if (userId === user?.id) {
+      toast.error("You can't demote yourself");
+      return;
+    }
+    setRoleLoading(userId);
+    const success = await demoteFromAdmin(userId);
+    if (success) {
+      toast.success('Admin role removed');
+    } else {
+      toast.error('Failed to demote user');
+    }
+    setRoleLoading(null);
   };
 
   if (authLoading || adminLoading) {
@@ -134,10 +162,11 @@ export default function Admin() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>User</TableHead>
+                        <TableHead>Role</TableHead>
                         <TableHead>Conversations</TableHead>
                         <TableHead>Messages</TableHead>
-                        <TableHead>Last Active</TableHead>
                         <TableHead>Joined</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -155,16 +184,47 @@ export default function Admin() {
                             </div>
                           </TableCell>
                           <TableCell>
+                            {u.is_admin ? (
+                              <Badge className="bg-primary/20 text-primary border-primary/30">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Admin
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">User</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             <Badge variant="secondary">{u.conversation_count}</Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{u.message_count}</Badge>
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {u.last_active ? format(new Date(u.last_active), 'MMM d, yyyy') : '-'}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
                             {format(new Date(u.created_at), 'MMM d, yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            {u.is_admin ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={u.id === user?.id || roleLoading === u.id}
+                                onClick={() => handleDemote(u.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <ShieldOff className="h-4 w-4 mr-1" />
+                                {roleLoading === u.id ? 'Loading...' : 'Demote'}
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={roleLoading === u.id}
+                                onClick={() => handlePromote(u.id)}
+                              >
+                                <ShieldCheck className="h-4 w-4 mr-1" />
+                                {roleLoading === u.id ? 'Loading...' : 'Promote'}
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
