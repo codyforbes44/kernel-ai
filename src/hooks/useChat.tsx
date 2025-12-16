@@ -43,7 +43,11 @@ export function useChat() {
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const sendMessage = useCallback(async (content: string, conversationId: string) => {
+  const sendMessage = useCallback(async (
+    content: string, 
+    conversationId: string,
+    projectContext?: { url: string | null; name: string | null }
+  ) => {
     if (!user) return null;
     
     setIsStreaming(true);
@@ -90,7 +94,11 @@ export function useChat() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ 
+          messages,
+          lovableProjectUrl: projectContext?.url,
+          lovableProjectName: projectContext?.name,
+        }),
         signal: abortControllerRef.current.signal,
       });
 

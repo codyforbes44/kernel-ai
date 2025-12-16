@@ -23,7 +23,10 @@ export function ChatPanel() {
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation) return;
-    await sendMessage(content, currentConversation.id);
+    await sendMessage(content, currentConversation.id, {
+      url: currentConversation.lovable_project_url,
+      name: currentConversation.lovable_project_name,
+    });
     // Refetch messages to get persisted messages with proper IDs
     setTimeout(() => refresh(), 100);
   };
