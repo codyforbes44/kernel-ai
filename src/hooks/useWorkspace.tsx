@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Workspace, Project, Conversation } from '@/types/database';
 import { useAuth } from './useAuth';
@@ -12,6 +12,9 @@ export function useWorkspace() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track if we've done initial selection to avoid infinite loops
+  const initializedRef = useRef(false);
 
   // Computed current items
   const currentWorkspace = useMemo(
@@ -29,49 +32,56 @@ export function useWorkspace() {
     [conversations, selectedConversationId]
   );
 
-  // Fetch all data
+  // Fetch all data - only depends on user, not on selected IDs
   const fetchData = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      const { data: workspacesData } = await supabase
-        .from('workspaces')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at');
+      const [workspacesResult, projectsResult, conversationsResult] = await Promise.all([
+        supabase
+          .from('workspaces')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at'),
+        supabase
+          .from('projects')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_archived', false)
+          .order('created_at'),
+        supabase
+          .from('conversations')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_archived', false)
+          .order('updated_at', { ascending: false })
+      ]);
+
+      const workspacesData = workspacesResult.data;
+      const projectsData = projectsResult.data;
+      const conversationsData = conversationsResult.data;
 
       if (workspacesData) {
         setWorkspaces(workspacesData as Workspace[]);
-        const defaultWs = workspacesData.find(w => w.is_default) || workspacesData[0];
-        if (defaultWs && !selectedWorkspaceId) {
-          setSelectedWorkspaceId(defaultWs.id);
-        }
       }
-
-      const { data: projectsData } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('created_at');
-
       if (projectsData) {
         setProjects(projectsData as Project[]);
-        if (projectsData.length > 0 && !selectedProjectId) {
-          setSelectedProjectId(projectsData[0].id);
-        }
       }
-
-      const { data: conversationsData } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('updated_at', { ascending: false });
-
       if (conversationsData) {
         setConversations(conversationsData as Conversation[]);
+      }
+
+      // Only set defaults on first load
+      if (!initializedRef.current) {
+        if (workspacesData && workspacesData.length > 0) {
+          const defaultWs = workspacesData.find(w => w.is_default) || workspacesData[0];
+          setSelectedWorkspaceId(defaultWs.id);
+        }
+        if (projectsData && projectsData.length > 0) {
+          setSelectedProjectId(projectsData[0].id);
+        }
+        initializedRef.current = true;
       }
 
     } catch (error) {
@@ -79,11 +89,13 @@ export function useWorkspace() {
     } finally {
       setLoading(false);
     }
-  }, [user, selectedWorkspaceId, selectedProjectId]);
+  }, [user]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (user) {
+      fetchData();
+    }
+  }, [user, fetchData]);
 
   // Setters with object support
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
