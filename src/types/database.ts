@@ -52,6 +52,8 @@ export interface Conversation {
   token_count: number;
   message_count: number;
   last_message_at: string | null;
+  lovable_project_url: string | null;
+  lovable_project_name: string | null;
   created_at: string;
   updated_at: string;
 }

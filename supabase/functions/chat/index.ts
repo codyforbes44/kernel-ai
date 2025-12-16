@@ -11,11 +11,18 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = "google/gemini-2.5-flash" } = await req.json();
+    const { messages, model = "google/gemini-2.5-flash", lovableProjectUrl, lovableProjectName } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    let projectContext = "";
+    if (lovableProjectUrl && lovableProjectName) {
+      projectContext = `\n\nThe user is currently working on a Lovable project named "${lovableProjectName}".
+Project URL: ${lovableProjectUrl}
+When providing assistance, consider this project context. If the user asks about their project, you can reference this URL.`;
     }
 
     const systemPrompt = `You are the Lovable Expert Assistant, an AI companion designed specifically for power users who build applications on the Lovable platform.
@@ -36,7 +43,7 @@ Guidelines:
 
 When asked about Lovable features, reference the official documentation patterns.
 When debugging, ask clarifying questions if needed.
-Format your responses with clear sections using headers when appropriate.`;
+Format your responses with clear sections using headers when appropriate.${projectContext}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

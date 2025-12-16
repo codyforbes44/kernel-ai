@@ -22,6 +22,8 @@ export type Database = {
           is_archived: boolean | null
           is_pinned: boolean | null
           last_message_at: string | null
+          lovable_project_name: string | null
+          lovable_project_url: string | null
           message_count: number | null
           parent_conversation_id: string | null
           project_id: string
@@ -39,6 +41,8 @@ export type Database = {
           is_archived?: boolean | null
           is_pinned?: boolean | null
           last_message_at?: string | null
+          lovable_project_name?: string | null
+          lovable_project_url?: string | null
           message_count?: number | null
           parent_conversation_id?: string | null
           project_id: string
@@ -56,6 +60,8 @@ export type Database = {
           is_archived?: boolean | null
           is_pinned?: boolean | null
           last_message_at?: string | null
+          lovable_project_name?: string | null
+          lovable_project_url?: string | null
           message_count?: number | null
           parent_conversation_id?: string | null
           project_id?: string
