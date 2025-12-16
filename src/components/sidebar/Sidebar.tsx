@@ -40,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
 import { ConversationList } from "./ConversationList";
+import { TemplatesList } from "./TemplatesList";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -289,9 +290,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <ConversationList searchQuery={searchQuery} />
           </div>
         ) : (
-          <div className="p-2 text-center text-sm text-muted-foreground">
-            Templates coming soon...
-          </div>
+          <TemplatesList />
         )}
       </ScrollArea>
 

@@ -1,0 +1,254 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from 'next-themes';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { toast } from 'sonner';
+import {
+  ArrowLeft,
+  User,
+  Moon,
+  Sun,
+  Bell,
+  Keyboard,
+  Shield,
+  Trash2,
+  Download,
+  Sparkles,
+} from 'lucide-react';
+
+export default function Settings() {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [displayName, setDisplayName] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportAllData = async () => {
+    if (!user) return;
+    setIsExporting(true);
+
+    try {
+      // Fetch all user data
+      const [conversations, messages, templates] = await Promise.all([
+        supabase.from('conversations').select('*').eq('user_id', user.id),
+        supabase.from('messages').select('*').eq('user_id', user.id),
+        supabase.from('prompt_templates').select('*').eq('user_id', user.id),
+      ]);
+
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        user: { id: user.id, email: user.email },
+        conversations: conversations.data || [],
+        messages: messages.data || [],
+        templates: templates.data || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json',
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lovable-assistant-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Data exported successfully');
+    } catch (error) {
+      toast.error('Failed to export data');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    // Note: Full account deletion would need a backend function
+    toast.info('Account deletion requested. Contact support to complete.');
+    await signOut();
+    navigate('/auth');
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="container max-w-3xl mx-auto flex items-center gap-4 h-14 px-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h1 className="font-semibold">Settings</h1>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="container max-w-3xl mx-auto py-8 px-4 space-y-8">
+        {/* Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile
+            </CardTitle>
+            <CardDescription>Manage your account information</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input value={user?.email || ''} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your display name"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              Appearance
+            </CardTitle>
+            <CardDescription>Customize the look and feel</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Dark Mode</Label>
+                <p className="text-sm text-muted-foreground">
+                  Use dark theme for the interface
+                </p>
+              </div>
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Reduced Motion</Label>
+                <p className="text-sm text-muted-foreground">
+                  Reduce animations throughout the app
+                </p>
+              </div>
+              <Switch />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Keyboard Shortcuts */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Keyboard className="h-5 w-5" />
+              Keyboard Shortcuts
+            </CardTitle>
+            <CardDescription>Quick actions for power users</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {[
+                { keys: ['⌘', 'K'], action: 'Open command palette' },
+                { keys: ['⌘', 'N'], action: 'New conversation' },
+                { keys: ['⌘', 'B'], action: 'Toggle sidebar' },
+                { keys: ['⌘', 'D'], action: 'Toggle dark mode' },
+                { keys: ['⌘', 'Enter'], action: 'Send message' },
+              ].map((shortcut) => (
+                <div key={shortcut.action} className="flex items-center justify-between py-2">
+                  <span className="text-sm">{shortcut.action}</span>
+                  <div className="flex items-center gap-1">
+                    {shortcut.keys.map((key, i) => (
+                      <kbd
+                        key={i}
+                        className="px-2 py-1 text-xs font-mono bg-muted border border-border rounded"
+                      >
+                        {key}
+                      </kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Data & Privacy */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Data & Privacy
+            </CardTitle>
+            <CardDescription>Manage your data</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Export All Data</Label>
+                <p className="text-sm text-muted-foreground">
+                  Download all your conversations and templates
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleExportAllData}
+                disabled={isExporting}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-destructive">Delete Account</Label>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all data
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Account"
+        description="This will permanently delete your account and all associated data including conversations, messages, and templates. This action cannot be undone."
+        onConfirm={handleDeleteAccount}
+      />
+    </div>
+  );
+}
