@@ -21,14 +21,19 @@ import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { messageService } from "@/services/messageService";
 
 interface ChatMessageProps {
   message: Message;
   isStreaming?: boolean;
+  onRegenerate?: () => void;
+  onEdit?: (content: string) => void;
 }
 
-export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
+export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
+  const [isStarred, setIsStarred] = useState(message.is_starred);
+  const [helpfulState, setHelpfulState] = useState<boolean | null>(message.is_helpful);
   const isUser = message.role === "user";
 
   const handleCopy = async () => {
@@ -38,10 +43,35 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleStar = async () => {
+    const newValue = !isStarred;
+    setIsStarred(newValue);
+    try {
+      await messageService.star(message.id, newValue);
+      toast.success(newValue ? "Message starred" : "Message unstarred");
+    } catch {
+      setIsStarred(!newValue);
+      toast.error("Failed to update message");
+    }
+  };
+
+  const handleHelpful = async (value: boolean) => {
+    const newValue = helpfulState === value ? null : value;
+    setHelpfulState(newValue);
+    try {
+      await messageService.setHelpful(message.id, newValue);
+      if (newValue === true) toast.success("Thanks for the feedback!");
+      else if (newValue === false) toast.success("Feedback recorded");
+    } catch {
+      setHelpfulState(helpfulState);
+      toast.error("Failed to save feedback");
+    }
+  };
+
   return (
     <div
       className={cn(
-        "group relative flex gap-4",
+        "group relative flex gap-4 animate-fade-in",
         isUser ? "flex-row-reverse" : "flex-row"
       )}
     >
@@ -141,7 +171,12 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={onRegenerate}
+                  >
                     <RefreshCw className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
@@ -150,8 +185,13 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <ThumbsUp className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-7 w-7", helpfulState === true && "text-green-500")}
+                    onClick={() => handleHelpful(true)}
+                  >
+                    <ThumbsUp className={cn("h-3.5 w-3.5", helpfulState === true && "fill-current")} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Helpful</TooltipContent>
@@ -159,8 +199,13 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <ThumbsDown className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-7 w-7", helpfulState === false && "text-destructive")}
+                    onClick={() => handleHelpful(false)}
+                  >
+                    <ThumbsDown className={cn("h-3.5 w-3.5", helpfulState === false && "fill-current")} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Not helpful</TooltipContent>
@@ -171,7 +216,12 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
           {isUser && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onEdit?.(message.content)}
+                >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
@@ -181,17 +231,22 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleStar}
+              >
                 <Star
                   className={cn(
                     "h-3.5 w-3.5",
-                    message.is_starred && "fill-yellow-500 text-yellow-500"
+                    isStarred && "fill-yellow-500 text-yellow-500"
                   )}
                 />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {message.is_starred ? "Unstar" : "Star"}
+              {isStarred ? "Unstar" : "Star"}
             </TooltipContent>
           </Tooltip>
         </div>
