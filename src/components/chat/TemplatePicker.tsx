@@ -145,16 +145,27 @@ function TemplateItem({
   template: PromptTemplate;
   onSelect: (template: PromptTemplate) => void;
 }) {
+  // Get first 2 lines of content for preview
+  const getContentPreview = (content: string) => {
+    const lines = content.split('\n').filter(line => line.trim());
+    const previewLines = lines.slice(0, 2);
+    const preview = previewLines.join('\n');
+    const hasMore = lines.length > 2;
+    return { preview, hasMore };
+  };
+
+  const { preview, hasMore } = getContentPreview(template.content);
+
   return (
     <CommandItem
       value={`${template.name} ${template.description} ${template.category}`}
       onSelect={() => onSelect(template)}
       className="flex items-start gap-3 py-3 cursor-pointer"
     >
-      <div className={cn("p-1.5 rounded-md", categoryColors[template.category])}>
+      <div className={cn("p-1.5 rounded-md shrink-0", categoryColors[template.category])}>
         {categoryIcons[template.category]}
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-1.5">
         <div className="flex items-center gap-2">
           <span className="font-medium truncate">{template.name}</span>
           {template.is_favorite && (
@@ -164,12 +175,23 @@ function TemplateItem({
           )}
         </div>
         {template.description && (
-          <p className="text-xs text-muted-foreground truncate mt-0.5">
+          <p className="text-xs text-muted-foreground truncate">
             {template.description}
           </p>
         )}
-        {template.variables.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
+        {/* Content preview */}
+        <div className="text-[11px] font-mono bg-muted/50 rounded px-2 py-1.5 text-muted-foreground overflow-hidden">
+          <div className="whitespace-pre-wrap line-clamp-2 break-all">
+            {preview}
+          </div>
+          {hasMore && (
+            <span className="text-[10px] text-muted-foreground/60 mt-0.5 block">
+              ...
+            </span>
+          )}
+        </div>
+        {template.variables && template.variables.length > 0 && (
+          <div className="flex flex-wrap gap-1">
             {template.variables.slice(0, 3).map((v) => (
               <Badge
                 key={v}
@@ -190,7 +212,7 @@ function TemplateItem({
           </div>
         )}
       </div>
-      <span className="text-xs text-muted-foreground whitespace-nowrap">
+      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
         {template.usage_count} uses
       </span>
     </CommandItem>
