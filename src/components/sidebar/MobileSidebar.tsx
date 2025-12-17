@@ -1,8 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -17,7 +17,7 @@ import {
   Sparkles,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface MobileSidebarProps {
   open: boolean;
@@ -27,7 +27,7 @@ interface MobileSidebarProps {
 export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { currentProject, createConversation } = useWorkspace();
+  const { currentProject, createConversation, refresh } = useWorkspace();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("chats");
 
@@ -46,6 +46,10 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
     await signOut();
     onOpenChange(false);
   };
+
+  const handleRefresh = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -92,19 +96,21 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1">
-            <TabsContent value="chats" className="m-0 p-3">
-              <ConversationList
-                searchQuery={searchQuery}
-                onSelect={handleConversationSelect}
-                isMobile
-              />
+          <div className="flex-1 overflow-hidden">
+            <TabsContent value="chats" className="m-0 h-full">
+              <PullToRefresh onRefresh={handleRefresh} className="h-full p-3">
+                <ConversationList
+                  searchQuery={searchQuery}
+                  onSelect={handleConversationSelect}
+                  isMobile
+                />
+              </PullToRefresh>
             </TabsContent>
 
-            <TabsContent value="templates" className="m-0 p-3">
+            <TabsContent value="templates" className="m-0 p-3 h-full overflow-auto">
               <TemplatesList />
             </TabsContent>
-          </ScrollArea>
+          </div>
         </Tabs>
 
         <div className="p-3 border-t border-border/50 space-y-2">
