@@ -80,9 +80,11 @@ export const ConversationItem = memo(function ConversationItem({
       {hasLinkedProject && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link2 className="h-3 w-3 text-primary shrink-0" />
+            <span className="shrink-0 flex items-center">
+              <Link2 className="h-3 w-3 text-primary" />
+            </span>
           </TooltipTrigger>
-          <TooltipContent side="top">
+          <TooltipContent side="top" className="pointer-events-none">
             <p className="text-xs">
               Linked: {conversation.lovable_project_name || "Lovable Project"}
             </p>
