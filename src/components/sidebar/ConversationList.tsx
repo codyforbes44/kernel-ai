@@ -10,9 +10,11 @@ import type { Conversation } from "@/types/database";
 
 interface ConversationListProps {
   searchQuery: string;
+  onSelect?: () => void;
+  isMobile?: boolean;
 }
 
-export function ConversationList({ searchQuery }: ConversationListProps) {
+export function ConversationList({ searchQuery, onSelect, isMobile }: ConversationListProps) {
   const {
     conversations,
     currentConversation,
@@ -87,7 +89,10 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
       key={conversation.id}
       conversation={conversation}
       isActive={currentConversation?.id === conversation.id}
-      onSelect={() => setCurrentConversation(conversation)}
+      onSelect={() => {
+        setCurrentConversation(conversation);
+        onSelect?.();
+      }}
       onRename={() => setRenameDialog(conversation)}
       onDelete={() => setDeleteDialog(conversation)}
       onPin={() => handlePin(conversation)}
@@ -103,6 +108,7 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
         }
       }}
       onUnlinkProject={() => handleUnlinkProject(conversation)}
+      isMobile={isMobile}
     />
   );
 

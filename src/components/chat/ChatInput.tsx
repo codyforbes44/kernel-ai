@@ -28,6 +28,7 @@ interface ChatInputProps {
   disabled?: boolean;
   initialValue?: string;
   onInitialValueConsumed?: () => void;
+  isMobile?: boolean;
 }
 
 export function ChatInput({
@@ -37,6 +38,7 @@ export function ChatInput({
   disabled,
   initialValue,
   onInitialValueConsumed,
+  isMobile,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);
@@ -295,7 +297,9 @@ export function ChatInput({
           placeholder={
             disabled
               ? "Select a conversation to start chatting..."
-              : "Ask me anything... (⌘V to paste images, drag files, / for templates)"
+              : isMobile
+                ? "Ask me anything..."
+                : "Ask me anything... (⌘V to paste images, drag files, / for templates)"
           }
           disabled={disabled || isLoading || isUploading}
           className={cn(

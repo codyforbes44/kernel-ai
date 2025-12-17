@@ -7,12 +7,15 @@ import {
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { ContextPanel } from "@/components/context/ContextPanel";
+import { MobileLayout } from "@/components/layout/MobileLayout";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 export function IDELayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [contextPanelOpen, setContextPanelOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Keyboard shortcuts
   useShortcut("b", () => setSidebarCollapsed((prev) => !prev), {
@@ -24,6 +27,11 @@ export function IDELayout() {
     meta: true,
     description: "Toggle context panel",
   });
+
+  // Render mobile layout on mobile devices
+  if (isMobile) {
+    return <MobileLayout />;
+  }
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background">
