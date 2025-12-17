@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -142,27 +143,28 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-popover">
             {conversation.lovable_project_url && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(conversation.lovable_project_url!, "_blank");
-                }}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open Project
-              </DropdownMenuItem>
-            )}
-            {conversation.lovable_project_url && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigator.clipboard.writeText(conversation.lovable_project_url!);
-                  toast.success("Project URL copied");
-                }}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Project URL
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(conversation.lovable_project_url!, "_blank");
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Project
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(conversation.lovable_project_url!);
+                    toast.success("Project URL copied");
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Project URL
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
             )}
             <DropdownMenuItem
               onClick={(e) => {
