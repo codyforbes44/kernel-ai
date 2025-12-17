@@ -22,13 +22,38 @@ interface ChatInputProps {
   isLoading: boolean;
   onStop: () => void;
   disabled?: boolean;
+  initialValue?: string;
+  onInitialValueConsumed?: () => void;
 }
 
-export function ChatInput({ onSend, isLoading, onStop, disabled }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  isLoading,
+  onStop,
+  disabled,
+  initialValue,
+  onInitialValueConsumed,
+}: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateSearch, setTemplateSearch] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle initial value for edit & resend
+  useEffect(() => {
+    if (initialValue) {
+      setMessage(initialValue);
+      onInitialValueConsumed?.();
+      textareaRef.current?.focus();
+      // Move cursor to end
+      setTimeout(() => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+          textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+        }
+      }, 0);
+    }
+  }, [initialValue, onInitialValueConsumed]);
 
   // Auto-resize textarea
   useEffect(() => {

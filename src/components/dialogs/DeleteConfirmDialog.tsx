@@ -16,7 +16,7 @@ interface DeleteConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description: string;
-  onConfirm: () => Promise<void>;
+  onConfirm: () => void | Promise<void>;
   destructive?: boolean;
 }
 

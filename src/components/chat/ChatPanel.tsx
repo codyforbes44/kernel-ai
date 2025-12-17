@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChat";
@@ -7,6 +7,8 @@ import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
 import { EmptyState } from "./EmptyState";
+import { messageService } from "@/services/messageService";
+import { toast } from "sonner";
 import type { Message } from "@/types/database";
 
 export function ChatPanel() {
@@ -14,6 +16,7 @@ export function ChatPanel() {
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [editingContent, setEditingContent] = useState("");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -23,12 +26,76 @@ export function ChatPanel() {
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation) return;
+    setEditingContent(""); // Clear any editing state
     await sendMessage(content, currentConversation.id, {
       url: currentConversation.lovable_project_url,
       name: currentConversation.lovable_project_name,
     });
     // Refetch messages to get persisted messages with proper IDs
     setTimeout(() => refresh(), 100);
+  };
+
+  const handleRegenerate = async (messageId: string) => {
+    if (!currentConversation) return;
+    
+    // Find the message to regenerate (should be an AI message)
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+    
+    // Find the preceding user message
+    let userMessage: Message | null = null;
+    for (let i = messageIndex - 1; i >= 0; i--) {
+      if (messages[i].role === "user") {
+        userMessage = messages[i];
+        break;
+      }
+    }
+    
+    if (!userMessage) {
+      toast.error("Could not find the original message to regenerate");
+      return;
+    }
+    
+    try {
+      // Delete the AI message we're regenerating
+      await messageService.delete(messageId);
+      await refresh();
+      
+      // Resend the user message to get a new response
+      await sendMessage(userMessage.content, currentConversation.id, {
+        url: currentConversation.lovable_project_url,
+        name: currentConversation.lovable_project_name,
+      });
+      
+      setTimeout(() => refresh(), 100);
+      toast.success("Response regenerated");
+    } catch {
+      toast.error("Failed to regenerate response");
+    }
+  };
+
+  const handleEdit = (content: string) => {
+    setEditingContent(content);
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await messageService.delete(messageId);
+      await refresh();
+      toast.success("Message deleted");
+    } catch {
+      toast.error("Failed to delete message");
+    }
+  };
+
+  const handlePinMessage = async (messageId: string, isPinned: boolean) => {
+    try {
+      await messageService.pin(messageId, isPinned);
+      await refresh();
+      toast.success(isPinned ? "Message pinned" : "Message unpinned");
+    } catch {
+      toast.error("Failed to update message");
+    }
   };
 
   const streamingMessageObj: Message | null = streamingMessage ? {
@@ -64,7 +131,14 @@ export function ChatPanel() {
           ) : (
             <>
               {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  onRegenerate={() => handleRegenerate(message.id)}
+                  onEdit={handleEdit}
+                  onDelete={() => handleDeleteMessage(message.id)}
+                  onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
+                />
               ))}
               {streamingMessageObj && (
                 <ChatMessage message={streamingMessageObj} isStreaming />
@@ -81,6 +155,8 @@ export function ChatPanel() {
             isLoading={isStreaming}
             onStop={stopStreaming}
             disabled={!currentConversation}
+            initialValue={editingContent}
+            onInitialValueConsumed={() => setEditingContent("")}
           />
         </div>
       </div>
