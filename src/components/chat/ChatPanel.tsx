@@ -9,10 +9,15 @@ import { ChatHeader } from "./ChatHeader";
 import { EmptyState } from "./EmptyState";
 import { messageService } from "@/services/messageService";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Message } from "@/types/database";
 import type { UploadedFile } from "@/hooks/useFileUpload";
 
-export function ChatPanel() {
+interface ChatPanelProps {
+  isMobile?: boolean;
+}
+
+export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { currentConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
@@ -117,10 +122,10 @@ export function ChatPanel() {
 
   return (
     <div className="h-full flex flex-col bg-background">
-      <ChatHeader />
+      {!isMobile && <ChatHeader />}
 
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-        <div className="max-w-3xl mx-auto py-6 space-y-6">
+        <div className={cn("mx-auto py-6 space-y-6", isMobile ? "max-w-full px-2" : "max-w-3xl")}>
           {!currentConversation ? (
             <EmptyState type="no-conversation" />
           ) : messagesLoading ? (
@@ -149,8 +154,11 @@ export function ChatPanel() {
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border/50 bg-background/80 backdrop-blur-sm">
-        <div className="max-w-3xl mx-auto p-4">
+      <div className={cn(
+        "border-t border-border/50 bg-background/80 backdrop-blur-sm",
+        isMobile && "safe-area-bottom"
+      )}>
+        <div className={cn("p-4", isMobile ? "px-3" : "max-w-3xl mx-auto")}>
           <ChatInput
             onSend={handleSendMessage}
             isLoading={isStreaming}
@@ -158,6 +166,7 @@ export function ChatPanel() {
             disabled={!currentConversation}
             initialValue={editingContent}
             onInitialValueConsumed={() => setEditingContent("")}
+            isMobile={isMobile}
           />
         </div>
       </div>

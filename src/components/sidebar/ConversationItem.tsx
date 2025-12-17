@@ -39,6 +39,7 @@ interface ConversationItemProps {
   onOpenProject: () => void;
   onCopyProjectUrl: () => void;
   onUnlinkProject: () => void;
+  isMobile?: boolean;
 }
 
 export const ConversationItem = memo(function ConversationItem({
@@ -52,6 +53,7 @@ export const ConversationItem = memo(function ConversationItem({
   onOpenProject,
   onCopyProjectUrl,
   onUnlinkProject,
+  isMobile,
 }: ConversationItemProps) {
   const hasLinkedProject = !!conversation.lovable_project_url;
 
@@ -101,7 +103,10 @@ export const ConversationItem = memo(function ConversationItem({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent shrink-0"
+            className={cn(
+              "h-8 w-8 hover:bg-sidebar-accent shrink-0",
+              isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>
