@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
+import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,14 +23,17 @@ import {
   Trash2,
   Download,
   Sparkles,
+  History,
 } from 'lucide-react';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { clearHistory } = useVariableHistory();
   const [displayName, setDisplayName] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportAllData = async () => {
@@ -224,6 +228,23 @@ export default function Settings() {
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
+                <Label>Clear Variable History</Label>
+                <p className="text-sm text-muted-foreground">
+                  Remove all saved template variable suggestions
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setClearHistoryDialogOpen(true)}
+                className="gap-2"
+              >
+                <History className="h-4 w-4" />
+                Clear
+              </Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
                 <Label className="text-destructive">Delete Account</Label>
                 <p className="text-sm text-muted-foreground">
                   Permanently delete your account and all data
@@ -241,6 +262,17 @@ export default function Settings() {
           </CardContent>
         </Card>
       </main>
+
+      <DeleteConfirmDialog
+        open={clearHistoryDialogOpen}
+        onOpenChange={setClearHistoryDialogOpen}
+        title="Clear Variable History"
+        description="This will remove all saved template variable suggestions. You'll need to enter values manually again."
+        onConfirm={() => {
+          clearHistory();
+          toast.success('Variable history cleared');
+        }}
+      />
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
