@@ -16,8 +16,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
+import { useTemplateInjection } from "@/hooks/useTemplateInjection";
+import { templateService } from "@/services/templateService";
 import { TemplatePicker } from "./TemplatePicker";
 import { FilePreview } from "./FilePreview";
+import { TemplateVariablesDialog } from "@/components/dialogs/TemplateVariablesDialog";
 import { useFileUpload, type UploadedFile } from "@/hooks/useFileUpload";
 import type { PromptTemplate } from "@/types/database";
 
@@ -45,11 +48,31 @@ export function ChatInput({
   const [templateSearch, setTemplateSearch] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [variablesDialogOpen, setVariablesDialogOpen] = useState(false);
+  const [pendingTemplateContent, setPendingTemplateContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const dragCounterRef = useRef(0);
   const { uploadFiles, isUploading, deleteFile, allowedTypes } = useFileUpload();
+  const { pendingTemplate, pendingVariables, consumeTemplate, clearPending } = useTemplateInjection();
+
+  // Handle pending template from sidebar
+  useEffect(() => {
+    if (pendingTemplate) {
+      const variables = templateService.extractVariables(pendingTemplate);
+      if (variables.length > 0) {
+        // Show variables dialog
+        setPendingTemplateContent(pendingTemplate);
+        setVariablesDialogOpen(true);
+      } else {
+        // No variables, insert directly
+        setMessage(pendingTemplate);
+        textareaRef.current?.focus();
+      }
+      consumeTemplate();
+    }
+  }, [pendingTemplate, consumeTemplate]);
 
   // Handle initial value for edit & resend
   useEffect(() => {
@@ -112,8 +135,23 @@ export function ChatInput({
   };
 
   const handleTemplateSelect = (template: PromptTemplate) => {
-    setMessage(template.content);
-    setShowTemplates(false);
+    const variables = templateService.extractVariables(template.content);
+    if (variables.length > 0) {
+      // Show variables dialog
+      setPendingTemplateContent(template.content);
+      setVariablesDialogOpen(true);
+      setShowTemplates(false);
+    } else {
+      // No variables, insert directly
+      setMessage(template.content);
+      setShowTemplates(false);
+      textareaRef.current?.focus();
+    }
+  };
+
+  const handleVariablesApply = (content: string) => {
+    setMessage(content);
+    setPendingTemplateContent("");
     textareaRef.current?.focus();
   };
 
@@ -391,6 +429,17 @@ export function ChatInput({
           </div>
         )}
       </div>
+
+      {/* Template Variables Dialog */}
+      <TemplateVariablesDialog
+        open={variablesDialogOpen}
+        onOpenChange={(open) => {
+          setVariablesDialogOpen(open);
+          if (!open) setPendingTemplateContent("");
+        }}
+        templateContent={pendingTemplateContent}
+        onApply={handleVariablesApply}
+      />
     </div>
   );
 }

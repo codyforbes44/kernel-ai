@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
+import { TemplateInjectionProvider } from "@/hooks/useTemplateInjection";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -40,9 +41,10 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
           <WorkspaceProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
+            <TemplateInjectionProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
               <BrowserRouter>
                 <CommandPalette />
                 <Routes>
@@ -67,8 +69,9 @@ const App = () => (
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </TemplateInjectionProvider>
           </WorkspaceProvider>
         </AuthProvider>
       </ThemeProvider>

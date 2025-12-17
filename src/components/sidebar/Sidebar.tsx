@@ -4,6 +4,8 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { usePWA } from "@/hooks/usePWA";
+import { useTemplateInjection } from "@/hooks/useTemplateInjection";
+import { templateService } from "@/services/templateService";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -53,6 +55,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { isAdmin } = useAdmin();
   const { isInstallable, installApp } = usePWA();
   const { currentWorkspace, currentProject, createConversation } = useWorkspace();
+  const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"conversations" | "templates">("conversations");
 
@@ -60,6 +63,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     if (currentProject) {
       await createConversation(currentProject.id);
     }
+  };
+
+  const handleTemplateSelect = (content: string) => {
+    const variables = templateService.extractVariables(content);
+    setPendingTemplate(content, variables);
+    // Switch to conversations tab so user sees the chat input
+    setActiveTab("conversations");
   };
 
   if (collapsed) {
@@ -290,7 +300,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <ConversationList searchQuery={searchQuery} />
           </div>
         ) : (
-          <TemplatesList />
+          <TemplatesList onSelectTemplate={handleTemplateSelect} />
         )}
       </ScrollArea>
 
