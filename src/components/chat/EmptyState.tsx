@@ -12,6 +12,7 @@ import {
 
 interface EmptyStateProps {
   type: "no-conversation" | "empty-conversation";
+  onPromptSelect?: (prompt: string) => void;
 }
 
 const quickPrompts = [
@@ -47,7 +48,7 @@ const quickPrompts = [
   },
 ];
 
-export function EmptyState({ type }: EmptyStateProps) {
+export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
   const { currentProject, createConversation } = useWorkspace();
 
   if (type === "no-conversation") {
@@ -86,6 +87,7 @@ export function EmptyState({ type }: EmptyStateProps) {
         {quickPrompts.map((prompt, index) => (
           <button
             key={index}
+            onClick={() => onPromptSelect?.(prompt.prompt)}
             className="flex items-start gap-3 p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-left group"
           >
             <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">

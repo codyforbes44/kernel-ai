@@ -128,7 +128,7 @@ export function ChatPanel() {
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : messages.length === 0 && !streamingMessage ? (
-            <EmptyState type="empty-conversation" />
+            <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />
           ) : (
             <>
               {messages.map((message) => (
