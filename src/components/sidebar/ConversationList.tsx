@@ -14,6 +14,7 @@ import {
   Archive,
   Trash2,
   Pencil,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -106,6 +107,10 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
             })}
           </p>
         </div>
+
+        {conversation.lovable_project_url && (
+          <Link2 className="h-3 w-3 text-primary shrink-0" />
+        )}
 
         {conversation.is_pinned && (
           <Pin className="h-3 w-3 text-primary shrink-0" />
