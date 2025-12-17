@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -9,6 +10,25 @@ export function usePWA() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    offlineReady: [offlineReady],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegisteredSW(swUrl, r) {
+      console.log('SW registered:', swUrl);
+      // Check for updates every hour
+      if (r) {
+        setInterval(() => {
+          r.update();
+        }, 60 * 60 * 1000);
+      }
+    },
+    onRegisterError(error) {
+      console.error('SW registration error:', error);
+    },
+  });
 
   useEffect(() => {
     // Check if already installed
@@ -58,9 +78,21 @@ export function usePWA() {
     }
   };
 
+  const refreshApp = useCallback(() => {
+    updateServiceWorker(true);
+  }, [updateServiceWorker]);
+
+  const dismissUpdate = useCallback(() => {
+    setNeedRefresh(false);
+  }, [setNeedRefresh]);
+
   return {
     isInstallable,
     isInstalled,
     installApp,
+    offlineReady,
+    needRefresh,
+    refreshApp,
+    dismissUpdate,
   };
 }
