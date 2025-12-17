@@ -1,34 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  MessageSquare,
-  MoreHorizontal,
-  Pin,
-  Archive,
-  Trash2,
-  Pencil,
-  Link2,
-  ExternalLink,
-  Copy,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from "date-fns";
+import { ConversationItem } from "./ConversationItem";
 import { RenameDialog } from "@/components/dialogs/RenameDialog";
 import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { MessageSquare, Pin } from "lucide-react";
 import { toast } from "sonner";
+import { openLovableProject, copyProjectUrl } from "@/lib/lovable-url";
 import type { Conversation } from "@/types/database";
 
 interface ConversationListProps {
@@ -60,154 +37,38 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
   const pinnedConversations = filteredConversations.filter((c) => c.is_pinned);
   const regularConversations = filteredConversations.filter((c) => !c.is_pinned);
 
-  const handleRename = async (newName: string) => {
+  const handleRename = useCallback(async (newName: string) => {
     if (!renameDialog) return;
     await updateConversation(renameDialog.id, { title: newName });
     toast.success("Conversation renamed");
     setRenameDialog(null);
-  };
+  }, [renameDialog, updateConversation]);
 
-  const handlePin = async (conversation: Conversation) => {
+  const handlePin = useCallback(async (conversation: Conversation) => {
     const newPinned = !conversation.is_pinned;
     await updateConversation(conversation.id, { is_pinned: newPinned });
     toast.success(newPinned ? "Conversation pinned" : "Conversation unpinned");
-  };
+  }, [updateConversation]);
 
-  const handleArchive = async (conversation: Conversation) => {
+  const handleArchive = useCallback(async (conversation: Conversation) => {
     await updateConversation(conversation.id, { is_archived: true });
     toast.success("Conversation archived");
-  };
+  }, [updateConversation]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!deleteDialog) return;
     await deleteConversation(deleteDialog.id);
     toast.success("Conversation deleted");
     setDeleteDialog(null);
-  };
+  }, [deleteDialog, deleteConversation]);
 
-  const renderConversation = (conversation: Conversation) => {
-    const isActive = currentConversation?.id === conversation.id;
-
-    return (
-      <div
-        key={conversation.id}
-        className={cn(
-          "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer",
-          "hover:bg-sidebar-accent transition-colors",
-          isActive && "bg-sidebar-accent"
-        )}
-        onClick={() => setCurrentConversation(conversation)}
-      >
-        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
-
-        <div className="flex-1 min-w-0">
-          <p
-            className={cn(
-              "text-sm truncate",
-              isActive && "font-medium"
-            )}
-          >
-            {conversation.title}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">
-            {formatDistanceToNow(new Date(conversation.updated_at), {
-              addSuffix: true,
-            })}
-          </p>
-        </div>
-
-        {conversation.lovable_project_url && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link2 className="h-3 w-3 text-primary shrink-0" />
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p className="text-xs">Linked: {conversation.lovable_project_name || "Lovable Project"}</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-
-        {conversation.is_pinned && (
-          <Pin className="h-3 w-3 text-primary shrink-0" />
-        )}
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent shrink-0"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-popover">
-            {conversation.lovable_project_url && (
-              <>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(conversation.lovable_project_url!, "_blank");
-                  }}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Project
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(conversation.lovable_project_url!);
-                    toast.success("Project URL copied");
-                  }}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Project URL
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setRenameDialog(conversation);
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePin(conversation);
-              }}
-            >
-              <Pin className="h-4 w-4 mr-2" />
-              {conversation.is_pinned ? "Unpin" : "Pin"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                handleArchive(conversation);
-              }}
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Archive
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteDialog(conversation);
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    );
-  };
+  const handleUnlinkProject = useCallback(async (conversation: Conversation) => {
+    await updateConversation(conversation.id, {
+      lovable_project_url: null,
+      lovable_project_name: null,
+    });
+    toast.success("Project unlinked");
+  }, [updateConversation]);
 
   if (filteredConversations.length === 0) {
     return (
@@ -221,6 +82,30 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
     );
   }
 
+  const renderConversationItem = (conversation: Conversation) => (
+    <ConversationItem
+      key={conversation.id}
+      conversation={conversation}
+      isActive={currentConversation?.id === conversation.id}
+      onSelect={() => setCurrentConversation(conversation)}
+      onRename={() => setRenameDialog(conversation)}
+      onDelete={() => setDeleteDialog(conversation)}
+      onPin={() => handlePin(conversation)}
+      onArchive={() => handleArchive(conversation)}
+      onOpenProject={() => {
+        if (conversation.lovable_project_url) {
+          openLovableProject(conversation.lovable_project_url);
+        }
+      }}
+      onCopyProjectUrl={() => {
+        if (conversation.lovable_project_url) {
+          copyProjectUrl(conversation.lovable_project_url);
+        }
+      }}
+      onUnlinkProject={() => handleUnlinkProject(conversation)}
+    />
+  );
+
   return (
     <>
       <div className="space-y-3">
@@ -230,7 +115,7 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
               <Pin className="h-3 w-3" />
               Pinned
             </span>
-            {pinnedConversations.map(renderConversation)}
+            {pinnedConversations.map(renderConversationItem)}
           </div>
         )}
 
@@ -239,7 +124,7 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
             <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Recent
             </span>
-            {regularConversations.map(renderConversation)}
+            {regularConversations.map(renderConversationItem)}
           </div>
         )}
       </div>

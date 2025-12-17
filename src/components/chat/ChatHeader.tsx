@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useConversationActions } from "@/hooks/useConversationActions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,11 +29,11 @@ import { LinkProjectDialog } from "./LinkProjectDialog";
 import { RenameDialog } from "@/components/dialogs/RenameDialog";
 import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
 import { ExportDialog } from "@/components/dialogs/ExportDialog";
-import { conversationService } from "@/services/conversationService";
-import { toast } from "sonner";
 
 export function ChatHeader() {
-  const { currentConversation, currentProject, updateConversation, deleteConversation, refresh } = useWorkspace();
+  const { currentConversation, currentProject } = useWorkspace();
+  const actions = useConversationActions(currentConversation);
+  
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -48,58 +49,7 @@ export function ChatHeader() {
     );
   }
 
-  const handleLinkProject = async (url: string, name: string) => {
-    await updateConversation(currentConversation.id, {
-      lovable_project_url: url,
-      lovable_project_name: name,
-    });
-    toast.success("Project linked");
-  };
-
-  const handleUnlinkProject = async () => {
-    await updateConversation(currentConversation.id, {
-      lovable_project_url: null,
-      lovable_project_name: null,
-    });
-    toast.success("Project unlinked");
-  };
-
-  const handlePin = async () => {
-    const newPinned = !currentConversation.is_pinned;
-    await updateConversation(currentConversation.id, { is_pinned: newPinned });
-    toast.success(newPinned ? "Conversation pinned" : "Conversation unpinned");
-  };
-
-  const handleRename = async (newName: string) => {
-    await updateConversation(currentConversation.id, { title: newName });
-    toast.success("Conversation renamed");
-  };
-
-  const handleDuplicate = async () => {
-    try {
-      await conversationService.duplicate(currentConversation, currentConversation.user_id);
-      refresh();
-      toast.success("Conversation duplicated");
-    } catch {
-      toast.error("Failed to duplicate conversation");
-    }
-  };
-
-  const handleArchive = async () => {
-    await updateConversation(currentConversation.id, { is_archived: true });
-    toast.success("Conversation archived");
-  };
-
-  const handleDelete = async () => {
-    await deleteConversation(currentConversation.id);
-    toast.success("Conversation deleted");
-  };
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/?conversation=${currentConversation.id}`;
-    await navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copied to clipboard");
-  };
+  const hasLinkedProject = !!currentConversation.lovable_project_url;
 
   return (
     <>
@@ -120,9 +70,9 @@ export function ChatHeader() {
           {currentConversation.is_pinned && (
             <Pin className="h-3 w-3 text-primary shrink-0" />
           )}
-          {currentConversation.lovable_project_url && (
+          {hasLinkedProject && (
             <a
-              href={currentConversation.lovable_project_url}
+              href={currentConversation.lovable_project_url!}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0"
@@ -149,7 +99,7 @@ export function ChatHeader() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => setLinkDialogOpen(true)}>
-                {currentConversation.lovable_project_url ? (
+                {hasLinkedProject ? (
                   <>
                     <Unlink className="h-4 w-4 mr-2" />
                     Manage Project
@@ -166,7 +116,7 @@ export function ChatHeader() {
                 <Pencil className="h-4 w-4 mr-2" />
                 Rename
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePin}>
+              <DropdownMenuItem onClick={actions.handlePin}>
                 {currentConversation.is_pinned ? (
                   <>
                     <PinOff className="h-4 w-4 mr-2" />
@@ -180,7 +130,7 @@ export function ChatHeader() {
                 )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDuplicate}>
+              <DropdownMenuItem onClick={actions.handleDuplicate}>
                 <Copy className="h-4 w-4 mr-2" />
                 Duplicate
               </DropdownMenuItem>
@@ -188,12 +138,12 @@ export function ChatHeader() {
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShare}>
+              <DropdownMenuItem onClick={actions.handleShare}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleArchive}>
+              <DropdownMenuItem onClick={actions.handleArchive}>
                 <Archive className="h-4 w-4 mr-2" />
                 Archive
               </DropdownMenuItem>
@@ -214,8 +164,8 @@ export function ChatHeader() {
         onOpenChange={setLinkDialogOpen}
         currentUrl={currentConversation.lovable_project_url}
         currentName={currentConversation.lovable_project_name}
-        onLink={handleLinkProject}
-        onUnlink={handleUnlinkProject}
+        onLink={actions.handleLinkProject}
+        onUnlink={actions.handleUnlinkProject}
       />
 
       <RenameDialog
@@ -223,7 +173,7 @@ export function ChatHeader() {
         onOpenChange={setRenameDialogOpen}
         title="Rename Conversation"
         currentName={currentConversation.title}
-        onRename={handleRename}
+        onRename={actions.handleRename}
         type="conversation"
       />
 
@@ -232,7 +182,7 @@ export function ChatHeader() {
         onOpenChange={setDeleteDialogOpen}
         title="Delete Conversation"
         description={`Are you sure you want to delete "${currentConversation.title}"? This will permanently delete all messages.`}
-        onConfirm={handleDelete}
+        onConfirm={actions.handleDelete}
       />
 
       <ExportDialog
