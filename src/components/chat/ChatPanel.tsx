@@ -1,8 +1,10 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChat";
+import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
@@ -21,8 +23,23 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { currentConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
+  const { isOnline, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingContent, setEditingContent] = useState("");
+
+  // Set up sync handler for queued messages
+  const handleSyncMessage = useCallback(async (queuedMsg: QueuedMessage) => {
+    await sendMessage(
+      queuedMsg.content,
+      queuedMsg.conversationId,
+      queuedMsg.linkedProject,
+      queuedMsg.attachments
+    );
+  }, [sendMessage]);
+
+  useEffect(() => {
+    setSyncHandler(handleSyncMessage);
+  }, [setSyncHandler, handleSyncMessage]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -33,6 +50,16 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const handleSendMessage = async (content: string, attachments?: UploadedFile[]) => {
     if (!currentConversation) return;
     setEditingContent(""); // Clear any editing state
+
+    // If offline, queue the message
+    if (!isOnline) {
+      addToQueue(content, currentConversation.id, {
+        url: currentConversation.lovable_project_url,
+        name: currentConversation.lovable_project_name,
+      }, attachments);
+      return;
+    }
+
     await sendMessage(content, currentConversation.id, {
       url: currentConversation.lovable_project_url,
       name: currentConversation.lovable_project_name,
@@ -123,6 +150,17 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   return (
     <div className="h-full flex flex-col bg-background">
       {!isMobile && <ChatHeader />}
+
+      {/* Offline indicator for desktop */}
+      {!isMobile && (!isOnline || queueLength > 0 || isSyncing) && (
+        <div className="flex justify-center py-2 border-b border-border/50">
+          <OfflineIndicator
+            isOnline={isOnline}
+            queueLength={queueLength}
+            isSyncing={isSyncing}
+          />
+        </div>
+      )}
 
       <ScrollArea className="flex-1 px-4" ref={scrollRef}>
         <div className={cn("mx-auto py-6 space-y-6", isMobile ? "max-w-full px-2" : "max-w-3xl")}>
