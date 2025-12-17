@@ -10,6 +10,7 @@ import { EmptyState } from "./EmptyState";
 import { messageService } from "@/services/messageService";
 import { toast } from "sonner";
 import type { Message } from "@/types/database";
+import type { UploadedFile } from "@/hooks/useFileUpload";
 
 export function ChatPanel() {
   const { currentConversation } = useWorkspace();
@@ -24,13 +25,13 @@ export function ChatPanel() {
     }
   }, [messages, streamingMessage]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, attachments?: UploadedFile[]) => {
     if (!currentConversation) return;
     setEditingContent(""); // Clear any editing state
     await sendMessage(content, currentConversation.id, {
       url: currentConversation.lovable_project_url,
       name: currentConversation.lovable_project_name,
-    });
+    }, attachments);
     // Refetch messages to get persisted messages with proper IDs
     setTimeout(() => refresh(), 100);
   };

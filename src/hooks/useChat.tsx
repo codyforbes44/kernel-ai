@@ -46,7 +46,8 @@ export function useChat() {
   const sendMessage = useCallback(async (
     content: string, 
     conversationId: string,
-    projectContext?: { url: string | null; name: string | null }
+    projectContext?: { url: string | null; name: string | null },
+    attachments?: Array<{ name: string; size: number; type: string; url: string; path: string }>
   ) => {
     if (!user) return null;
     
@@ -57,6 +58,11 @@ export function useChat() {
     // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
 
+    // Prepare metadata with attachments if present
+    const metadata = attachments && attachments.length > 0 
+      ? { attachments } 
+      : null;
+
     // Save user message first
     const { data: userMessage, error: userError } = await supabase
       .from('messages')
@@ -65,6 +71,7 @@ export function useChat() {
         user_id: user.id,
         role: 'user' as const,
         content,
+        metadata,
       })
       .select()
       .single();

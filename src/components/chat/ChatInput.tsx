@@ -11,14 +11,17 @@ import {
   Square,
   Paperclip,
   Command,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { TemplatePicker } from "./TemplatePicker";
+import { FilePreview } from "./FilePreview";
+import { useFileUpload, type UploadedFile } from "@/hooks/useFileUpload";
 import type { PromptTemplate } from "@/types/database";
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
+  onSend: (message: string, attachments?: UploadedFile[]) => void;
   isLoading: boolean;
   onStop: () => void;
   disabled?: boolean;
@@ -37,7 +40,10 @@ export function ChatInput({
   const [message, setMessage] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateSearch, setTemplateSearch] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadFiles, isUploading, deleteFile, allowedTypes } = useFileUpload();
 
   // Handle initial value for edit & resend
   useEffect(() => {
@@ -81,9 +87,10 @@ export function ChatInput({
   }, [message]);
 
   const handleSubmit = () => {
-    if (!message.trim() || isLoading || disabled) return;
-    onSend(message.trim());
+    if ((!message.trim() && attachedFiles.length === 0) || isLoading || disabled || isUploading) return;
+    onSend(message.trim(), attachedFiles.length > 0 ? attachedFiles : undefined);
     setMessage("");
+    setAttachedFiles([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -107,6 +114,30 @@ export function ChatInput({
   const openTemplatePicker = () => {
     setMessage("/");
     textareaRef.current?.focus();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const uploaded = await uploadFiles(files);
+    setAttachedFiles((prev) => [...prev, ...uploaded]);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    textareaRef.current?.focus();
+  };
+
+  const handleRemoveFile = async (index: number) => {
+    const file = attachedFiles[index];
+    await deleteFile(file.path);
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
   };
 
   // Global shortcut to focus input
@@ -137,6 +168,16 @@ export function ChatInput({
         />
       )}
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept={allowedTypes.join(",")}
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
       <div
         className={cn(
           "relative rounded-xl border border-border/50 bg-card/50 backdrop-blur",
@@ -145,6 +186,15 @@ export function ChatInput({
           disabled && "opacity-50"
         )}
       >
+        {/* File preview */}
+        {attachedFiles.length > 0 && (
+          <FilePreview
+            files={attachedFiles}
+            onRemove={handleRemoveFile}
+            className="border-b border-border/50"
+          />
+        )}
+
         <Textarea
           ref={textareaRef}
           value={message}
@@ -155,7 +205,7 @@ export function ChatInput({
               ? "Select a conversation to start chatting..."
               : "Ask me anything... (/ for templates, ⌘Enter to send)"
           }
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoading || isUploading}
           className={cn(
             "min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent",
             "focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -170,13 +220,23 @@ export function ChatInput({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                disabled={disabled}
+                className={cn(
+                  "h-8 w-8 text-muted-foreground hover:text-foreground",
+                  attachedFiles.length > 0 && "text-primary"
+                )}
+                disabled={disabled || isUploading}
+                onClick={openFileDialog}
               >
-                <Paperclip className="h-4 w-4" />
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Paperclip className="h-4 w-4" />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Attach file</TooltipContent>
+            <TooltipContent>
+              {isUploading ? "Uploading..." : "Attach file (images, PDF, text)"}
+            </TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -218,7 +278,7 @@ export function ChatInput({
                   size="icon"
                   className="h-8 w-8"
                   onClick={handleSubmit}
-                  disabled={!message.trim() || disabled || showTemplates}
+                  disabled={(!message.trim() && attachedFiles.length === 0) || disabled || showTemplates || isUploading}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
