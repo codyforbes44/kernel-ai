@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Swipeable } from "@/components/ui/swipeable";
 import {
   MessageSquare,
   MoreHorizontal,
@@ -57,7 +58,7 @@ export const ConversationItem = memo(function ConversationItem({
 }: ConversationItemProps) {
   const hasLinkedProject = !!conversation.lovable_project_url;
 
-  return (
+  const itemContent = (
     <div
       className={cn(
         "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer",
@@ -185,4 +186,29 @@ export const ConversationItem = memo(function ConversationItem({
       </DropdownMenu>
     </div>
   );
+
+  // Wrap with swipeable on mobile
+  if (isMobile) {
+    return (
+      <Swipeable
+        leftAction={{
+          icon: <Archive className="h-5 w-5" />,
+          label: "Archive",
+          color: "hsl(217, 91%, 60%)", // primary color
+          onClick: onArchive,
+        }}
+        rightAction={{
+          icon: <Trash2 className="h-5 w-5" />,
+          label: "Delete",
+          color: "hsl(0, 84%, 60%)", // destructive color
+          onClick: onDelete,
+        }}
+        className="rounded-md"
+      >
+        {itemContent}
+      </Swipeable>
+    );
+  }
+
+  return itemContent;
 });
