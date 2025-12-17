@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, type ReactNode } from "react";
 import { Loader2, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hapticFeedback } from "@/hooks/useHaptic";
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -54,11 +55,13 @@ export function PullToRefresh({
     setIsPulling(false);
     
     if (pullDistance >= threshold && !isRefreshing) {
+      hapticFeedback("medium");
       setIsRefreshing(true);
       setPullDistance(threshold * 0.5); // Show spinner at half height
       
       try {
         await onRefresh();
+        hapticFeedback("success");
       } finally {
         setIsRefreshing(false);
         setPullDistance(0);

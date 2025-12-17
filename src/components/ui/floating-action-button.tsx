@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hapticFeedback } from "@/hooks/useHaptic";
 
 interface FloatingActionButtonProps {
   onClick: () => void;
@@ -13,10 +14,15 @@ export function FloatingActionButton({
   className,
   disabled,
 }: FloatingActionButtonProps) {
+  const handleClick = () => {
+    hapticFeedback("medium");
+    onClick();
+  };
+
   return (
     <Button
       size="icon"
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       className={cn(
         "fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg",

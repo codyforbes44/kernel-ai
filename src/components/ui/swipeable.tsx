@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { hapticFeedback } from "@/hooks/useHaptic";
 
 interface SwipeAction {
   icon: ReactNode;
@@ -77,8 +78,10 @@ export function Swipeable({
 
     // Trigger action if threshold exceeded
     if (offsetX > threshold && leftAction) {
+      hapticFeedback("success");
       leftAction.onClick();
     } else if (offsetX < -threshold && rightAction) {
+      hapticFeedback("warning");
       rightAction.onClick();
     }
 

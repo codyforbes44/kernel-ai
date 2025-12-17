@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { Menu, Plus, MoreHorizontal, PanelRight } from "lucide-react";
+import { useHaptic } from "@/hooks/useHaptic";
+import { Menu, Plus, PanelRight } from "lucide-react";
 
 interface MobileHeaderProps {
   onOpenSidebar: () => void;
@@ -9,9 +10,21 @@ interface MobileHeaderProps {
 
 export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps) {
   const { currentConversation, currentProject, createConversation } = useWorkspace();
+  const haptic = useHaptic();
+
+  const handleOpenSidebar = () => {
+    haptic.light();
+    onOpenSidebar();
+  };
+
+  const handleOpenContext = () => {
+    haptic.light();
+    onOpenContext();
+  };
 
   const handleNewConversation = () => {
     if (currentProject) {
+      haptic.medium();
       createConversation(currentProject.id);
     }
   };
@@ -21,7 +34,7 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
       <Button
         variant="ghost"
         size="icon"
-        onClick={onOpenSidebar}
+        onClick={handleOpenSidebar}
         className="h-10 w-10"
       >
         <Menu className="h-5 w-5" />
@@ -51,7 +64,7 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
         <Button
           variant="ghost"
           size="icon"
-          onClick={onOpenContext}
+          onClick={handleOpenContext}
           className="h-10 w-10"
         >
           <PanelRight className="h-5 w-5" />
