@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link2, Unlink, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { isValidLovableUrl, extractProjectId } from "@/lib/lovable-url";
 
 interface LinkProjectDialogProps {
   open: boolean;
@@ -21,8 +22,6 @@ interface LinkProjectDialogProps {
   onLink: (url: string, name: string) => Promise<void>;
   onUnlink: () => Promise<void>;
 }
-
-const LOVABLE_URL_PATTERN = /^https:\/\/(www\.)?(lovable\.dev|lovable\.app)\/projects\/[a-zA-Z0-9-]+/;
 
 export function LinkProjectDialog({
   open,
@@ -43,11 +42,6 @@ export function LinkProjectDialog({
     }
   }, [open, currentUrl, currentName]);
 
-  const extractProjectId = (url: string): string | null => {
-    const match = url.match(/lovable\.(dev|app)\/projects\/([a-zA-Z0-9-]+)/);
-    return match ? match[2] : null;
-  };
-
   const handleUrlChange = (value: string) => {
     setUrl(value);
     // Auto-extract project ID as name if name is empty
@@ -65,7 +59,7 @@ export function LinkProjectDialog({
       return;
     }
 
-    if (!LOVABLE_URL_PATTERN.test(url)) {
+    if (!isValidLovableUrl(url)) {
       toast.error("Please enter a valid Lovable project URL");
       return;
     }
@@ -77,7 +71,7 @@ export function LinkProjectDialog({
       await onLink(url.trim(), projectName);
       toast.success("Project linked successfully");
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to link project");
     } finally {
       setIsLoading(false);
@@ -90,7 +84,7 @@ export function LinkProjectDialog({
       await onUnlink();
       toast.success("Project unlinked");
       onOpenChange(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to unlink project");
     } finally {
       setIsLoading(false);

@@ -1,0 +1,181 @@
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  MessageSquare,
+  MoreHorizontal,
+  Pin,
+  Archive,
+  Trash2,
+  Pencil,
+  Link2,
+  ExternalLink,
+  Copy,
+  Unlink,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from "date-fns";
+import type { Conversation } from "@/types/database";
+
+interface ConversationItemProps {
+  conversation: Conversation;
+  isActive: boolean;
+  onSelect: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+  onPin: () => void;
+  onArchive: () => void;
+  onOpenProject: () => void;
+  onCopyProjectUrl: () => void;
+  onUnlinkProject: () => void;
+}
+
+export const ConversationItem = memo(function ConversationItem({
+  conversation,
+  isActive,
+  onSelect,
+  onRename,
+  onDelete,
+  onPin,
+  onArchive,
+  onOpenProject,
+  onCopyProjectUrl,
+  onUnlinkProject,
+}: ConversationItemProps) {
+  const hasLinkedProject = !!conversation.lovable_project_url;
+
+  return (
+    <div
+      className={cn(
+        "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer",
+        "hover:bg-sidebar-accent transition-colors",
+        isActive && "bg-sidebar-accent"
+      )}
+      onClick={onSelect}
+    >
+      <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+
+      <div className="flex-1 min-w-0">
+        <p className={cn("text-sm truncate", isActive && "font-medium")}>
+          {conversation.title}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
+          {formatDistanceToNow(new Date(conversation.updated_at), {
+            addSuffix: true,
+          })}
+        </p>
+      </div>
+
+      {hasLinkedProject && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link2 className="h-3 w-3 text-primary shrink-0" />
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            <p className="text-xs">
+              Linked: {conversation.lovable_project_name || "Lovable Project"}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {conversation.is_pinned && (
+        <Pin className="h-3 w-3 text-primary shrink-0" />
+      )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent shrink-0"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="bg-popover">
+          {hasLinkedProject && (
+            <>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenProject();
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Project
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCopyProjectUrl();
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Project URL
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnlinkProject();
+                }}
+              >
+                <Unlink className="h-4 w-4 mr-2" />
+                Unlink Project
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onRename();
+            }}
+          >
+            <Pencil className="h-4 w-4 mr-2" />
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onPin();
+            }}
+          >
+            <Pin className="h-4 w-4 mr-2" />
+            {conversation.is_pinned ? "Unpin" : "Pin"}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onArchive();
+            }}
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Archive
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+});
