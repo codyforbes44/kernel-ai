@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { MessageAttachments, type Attachment } from "./MessageAttachments";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { messageService } from "@/services/messageService";
@@ -49,6 +50,10 @@ export function ChatMessage({
   const [helpfulState, setHelpfulState] = useState<boolean | null>(message.is_helpful);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const isUser = message.role === "user";
+
+  // Extract attachments from metadata
+  const attachments: Attachment[] = 
+    (message.metadata as { attachments?: Attachment[] } | null)?.attachments || [];
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
@@ -165,7 +170,12 @@ export function ChatMessage({
             )}
           >
             {isUser ? (
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              <>
+                {message.content && (
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                )}
+                <MessageAttachments attachments={attachments} isUser />
+              </>
             ) : (
               <MarkdownRenderer content={message.content} />
             )}
