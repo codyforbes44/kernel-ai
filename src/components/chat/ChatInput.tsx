@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,6 +12,7 @@ import {
   Paperclip,
   Command,
   Loader2,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
@@ -41,8 +42,11 @@ export function ChatInput({
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateSearch, setTemplateSearch] = useState("");
   const [attachedFiles, setAttachedFiles] = useState<UploadedFile[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const dragCounterRef = useRef(0);
   const { uploadFiles, isUploading, deleteFile, allowedTypes } = useFileUpload();
 
   // Handle initial value for edit & resend
@@ -140,6 +144,46 @@ export function ChatInput({
     fileInputRef.current?.click();
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragOver(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    dragCounterRef.current = 0;
+
+    if (disabled || isUploading) return;
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const uploaded = await uploadFiles(files);
+    setAttachedFiles((prev) => [...prev, ...uploaded]);
+    textareaRef.current?.focus();
+  }, [disabled, isUploading, uploadFiles]);
+
   // Global shortcut to focus input
   useShortcut("l", () => textareaRef.current?.focus(), {
     meta: true,
@@ -179,13 +223,29 @@ export function ChatInput({
       />
 
       <div
+        ref={dropZoneRef}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         className={cn(
           "relative rounded-xl border border-border/50 bg-card/50 backdrop-blur",
           "focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20",
           "transition-all duration-200",
-          disabled && "opacity-50"
+          disabled && "opacity-50",
+          isDragOver && "border-primary border-dashed bg-primary/5"
         )}
       >
+        {/* Drag overlay */}
+        {isDragOver && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-primary/10 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2 text-primary">
+              <Upload className="h-8 w-8 animate-bounce" />
+              <span className="text-sm font-medium">Drop files here</span>
+            </div>
+          </div>
+        )}
+
         {/* File preview */}
         {attachedFiles.length > 0 && (
           <FilePreview
@@ -203,7 +263,7 @@ export function ChatInput({
           placeholder={
             disabled
               ? "Select a conversation to start chatting..."
-              : "Ask me anything... (/ for templates, ⌘Enter to send)"
+              : "Ask me anything... (/ for templates, ⌘Enter to send, drag files to attach)"
           }
           disabled={disabled || isLoading || isUploading}
           className={cn(
