@@ -6,6 +6,8 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useTemplateInjection } from "@/hooks/useTemplateInjection";
+import { templateService } from "@/services/templateService";
 import { ConversationList } from "./ConversationList";
 import { TemplatesList } from "./TemplatesList";
 import {
@@ -28,6 +30,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { currentProject, createConversation, refresh } = useWorkspace();
+  const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("chats");
 
@@ -50,6 +53,13 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const handleRefresh = useCallback(async () => {
     await refresh();
   }, [refresh]);
+
+  const handleTemplateSelect = (content: string) => {
+    const variables = templateService.extractVariables(content);
+    setPendingTemplate(content, variables);
+    onOpenChange(false); // Close the sidebar
+    setActiveTab("chats"); // Switch to chats tab
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -108,7 +118,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             </TabsContent>
 
             <TabsContent value="templates" className="m-0 p-3 h-full overflow-auto">
-              <TemplatesList />
+              <TemplatesList onSelectTemplate={handleTemplateSelect} />
             </TabsContent>
           </div>
         </Tabs>
