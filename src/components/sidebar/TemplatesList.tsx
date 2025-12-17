@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTemplates } from '@/hooks/useTemplates';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { TemplateEditorDialog } from '@/components/dialogs/TemplateEditorDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import type { PromptTemplate, TemplateCategory } from '@/types/database';
@@ -23,11 +29,23 @@ import {
   Star,
   StarOff,
   FileText,
+  Download,
+  Upload,
+  MoreVertical,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TemplatesListProps {
   onSelectTemplate?: (content: string) => void;
+}
+
+interface ExportedTemplate {
+  name: string;
+  description: string | null;
+  content: string;
+  category: TemplateCategory;
+  variables: string[];
+  is_favorite: boolean;
 }
 
 const categoryColors: Record<TemplateCategory, string> = {
@@ -43,14 +61,113 @@ const categoryColors: Record<TemplateCategory, string> = {
   custom: 'bg-muted text-muted-foreground',
 };
 
+const validCategories: TemplateCategory[] = [
+  'debug', 'component', 'database', 'edge_function', 'rls',
+  'performance', 'ui_ux', 'refactor', 'docs', 'custom'
+];
+
 export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
-  const { templates, createTemplate, updateTemplate, deleteTemplate, loading } = useTemplates();
+  const { templates, createTemplate, updateTemplate, deleteTemplate, loading, refresh } = useTemplates();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<PromptTemplate | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<PromptTemplate | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Export templates to JSON file
+  const handleExport = () => {
+    if (templates.length === 0) {
+      toast.error('No templates to export');
+      return;
+    }
+
+    const exportData: ExportedTemplate[] = templates.map(t => ({
+      name: t.name,
+      description: t.description,
+      content: t.content,
+      category: t.category,
+      variables: t.variables || [],
+      is_favorite: t.is_favorite || false,
+    }));
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `templates-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${templates.length} templates`);
+  };
+
+  // Import templates from JSON file
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Validate the data structure
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid format: expected an array of templates');
+      }
+
+      let imported = 0;
+      let skipped = 0;
+
+      for (const item of data) {
+        // Validate required fields
+        if (!item.name || !item.content) {
+          skipped++;
+          continue;
+        }
+
+        // Validate category
+        const category = validCategories.includes(item.category) ? item.category : 'custom';
+
+        // Check for duplicate names
+        const exists = templates.some(t => t.name.toLowerCase() === item.name.toLowerCase());
+        if (exists) {
+          skipped++;
+          continue;
+        }
+
+        await createTemplate({
+          name: item.name,
+          description: item.description || null,
+          content: item.content,
+          category,
+          variables: Array.isArray(item.variables) ? item.variables : [],
+        });
+        imported++;
+      }
+
+      await refresh();
+
+      if (imported > 0) {
+        toast.success(`Imported ${imported} template${imported !== 1 ? 's' : ''}${skipped > 0 ? ` (${skipped} skipped)` : ''}`);
+      } else {
+        toast.info('No new templates imported (all duplicates or invalid)');
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Failed to import templates. Please check the file format.');
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const filteredTemplates = templates.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -188,7 +305,16 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
 
   return (
     <div className="space-y-3">
-      {/* Search and Create */}
+      {/* Hidden file input for import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleImport}
+        className="hidden"
+      />
+
+      {/* Search and Actions */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -199,15 +325,42 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
             className="pl-8 h-9"
           />
         </div>
-        <Button
-          size="sm"
-          onClick={() => {
-            setEditingTemplate(null);
-            setEditorOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingTemplate(null);
+                setEditorOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Create template</TooltipContent>
+        </Tooltip>
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isImporting}>
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>More actions</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import templates
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExport} disabled={templates.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Export templates
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Templates List */}
