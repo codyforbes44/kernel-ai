@@ -22,7 +22,7 @@ interface LinkProjectDialogProps {
   onUnlink: () => Promise<void>;
 }
 
-const LOVABLE_URL_PATTERN = /^https:\/\/(www\.)?lovable\.dev\/projects\/[a-zA-Z0-9-]+/;
+const LOVABLE_URL_PATTERN = /^https:\/\/(www\.)?(lovable\.dev|lovable\.app)\/projects\/[a-zA-Z0-9-]+/;
 
 export function LinkProjectDialog({
   open,
@@ -44,8 +44,8 @@ export function LinkProjectDialog({
   }, [open, currentUrl, currentName]);
 
   const extractProjectId = (url: string): string | null => {
-    const match = url.match(/lovable\.dev\/projects\/([a-zA-Z0-9-]+)/);
-    return match ? match[1] : null;
+    const match = url.match(/lovable\.(dev|app)\/projects\/([a-zA-Z0-9-]+)/);
+    return match ? match[2] : null;
   };
 
   const handleUrlChange = (value: string) => {
