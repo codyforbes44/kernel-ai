@@ -190,6 +190,39 @@ export function useWorkspace() {
     }
   }, [selectedConversationId]);
 
+  // Update project
+  const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
+    const { error } = await supabase
+      .from('projects')
+      .update(updates)
+      .eq('id', id);
+
+    if (!error) {
+      setProjects(prev => 
+        prev.map(p => p.id === id ? { ...p, ...updates } : p)
+      );
+    }
+    return !error;
+  }, []);
+
+  // Delete project
+  const deleteProject = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setProjects(prev => prev.filter(p => p.id !== id));
+      // Also remove conversations for this project from local state
+      setConversations(prev => prev.filter(c => c.project_id !== id));
+      if (selectedProjectId === id) {
+        setSelectedProjectId(null);
+      }
+    }
+    return !error;
+  }, [selectedProjectId]);
+
   // Get conversations for current project
   const projectConversations = conversations.filter(
     c => c.project_id === selectedProjectId
@@ -222,6 +255,8 @@ export function useWorkspace() {
     createProject,
     updateConversation,
     deleteConversation,
+    updateProject,
+    deleteProject,
     loading,
     refresh: fetchData,
   };
