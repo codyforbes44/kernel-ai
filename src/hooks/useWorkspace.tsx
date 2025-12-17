@@ -1,9 +1,39 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Workspace, Project, Conversation } from '@/types/database';
 import { useAuth } from './useAuth';
 
-export function useWorkspace() {
+interface WorkspaceContextType {
+  workspaces: Workspace[];
+  projects: Project[];
+  conversations: Conversation[];
+  workspaceProjects: Project[];
+  projectConversations: Conversation[];
+  currentWorkspace: Workspace | null;
+  currentProject: Project | null;
+  currentConversation: Conversation | null;
+  selectedWorkspaceId: string | null;
+  selectedProjectId: string | null;
+  selectedConversationId: string | null;
+  setSelectedWorkspaceId: (id: string | null) => void;
+  setSelectedProjectId: (id: string | null) => void;
+  setSelectedConversationId: (id: string | null) => void;
+  setCurrentWorkspace: (workspace: Workspace | null) => void;
+  setCurrentProject: (project: Project | null) => void;
+  setCurrentConversation: (conversation: Conversation | null) => void;
+  createConversation: (projectId: string, title?: string) => Promise<Conversation | null>;
+  createProject: (name: string, description?: string) => Promise<Project | null>;
+  updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
+  updateProject: (id: string, updates: Partial<Project>) => Promise<boolean>;
+  deleteProject: (id: string) => Promise<boolean>;
+  loading: boolean;
+  refresh: () => Promise<void>;
+}
+
+const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
+
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -13,10 +43,8 @@ export function useWorkspace() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Track if we've done initial selection to avoid infinite loops
   const initializedRef = useRef(false);
 
-  // Computed current items
   const currentWorkspace = useMemo(
     () => workspaces.find(w => w.id === selectedWorkspaceId) || null,
     [workspaces, selectedWorkspaceId]
@@ -32,7 +60,6 @@ export function useWorkspace() {
     [conversations, selectedConversationId]
   );
 
-  // Fetch all data - only depends on user, not on selected IDs
   const fetchData = useCallback(async () => {
     if (!user) return;
     
@@ -72,7 +99,6 @@ export function useWorkspace() {
         setConversations(conversationsData as Conversation[]);
       }
 
-      // Only set defaults on first load
       if (!initializedRef.current) {
         if (workspacesData && workspacesData.length > 0) {
           const defaultWs = workspacesData.find(w => w.is_default) || workspacesData[0];
@@ -94,10 +120,18 @@ export function useWorkspace() {
   useEffect(() => {
     if (user) {
       fetchData();
+    } else {
+      // Reset state when user logs out
+      setWorkspaces([]);
+      setProjects([]);
+      setConversations([]);
+      setSelectedWorkspaceId(null);
+      setSelectedProjectId(null);
+      setSelectedConversationId(null);
+      initializedRef.current = false;
     }
   }, [user, fetchData]);
 
-  // Setters with object support
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
     setSelectedWorkspaceId(workspace?.id || null);
   }, []);
@@ -110,7 +144,6 @@ export function useWorkspace() {
     setSelectedConversationId(conversation?.id || null);
   }, []);
 
-  // Create new conversation
   const createConversation = useCallback(async (projectId: string, title = 'New Conversation') => {
     if (!user) return null;
 
@@ -135,7 +168,6 @@ export function useWorkspace() {
     return newConversation;
   }, [user]);
 
-  // Create new project - simplified signature
   const createProject = useCallback(async (name: string, description?: string) => {
     if (!user || !selectedWorkspaceId) return null;
 
@@ -161,7 +193,6 @@ export function useWorkspace() {
     return newProject;
   }, [user, selectedWorkspaceId]);
 
-  // Update conversation
   const updateConversation = useCallback(async (id: string, updates: Partial<Conversation>) => {
     const { error } = await supabase
       .from('conversations')
@@ -175,7 +206,6 @@ export function useWorkspace() {
     }
   }, []);
 
-  // Delete conversation
   const deleteConversation = useCallback(async (id: string) => {
     const { error } = await supabase
       .from('conversations')
@@ -190,7 +220,6 @@ export function useWorkspace() {
     }
   }, [selectedConversationId]);
 
-  // Update project
   const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
     const { error } = await supabase
       .from('projects')
@@ -205,7 +234,6 @@ export function useWorkspace() {
     return !error;
   }, []);
 
-  // Delete project
   const deleteProject = useCallback(async (id: string) => {
     const { error } = await supabase
       .from('projects')
@@ -214,7 +242,6 @@ export function useWorkspace() {
 
     if (!error) {
       setProjects(prev => prev.filter(p => p.id !== id));
-      // Also remove conversations for this project from local state
       setConversations(prev => prev.filter(c => c.project_id !== id));
       if (selectedProjectId === id) {
         setSelectedProjectId(null);
@@ -223,17 +250,15 @@ export function useWorkspace() {
     return !error;
   }, [selectedProjectId]);
 
-  // Get conversations for current project
   const projectConversations = conversations.filter(
     c => c.project_id === selectedProjectId
   );
 
-  // Get projects for current workspace
   const workspaceProjects = projects.filter(
     p => p.workspace_id === selectedWorkspaceId
   );
 
-  return {
+  const value: WorkspaceContextType = {
     workspaces,
     projects,
     conversations,
@@ -260,4 +285,18 @@ export function useWorkspace() {
     loading,
     refresh: fetchData,
   };
+
+  return (
+    <WorkspaceContext.Provider value={value}>
+      {children}
+    </WorkspaceContext.Provider>
+  );
+}
+
+export function useWorkspace() {
+  const context = useContext(WorkspaceContext);
+  if (context === undefined) {
+    throw new Error('useWorkspace must be used within a WorkspaceProvider');
+  }
+  return context;
 }
