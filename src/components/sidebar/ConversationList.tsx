@@ -20,6 +20,7 @@ import {
   Trash2,
   Pencil,
   Link2,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -139,6 +140,17 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-popover">
+            {conversation.lovable_project_url && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(conversation.lovable_project_url!, "_blank");
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Project
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
