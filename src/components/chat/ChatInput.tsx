@@ -184,6 +184,37 @@ export function ChatInput({
     textareaRef.current?.focus();
   }, [disabled, isUploading, uploadFiles]);
 
+  // Clipboard paste handler for images
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    if (disabled || isUploading) return;
+
+    const items = Array.from(e.clipboardData.items);
+    const imageItems = items.filter(item => item.type.startsWith('image/'));
+    
+    if (imageItems.length === 0) return;
+
+    // Prevent default paste behavior for images
+    e.preventDefault();
+
+    const files: File[] = [];
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        // Create a new file with a proper name since clipboard images don't have names
+        const extension = file.type.split('/')[1] || 'png';
+        const namedFile = new File([file], `pasted-image-${Date.now()}.${extension}`, {
+          type: file.type,
+        });
+        files.push(namedFile);
+      }
+    }
+
+    if (files.length > 0) {
+      const uploaded = await uploadFiles(files);
+      setAttachedFiles((prev) => [...prev, ...uploaded]);
+    }
+  }, [disabled, isUploading, uploadFiles]);
+
   // Global shortcut to focus input
   useShortcut("l", () => textareaRef.current?.focus(), {
     meta: true,
@@ -260,10 +291,11 @@ export function ChatInput({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder={
             disabled
               ? "Select a conversation to start chatting..."
-              : "Ask me anything... (/ for templates, ⌘Enter to send, drag files to attach)"
+              : "Ask me anything... (⌘V to paste images, drag files, / for templates)"
           }
           disabled={disabled || isLoading || isUploading}
           className={cn(
