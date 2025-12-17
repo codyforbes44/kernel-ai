@@ -261,6 +261,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_templates: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          share_code: string
+          shared_by_user_id: string
+          template_category: string
+          template_content: string
+          template_description: string | null
+          template_name: string
+          template_variables: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          share_code: string
+          shared_by_user_id: string
+          template_category?: string
+          template_content: string
+          template_description?: string | null
+          template_name: string
+          template_variables?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          share_code?: string
+          shared_by_user_id?: string
+          template_category?: string
+          template_content?: string
+          template_description?: string | null
+          template_name?: string
+          template_variables?: string[] | null
+        }
+        Relationships: []
+      }
       usage_analytics: {
         Row: {
           conversations_created: number | null

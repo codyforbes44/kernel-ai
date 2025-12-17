@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/tooltip';
 import { TemplateEditorDialog } from '@/components/dialogs/TemplateEditorDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { ShareTemplateDialog } from '@/components/dialogs/ShareTemplateDialog';
+import { ImportFromCodeDialog } from '@/components/dialogs/ImportFromCodeDialog';
 import type { PromptTemplate, TemplateCategory } from '@/types/database';
 import { toast } from 'sonner';
 import {
@@ -32,6 +34,8 @@ import {
   Download,
   Upload,
   MoreVertical,
+  Share2,
+  Link,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -75,6 +79,9 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<PromptTemplate | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [templateToShare, setTemplateToShare] = useState<PromptTemplate | null>(null);
+  const [importCodeDialogOpen, setImportCodeDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Export templates to JSON file
@@ -167,6 +174,25 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
         fileInputRef.current.value = '';
       }
     }
+  };
+
+  // Import from share code
+  const handleImportFromCode = async (template: {
+    name: string;
+    description: string | null;
+    content: string;
+    category: TemplateCategory;
+    variables: string[];
+  }) => {
+    // Check for duplicate names
+    const exists = templates.some(t => t.name.toLowerCase() === template.name.toLowerCase());
+    if (exists) {
+      // Append a number to make it unique
+      template.name = `${template.name} (imported)`;
+    }
+
+    await createTemplate(template);
+    await refresh();
   };
 
   const filteredTemplates = templates.filter((t) => {
@@ -278,6 +304,16 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
                 </>
               )}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => {
+              e.stopPropagation();
+              setTemplateToShare(template);
+              setShareDialogOpen(true);
+            }}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
               onClick={(e) => {
@@ -351,13 +387,18 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
             <TooltipContent>More actions</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setImportCodeDialogOpen(true)}>
+              <Link className="h-4 w-4 mr-2" />
+              Import from code
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" />
-              Import templates
+              Import from file
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleExport} disabled={templates.length === 0}>
               <Download className="h-4 w-4 mr-2" />
-              Export templates
+              Export all templates
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -422,6 +463,18 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
         title="Delete Template"
         description={`Are you sure you want to delete "${templateToDelete?.name}"? This action cannot be undone.`}
         onConfirm={handleDelete}
+      />
+
+      <ShareTemplateDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        template={templateToShare}
+      />
+
+      <ImportFromCodeDialog
+        open={importCodeDialogOpen}
+        onOpenChange={setImportCodeDialogOpen}
+        onImport={handleImportFromCode}
       />
     </div>
   );
