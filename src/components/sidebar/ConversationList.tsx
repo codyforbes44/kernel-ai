@@ -8,6 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   MessageSquare,
   MoreHorizontal,
   Pin,
@@ -109,7 +114,14 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
         </div>
 
         {conversation.lovable_project_url && (
-          <Link2 className="h-3 w-3 text-primary shrink-0" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link2 className="h-3 w-3 text-primary shrink-0" />
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">Linked: {conversation.lovable_project_name || "Lovable Project"}</p>
+            </TooltipContent>
+          </Tooltip>
         )}
 
         {conversation.is_pinned && (
