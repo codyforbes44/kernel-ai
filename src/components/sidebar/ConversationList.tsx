@@ -21,6 +21,7 @@ import {
   Pencil,
   Link2,
   ExternalLink,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -149,6 +150,18 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Project
+              </DropdownMenuItem>
+            )}
+            {conversation.lovable_project_url && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(conversation.lovable_project_url!);
+                  toast.success("Project URL copied");
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Project URL
               </DropdownMenuItem>
             )}
             <DropdownMenuItem
