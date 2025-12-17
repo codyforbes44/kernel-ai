@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { RenameDialog } from "@/components/dialogs/RenameDialog";
+import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { toast } from "sonner";
+import type { Conversation } from "@/types/database";
 
 interface ConversationListProps {
   searchQuery: string;
@@ -27,7 +32,12 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
     currentConversation,
     setCurrentConversation,
     currentProject,
+    updateConversation,
+    deleteConversation,
   } = useWorkspace();
+
+  const [renameDialog, setRenameDialog] = useState<Conversation | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<Conversation | null>(null);
 
   const filteredConversations = conversations
     .filter((conv) => {
@@ -41,7 +51,32 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
   const pinnedConversations = filteredConversations.filter((c) => c.is_pinned);
   const regularConversations = filteredConversations.filter((c) => !c.is_pinned);
 
-  const renderConversation = (conversation: typeof conversations[0]) => {
+  const handleRename = async (newName: string) => {
+    if (!renameDialog) return;
+    await updateConversation(renameDialog.id, { title: newName });
+    toast.success("Conversation renamed");
+    setRenameDialog(null);
+  };
+
+  const handlePin = async (conversation: Conversation) => {
+    const newPinned = !conversation.is_pinned;
+    await updateConversation(conversation.id, { is_pinned: newPinned });
+    toast.success(newPinned ? "Conversation pinned" : "Conversation unpinned");
+  };
+
+  const handleArchive = async (conversation: Conversation) => {
+    await updateConversation(conversation.id, { is_archived: true });
+    toast.success("Conversation archived");
+  };
+
+  const handleDelete = async () => {
+    if (!deleteDialog) return;
+    await deleteConversation(deleteDialog.id);
+    toast.success("Conversation deleted");
+    setDeleteDialog(null);
+  };
+
+  const renderConversation = (conversation: Conversation) => {
     const isActive = currentConversation?.id === conversation.id;
 
     return (
@@ -86,20 +121,41 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+          <DropdownMenuContent align="end" className="bg-popover">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setRenameDialog(conversation);
+              }}
+            >
               <Pencil className="h-4 w-4 mr-2" />
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePin(conversation);
+              }}
+            >
               <Pin className="h-4 w-4 mr-2" />
               {conversation.is_pinned ? "Unpin" : "Pin"}
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                handleArchive(conversation);
+              }}
+            >
               <Archive className="h-4 w-4 mr-2" />
               Archive
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteDialog(conversation);
+              }}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </DropdownMenuItem>
@@ -122,25 +178,44 @@ export function ConversationList({ searchQuery }: ConversationListProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {pinnedConversations.length > 0 && (
-        <div className="space-y-1">
-          <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-            <Pin className="h-3 w-3" />
-            Pinned
-          </span>
-          {pinnedConversations.map(renderConversation)}
-        </div>
-      )}
+    <>
+      <div className="space-y-3">
+        {pinnedConversations.length > 0 && (
+          <div className="space-y-1">
+            <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <Pin className="h-3 w-3" />
+              Pinned
+            </span>
+            {pinnedConversations.map(renderConversation)}
+          </div>
+        )}
 
-      {regularConversations.length > 0 && (
-        <div className="space-y-1">
-          <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Recent
-          </span>
-          {regularConversations.map(renderConversation)}
-        </div>
-      )}
-    </div>
+        {regularConversations.length > 0 && (
+          <div className="space-y-1">
+            <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Recent
+            </span>
+            {regularConversations.map(renderConversation)}
+          </div>
+        )}
+      </div>
+
+      <RenameDialog
+        open={!!renameDialog}
+        onOpenChange={(open) => !open && setRenameDialog(null)}
+        currentName={renameDialog?.title || ""}
+        onRename={handleRename}
+        title="Rename Conversation"
+      />
+
+      <DeleteConfirmDialog
+        open={!!deleteDialog}
+        onOpenChange={(open) => !open && setDeleteDialog(null)}
+        title="Delete Conversation"
+        description="This will permanently delete this conversation and all its messages. This action cannot be undone."
+        onConfirm={handleDelete}
+        destructive
+      />
+    </>
   );
 }

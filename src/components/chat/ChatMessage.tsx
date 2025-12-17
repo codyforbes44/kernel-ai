@@ -16,24 +16,38 @@ import {
   ThumbsDown,
   User,
   Sparkles,
+  Trash2,
+  Pin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { messageService } from "@/services/messageService";
+import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
 
 interface ChatMessageProps {
   message: Message;
   isStreaming?: boolean;
   onRegenerate?: () => void;
   onEdit?: (content: string) => void;
+  onDelete?: () => void;
+  onPin?: (isPinned: boolean) => void;
 }
 
-export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  isStreaming,
+  onRegenerate,
+  onEdit,
+  onDelete,
+  onPin,
+}: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
   const [isStarred, setIsStarred] = useState(message.is_starred);
+  const [isPinned, setIsPinned] = useState(message.is_pinned);
   const [helpfulState, setHelpfulState] = useState<boolean | null>(message.is_helpful);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const isUser = message.role === "user";
 
   const handleCopy = async () => {
@@ -55,6 +69,12 @@ export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: Chat
     }
   };
 
+  const handlePin = async () => {
+    const newValue = !isPinned;
+    setIsPinned(newValue);
+    onPin?.(newValue);
+  };
+
   const handleHelpful = async (value: boolean) => {
     const newValue = helpfulState === value ? null : value;
     setHelpfulState(newValue);
@@ -68,119 +88,193 @@ export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: Chat
     }
   };
 
+  const handleDelete = () => {
+    setShowDeleteDialog(false);
+    onDelete?.();
+  };
+
   return (
-    <div
-      className={cn(
-        "group relative flex gap-4 animate-fade-in",
-        isUser ? "flex-row-reverse" : "flex-row"
-      )}
-    >
-      {/* Avatar */}
+    <>
       <div
         className={cn(
-          "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted border border-border/50"
+          "group relative flex gap-4 animate-fade-in",
+          isUser ? "flex-row-reverse" : "flex-row",
+          isPinned && "border-l-2 border-primary pl-2"
         )}
       >
-        {isUser ? (
-          <User className="h-4 w-4" />
-        ) : (
-          <Sparkles className="h-4 w-4 text-primary" />
-        )}
-      </div>
-
-      {/* Message Content */}
-      <div
-        className={cn(
-          "flex-1 min-w-0 space-y-2",
-          isUser && "flex flex-col items-end"
-        )}
-      >
-        {/* Header */}
+        {/* Avatar */}
         <div
           className={cn(
-            "flex items-center gap-2 text-xs text-muted-foreground",
-            isUser && "flex-row-reverse"
-          )}
-        >
-          <span className="font-medium">
-            {isUser ? "You" : "Lovable AI"}
-          </span>
-          <span>•</span>
-          <span>
-            {formatDistanceToNow(new Date(message.created_at), {
-              addSuffix: true,
-            })}
-          </span>
-          {message.model && !isUser && (
-            <>
-              <span>•</span>
-              <span className="text-primary/70">{message.model}</span>
-            </>
-          )}
-        </div>
-
-        {/* Content */}
-        <div
-          className={cn(
-            "rounded-xl px-4 py-3",
+            "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
             isUser
-              ? "bg-primary text-primary-foreground max-w-[85%]"
-              : "bg-muted/50 border border-border/50 w-full"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted border border-border/50"
           )}
         >
           {isUser ? (
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            <User className="h-4 w-4" />
           ) : (
-            <MarkdownRenderer content={message.content} />
-          )}
-
-          {isStreaming && (
-            <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1" />
+            <Sparkles className="h-4 w-4 text-primary" />
           )}
         </div>
 
-        {/* Actions */}
+        {/* Message Content */}
         <div
           className={cn(
-            "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-            isUser && "flex-row-reverse"
+            "flex-1 min-w-0 space-y-2",
+            isUser && "flex flex-col items-end"
           )}
         >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleCopy}
-              >
-                {copied ? (
-                  <Check className="h-3.5 w-3.5 text-green-500" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Copy</TooltipContent>
-          </Tooltip>
+          {/* Header */}
+          <div
+            className={cn(
+              "flex items-center gap-2 text-xs text-muted-foreground",
+              isUser && "flex-row-reverse"
+            )}
+          >
+            <span className="font-medium">
+              {isUser ? "You" : "Lovable AI"}
+            </span>
+            <span>•</span>
+            <span>
+              {formatDistanceToNow(new Date(message.created_at), {
+                addSuffix: true,
+              })}
+            </span>
+            {message.model && !isUser && (
+              <>
+                <span>•</span>
+                <span className="text-primary/70">{message.model}</span>
+              </>
+            )}
+            {isPinned && (
+              <>
+                <span>•</span>
+                <Pin className="h-3 w-3 text-primary" />
+              </>
+            )}
+          </div>
 
-          {!isUser && !isStreaming && (
-            <>
+          {/* Content */}
+          <div
+            className={cn(
+              "rounded-xl px-4 py-3",
+              isUser
+                ? "bg-primary text-primary-foreground max-w-[85%]"
+                : "bg-muted/50 border border-border/50 w-full"
+            )}
+          >
+            {isUser ? (
+              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              <MarkdownRenderer content={message.content} />
+            )}
+
+            {isStreaming && (
+              <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1" />
+            )}
+          </div>
+
+          {/* Actions */}
+          {!isStreaming && (
+            <div
+              className={cn(
+                "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
+                isUser && "flex-row-reverse"
+              )}
+            >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    onClick={onRegenerate}
+                    onClick={handleCopy}
                   >
-                    <RefreshCw className="h-3.5 w-3.5" />
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Regenerate</TooltipContent>
+                <TooltipContent>Copy</TooltipContent>
+              </Tooltip>
+
+              {!isUser && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={onRegenerate}
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Regenerate</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("h-7 w-7", helpfulState === true && "text-green-500")}
+                        onClick={() => handleHelpful(true)}
+                      >
+                        <ThumbsUp className={cn("h-3.5 w-3.5", helpfulState === true && "fill-current")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Helpful</TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("h-7 w-7", helpfulState === false && "text-destructive")}
+                        onClick={() => handleHelpful(false)}
+                      >
+                        <ThumbsDown className={cn("h-3.5 w-3.5", helpfulState === false && "fill-current")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Not helpful</TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+
+              {isUser && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onEdit?.(message.content)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit & Resend</TooltipContent>
+                </Tooltip>
+              )}
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-7 w-7", isPinned && "text-primary")}
+                    onClick={handlePin}
+                  >
+                    <Pin className={cn("h-3.5 w-3.5", isPinned && "fill-current")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isPinned ? "Unpin" : "Pin"}</TooltipContent>
               </Tooltip>
 
               <Tooltip>
@@ -188,13 +282,20 @@ export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: Chat
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn("h-7 w-7", helpfulState === true && "text-green-500")}
-                    onClick={() => handleHelpful(true)}
+                    className="h-7 w-7"
+                    onClick={handleStar}
                   >
-                    <ThumbsUp className={cn("h-3.5 w-3.5", helpfulState === true && "fill-current")} />
+                    <Star
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        isStarred && "fill-yellow-500 text-yellow-500"
+                      )}
+                    />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Helpful</TooltipContent>
+                <TooltipContent>
+                  {isStarred ? "Unstar" : "Star"}
+                </TooltipContent>
               </Tooltip>
 
               <Tooltip>
@@ -202,55 +303,27 @@ export function ChatMessage({ message, isStreaming, onRegenerate, onEdit }: Chat
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn("h-7 w-7", helpfulState === false && "text-destructive")}
-                    onClick={() => handleHelpful(false)}
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    onClick={() => setShowDeleteDialog(true)}
                   >
-                    <ThumbsDown className={cn("h-3.5 w-3.5", helpfulState === false && "fill-current")} />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Not helpful</TooltipContent>
+                <TooltipContent>Delete</TooltipContent>
               </Tooltip>
-            </>
+            </div>
           )}
-
-          {isUser && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => onEdit?.(message.content)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit & Resend</TooltipContent>
-            </Tooltip>
-          )}
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleStar}
-              >
-                <Star
-                  className={cn(
-                    "h-3.5 w-3.5",
-                    isStarred && "fill-yellow-500 text-yellow-500"
-                  )}
-                />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {isStarred ? "Unstar" : "Star"}
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
-    </div>
+
+      <DeleteConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Message"
+        description="Are you sure you want to delete this message? This action cannot be undone."
+        onConfirm={handleDelete}
+        destructive
+      />
+    </>
   );
 }
