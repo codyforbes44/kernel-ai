@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { templateService } from '@/services/templateService';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useVariableHistory } from '@/hooks/useVariableHistory';
+import { History, ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface TemplateVariablesDialogProps {
   open: boolean;
@@ -31,21 +40,26 @@ export function TemplateVariablesDialog({
 }: TemplateVariablesDialogProps) {
   const [variables, setVariables] = useState<string[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
+  const { getSuggestions, addMultipleToHistory } = useVariableHistory();
 
   useEffect(() => {
     if (open && templateContent) {
       const extractedVars = templateService.extractVariables(templateContent);
       setVariables(extractedVars);
-      // Initialize empty values
+      // Initialize with most recent history value or empty
       const initialValues: Record<string, string> = {};
       extractedVars.forEach((v) => {
-        initialValues[v] = '';
+        const suggestions = getSuggestions(v);
+        initialValues[v] = suggestions[0] || '';
       });
       setValues(initialValues);
     }
-  }, [open, templateContent]);
+  }, [open, templateContent, getSuggestions]);
 
   const handleApply = () => {
+    // Save used values to history
+    addMultipleToHistory(values);
+    
     const appliedContent = templateService.applyVariables(templateContent, values);
     onApply(appliedContent);
     onOpenChange(false);
@@ -83,24 +97,88 @@ export function TemplateVariablesDialog({
 
         <ScrollArea className="max-h-[300px] pr-4">
           <div className="space-y-4 py-2">
-            {variables.map((variable) => (
-              <div key={variable} className="space-y-2">
-                <Label htmlFor={variable} className="flex items-center gap-2">
-                  {formatVariableName(variable)}
-                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                    {`{{${variable}}}`}
-                  </code>
-                </Label>
-                <Input
-                  id={variable}
-                  placeholder={`Enter ${formatVariableName(variable).toLowerCase()}...`}
-                  value={values[variable] || ''}
-                  onChange={(e) =>
-                    setValues((prev) => ({ ...prev, [variable]: e.target.value }))
-                  }
-                />
-              </div>
-            ))}
+            {variables.map((variable) => {
+              const suggestions = getSuggestions(variable);
+              const hasSuggestions = suggestions.length > 0;
+
+              return (
+                <div key={variable} className="space-y-2">
+                  <Label htmlFor={variable} className="flex items-center gap-2">
+                    {formatVariableName(variable)}
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                      {`{{${variable}}}`}
+                    </code>
+                  </Label>
+                  <div className="flex gap-1">
+                    <Input
+                      id={variable}
+                      placeholder={`Enter ${formatVariableName(variable).toLowerCase()}...`}
+                      value={values[variable] || ''}
+                      onChange={(e) =>
+                        setValues((prev) => ({ ...prev, [variable]: e.target.value }))
+                      }
+                      className="flex-1"
+                    />
+                    {hasSuggestions && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0"
+                            title="Previous values"
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-[200px]">
+                          <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                            Recent values
+                          </div>
+                          {suggestions.map((suggestion, idx) => (
+                            <DropdownMenuItem
+                              key={idx}
+                              onClick={() =>
+                                setValues((prev) => ({ ...prev, [variable]: suggestion }))
+                              }
+                              className={cn(
+                                "cursor-pointer",
+                                values[variable] === suggestion && "bg-accent"
+                              )}
+                            >
+                              <span className="truncate">{suggestion}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                  {/* Quick suggestion chips for first 3 values */}
+                  {suggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {suggestions.slice(0, 3).map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() =>
+                            setValues((prev) => ({ ...prev, [variable]: suggestion }))
+                          }
+                          className={cn(
+                            "text-xs px-2 py-0.5 rounded-full border transition-colors",
+                            "hover:bg-accent hover:text-accent-foreground",
+                            values[variable] === suggestion
+                              ? "bg-primary/10 border-primary/30 text-primary"
+                              : "bg-muted/50 border-border text-muted-foreground"
+                          )}
+                        >
+                          {suggestion.length > 20 ? suggestion.slice(0, 20) + '...' : suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </ScrollArea>
 
