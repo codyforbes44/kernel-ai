@@ -15,7 +15,7 @@ interface QueuedMessage {
 const QUEUE_STORAGE_KEY = "offline_message_queue";
 
 export function useOfflineQueue() {
-  const isOnline = useOnlineStatus();
+  const { isOnline, isChecking, retryConnection, markApiSuccess } = useOnlineStatus();
   const [queue, setQueue] = useState<QueuedMessage[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const syncHandlerRef = useRef<((msg: QueuedMessage) => Promise<void>) | null>(null);
@@ -128,6 +128,9 @@ export function useOfflineQueue() {
 
   return {
     isOnline,
+    isChecking,
+    retryConnection,
+    markApiSuccess,
     queue,
     queueLength: queue.length,
     isSyncing,
