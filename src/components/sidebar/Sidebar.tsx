@@ -38,6 +38,7 @@ import {
   Archive,
   Shield,
   Download,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
@@ -54,13 +55,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
   const { isInstallable, installApp } = usePWA();
-  const { currentWorkspace, currentProject, createConversation } = useWorkspace();
+  const { currentWorkspace, currentProject, createConversation, isCreatingConversation } = useWorkspace();
   const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"conversations" | "templates">("conversations");
 
   const handleNewConversation = async () => {
-    if (currentProject) {
+    if (currentProject && !isCreatingConversation) {
       await createConversation(currentProject.id);
     }
   };
@@ -98,9 +99,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={handleNewConversation}
+                disabled={isCreatingConversation}
                 className="hover:bg-sidebar-accent"
               >
-                <Plus className="h-4 w-4" />
+                {isCreatingConversation ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">New conversation (⌘N)</TooltipContent>
@@ -254,11 +260,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       <div className="px-3 pb-2">
         <Button
           onClick={handleNewConversation}
+          disabled={isCreatingConversation}
           className="w-full justify-start gap-2"
           variant="outline"
         >
-          <Plus className="h-4 w-4" />
-          New Conversation
+          {isCreatingConversation ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
+          {isCreatingConversation ? "Creating..." : "New Conversation"}
         </Button>
       </div>
 

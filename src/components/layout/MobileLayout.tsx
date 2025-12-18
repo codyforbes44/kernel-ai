@@ -9,10 +9,10 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 export function MobileLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
-  const { currentProject, createConversation, currentConversation } = useWorkspace();
+  const { currentProject, createConversation, currentConversation, isCreatingConversation } = useWorkspace();
 
   const handleNewConversation = async () => {
-    if (currentProject) {
+    if (currentProject && !isCreatingConversation) {
       await createConversation(currentProject.id);
     }
   };
@@ -34,7 +34,8 @@ export function MobileLayout() {
       {showFab && (
         <FloatingActionButton
           onClick={handleNewConversation}
-          disabled={!currentProject}
+          disabled={!currentProject || isCreatingConversation}
+          isLoading={isCreatingConversation}
         />
       )}
 

@@ -50,8 +50,14 @@ const quickPrompts = [
 ];
 
 export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
-  const { currentProject, createConversation } = useWorkspace();
+  const { currentProject, createConversation, isCreatingConversation } = useWorkspace();
   const isMobile = useIsMobile();
+
+  const handleNewConversation = async () => {
+    if (currentProject && !isCreatingConversation) {
+      await createConversation(currentProject.id);
+    }
+  };
 
   if (type === "no-conversation") {
     return (
@@ -65,9 +71,12 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
           chatting with your AI assistant.
         </p>
         {currentProject && (
-          <Button onClick={() => createConversation(currentProject.id)}>
+          <Button 
+            onClick={handleNewConversation}
+            disabled={isCreatingConversation}
+          >
             <Sparkles className="h-4 w-4 mr-2" />
-            New Conversation
+            {isCreatingConversation ? "Creating..." : "New Conversation"}
           </Button>
         )}
       </div>
