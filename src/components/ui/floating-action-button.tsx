@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hapticFeedback } from "@/hooks/useHaptic";
 
@@ -7,12 +7,14 @@ interface FloatingActionButtonProps {
   onClick: () => void;
   className?: string;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 export function FloatingActionButton({
   onClick,
   className,
   disabled,
+  isLoading,
 }: FloatingActionButtonProps) {
   const handleClick = () => {
     hapticFeedback("medium");
@@ -33,7 +35,11 @@ export function FloatingActionButton({
         className
       )}
     >
-      <Plus className="h-6 w-6" />
+      {isLoading ? (
+        <Loader2 className="h-6 w-6 animate-spin" />
+      ) : (
+        <Plus className="h-6 w-6" />
+      )}
     </Button>
   );
 }

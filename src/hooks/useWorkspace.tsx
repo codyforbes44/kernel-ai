@@ -28,6 +28,7 @@ interface WorkspaceContextType {
   updateProject: (id: string, updates: Partial<Project>) => Promise<boolean>;
   deleteProject: (id: string) => Promise<boolean>;
   loading: boolean;
+  isCreatingConversation: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -42,6 +43,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   
   const initializedRef = useRef(false);
 
@@ -145,28 +147,33 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createConversation = useCallback(async (projectId: string, title = 'New Conversation') => {
-    if (!user) return null;
+    if (!user || isCreatingConversation) return null;
 
-    const { data, error } = await supabase
-      .from('conversations')
-      .insert({
-        project_id: projectId,
-        user_id: user.id,
-        title,
-      })
-      .select()
-      .single();
+    setIsCreatingConversation(true);
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({
+          project_id: projectId,
+          user_id: user.id,
+          title,
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating conversation:', error);
-      return null;
+      if (error) {
+        console.error('Error creating conversation:', error);
+        return null;
+      }
+
+      const newConversation = data as Conversation;
+      setConversations(prev => [newConversation, ...prev]);
+      setSelectedConversationId(newConversation.id);
+      return newConversation;
+    } finally {
+      setIsCreatingConversation(false);
     }
-
-    const newConversation = data as Conversation;
-    setConversations(prev => [newConversation, ...prev]);
-    setSelectedConversationId(newConversation.id);
-    return newConversation;
-  }, [user]);
+  }, [user, isCreatingConversation]);
 
   const createProject = useCallback(async (name: string, description?: string) => {
     if (!user || !selectedWorkspaceId) return null;
@@ -283,6 +290,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     updateProject,
     deleteProject,
     loading,
+    isCreatingConversation,
     refresh: fetchData,
   };
 

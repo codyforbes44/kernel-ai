@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { Menu, Plus, PanelRight, WifiOff } from "lucide-react";
+import { Menu, Plus, PanelRight, WifiOff, Loader2 } from "lucide-react";
 
 interface MobileHeaderProps {
   onOpenSidebar: () => void;
@@ -10,7 +10,7 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps) {
-  const { currentConversation, currentProject, createConversation } = useWorkspace();
+  const { currentConversation, currentProject, createConversation, isCreatingConversation } = useWorkspace();
   const haptic = useHaptic();
   const isOnline = useOnlineStatus();
 
@@ -24,10 +24,10 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
     onOpenContext();
   };
 
-  const handleNewConversation = () => {
-    if (currentProject) {
+  const handleNewConversation = async () => {
+    if (currentProject && !isCreatingConversation) {
       haptic.medium();
-      createConversation(currentProject.id);
+      await createConversation(currentProject.id);
     }
   };
 
@@ -63,10 +63,14 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
           variant="ghost"
           size="icon"
           onClick={handleNewConversation}
-          disabled={!currentProject}
+          disabled={!currentProject || isCreatingConversation}
           className="h-10 w-10"
         >
-          <Plus className="h-5 w-5" />
+          {isCreatingConversation ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <Plus className="h-5 w-5" />
+          )}
         </Button>
         <Button
           variant="ghost"
