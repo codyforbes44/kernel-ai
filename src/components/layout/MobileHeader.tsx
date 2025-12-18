@@ -12,7 +12,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps) {
   const { currentConversation, currentProject, createConversation, isCreatingConversation } = useWorkspace();
   const haptic = useHaptic();
-  const isOnline = useOnlineStatus();
+  const { isOnline } = useOnlineStatus();
 
   const handleOpenSidebar = () => {
     haptic.light();

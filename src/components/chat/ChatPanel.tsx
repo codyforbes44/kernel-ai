@@ -23,7 +23,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { currentConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
-  const { isOnline, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
+  const { isOnline, isChecking, retryConnection, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingContent, setEditingContent] = useState("");
 
@@ -158,6 +158,8 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
             isOnline={isOnline}
             queueLength={queueLength}
             isSyncing={isSyncing}
+            isChecking={isChecking}
+            onRetry={retryConnection}
           />
         </div>
       )}
