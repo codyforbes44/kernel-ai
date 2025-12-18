@@ -39,11 +39,13 @@ import {
   Shield,
   Download,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
 import { ConversationList } from "./ConversationList";
 import { TemplatesList } from "./TemplatesList";
+import { CleanupConversationsDialog } from "@/components/dialogs/CleanupConversationsDialog";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -59,6 +61,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"conversations" | "templates">("conversations");
+  const [cleanupDialogOpen, setCleanupDialogOpen] = useState(false);
 
   const handleNewConversation = async () => {
     if (currentProject && !isCreatingConversation) {
@@ -357,6 +360,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setCleanupDialogOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clean Up Empty Chats
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive">
               <LogOut className="h-4 w-4 mr-2" />
@@ -365,6 +372,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <CleanupConversationsDialog
+        open={cleanupDialogOpen}
+        onOpenChange={setCleanupDialogOpen}
+      />
     </div>
   );
 }
