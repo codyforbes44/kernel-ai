@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,12 +25,34 @@ interface ChatMessage {
   content: string;
   operations?: FileOperation[];
   isApplied?: boolean;
+  isStreaming?: boolean;
 }
 
 interface BuilderChatProps {
   files: ProjectFile[];
   onApplyOperations: (operations: FileOperation[]) => Promise<void>;
   projectId: string;
+}
+
+// Parse the streamed JSON response
+function parseStreamedResponse(content: string): AIResponse | null {
+  try {
+    // Clean up potential markdown code blocks
+    let jsonContent = content.trim();
+    if (jsonContent.startsWith('```json')) {
+      jsonContent = jsonContent.slice(7);
+    } else if (jsonContent.startsWith('```')) {
+      jsonContent = jsonContent.slice(3);
+    }
+    if (jsonContent.endsWith('```')) {
+      jsonContent = jsonContent.slice(0, -3);
+    }
+    jsonContent = jsonContent.trim();
+    
+    return JSON.parse(jsonContent);
+  } catch {
+    return null;
+  }
 }
 
 export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChatProps) {
@@ -48,7 +70,7 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
     }
   }, [messages]);
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
@@ -57,15 +79,25 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
       content: input.trim(),
     };
 
+    const assistantId = crypto.randomUUID();
+    
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+
+    // Add streaming assistant message
+    setMessages(prev => [...prev, {
+      id: assistantId,
+      role: 'assistant',
+      content: '',
+      isStreaming: true,
+    }]);
 
     try {
       // Prepare file context (limit to key files to avoid token limits)
       const fileContext = files
         .filter(f => f.type === 'file' && f.content)
-        .slice(0, 10) // Limit files
+        .slice(0, 10)
         .map(f => ({
           path: f.path,
           content: f.content || '',
@@ -95,35 +127,117 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
         throw new Error(errorData.error || `Request failed: ${response.status}`);
       }
 
-      const data: AIResponse = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.body) {
+        throw new Error('No response body');
       }
 
-      const assistantMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: data.thinking || 'Here are the changes I suggest:',
-        operations: data.operations,
-        isApplied: false,
-      };
+      // Stream the response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedContent = '';
+      let buffer = '';
 
-      setMessages(prev => [...prev, assistantMessage]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process SSE lines
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              streamedContent += content;
+              // Update the streaming message
+              setMessages(prev => prev.map(m => 
+                m.id === assistantId 
+                  ? { ...m, content: streamedContent }
+                  : m
+              ));
+            }
+          } catch {
+            // Incomplete JSON, put back and wait
+            buffer = line + '\n' + buffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (buffer.trim()) {
+        for (let raw of buffer.split('\n')) {
+          if (!raw) continue;
+          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+          if (raw.startsWith(':') || raw.trim() === '') continue;
+          if (!raw.startsWith('data: ')) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) streamedContent += content;
+          } catch { /* ignore */ }
+        }
+      }
+
+      // Parse the complete response
+      const parsedResponse = parseStreamedResponse(streamedContent);
+      
+      if (parsedResponse) {
+        setMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { 
+                ...m, 
+                content: parsedResponse.thinking || 'Here are the changes I suggest:',
+                operations: parsedResponse.operations,
+                isStreaming: false,
+                isApplied: false,
+              }
+            : m
+        ));
+      } else {
+        // Could not parse, show raw content
+        setMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { 
+                ...m, 
+                content: streamedContent || 'I generated some code but had trouble parsing it.',
+                isStreaming: false,
+              }
+            : m
+        ));
+      }
     } catch (error) {
       console.error('AI chat error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
       
-      // Add error message
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      }]);
+      // Update error in the assistant message
+      setMessages(prev => prev.map(m => 
+        m.id === assistantId 
+          ? { 
+              ...m, 
+              content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              isStreaming: false,
+            }
+          : m
+      ));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [input, isLoading, messages, files]);
 
   const applyOperations = async (messageId: string, operations: FileOperation[]) => {
     setApplyingId(messageId);
@@ -212,11 +326,29 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
                 ) : (
                   <div className="space-y-2">
                     <div className="bg-muted px-3 py-2 rounded-lg">
-                      {message.content}
+                      {message.isStreaming && !message.content ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span className="text-muted-foreground">Thinking...</span>
+                        </div>
+                      ) : message.isStreaming ? (
+                        <div>
+                          <pre className="whitespace-pre-wrap font-mono text-xs overflow-hidden">
+                            {message.content.slice(0, 500)}
+                            {message.content.length > 500 && '...'}
+                          </pre>
+                          <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="text-xs">Generating code...</span>
+                          </div>
+                        </div>
+                      ) : (
+                        message.content
+                      )}
                     </div>
                     
                     {/* File Operations */}
-                    {message.operations && message.operations.length > 0 && (
+                    {message.operations && message.operations.length > 0 && !message.isStreaming && (
                       <div className="bg-card border border-border rounded-lg p-2 space-y-1.5">
                         <div className="text-xs text-muted-foreground mb-2">
                           {message.operations.length} file operation(s):
@@ -263,13 +395,6 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
                 )}
               </div>
             ))}
-            
-            {isLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating code...
-              </div>
-            )}
           </div>
         )}
       </ScrollArea>
