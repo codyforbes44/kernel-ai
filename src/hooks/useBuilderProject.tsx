@@ -440,6 +440,81 @@ export function useBuilderProject(projectId?: string) {
     return file?.content || '';
   }, [fileContents, files]);
 
+  // Apply AI operations (create, update, delete files)
+  const applyAIOperations = useCallback(async (operations: Array<{
+    type: 'create' | 'update' | 'delete';
+    path: string;
+    content?: string;
+  }>) => {
+    if (!projectId) throw new Error('No project selected');
+    
+    const { getLanguageFromPath } = await import('@/types/builder');
+    
+    for (const op of operations) {
+      const fileName = op.path.split('/').pop() || op.path;
+      
+      if (op.type === 'create') {
+        // Check if file already exists
+        const existing = files.find(f => f.path === op.path);
+        if (existing) {
+          // Update instead
+          await supabase
+            .from('project_files')
+            .update({ content: op.content })
+            .eq('id', existing.id);
+        } else {
+          await supabase
+            .from('project_files')
+            .insert({
+              project_id: projectId,
+              path: op.path,
+              name: fileName,
+              type: 'file',
+              content: op.content || '',
+              language: getLanguageFromPath(op.path),
+            });
+        }
+      } else if (op.type === 'update') {
+        const file = files.find(f => f.path === op.path);
+        if (file) {
+          await supabase
+            .from('project_files')
+            .update({ content: op.content })
+            .eq('id', file.id);
+        } else {
+          // Create if doesn't exist
+          await supabase
+            .from('project_files')
+            .insert({
+              project_id: projectId,
+              path: op.path,
+              name: fileName,
+              type: 'file',
+              content: op.content || '',
+              language: getLanguageFromPath(op.path),
+            });
+        }
+      } else if (op.type === 'delete') {
+        const file = files.find(f => f.path === op.path);
+        if (file) {
+          await supabase
+            .from('project_files')
+            .delete()
+            .eq('id', file.id);
+          
+          // Close tab if open
+          setOpenTabs(prev => prev.filter(t => t.id !== file.id));
+          if (activeTabId === file.id) {
+            setActiveTabId(openTabs[0]?.id || null);
+          }
+        }
+      }
+    }
+    
+    // Refresh files
+    queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+  }, [projectId, files, activeTabId, openTabs, queryClient]);
+
   // Get active file
   const activeFile = files.find(f => f.id === activeTabId);
 
@@ -464,6 +539,7 @@ export function useBuilderProject(projectId?: string) {
     openFile,
     closeTab,
     setActiveTabId,
+    applyAIOperations,
     
     // Content management
     getFileContent,
