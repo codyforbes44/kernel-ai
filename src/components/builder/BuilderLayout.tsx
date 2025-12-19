@@ -7,7 +7,7 @@ import {
 import { FileExplorer } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
-import { PreviewPanel } from './PreviewPanel';
+import { SandpackPreview } from './SandpackPreview';
 import { BuilderChat } from './BuilderChat';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
 
         {/* Content */}
         {showPreview ? (
-          <PreviewPanel files={files} />
+          <SandpackPreview files={files} />
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             <EditorTabs
@@ -233,7 +233,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={showAIChat ? 25 : 40} minSize={20}>
-              <PreviewPanel files={files} />
+              <SandpackPreview files={files} />
             </ResizablePanel>
           </>
         )}
