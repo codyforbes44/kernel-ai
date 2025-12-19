@@ -4,6 +4,30 @@ import type { Message } from '@/types/database';
 import { useAuth } from './useAuth';
 import { format } from 'date-fns';
 
+// AI Model configurations
+export const AI_MODELS = {
+  'google/gemini-2.5-flash': {
+    name: 'Gemini Flash',
+    description: 'Fast & balanced',
+    speed: 'fast',
+  },
+  'google/gemini-2.5-pro': {
+    name: 'Gemini Pro',
+    description: 'Most capable',
+    speed: 'slow',
+  },
+  'google/gemini-2.5-flash-lite': {
+    name: 'Gemini Lite',
+    description: 'Fastest & cheapest',
+    speed: 'fastest',
+  },
+} as const;
+
+export type AIModel = keyof typeof AI_MODELS;
+
+// Maximum messages to send as context (prevents token overflow)
+const MAX_CONTEXT_MESSAGES = 20;
+
 // Helper to track usage analytics
 async function trackUsage(userId: string, messagesSent: number = 0, tokensUsed: number = 0) {
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -41,7 +65,9 @@ export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<AIModel>('google/gemini-2.5-flash');
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSendTimeRef = useRef<number>(0);
 
   const sendMessage = useCallback(async (
     content: string, 
@@ -50,6 +76,14 @@ export function useChat() {
     attachments?: Array<{ name: string; size: number; type: string; url: string; path: string }>
   ) => {
     if (!user) return null;
+
+    // Debounce: prevent sending within 1 second of last send
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < 1000) {
+      setError('Please wait a moment before sending another message');
+      return null;
+    }
+    lastSendTimeRef.current = now;
     
     setIsStreaming(true);
     setStreamingMessage('');
@@ -82,17 +116,21 @@ export function useChat() {
       return null;
     }
 
-    // Get previous messages for context
+    // Get previous messages for context - LIMITED to prevent token overflow
     const { data: previousMessages } = await supabase
       .from('messages')
       .select('role, content')
       .eq('conversation_id', conversationId)
-      .order('created_at');
+      .order('created_at', { ascending: false })
+      .limit(MAX_CONTEXT_MESSAGES);
 
-    const messages = previousMessages?.map(m => ({ 
-      role: m.role as 'user' | 'assistant' | 'system', 
-      content: m.content 
-    })) || [];
+    // Reverse to get chronological order and map to chat format
+    const messages = (previousMessages || [])
+      .reverse()
+      .map(m => ({ 
+        role: m.role as 'user' | 'assistant' | 'system', 
+        content: m.content 
+      }));
 
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
@@ -103,6 +141,7 @@ export function useChat() {
         },
         body: JSON.stringify({ 
           messages,
+          model: selectedModel,
           lovableProjectUrl: projectContext?.url,
           lovableProjectName: projectContext?.name,
         }),
@@ -172,7 +211,7 @@ export function useChat() {
           user_id: user.id,
           role: 'assistant' as const,
           content: fullContent,
-          model: 'google/gemini-2.5-pro',
+          model: selectedModel,
           tokens_used: estimatedTokens,
         });
 
@@ -195,7 +234,7 @@ export function useChat() {
       setStreamingMessage('');
       return null;
     }
-  }, [user]);
+  }, [user, selectedModel]);
 
   const stopStreaming = useCallback(() => {
     if (abortControllerRef.current) {
@@ -212,5 +251,7 @@ export function useChat() {
     isStreaming,
     streamingMessage,
     error,
+    selectedModel,
+    setSelectedModel,
   };
 }

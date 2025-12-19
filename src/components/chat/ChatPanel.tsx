@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useMessages } from "@/hooks/useMessages";
-import { useChat } from "@/hooks/useChat";
+import { useChat, type AIModel } from "@/hooks/useChat";
 import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
+import { ModelSelector } from "./ModelSelector";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { ChatInput } from "./ChatInput";
@@ -22,7 +23,7 @@ interface ChatPanelProps {
 export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { currentConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
-  const { streamingMessage, isStreaming, sendMessage, stopStreaming } = useChat();
+  const { streamingMessage, isStreaming, sendMessage, stopStreaming, selectedModel, setSelectedModel } = useChat();
   const { isOnline, isChecking, retryConnection, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -199,6 +200,13 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
         isMobile && "safe-area-bottom"
       )}>
         <div className={cn("p-4", isMobile ? "px-3" : "max-w-3xl mx-auto")}>
+          <div className="flex items-center gap-2 mb-2">
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+              disabled={isStreaming}
+            />
+          </div>
           <ChatInput
             onSend={handleSendMessage}
             isLoading={isStreaming}
