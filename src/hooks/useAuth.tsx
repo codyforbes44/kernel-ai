@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,23 +24,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      // Defer profile fetch with setTimeout to avoid deadlock
+      if (session?.user) {
+        setTimeout(() => {
+          fetchProfile(session.user.id);
+        }, 0);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
-        setLoading(false);
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
         setLoading(false);
       }
     });
@@ -70,7 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password,
         options: {
-          data: { display_name: displayName }
+          data: { display_name: displayName },
+          emailRedirectTo: `${window.location.origin}/`,
         }
       });
       return { error };
@@ -103,8 +111,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(prev => prev ? { ...prev, ...updates } : null);
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      return { error };
+    } catch (error) {
+      return { error: error as Error };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut, updateProfile }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      profile, 
+      loading, 
+      signUp, 
+      signIn, 
+      signOut, 
+      updateProfile,
+      resetPassword,
+    }}>
       {children}
     </AuthContext.Provider>
   );

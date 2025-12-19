@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import type { Profile, Conversation, Message } from '@/types/database';
@@ -41,7 +41,7 @@ export function useAdmin() {
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
 
       setIsAdmin(!!data && !error);
     } catch {
@@ -51,93 +51,118 @@ export function useAdmin() {
     }
   };
 
-  const fetchAllUsers = async () => {
+  // Optimized: Fetch all users with stats in batched queries instead of N+4 queries per user
+  const fetchAllUsers = useCallback(async () => {
     if (!isAdmin) return;
 
-    const { data: profiles, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      // Fetch all profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching users:', error);
-      return;
-    }
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        return;
+      }
 
-    // Get conversation and message counts for each user
-    const usersWithStats = await Promise.all(
-      (profiles || []).map(async (profile) => {
-        const { count: convCount } = await supabase
+      const userIds = profiles?.map(p => p.id) || [];
+      if (userIds.length === 0) {
+        setUsers([]);
+        return;
+      }
+
+      // Batch fetch: conversations, messages, and admin roles in parallel
+      const [convResult, msgResult, rolesResult] = await Promise.all([
+        supabase
           .from('conversations')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', profile.id);
-
-        const { count: msgCount } = await supabase
+          .select('user_id, updated_at')
+          .in('user_id', userIds),
+        supabase
           .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', profile.id);
-
-        const { data: lastConv } = await supabase
-          .from('conversations')
-          .select('updated_at')
-          .eq('user_id', profile.id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        // Check if user is admin
-        const { data: roleData } = await supabase
+          .select('user_id')
+          .in('user_id', userIds),
+        supabase
           .from('user_roles')
-          .select('role')
-          .eq('user_id', profile.id)
+          .select('user_id')
           .eq('role', 'admin')
-          .single();
+          .in('user_id', userIds),
+      ]);
 
-        return {
-          ...profile,
-          conversation_count: convCount || 0,
-          message_count: msgCount || 0,
-          last_active: lastConv?.updated_at || profile.updated_at,
-          is_admin: !!roleData,
-        } as UserWithStats;
-      })
-    );
+      // Aggregate stats from batch results
+      const convCountMap = new Map<string, number>();
+      const lastActiveMap = new Map<string, string>();
+      const msgCountMap = new Map<string, number>();
+      const adminSet = new Set<string>();
 
-    setUsers(usersWithStats);
-  };
+      (convResult.data || []).forEach(c => {
+        convCountMap.set(c.user_id, (convCountMap.get(c.user_id) || 0) + 1);
+        const existing = lastActiveMap.get(c.user_id);
+        if (!existing || (c.updated_at && c.updated_at > existing)) {
+          lastActiveMap.set(c.user_id, c.updated_at);
+        }
+      });
 
-  const fetchAllConversations = async () => {
+      (msgResult.data || []).forEach(m => {
+        msgCountMap.set(m.user_id, (msgCountMap.get(m.user_id) || 0) + 1);
+      });
+
+      (rolesResult.data || []).forEach(r => adminSet.add(r.user_id));
+
+      // Build final user list with stats
+      const usersWithStats = (profiles || []).map(profile => ({
+        ...profile,
+        conversation_count: convCountMap.get(profile.id) || 0,
+        message_count: msgCountMap.get(profile.id) || 0,
+        last_active: lastActiveMap.get(profile.id) || profile.updated_at,
+        is_admin: adminSet.has(profile.id),
+      } as UserWithStats));
+
+      setUsers(usersWithStats);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  }, [isAdmin]);
+
+  // Optimized: Batch fetch user profiles for conversations
+  const fetchAllConversations = useCallback(async () => {
     if (!isAdmin) return;
 
-    const { data: convs, error } = await supabase
-      .from('conversations')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(100);
+    try {
+      const { data: convs, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(100);
 
-    if (error) {
+      if (error) {
+        console.error('Error fetching conversations:', error);
+        return;
+      }
+
+      // Get unique user IDs and batch fetch profiles
+      const userIds = [...new Set((convs || []).map(c => c.user_id))];
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', userIds);
+
+      const profileMap = new Map(
+        (profiles || []).map(p => [p.id, p.display_name])
+      );
+
+      const convsWithUser: ConversationWithUser[] = (convs || []).map(conv => ({
+        ...conv,
+        user_name: profileMap.get(conv.user_id) || 'Unknown',
+      }));
+
+      setConversations(convsWithUser);
+    } catch (error) {
       console.error('Error fetching conversations:', error);
-      return;
     }
-
-    // Get user info for each conversation
-    const convsWithUser = await Promise.all(
-      (convs || []).map(async (conv) => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('id', conv.user_id)
-          .single();
-
-        return {
-          ...conv,
-          user_name: profile?.display_name || 'Unknown',
-        } as ConversationWithUser;
-      })
-    );
-
-    setConversations(convsWithUser);
-  };
+  }, [isAdmin]);
 
   const getConversationMessages = async (conversationId: string): Promise<Message[]> => {
     if (!isAdmin) return [];
