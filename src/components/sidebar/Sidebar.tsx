@@ -40,6 +40,7 @@ import {
   Download,
   Loader2,
   Trash2,
+  Code2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
@@ -168,6 +169,20 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               <TooltipContent side="right">Install App</TooltipContent>
             </Tooltip>
           )}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/builder')}
+                className="hover:bg-sidebar-accent"
+              >
+                <Code2 className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">App Builder</TooltipContent>
+          </Tooltip>
 
           {isAdmin && (
             <Tooltip>
@@ -356,6 +371,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 <DropdownMenuSeparator />
               </>
             )}
+            <DropdownMenuItem onClick={() => navigate('/builder')}>
+              <Code2 className="h-4 w-4 mr-2" />
+              App Builder
+            </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings className="h-4 w-4 mr-2" />
               Settings
