@@ -1,12 +1,18 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { ConversationItem } from "./ConversationItem";
-import { RenameDialog } from "@/components/dialogs/RenameDialog";
-import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
 import { MessageSquare, Pin, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { openLovableProject, copyProjectUrl } from "@/lib/lovable-url";
 import type { Conversation } from "@/types/database";
+
+// Lazy load dialogs
+const RenameDialog = lazy(() => 
+  import("@/components/dialogs/RenameDialog").then(m => ({ default: m.RenameDialog }))
+);
+const DeleteConfirmDialog = lazy(() => 
+  import("@/components/dialogs/DeleteConfirmDialog").then(m => ({ default: m.DeleteConfirmDialog }))
+);
 
 interface ConversationListProps {
   searchQuery: string;
@@ -28,28 +34,36 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
   const [renameDialog, setRenameDialog] = useState<Conversation | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<Conversation | null>(null);
 
-  // Calculate branch counts for each conversation
+  // Calculate branch counts - optimized to only recalculate when conversations change
   const branchCounts = useMemo(() => {
     const counts = new Map<string, number>();
+    // Create a map of parent_id -> count for O(n) instead of O(n²)
     conversations.forEach(conv => {
-      counts.set(conv.id, getChildBranches(conv.id).length);
+      if (conv.parent_conversation_id) {
+        const currentCount = counts.get(conv.parent_conversation_id) || 0;
+        counts.set(conv.parent_conversation_id, currentCount + 1);
+      }
     });
     return counts;
-  }, [conversations, getChildBranches]);
+  }, [conversations]);
 
-  const filteredConversations = conversations
-    .filter((conv) => {
-      if (!currentProject) return true;
-      return conv.project_id === currentProject.id;
-    })
-    .filter((conv) =>
-      conv.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filteredConversations = useMemo(() => {
+    return conversations
+      .filter((conv) => {
+        if (!currentProject) return true;
+        return conv.project_id === currentProject.id;
+      })
+      .filter((conv) =>
+        conv.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  }, [conversations, currentProject, searchQuery]);
 
   // Separate pinned, root conversations, and branches
-  const pinnedConversations = filteredConversations.filter((c) => c.is_pinned && !c.parent_conversation_id);
-  const rootConversations = filteredConversations.filter((c) => !c.is_pinned && !c.parent_conversation_id);
-  const branchConversations = filteredConversations.filter((c) => !c.is_pinned && c.parent_conversation_id);
+  const { pinnedConversations, rootConversations, branchConversations } = useMemo(() => ({
+    pinnedConversations: filteredConversations.filter((c) => c.is_pinned && !c.parent_conversation_id),
+    rootConversations: filteredConversations.filter((c) => !c.is_pinned && !c.parent_conversation_id),
+    branchConversations: filteredConversations.filter((c) => !c.is_pinned && c.parent_conversation_id),
+  }), [filteredConversations]);
 
   const handleRename = useCallback(async (newName: string) => {
     if (!renameDialog) return;
@@ -169,22 +183,30 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
         )}
       </div>
 
-      <RenameDialog
-        open={!!renameDialog}
-        onOpenChange={(open) => !open && setRenameDialog(null)}
-        currentName={renameDialog?.title || ""}
-        onRename={handleRename}
-        title="Rename Conversation"
-      />
+      {renameDialog && (
+        <Suspense fallback={null}>
+          <RenameDialog
+            open={!!renameDialog}
+            onOpenChange={(open) => !open && setRenameDialog(null)}
+            currentName={renameDialog?.title || ""}
+            onRename={handleRename}
+            title="Rename Conversation"
+          />
+        </Suspense>
+      )}
 
-      <DeleteConfirmDialog
-        open={!!deleteDialog}
-        onOpenChange={(open) => !open && setDeleteDialog(null)}
-        title="Delete Conversation"
-        description="This will permanently delete this conversation and all its messages. This action cannot be undone."
-        onConfirm={handleDelete}
-        destructive
-      />
+      {deleteDialog && (
+        <Suspense fallback={null}>
+          <DeleteConfirmDialog
+            open={!!deleteDialog}
+            onOpenChange={(open) => !open && setDeleteDialog(null)}
+            title="Delete Conversation"
+            description="This will permanently delete this conversation and all its messages. This action cannot be undone."
+            onConfirm={handleDelete}
+            destructive
+          />
+        </Suspense>
+      )}
     </>
   );
 }

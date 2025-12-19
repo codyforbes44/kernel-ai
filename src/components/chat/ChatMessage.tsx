@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Message } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,12 @@ import { MessageAttachments, type Attachment } from "./MessageAttachments";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { messageService } from "@/services/messageService";
-import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { lazy, Suspense } from "react";
+
+// Lazy load DeleteConfirmDialog
+const DeleteConfirmDialog = lazy(() => 
+  import("@/components/dialogs/DeleteConfirmDialog").then(m => ({ default: m.DeleteConfirmDialog }))
+);
 
 interface ChatMessageProps {
   message: Message;
@@ -38,7 +43,7 @@ interface ChatMessageProps {
   onBranch?: (messageId: string) => void;
 }
 
-export function ChatMessage({
+export const ChatMessage = memo(function ChatMessage({
   message,
   isStreaming,
   onRegenerate,
@@ -345,14 +350,18 @@ export function ChatMessage({
         </div>
       </div>
 
-      <DeleteConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Message"
-        description="Are you sure you want to delete this message? This action cannot be undone."
-        onConfirm={handleDelete}
-        destructive
-      />
+      {showDeleteDialog && (
+        <Suspense fallback={null}>
+          <DeleteConfirmDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+            title="Delete Message"
+            description="Are you sure you want to delete this message? This action cannot be undone."
+            onConfirm={handleDelete}
+            destructive
+          />
+        </Suspense>
+      )}
     </>
   );
-}
+});

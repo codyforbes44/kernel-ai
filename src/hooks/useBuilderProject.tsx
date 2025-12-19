@@ -1,183 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import type { BuilderProject, ProjectFile, FileTreeNode, OpenTab, getLanguageFromPath } from '@/types/builder';
+import type { BuilderProject, ProjectFile, OpenTab } from '@/types/builder';
 import { createFileVersion } from '@/hooks/useFileVersions';
-import { PROJECT_TEMPLATES, TemplateFile } from '@/lib/projectTemplates';
-
-// Default React template files (for backwards compatibility)
-const DEFAULT_TEMPLATE_FILES = [
-  {
-    path: '/src/App.tsx',
-    name: 'App.tsx',
-    type: 'file' as const,
-    language: 'typescript',
-    is_entry_point: true,
-    content: `import React from 'react';
-import './App.css';
-
-function App() {
-  return (
-    <div className="app">
-      <h1>Hello World!</h1>
-      <p>Start editing to see changes.</p>
-    </div>
-  );
-}
-
-export default App;
-`,
-  },
-  {
-    path: '/src/App.css',
-    name: 'App.css',
-    type: 'file' as const,
-    language: 'css',
-    is_entry_point: false,
-    content: `.app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: system-ui, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-p {
-  font-size: 1.25rem;
-  opacity: 0.9;
-}
-`,
-  },
-  {
-    path: '/src/main.tsx',
-    name: 'main.tsx',
-    type: 'file' as const,
-    language: 'typescript',
-    is_entry_point: false,
-    content: `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
-`,
-  },
-  {
-    path: '/index.html',
-    name: 'index.html',
-    type: 'file' as const,
-    language: 'html',
-    is_entry_point: false,
-    content: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-`,
-  },
-  {
-    path: '/package.json',
-    name: 'package.json',
-    type: 'file' as const,
-    language: 'json',
-    is_entry_point: false,
-    content: `{
-  "name": "my-app",
-  "private": true,
-  "version": "0.0.1",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.0",
-    "@types/react-dom": "^18.3.0",
-    "typescript": "^5.4.0",
-    "vite": "^5.0.0"
-  }
-}
-`,
-  },
-];
-
-// Build file tree from flat file list
-function buildFileTree(files: ProjectFile[]): FileTreeNode[] {
-  const tree: FileTreeNode[] = [];
-  const folderMap = new Map<string, FileTreeNode>();
-
-  // Sort files so folders come first, then alphabetically
-  const sorted = [...files].sort((a, b) => {
-    if (a.type !== b.type) return a.type === 'folder' ? -1 : 1;
-    return a.path.localeCompare(b.path);
-  });
-
-  for (const file of sorted) {
-    const parts = file.path.split('/').filter(Boolean);
-    let currentPath = '';
-    let currentLevel = tree;
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      currentPath += '/' + part;
-      const isLast = i === parts.length - 1;
-
-      if (isLast) {
-        // This is the actual file/folder
-        currentLevel.push({
-          id: file.id,
-          name: file.name,
-          path: file.path,
-          type: file.type,
-          language: file.language || undefined,
-          children: file.type === 'folder' ? [] : undefined,
-        });
-      } else {
-        // This is an intermediate folder
-        let folder = folderMap.get(currentPath);
-        if (!folder) {
-          folder = {
-            id: `folder-${currentPath}`,
-            name: part,
-            path: currentPath,
-            type: 'folder',
-            children: [],
-          };
-          folderMap.set(currentPath, folder);
-          currentLevel.push(folder);
-        }
-        currentLevel = folder.children!;
-      }
-    }
-  }
-
-  return tree;
-}
+import { buildFileTree } from '@/lib/fileTree';
+import { builderService } from '@/services/builderService';
 
 export function useBuilderProject(projectId?: string) {
   const { user } = useAuth();
@@ -191,32 +19,14 @@ export function useBuilderProject(projectId?: string) {
   // Fetch project
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ['builder-project', projectId],
-    queryFn: async () => {
-      if (!projectId) return null;
-      const { data, error } = await supabase
-        .from('builder_projects')
-        .select('*')
-        .eq('id', projectId)
-        .single();
-      if (error) throw error;
-      return data as BuilderProject;
-    },
+    queryFn: () => builderService.getProject(projectId!),
     enabled: !!projectId,
   });
 
   // Fetch files
   const { data: files = [], isLoading: filesLoading } = useQuery({
     queryKey: ['project-files', projectId],
-    queryFn: async () => {
-      if (!projectId) return [];
-      const { data, error } = await supabase
-        .from('project_files')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('path');
-      if (error) throw error;
-      return data as ProjectFile[];
-    },
+    queryFn: () => builderService.getFiles(projectId!),
     enabled: !!projectId,
   });
 
@@ -227,41 +37,7 @@ export function useBuilderProject(projectId?: string) {
   const createProject = useMutation({
     mutationFn: async ({ name, templateId = 'blank' }: { name: string; templateId?: string }) => {
       if (!user) throw new Error('Not authenticated');
-      
-      // Find the template
-      const template = PROJECT_TEMPLATES.find(t => t.id === templateId) || PROJECT_TEMPLATES[0];
-      
-      // Create project
-      const { data: newProject, error: projectError } = await supabase
-        .from('builder_projects')
-        .insert({ 
-          user_id: user.id, 
-          name,
-          template: templateId,
-        })
-        .select()
-        .single();
-      
-      if (projectError) throw projectError;
-
-      // Create template files
-      const filesToInsert = template.files.map((file: TemplateFile) => ({
-        project_id: newProject.id,
-        path: file.path,
-        name: file.name,
-        type: file.type,
-        language: file.language,
-        is_entry_point: file.is_entry_point,
-        content: file.content,
-      }));
-
-      const { error: filesError } = await supabase
-        .from('project_files')
-        .insert(filesToInsert);
-
-      if (filesError) throw filesError;
-
-      return newProject as BuilderProject;
+      return builderService.createProject({ userId: user.id, name, templateId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['builder-projects'] });
@@ -275,33 +51,18 @@ export function useBuilderProject(projectId?: string) {
   // Fetch user's projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
     queryKey: ['builder-projects', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('builder_projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-      if (error) throw error;
-      return data as BuilderProject[];
-    },
+    queryFn: () => builderService.getProjects(user!.id),
     enabled: !!user,
   });
 
   // Update file content mutation
   const updateFileContent = useMutation({
     mutationFn: async ({ fileId, content }: { fileId: string; content: string }) => {
-      // Get current content to save as version
       const file = files.find(f => f.id === fileId);
       if (file?.content) {
         await createFileVersion(fileId, file.content, 'Auto-save before update');
       }
-
-      const { error } = await supabase
-        .from('project_files')
-        .update({ content })
-        .eq('id', fileId);
-      if (error) throw error;
+      await builderService.updateFileContent(fileId, content);
     },
     onSuccess: (_, { fileId }) => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
@@ -323,24 +84,7 @@ export function useBuilderProject(projectId?: string) {
       content?: string;
     }) => {
       if (!projectId) throw new Error('No project selected');
-      
-      const { getLanguageFromPath } = await import('@/types/builder');
-      
-      const { data, error } = await supabase
-        .from('project_files')
-        .insert({
-          project_id: projectId,
-          path,
-          name,
-          type,
-          content: type === 'file' ? content : null,
-          language: type === 'file' ? getLanguageFromPath(path) : null,
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data as ProjectFile;
+      return builderService.createFile({ projectId, path, name, type, content });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
@@ -351,15 +95,11 @@ export function useBuilderProject(projectId?: string) {
   // Delete file mutation
   const deleteFile = useMutation({
     mutationFn: async (fileId: string) => {
-      const { error } = await supabase
-        .from('project_files')
-        .delete()
-        .eq('id', fileId);
-      if (error) throw error;
+      await builderService.deleteFile(fileId);
+      return fileId;
     },
-    onSuccess: (_, fileId) => {
+    onSuccess: (fileId) => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
-      // Close tab if open
       setOpenTabs(prev => prev.filter(t => t.id !== fileId));
       if (activeTabId === fileId) {
         setActiveTabId(openTabs[0]?.id || null);
@@ -375,17 +115,7 @@ export function useBuilderProject(projectId?: string) {
       newName: string;
       newPath: string;
     }) => {
-      const { getLanguageFromPath } = await import('@/types/builder');
-      
-      const { error } = await supabase
-        .from('project_files')
-        .update({ 
-          name: newName, 
-          path: newPath,
-          language: getLanguageFromPath(newPath),
-        })
-        .eq('id', fileId);
-      if (error) throw error;
+      await builderService.renameFile(fileId, newName, newPath);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
@@ -414,7 +144,6 @@ export function useBuilderProject(projectId?: string) {
     setOpenTabs(prev => [...prev, newTab]);
     setActiveTabId(file.id);
     
-    // Load content into local state
     if (file.content !== null) {
       setFileContents(prev => ({ ...prev, [file.id]: file.content! }));
     }
@@ -426,7 +155,6 @@ export function useBuilderProject(projectId?: string) {
     setOpenTabs(prev => prev.filter(t => t.id !== tabId));
     
     if (activeTabId === tabId) {
-      // Switch to adjacent tab
       const newActiveIndex = Math.min(tabIndex, openTabs.length - 2);
       setActiveTabId(openTabs[newActiveIndex]?.id || null);
     }
@@ -469,69 +197,18 @@ export function useBuilderProject(projectId?: string) {
   }>) => {
     if (!projectId) throw new Error('No project selected');
     
-    const { getLanguageFromPath } = await import('@/types/builder');
-    
+    await builderService.applyAIOperations({
+      projectId,
+      files,
+      operations,
+      onVersionCreate: createFileVersion,
+    });
+
+    // Handle tab cleanup for deleted files
     for (const op of operations) {
-      const fileName = op.path.split('/').pop() || op.path;
-      
-      if (op.type === 'create') {
-        // Check if file already exists
-        const existing = files.find(f => f.path === op.path);
-        if (existing) {
-          // Save current version before updating
-          if (existing.content) {
-            await createFileVersion(existing.id, existing.content, 'Before AI update');
-          }
-          // Update instead
-          await supabase
-            .from('project_files')
-            .update({ content: op.content })
-            .eq('id', existing.id);
-        } else {
-          await supabase
-            .from('project_files')
-            .insert({
-              project_id: projectId,
-              path: op.path,
-              name: fileName,
-              type: 'file',
-              content: op.content || '',
-              language: getLanguageFromPath(op.path),
-            });
-        }
-      } else if (op.type === 'update') {
+      if (op.type === 'delete') {
         const file = files.find(f => f.path === op.path);
         if (file) {
-          // Save current version before updating
-          if (file.content) {
-            await createFileVersion(file.id, file.content, 'Before AI update');
-          }
-          await supabase
-            .from('project_files')
-            .update({ content: op.content })
-            .eq('id', file.id);
-        } else {
-          // Create if doesn't exist
-          await supabase
-            .from('project_files')
-            .insert({
-              project_id: projectId,
-              path: op.path,
-              name: fileName,
-              type: 'file',
-              content: op.content || '',
-              language: getLanguageFromPath(op.path),
-            });
-        }
-      } else if (op.type === 'delete') {
-        const file = files.find(f => f.path === op.path);
-        if (file) {
-          await supabase
-            .from('project_files')
-            .delete()
-            .eq('id', file.id);
-          
-          // Close tab if open
           setOpenTabs(prev => prev.filter(t => t.id !== file.id));
           if (activeTabId === file.id) {
             setActiveTabId(openTabs[0]?.id || null);
@@ -540,7 +217,6 @@ export function useBuilderProject(projectId?: string) {
       }
     }
     
-    // Refresh files
     queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
   }, [projectId, files, activeTabId, openTabs, queryClient]);
 

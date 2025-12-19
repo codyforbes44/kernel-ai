@@ -1,38 +1,18 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Message } from '@/types/database';
 import { useAuth } from './useAuth';
 import { format } from 'date-fns';
+import { AI_MODELS, MAX_CONTEXT_MESSAGES } from '@/lib/constants';
+import type { AIModel } from '@/lib/constants';
 
-// AI Model configurations
-export const AI_MODELS = {
-  'google/gemini-2.5-flash': {
-    name: 'Gemini Flash',
-    description: 'Fast & balanced',
-    speed: 'fast',
-  },
-  'google/gemini-2.5-pro': {
-    name: 'Gemini Pro',
-    description: 'Most capable',
-    speed: 'slow',
-  },
-  'google/gemini-2.5-flash-lite': {
-    name: 'Gemini Lite',
-    description: 'Fastest & cheapest',
-    speed: 'fastest',
-  },
-} as const;
-
-export type AIModel = keyof typeof AI_MODELS;
-
-// Maximum messages to send as context (prevents token overflow)
-const MAX_CONTEXT_MESSAGES = 20;
+// Re-export for backwards compatibility
+export { AI_MODELS } from '@/lib/constants';
+export type { AIModel } from '@/lib/constants';
 
 // Helper to track usage analytics
 async function trackUsage(userId: string, messagesSent: number = 0, tokensUsed: number = 0) {
   const today = format(new Date(), 'yyyy-MM-dd');
   
-  // Try to update existing record first
   const { data: existing } = await supabase
     .from('usage_analytics')
     .select('id, messages_sent, tokens_used')
@@ -89,15 +69,12 @@ export function useChat() {
     setStreamingMessage('');
     setError(null);
 
-    // Create new abort controller for this request
     abortControllerRef.current = new AbortController();
 
-    // Prepare metadata with attachments if present
     const metadata = attachments && attachments.length > 0 
       ? { attachments } 
       : null;
 
-    // Save user message first
     const { data: userMessage, error: userError } = await supabase
       .from('messages')
       .insert({
@@ -116,7 +93,6 @@ export function useChat() {
       return null;
     }
 
-    // Get previous messages for context - LIMITED to prevent token overflow
     const { data: previousMessages } = await supabase
       .from('messages')
       .select('role, content')
@@ -124,7 +100,6 @@ export function useChat() {
       .order('created_at', { ascending: false })
       .limit(MAX_CONTEXT_MESSAGES);
 
-    // Reverse to get chronological order and map to chat format
     const messages = (previousMessages || [])
       .reverse()
       .map(m => ({ 
@@ -200,10 +175,8 @@ export function useChat() {
         }
       }
 
-      // Estimate tokens (rough: ~4 chars per token)
       const estimatedTokens = Math.ceil(fullContent.length / 4);
 
-      // Save assistant message
       await supabase
         .from('messages')
         .insert({
@@ -215,7 +188,6 @@ export function useChat() {
           tokens_used: estimatedTokens,
         });
 
-      // Track usage analytics (2 messages: user + assistant)
       await trackUsage(user.id, 2, estimatedTokens);
 
       setIsStreaming(false);

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -74,17 +74,17 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     toast.success('Version restored');
   }, [activeTabId, activeFile, getFileContent, updateLocalContent, saveFile]);
 
-  // Keyboard shortcuts
-  // useEffect(() => {
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-  //       e.preventDefault();
-  //       handleSave();
-  //     }
-  //   };
-  //   window.addEventListener('keydown', handleKeyDown);
-  //   return () => window.removeEventListener('keydown', handleKeyDown);
-  // }, [handleSave]);
+  // Keyboard shortcuts - Ctrl/Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleSave]);
 
   if (isLoading) {
     return (
