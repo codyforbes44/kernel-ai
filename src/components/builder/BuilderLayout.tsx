@@ -9,13 +9,16 @@ import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { BuilderChat } from './BuilderChat';
+import { FileVersionHistory } from './FileVersionHistory';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
+import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Play, Save, Code2, Eye, Sparkles, PanelRightClose, PanelRight } from 'lucide-react';
+import { ArrowLeft, Play, Save, Code2, Eye, Sparkles, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 interface BuilderLayoutProps {
   projectId: string;
@@ -26,6 +29,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showPreview, setShowPreview] = useState(true);
   const [showExplorer, setShowExplorer] = useState(true);
   const [showAIChat, setShowAIChat] = useState(true);
+  const [showHistory, setShowHistory] = useState(false);
   
   const {
     project,
@@ -52,6 +56,23 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
       saveFile(activeTabId);
     }
   }, [activeTabId, saveFile]);
+
+  // Restore a version
+  const handleRestoreVersion = useCallback(async (content: string) => {
+    if (!activeTabId || !activeFile) return;
+    
+    // Save current content as a version before restoring
+    const currentContent = getFileContent(activeTabId);
+    if (currentContent) {
+      await createFileVersion(activeTabId, currentContent, 'Before restore');
+    }
+    
+    // Update local content with restored version
+    updateLocalContent(activeTabId, content);
+    // Auto-save the restored content
+    await saveFile(activeTabId);
+    toast.success('Version restored');
+  }, [activeTabId, activeFile, getFileContent, updateLocalContent, saveFile]);
 
   // Keyboard shortcuts
   // useEffect(() => {
@@ -155,8 +176,28 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn('h-8 w-8', showHistory && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowHistory(!showHistory);
+                  if (!showHistory) setShowAIChat(false);
+                }}
+                disabled={!activeTabId}
+              >
+                <History className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Version History</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
                 className={cn('h-8 w-8', showAIChat && 'bg-primary/10 text-primary')}
-                onClick={() => setShowAIChat(!showAIChat)}
+                onClick={() => {
+                  setShowAIChat(!showAIChat);
+                  if (!showAIChat) setShowHistory(false);
+                }}
               >
                 <Sparkles className="h-4 w-4" />
               </Button>
@@ -232,14 +273,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         {showPreview && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={showAIChat ? 25 : 40} minSize={20}>
+            <ResizablePanel defaultSize={(showAIChat || showHistory) ? 25 : 40} minSize={20}>
               <SandpackPreview files={files} />
             </ResizablePanel>
           </>
         )}
 
         {/* AI Chat */}
-        {showAIChat && (
+        {showAIChat && !showHistory && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -247,6 +288,22 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 files={files}
                 onApplyOperations={applyAIOperations}
                 projectId={projectId}
+              />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* Version History */}
+        {showHistory && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <FileVersionHistory
+                fileId={activeTabId}
+                fileName={activeFile?.name || null}
+                currentContent={activeTabId ? getFileContent(activeTabId) : ''}
+                onRestore={handleRestoreVersion}
+                onClose={() => setShowHistory(false)}
               />
             </ResizablePanel>
           </>

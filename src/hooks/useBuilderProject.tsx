@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import type { BuilderProject, ProjectFile, FileTreeNode, OpenTab, getLanguageFromPath } from '@/types/builder';
+import { createFileVersion } from '@/hooks/useFileVersions';
 
 // Default React template files
 const DEFAULT_TEMPLATE_FILES = [
@@ -277,6 +278,12 @@ export function useBuilderProject(projectId?: string) {
   // Update file content mutation
   const updateFileContent = useMutation({
     mutationFn: async ({ fileId, content }: { fileId: string; content: string }) => {
+      // Get current content to save as version
+      const file = files.find(f => f.id === fileId);
+      if (file?.content) {
+        await createFileVersion(fileId, file.content, 'Auto-save before update');
+      }
+
       const { error } = await supabase
         .from('project_files')
         .update({ content })
@@ -285,6 +292,7 @@ export function useBuilderProject(projectId?: string) {
     },
     onSuccess: (_, { fileId }) => {
       queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['file-versions', fileId] });
       setDirtyFiles(prev => {
         const next = new Set(prev);
         next.delete(fileId);
@@ -457,6 +465,10 @@ export function useBuilderProject(projectId?: string) {
         // Check if file already exists
         const existing = files.find(f => f.path === op.path);
         if (existing) {
+          // Save current version before updating
+          if (existing.content) {
+            await createFileVersion(existing.id, existing.content, 'Before AI update');
+          }
           // Update instead
           await supabase
             .from('project_files')
@@ -477,6 +489,10 @@ export function useBuilderProject(projectId?: string) {
       } else if (op.type === 'update') {
         const file = files.find(f => f.path === op.path);
         if (file) {
+          // Save current version before updating
+          if (file.content) {
+            await createFileVersion(file.id, file.content, 'Before AI update');
+          }
           await supabase
             .from('project_files')
             .update({ content: op.content })
