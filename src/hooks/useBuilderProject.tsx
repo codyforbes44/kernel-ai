@@ -5,8 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import type { BuilderProject, ProjectFile, FileTreeNode, OpenTab, getLanguageFromPath } from '@/types/builder';
 import { createFileVersion } from '@/hooks/useFileVersions';
+import { PROJECT_TEMPLATES, TemplateFile } from '@/lib/projectTemplates';
 
-// Default React template files
+// Default React template files (for backwards compatibility)
 const DEFAULT_TEMPLATE_FILES = [
   {
     path: '/src/App.tsx',
@@ -224,22 +225,34 @@ export function useBuilderProject(projectId?: string) {
 
   // Create project mutation
   const createProject = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, templateId = 'blank' }: { name: string; templateId?: string }) => {
       if (!user) throw new Error('Not authenticated');
+      
+      // Find the template
+      const template = PROJECT_TEMPLATES.find(t => t.id === templateId) || PROJECT_TEMPLATES[0];
       
       // Create project
       const { data: newProject, error: projectError } = await supabase
         .from('builder_projects')
-        .insert({ user_id: user.id, name })
+        .insert({ 
+          user_id: user.id, 
+          name,
+          template: templateId,
+        })
         .select()
         .single();
       
       if (projectError) throw projectError;
 
-      // Create default template files
-      const filesToInsert = DEFAULT_TEMPLATE_FILES.map(file => ({
+      // Create template files
+      const filesToInsert = template.files.map((file: TemplateFile) => ({
         project_id: newProject.id,
-        ...file,
+        path: file.path,
+        name: file.name,
+        type: file.type,
+        language: file.language,
+        is_entry_point: file.is_entry_point,
+        content: file.content,
       }));
 
       const { error: filesError } = await supabase
