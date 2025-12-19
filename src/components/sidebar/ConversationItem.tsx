@@ -24,6 +24,7 @@ import {
   ExternalLink,
   Copy,
   Unlink,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -32,6 +33,7 @@ import type { Conversation } from "@/types/database";
 interface ConversationItemProps {
   conversation: Conversation;
   isActive: boolean;
+  branchCount?: number;
   onSelect: () => void;
   onRename: () => void;
   onDelete: () => void;
@@ -40,12 +42,14 @@ interface ConversationItemProps {
   onOpenProject: () => void;
   onCopyProjectUrl: () => void;
   onUnlinkProject: () => void;
+  onGoToParent?: () => void;
   isMobile?: boolean;
 }
 
 export const ConversationItem = memo(function ConversationItem({
   conversation,
   isActive,
+  branchCount = 0,
   onSelect,
   onRename,
   onDelete,
@@ -54,20 +58,27 @@ export const ConversationItem = memo(function ConversationItem({
   onOpenProject,
   onCopyProjectUrl,
   onUnlinkProject,
+  onGoToParent,
   isMobile,
 }: ConversationItemProps) {
   const hasLinkedProject = !!conversation.lovable_project_url;
+  const isBranch = !!conversation.parent_conversation_id;
 
   const itemContent = (
     <div
       className={cn(
         "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer",
         "hover:bg-sidebar-accent transition-colors",
-        isActive && "bg-sidebar-accent"
+        isActive && "bg-sidebar-accent",
+        isBranch && "ml-3 border-l-2 border-primary/30"
       )}
       onClick={onSelect}
     >
-      <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+      {isBranch ? (
+        <GitBranch className="h-4 w-4 text-primary/70 shrink-0" />
+      ) : (
+        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+      )}
 
       <div className="flex-1 min-w-0">
         <p className={cn("text-sm truncate", isActive && "font-medium")}>
@@ -91,6 +102,20 @@ export const ConversationItem = memo(function ConversationItem({
             <p className="text-xs">
               Linked: {conversation.lovable_project_name || "Lovable Project"}
             </p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {branchCount > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground">
+              <GitBranch className="h-3 w-3" />
+              {branchCount}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="pointer-events-none">
+            <p className="text-xs">{branchCount} branch{branchCount > 1 ? 'es' : ''}</p>
           </TooltipContent>
         </Tooltip>
       )}
@@ -141,6 +166,20 @@ export const ConversationItem = memo(function ConversationItem({
               >
                 <Unlink className="h-4 w-4 mr-2" />
                 Unlink Project
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {isBranch && onGoToParent && (
+            <>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGoToParent();
+                }}
+              >
+                <GitBranch className="h-4 w-4 mr-2" />
+                Go to Parent
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
