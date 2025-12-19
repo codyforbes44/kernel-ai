@@ -134,6 +134,66 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [user, fetchData]);
 
+  // Realtime subscription for conversations
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('conversations-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newConversation = payload.new as Conversation;
+          setConversations((prev) => {
+            if (prev.some((c) => c.id === newConversation.id)) return prev;
+            return [newConversation, ...prev];
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as Conversation;
+          setConversations((prev) =>
+            prev.map((c) => (c.id === updated.id ? updated : c))
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'conversations',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as Conversation).id;
+          setConversations((prev) => prev.filter((c) => c.id !== deletedId));
+          if (selectedConversationId === deletedId) {
+            setSelectedConversationId(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, selectedConversationId]);
+
   const setCurrentWorkspace = useCallback((workspace: Workspace | null) => {
     setSelectedWorkspaceId(workspace?.id || null);
   }, []);
