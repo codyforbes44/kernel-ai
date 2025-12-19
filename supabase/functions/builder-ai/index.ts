@@ -75,7 +75,7 @@ serve(async (req) => {
 
     const fullSystemPrompt = SYSTEM_PROMPT + fileContext;
 
-    console.log(`Processing builder AI request with ${files.length} files in context`);
+    console.log(`Processing streaming builder AI request with ${files.length} files in context`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -84,13 +84,12 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: fullSystemPrompt },
           ...messages,
         ],
-        temperature: 0.7,
-        max_tokens: 8000,
+        stream: true,
       }),
     });
 
@@ -114,48 +113,10 @@ serve(async (req) => {
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No response from AI");
-    }
-
-    console.log("AI response received, length:", content.length);
-
-    // Try to parse the JSON response
-    let parsed;
-    try {
-      // Handle potential markdown code blocks
-      let jsonContent = content.trim();
-      if (jsonContent.startsWith('```json')) {
-        jsonContent = jsonContent.slice(7);
-      } else if (jsonContent.startsWith('```')) {
-        jsonContent = jsonContent.slice(3);
-      }
-      if (jsonContent.endsWith('```')) {
-        jsonContent = jsonContent.slice(0, -3);
-      }
-      jsonContent = jsonContent.trim();
-      
-      parsed = JSON.parse(jsonContent);
-    } catch (parseError) {
-      console.error("Failed to parse AI response as JSON:", content);
-      // Return a friendly error with the raw response
-      return new Response(
-        JSON.stringify({
-          thinking: "I encountered an issue generating the code. Here's what I was trying to do:",
-          operations: [],
-          rawResponse: content,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(
-      JSON.stringify(parsed),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    // Return the streaming response
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    });
   } catch (error) {
     console.error("Builder AI error:", error);
     return new Response(
