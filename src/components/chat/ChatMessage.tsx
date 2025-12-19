@@ -18,6 +18,7 @@ import {
   Sparkles,
   Trash2,
   Pin,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -34,6 +35,7 @@ interface ChatMessageProps {
   onEdit?: (content: string) => void;
   onDelete?: () => void;
   onPin?: (isPinned: boolean) => void;
+  onBranch?: (messageId: string) => void;
 }
 
 export function ChatMessage({
@@ -43,6 +45,7 @@ export function ChatMessage({
   onEdit,
   onDelete,
   onPin,
+  onBranch,
 }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
   const [isStarred, setIsStarred] = useState(message.is_starred);
@@ -307,6 +310,22 @@ export function ChatMessage({
                   {isStarred ? "Unstar" : "Star"}
                 </TooltipContent>
               </Tooltip>
+
+              {onBranch && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onBranch(message.id)}
+                    >
+                      <GitBranch className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Branch from here</TooltipContent>
+                </Tooltip>
+              )}
 
               <Tooltip>
                 <TooltipTrigger asChild>

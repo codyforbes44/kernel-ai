@@ -21,7 +21,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
-  const { currentConversation } = useWorkspace();
+  const { currentConversation, branchConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming, selectedModel, setSelectedModel } = useChat();
   const { isOnline, isChecking, retryConnection, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
@@ -132,6 +132,17 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
     }
   };
 
+  const handleBranchFromMessage = async (messageId: string) => {
+    if (!currentConversation) return;
+    
+    const branched = await branchConversation(currentConversation.id, messageId);
+    if (branched) {
+      toast.success("Conversation branched! You can now continue from this point.");
+    } else {
+      toast.error("Failed to branch conversation");
+    }
+  };
+
   const streamingMessageObj: Message | null = streamingMessage ? {
     id: "streaming",
     content: streamingMessage,
@@ -185,6 +196,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
                   onEdit={handleEdit}
                   onDelete={() => handleDeleteMessage(message.id)}
                   onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
+                  onBranch={handleBranchFromMessage}
                 />
               ))}
               {streamingMessageObj && (

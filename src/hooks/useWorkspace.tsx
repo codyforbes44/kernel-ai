@@ -22,6 +22,8 @@ interface WorkspaceContextType {
   setCurrentProject: (project: Project | null) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
   createConversation: (projectId: string, title?: string) => Promise<Conversation | null>;
+  branchConversation: (parentConversationId: string, branchPointMessageId: string, title?: string) => Promise<Conversation | null>;
+  getChildBranches: (conversationId: string) => Conversation[];
   createProject: (name: string, description?: string) => Promise<Project | null>;
   updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
@@ -235,6 +237,90 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isCreatingConversation]);
 
+  // Branch a conversation from a specific message
+  const branchConversation = useCallback(async (
+    parentConversationId: string,
+    branchPointMessageId: string,
+    title?: string
+  ) => {
+    if (!user || isCreatingConversation) return null;
+
+    const parentConversation = conversations.find(c => c.id === parentConversationId);
+    if (!parentConversation) return null;
+
+    setIsCreatingConversation(true);
+    try {
+      // Get messages up to and including the branch point
+      const { data: messagesToCopy, error: msgError } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', parentConversationId)
+        .order('created_at');
+
+      if (msgError) throw msgError;
+
+      // Find the branch point message index
+      const branchIndex = messagesToCopy?.findIndex(m => m.id === branchPointMessageId) ?? -1;
+      if (branchIndex === -1) {
+        console.error('Branch point message not found');
+        return null;
+      }
+
+      // Create the branched conversation
+      const branchTitle = title || `Branch: ${parentConversation.title}`;
+      const { data: newConv, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          project_id: parentConversation.project_id,
+          user_id: user.id,
+          title: branchTitle,
+          parent_conversation_id: parentConversationId,
+          branch_point_message_id: branchPointMessageId,
+          lovable_project_url: parentConversation.lovable_project_url,
+          lovable_project_name: parentConversation.lovable_project_name,
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Copy messages up to the branch point
+      const messagesToInsert = messagesToCopy
+        .slice(0, branchIndex + 1)
+        .map(m => ({
+          conversation_id: newConv.id,
+          user_id: user.id,
+          role: m.role,
+          content: m.content,
+          model: m.model,
+          metadata: m.metadata,
+        }));
+
+      if (messagesToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('messages')
+          .insert(messagesToInsert);
+
+        if (insertError) throw insertError;
+      }
+
+      const newConversation = newConv as Conversation;
+      setConversations(prev => [newConversation, ...prev]);
+      setSelectedConversationId(newConversation.id);
+      return newConversation;
+    } catch (error) {
+      console.error('Error branching conversation:', error);
+      return null;
+    } finally {
+      setIsCreatingConversation(false);
+    }
+  }, [user, isCreatingConversation, conversations]);
+
+  // Get child branches of a conversation
+  const getChildBranches = useCallback((conversationId: string) => {
+    return conversations.filter(c => c.parent_conversation_id === conversationId);
+  }, [conversations]);
+
   const createProject = useCallback(async (name: string, description?: string) => {
     if (!user || !selectedWorkspaceId) return null;
 
@@ -344,6 +430,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setCurrentProject,
     setCurrentConversation,
     createConversation,
+    branchConversation,
+    getChildBranches,
     createProject,
     updateConversation,
     deleteConversation,
