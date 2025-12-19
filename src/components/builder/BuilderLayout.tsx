@@ -8,12 +8,14 @@ import { FileExplorer } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { PreviewPanel } from './PreviewPanel';
+import { BuilderChat } from './BuilderChat';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Play, Save, Settings, Code2, Eye } from 'lucide-react';
+import { ArrowLeft, Play, Save, Code2, Eye, Sparkles, PanelRightClose, PanelRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BuilderLayoutProps {
   projectId: string;
@@ -23,6 +25,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const isMobile = useIsMobile();
   const [showPreview, setShowPreview] = useState(true);
   const [showExplorer, setShowExplorer] = useState(true);
+  const [showAIChat, setShowAIChat] = useState(true);
   
   const {
     project,
@@ -41,6 +44,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     getFileContent,
     updateLocalContent,
     saveFile,
+    applyAIOperations,
   } = useBuilderProject(projectId);
 
   const handleSave = useCallback(() => {
@@ -146,6 +150,19 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           <span className="text-sm font-medium">{project?.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('h-8 w-8', showAIChat && 'bg-primary/10 text-primary')}
+                onClick={() => setShowAIChat(!showAIChat)}
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle AI Assistant</TooltipContent>
+          </Tooltip>
           <Button
             variant="ghost"
             size="sm"
@@ -184,7 +201,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* Editor */}
-        <ResizablePanel defaultSize={showPreview ? 45 : 85}>
+        <ResizablePanel defaultSize={showPreview && showAIChat ? 35 : showPreview || showAIChat ? 50 : 85}>
           <div className="h-full flex flex-col">
             <EditorTabs
               tabs={openTabs}
@@ -215,8 +232,22 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         {showPreview && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={40} minSize={25}>
+            <ResizablePanel defaultSize={showAIChat ? 25 : 40} minSize={20}>
               <PreviewPanel files={files} />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* AI Chat */}
+        {showAIChat && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <BuilderChat
+                files={files}
+                onApplyOperations={applyAIOperations}
+                projectId={projectId}
+              />
             </ResizablePanel>
           </>
         )}

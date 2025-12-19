@@ -1,1 +1,10 @@
 project_id = "ggistvtwgeokhvfagocs"
+
+[functions.chat]
+verify_jwt = false
+
+[functions.generate-title]
+verify_jwt = false
+
+[functions.builder-ai]
+verify_jwt = false
