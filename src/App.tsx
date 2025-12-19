@@ -17,6 +17,8 @@ import NotFound from "./pages/NotFound";
 // Lazy load heavy pages
 const Admin = lazy(() => import("./pages/Admin"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Builder = lazy(() => import("./pages/Builder"));
+const BuilderProject = lazy(() => import("./pages/BuilderProject"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +65,22 @@ const App = () => (
                     element={
                       <Suspense fallback={<LoadingFallback />}>
                         <Settings />
+                    </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/builder"
+                    element={
+                      <Suspense fallback={<LoadingFallback />}>
+                        <Builder />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/builder/:projectId"
+                    element={
+                      <Suspense fallback={<LoadingFallback />}>
+                        <BuilderProject />
                       </Suspense>
                     }
                   />

@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      builder_projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          framework: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          settings: Json | null
+          template: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          framework?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          settings?: Json | null
+          template?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          framework?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          settings?: Json | null
+          template?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           branch_point_message_id: string | null
@@ -85,6 +124,41 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_versions: {
+        Row: {
+          content: string
+          created_at: string
+          file_id: string
+          id: string
+          message: string | null
+          version_number: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          file_id: string
+          id?: string
+          message?: string | null
+          version_number?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          file_id?: string
+          id?: string
+          message?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_versions_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "project_files"
             referencedColumns: ["id"]
           },
         ]
@@ -171,6 +245,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_files: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          is_entry_point: boolean | null
+          language: string | null
+          metadata: Json | null
+          name: string
+          path: string
+          project_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_entry_point?: boolean | null
+          language?: string | null
+          metadata?: Json | null
+          name: string
+          path: string
+          project_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_entry_point?: boolean | null
+          language?: string | null
+          metadata?: Json | null
+          name?: string
+          path?: string
+          project_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
