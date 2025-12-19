@@ -172,7 +172,7 @@ export function useChat() {
           user_id: user.id,
           role: 'assistant' as const,
           content: fullContent,
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-2.5-pro',
           tokens_used: estimatedTokens,
         });
 
