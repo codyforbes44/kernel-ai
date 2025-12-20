@@ -79,7 +79,11 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   if (collapsed) {
     return (
-      <div className="h-full flex flex-col bg-sidebar border-r border-border/50">
+      <aside 
+        className="h-full flex flex-col bg-sidebar border-r border-border/50"
+        role="navigation"
+        aria-label="Sidebar navigation (collapsed)"
+      >
         <div className="p-2 flex flex-col items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -88,8 +92,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 size="icon"
                 onClick={onToggleCollapse}
                 className="hover:bg-sidebar-accent"
+                aria-label="Expand sidebar"
+                aria-expanded="false"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Expand sidebar (⌘B)</TooltipContent>
@@ -105,11 +111,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 onClick={handleNewConversation}
                 disabled={isCreatingConversation}
                 className="hover:bg-sidebar-accent"
+                aria-label="Start new conversation"
               >
                 {isCreatingConversation ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4" aria-hidden="true" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -237,12 +244,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </aside>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-sidebar border-r border-border/50">
+    <aside 
+      className="h-full flex flex-col bg-sidebar border-r border-border/50"
+      role="navigation"
+      aria-label="Sidebar navigation"
+    >
       {/* Header */}
       <div className="p-3 flex items-center justify-between border-b border-border/50">
         <div className="flex items-center gap-2">
@@ -261,20 +272,23 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           size="icon"
           onClick={onToggleCollapse}
           className="hover:bg-sidebar-accent h-8 w-8"
+          aria-label="Collapse sidebar"
+          aria-expanded="true"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
 
       {/* Search */}
       <div className="p-3">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder="Search... (⌘K)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 h-9 bg-sidebar-accent/50 border-transparent focus:border-primary/50"
+            aria-label="Search conversations and templates"
           />
         </div>
       </div>
@@ -401,6 +415,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         open={cleanupDialogOpen}
         onOpenChange={setCleanupDialogOpen}
       />
-    </div>
+    </aside>
   );
 }

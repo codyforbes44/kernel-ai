@@ -62,9 +62,13 @@ export function ChatHeader() {
 
   return (
     <>
-      <div className="h-14 border-b border-border/50 flex items-center justify-between px-4">
+      <header 
+        className="h-14 border-b border-border/50 flex items-center justify-between px-4"
+        role="banner"
+        aria-label="Conversation header"
+      >
         <div className="flex items-center gap-3 min-w-0">
-          <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+          <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
           {currentProject && (
             <>
               <span className="text-sm text-muted-foreground shrink-0">
@@ -77,7 +81,7 @@ export function ChatHeader() {
             {currentConversation.title}
           </h1>
           {currentConversation.is_pinned && (
-            <Pin className="h-3 w-3 text-primary shrink-0" />
+            <Pin className="h-3 w-3 text-primary shrink-0" aria-label="Pinned conversation" />
           )}
           {hasLinkedProject && (
             <a
@@ -107,11 +111,12 @@ export function ChatHeader() {
                 size="icon"
                 className="h-8 w-8"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
                 {theme === 'dark' ? (
-                  <Sun className="h-4 w-4" />
+                  <Sun className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                  <Moon className="h-4 w-4" />
+                  <Moon className="h-4 w-4" aria-hidden="true" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -120,8 +125,8 @@ export function ChatHeader() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Conversation options">
+                <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -184,7 +189,7 @@ export function ChatHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </header>
 
       <LinkProjectDialog
         open={linkDialogOpen}

@@ -346,6 +346,8 @@ export function ChatInput({
             "pr-24 py-4 px-4"
           )}
           rows={1}
+          aria-label="Message input"
+          aria-describedby="chat-input-help"
         />
 
         <div className="absolute right-2 bottom-2 flex items-center gap-1">
