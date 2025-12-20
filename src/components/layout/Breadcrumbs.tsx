@@ -22,6 +22,7 @@ const routeLabels: Record<string, string> = {
   "admin": "Admin",
   "auth": "Sign In",
   "pricing": "Pricing",
+  "contact": "Contact",
 };
 
 export function Breadcrumbs({ items, className, auto = false }: BreadcrumbsProps) {

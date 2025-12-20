@@ -77,6 +77,9 @@ export default function Landing() {
                 <Link to="/pricing">Pricing</Link>
               </Button>
               <Button variant="ghost" asChild>
+                <Link to="/contact">Support</Link>
+              </Button>
+              <Button variant="ghost" asChild>
                 <Link to="/auth">Sign In</Link>
               </Button>
               <Button asChild>
