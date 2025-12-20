@@ -4,6 +4,7 @@ import { ConversationItem } from "./ConversationItem";
 import { MessageSquare, Pin, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { openLovableProject, copyProjectUrl } from "@/lib/lovable-url";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Conversation } from "@/types/database";
 
 // Lazy load dialogs
@@ -29,6 +30,7 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     updateConversation,
     deleteConversation,
     getChildBranches,
+    loading,
   } = useWorkspace();
 
   const [renameDialog, setRenameDialog] = useState<Conversation | null>(null);
@@ -107,6 +109,38 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
       }
     }
   }, [conversations, setCurrentConversation, onSelect]);
+
+  // Show loading skeleton while fetching
+  if (loading) {
+    return (
+      <div className="space-y-3 animate-fade-in">
+        <div className="space-y-1">
+          <Skeleton className="h-3 w-16 mx-2" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="px-2 py-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+              <Skeleton className="h-3 w-24 ml-6" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-1">
+          <Skeleton className="h-3 w-12 mx-2" />
+          {[1, 2].map((i) => (
+            <div key={i} className="px-2 py-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+              <Skeleton className="h-3 w-20 ml-6" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (filteredConversations.length === 0) {
     return (
