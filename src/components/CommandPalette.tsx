@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandDialog,
@@ -22,7 +22,10 @@ import {
   Sun,
   LogOut,
   Keyboard,
-  Sparkles,
+  Code2,
+  HelpCircle,
+  GraduationCap,
+  ExternalLink,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { KeyboardShortcutsModal } from "@/components/dialogs/KeyboardShortcutsModal";
@@ -93,6 +96,15 @@ export function CommandPalette() {
     description: "Show keyboard shortcuts",
   });
 
+  // Open Builder with Cmd+Shift+B
+  useShortcut("b", () => {
+    navigate("/builder");
+  }, {
+    meta: true,
+    shift: true,
+    description: "Open App Builder",
+  });
+
   const runCommand = (command: () => void) => {
     setOpen(false);
     command();
@@ -101,7 +113,10 @@ export function CommandPalette() {
   return (
     <>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
+        <CommandInput 
+          placeholder="Type a command or search..." 
+          aria-label="Search commands"
+        />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
 
@@ -114,16 +129,23 @@ export function CommandPalette() {
                 })
               }
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>New Conversation</span>
               <CommandShortcut>⌘N</CommandShortcut>
             </CommandItem>
             <CommandItem
               onSelect={() => runCommand(() => createProject("New Project"))}
             >
-              <FolderPlus className="mr-2 h-4 w-4" />
+              <FolderPlus className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>New Project</span>
               <CommandShortcut>⌘⇧N</CommandShortcut>
+            </CommandItem>
+            <CommandItem
+              onSelect={() => runCommand(() => navigate("/builder"))}
+            >
+              <Code2 className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Open App Builder</span>
+              <CommandShortcut>⌘⇧B</CommandShortcut>
             </CommandItem>
           </CommandGroup>
 
@@ -140,7 +162,7 @@ export function CommandPalette() {
                       runCommand(() => setCurrentConversation(conversation))
                     }
                   >
-                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <MessageSquare className="mr-2 h-4 w-4" aria-hidden="true" />
                     <span className="truncate">{conversation.title}</span>
                   </CommandItem>
                 ))}
@@ -158,7 +180,7 @@ export function CommandPalette() {
                     key={project.id}
                     onSelect={() => runCommand(() => setCurrentProject(project))}
                   >
-                    <span className="mr-2">{project.icon || "📁"}</span>
+                    <span className="mr-2" aria-hidden="true">{project.icon || "📁"}</span>
                     <span>{project.name}</span>
                   </CommandItem>
                 ))}
@@ -175,22 +197,44 @@ export function CommandPalette() {
               }
             >
               {theme === "dark" ? (
-                <Sun className="mr-2 h-4 w-4" />
+                <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
               ) : (
-                <Moon className="mr-2 h-4 w-4" />
+                <Moon className="mr-2 h-4 w-4" aria-hidden="true" />
               )}
               <span>Toggle {theme === "dark" ? "Light" : "Dark"} Mode</span>
               <CommandShortcut>⌘D</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => setShortcutsOpen(true))}>
-              <Keyboard className="mr-2 h-4 w-4" />
+              <Keyboard className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Keyboard Shortcuts</span>
               <CommandShortcut>⌘⇧/</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/settings"))}>
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Settings</span>
               <CommandShortcut>⌘,</CommandShortcut>
+            </CommandItem>
+          </CommandGroup>
+
+          <CommandSeparator />
+
+          {/* Help */}
+          <CommandGroup heading="Help">
+            <CommandItem onSelect={() => runCommand(() => navigate("/settings"))}>
+              <GraduationCap className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Take the Tour</span>
+            </CommandItem>
+            <CommandItem
+              onSelect={() => runCommand(() => window.open("https://docs.lovable.dev", "_blank"))}
+            >
+              <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Documentation</span>
+            </CommandItem>
+            <CommandItem
+              onSelect={() => runCommand(() => window.open("https://discord.com/channels/1119885301872070706/1280461670979993613", "_blank"))}
+            >
+              <HelpCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Community Support</span>
             </CommandItem>
           </CommandGroup>
 
@@ -199,7 +243,7 @@ export function CommandPalette() {
           {/* Account */}
           <CommandGroup heading="Account">
             <CommandItem onSelect={() => runCommand(signOut)}>
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
               <span>Sign Out</span>
             </CommandItem>
           </CommandGroup>
