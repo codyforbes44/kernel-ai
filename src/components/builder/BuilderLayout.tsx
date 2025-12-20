@@ -50,6 +50,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showMarketplace, setShowMarketplace] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
+  const [previewCSS, setPreviewCSS] = useState<string | null>(null);
+  const [previewSystemName, setPreviewSystemName] = useState<string | null>(null);
   
   const {
     project,
@@ -118,6 +120,12 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     toast.success(`Saved ${changes.length} visual change${changes.length > 1 ? 's' : ''} to source code`);
   }, [updateLocalContent, saveFile]);
 
+  // Handle design system preview change
+  const handlePreviewChange = useCallback((css: string | null, systemName?: string) => {
+    setPreviewCSS(css);
+    setPreviewSystemName(systemName || null);
+  }, []);
+
   // Keyboard shortcuts - Ctrl/Cmd+S to save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,7 +181,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
 
         {/* Content */}
         {showPreview ? (
-          <SandpackPreview files={files} />
+          <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} />
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             <EditorTabs
@@ -230,8 +238,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 size="icon"
                 className={cn('h-8 w-8', showDesignSystem && 'bg-primary/10 text-primary')}
                 onClick={() => {
-                  setShowDesignSystem(!showDesignSystem);
-                  if (!showDesignSystem) {
+                  const newState = !showDesignSystem;
+                  setShowDesignSystem(newState);
+                  // Clear preview when closing design system panel
+                  if (!newState) {
+                    setPreviewCSS(null);
+                    setPreviewSystemName(null);
+                  }
+                  if (newState) {
                     setShowAIChat(false);
                     setShowHistory(false);
                     setShowDeployments(false);
@@ -423,7 +437,12 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={(showAIChat || showHistory) ? 25 : 40} minSize={20}>
               <div className="h-full flex flex-col">
-                <SandpackPreview files={files} onSaveVisualChanges={handleSaveVisualChanges} />
+                <SandpackPreview 
+                  files={files} 
+                  onSaveVisualChanges={handleSaveVisualChanges}
+                  previewCSS={previewCSS}
+                  previewSystemName={previewSystemName}
+                />
                 <ErrorCapture
                   onErrorsChange={setCapturedErrors}
                   onTryToFix={handleTryToFix}
@@ -450,16 +469,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </>
         )}
 
-        {/* Design System Panel */}
         {showDesignSystem && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <DesignSystemPanel projectId={projectId} />
+              <DesignSystemPanel projectId={projectId} onPreviewChange={handlePreviewChange} />
             </ResizablePanel>
           </>
         )}
-
         {/* Component Marketplace Panel */}
         {showMarketplace && (
           <>
