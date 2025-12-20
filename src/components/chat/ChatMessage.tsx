@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useMemo } from "react";
 import { Message } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,9 +59,11 @@ export const ChatMessage = memo(function ChatMessage({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const isUser = message.role === "user";
 
-  // Extract attachments from metadata
-  const attachments: Attachment[] = 
-    (message.metadata as { attachments?: Attachment[] } | null)?.attachments || [];
+  // Extract attachments from metadata - memoized for performance
+  const attachments: Attachment[] = useMemo(() => 
+    (message.metadata as { attachments?: Attachment[] } | null)?.attachments || [],
+    [message.metadata]
+  );
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);

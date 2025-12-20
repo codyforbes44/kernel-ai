@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Sparkles, Terminal, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormRegisterReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { 
   signInSchema, 
@@ -137,7 +137,7 @@ const Auth = () => {
   const renderPasswordInput = (
     id: string,
     name: string,
-    register: any,
+    register: UseFormRegisterReturn,
     error?: string,
     placeholder = "••••••••"
   ) => (

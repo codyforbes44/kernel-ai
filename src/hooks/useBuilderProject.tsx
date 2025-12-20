@@ -18,14 +18,14 @@ export function useBuilderProject(projectId?: string) {
 
   // Fetch project
   const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ['builder-project', projectId],
+    queryKey: ['builder', 'project', projectId],
     queryFn: () => builderService.getProject(projectId!),
     enabled: !!projectId,
   });
 
   // Fetch files
   const { data: files = [], isLoading: filesLoading } = useQuery({
-    queryKey: ['project-files', projectId],
+    queryKey: ['builder', 'files', projectId],
     queryFn: () => builderService.getFiles(projectId!),
     enabled: !!projectId,
   });
@@ -40,7 +40,7 @@ export function useBuilderProject(projectId?: string) {
       return builderService.createProject({ userId: user.id, name, templateId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['builder-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'projects'] });
       toast.success('Project created');
     },
     onError: (error) => {
@@ -50,7 +50,7 @@ export function useBuilderProject(projectId?: string) {
 
   // Fetch user's projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
-    queryKey: ['builder-projects', user?.id],
+    queryKey: ['builder', 'projects', user?.id],
     queryFn: () => builderService.getProjects(user!.id),
     enabled: !!user,
   });
@@ -65,8 +65,8 @@ export function useBuilderProject(projectId?: string) {
       await builderService.updateFileContent(fileId, content);
     },
     onSuccess: (_, { fileId }) => {
-      queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
-      queryClient.invalidateQueries({ queryKey: ['file-versions', fileId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'versions', fileId] });
       setDirtyFiles(prev => {
         const next = new Set(prev);
         next.delete(fileId);
@@ -87,7 +87,7 @@ export function useBuilderProject(projectId?: string) {
       return builderService.createFile({ projectId, path, name, type, content });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
       toast.success('File created');
     },
   });
@@ -99,7 +99,7 @@ export function useBuilderProject(projectId?: string) {
       return fileId;
     },
     onSuccess: (fileId) => {
-      queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
       setOpenTabs(prev => prev.filter(t => t.id !== fileId));
       if (activeTabId === fileId) {
         setActiveTabId(openTabs[0]?.id || null);
@@ -118,7 +118,7 @@ export function useBuilderProject(projectId?: string) {
       await builderService.renameFile(fileId, newName, newPath);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
       toast.success('File renamed');
     },
   });
@@ -217,7 +217,7 @@ export function useBuilderProject(projectId?: string) {
       }
     }
     
-    queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+    queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
   }, [projectId, files, activeTabId, openTabs, queryClient]);
 
   // Get active file
