@@ -42,6 +42,7 @@ import {
   Volume2,
   Monitor,
   Sparkles,
+  Smartphone,
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
@@ -400,7 +401,7 @@ export default function Settings() {
               <RadioGroup
                 value={theme}
                 onValueChange={setTheme}
-                className="grid grid-cols-3 gap-3"
+                className="grid grid-cols-2 sm:grid-cols-4 gap-3"
               >
                 <Label
                   htmlFor="theme-light"
@@ -423,6 +424,16 @@ export default function Settings() {
                   <span className="text-sm font-medium">Dark</span>
                 </Label>
                 <Label
+                  htmlFor="theme-oled"
+                  className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
+                >
+                  <RadioGroupItem value="oled" id="theme-oled" className="sr-only" />
+                  <div className="w-10 h-10 rounded-full bg-black border-2 border-primary/50 flex items-center justify-center ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">OLED</span>
+                </Label>
+                <Label
                   htmlFor="theme-system"
                   className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
                 >
@@ -436,6 +447,8 @@ export default function Settings() {
               <p className="text-xs text-muted-foreground">
                 {theme === 'system' 
                   ? 'Theme will automatically match your system preferences' 
+                  : theme === 'oled'
+                  ? 'Pure black for OLED displays - saves battery'
                   : `Using ${theme} theme`}
               </p>
             </div>

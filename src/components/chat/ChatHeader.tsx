@@ -110,17 +110,22 @@ export function ChatHeader() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                onClick={() => {
+                  const themeOrder = ["dark", "oled", "light"];
+                  const currentIndex = themeOrder.indexOf(theme || "dark");
+                  const nextIndex = (currentIndex + 1) % themeOrder.length;
+                  setTheme(themeOrder[nextIndex]);
+                }}
+                aria-label={`Cycle theme (currently ${theme})`}
               >
-                {theme === 'dark' ? (
-                  <Sun className="h-4 w-4" aria-hidden="true" />
-                ) : (
+                {theme === 'light' ? (
                   <Moon className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Sun className="h-4 w-4" aria-hidden="true" />
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Toggle theme (⌘D)</TooltipContent>
+            <TooltipContent>Cycle theme (⌘D)</TooltipContent>
           </Tooltip>
 
           <DropdownMenu>

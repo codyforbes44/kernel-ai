@@ -114,12 +114,15 @@ export function CommandPalette() {
     description: "New project",
   });
 
-  // Toggle theme with Cmd+D
+  // Toggle theme with Cmd+D (cycles: dark → oled → light → dark)
   useShortcut("d", () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    const themeOrder = ["dark", "oled", "light"];
+    const currentIndex = themeOrder.indexOf(theme || "dark");
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    setTheme(themeOrder[nextIndex]);
   }, {
     meta: true,
-    description: "Toggle dark mode",
+    description: "Cycle theme",
   });
 
   // Open settings with Cmd+,
@@ -184,8 +187,13 @@ export function CommandPalette() {
       icon: <Code2 className="h-4 w-4" />,
     },
     "toggle-theme": {
-      action: () => setTheme(theme === "dark" ? "light" : "dark"),
-      icon: theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />,
+      action: () => {
+        const themeOrder = ["dark", "oled", "light"];
+        const currentIndex = themeOrder.indexOf(theme || "dark");
+        const nextIndex = (currentIndex + 1) % themeOrder.length;
+        setTheme(themeOrder[nextIndex]);
+      },
+      icon: theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />,
     },
     "open-settings": {
       action: () => navigate("/settings"),
@@ -358,20 +366,24 @@ export function CommandPalette() {
           {/* Settings */}
           <CommandGroup heading="Settings">
             <CommandItem
-              onSelect={() =>
+              onSelect={() => {
+                const themeOrder = ["dark", "oled", "light"];
+                const currentIndex = themeOrder.indexOf(theme || "dark");
+                const nextTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
+                const nextLabel = nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1);
                 runCommand(
-                  () => setTheme(theme === "dark" ? "light" : "dark"),
+                  () => setTheme(nextTheme),
                   "toggle-theme",
-                  `Toggle ${theme === "dark" ? "Light" : "Dark"} Mode`
-                )
-              }
+                  `Switch to ${nextLabel} Mode`
+                );
+              }}
             >
-              {theme === "dark" ? (
-                <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
-              ) : (
+              {theme === "light" ? (
                 <Moon className="mr-2 h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Sun className="mr-2 h-4 w-4" aria-hidden="true" />
               )}
-              <span>Toggle {theme === "dark" ? "Light" : "Dark"} Mode</span>
+              <span>Cycle Theme ({theme === "dark" ? "→ OLED" : theme === "oled" ? "→ Light" : "→ Dark"})</span>
               <CommandShortcut>⌘D</CommandShortcut>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(
