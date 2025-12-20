@@ -21,7 +21,7 @@ import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
-import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG } from '@/lib/seo';
+import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
 
 export default function Builder() {
   const navigate = useNavigate();
@@ -62,7 +62,10 @@ export default function Builder() {
         title={PAGE_SEO.builder.title}
         description={PAGE_SEO.builder.description}
         ogImage={PAGE_SEO.builder.ogImage}
-        structuredData={getSoftwareApplicationSchema(SEO_CONFIG.siteUrl)}
+        structuredData={[
+          getSoftwareApplicationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.builder(SEO_CONFIG.siteUrl)
+        ]}
       />
       
       {/* Header */}

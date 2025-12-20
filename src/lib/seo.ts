@@ -104,3 +104,49 @@ export const getWebPageSchema = (title: string, description: string, url: string
     "name": SEO_CONFIG.siteName
   }
 });
+
+// Breadcrumb Schema Types
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+// Breadcrumb Structured Data
+export const getBreadcrumbSchema = (items: BreadcrumbItem[]) => ({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": items.map((item, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "name": item.name,
+    "item": item.url
+  }))
+});
+
+// Pre-built breadcrumb configurations
+export const BREADCRUMBS = {
+  home: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl }
+  ]),
+  auth: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Sign In', url: `${siteUrl}/auth` }
+  ]),
+  builder: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'App Builder', url: `${siteUrl}/builder` }
+  ]),
+  builderProject: (siteUrl: string, projectName: string, projectId: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'App Builder', url: `${siteUrl}/builder` },
+    { name: projectName, url: `${siteUrl}/builder/${projectId}` }
+  ]),
+  settings: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Settings', url: `${siteUrl}/settings` }
+  ]),
+  admin: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Admin Panel', url: `${siteUrl}/admin` }
+  ]),
+};
