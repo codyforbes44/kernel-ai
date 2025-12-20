@@ -44,6 +44,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
+import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -295,6 +296,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Two-Factor Authentication */}
+        <TwoFactorSettings />
 
         {/* Appearance */}
         <Card>
