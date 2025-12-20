@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
+import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSettings';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -299,6 +300,9 @@ export default function Settings() {
 
         {/* Two-Factor Authentication */}
         <TwoFactorSettings />
+
+        {/* Login Locations */}
+        <LoginLocationsSettings userId={user.id} />
 
         {/* Appearance */}
         <Card>
