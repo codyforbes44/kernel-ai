@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { useDeploymentNotifications } from './useDeploymentNotifications';
 
 export interface Deployment {
   id: string;
@@ -73,6 +74,8 @@ function mapCustomDomain(data: Record<string, unknown>): CustomDomain {
 export function useDeployments(projectId: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { trackDeployment } = useDeploymentNotifications();
+  const previousDeploymentsRef = useRef<Map<string, string>>(new Map());
 
   // Fetch deployments for project
   const { data: deployments = [], isLoading } = useQuery({
@@ -89,6 +92,22 @@ export function useDeployments(projectId: string) {
     },
     enabled: !!projectId && !!user,
   });
+
+  // Track deployment status changes for notifications
+  useEffect(() => {
+    deployments.forEach(deployment => {
+      const previousStatus = previousDeploymentsRef.current.get(deployment.id);
+      
+      // Check for status transition to terminal state
+      if ((deployment.status === 'deployed' || deployment.status === 'failed') &&
+          (previousStatus === 'building' || previousStatus === 'pending')) {
+        trackDeployment(deployment);
+      }
+      
+      // Always update tracking ref
+      previousDeploymentsRef.current.set(deployment.id, deployment.status);
+    });
+  }, [deployments, trackDeployment]);
 
   // Subscribe to realtime updates for this project's deployments
   useEffect(() => {
