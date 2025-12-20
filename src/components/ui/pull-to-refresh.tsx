@@ -24,6 +24,12 @@ export function PullToRefresh({
   const currentY = useRef(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Don't interfere with input fields
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+    
     if (containerRef.current?.scrollTop === 0 && !isRefreshing) {
       startY.current = e.touches[0].clientY;
       setIsPulling(true);

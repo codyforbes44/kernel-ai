@@ -32,6 +32,12 @@ export function Swipeable({
   const isHorizontalSwipe = useRef<boolean | null>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Don't interfere with input fields
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+    
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
     isHorizontalSwipe.current = null;

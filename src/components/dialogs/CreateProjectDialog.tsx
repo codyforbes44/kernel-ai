@@ -59,6 +59,9 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Don't interfere with IME composition (for Chinese, Japanese, Korean input)
+    if (e.nativeEvent.isComposing) return;
+    
     if (e.key === "Enter" && !e.shiftKey && projectName.trim()) {
       e.preventDefault();
       handleCreate();

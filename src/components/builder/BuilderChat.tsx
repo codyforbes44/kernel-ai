@@ -395,6 +395,9 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Don't interfere with IME composition (for Chinese, Japanese, Korean input)
+    if (e.nativeEvent.isComposing) return;
+    
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
