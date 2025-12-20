@@ -123,6 +123,9 @@ export function ChatInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Don't interfere with IME composition (for Chinese, Japanese, Korean input)
+    if (e.nativeEvent.isComposing) return;
+    
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       handleSubmit();
@@ -261,9 +264,13 @@ export function ChatInput({
     description: "Focus chat input",
   });
 
-  // Shortcut to open template picker
+  // Shortcut to open template picker - only when not in any input field
   useShortcut("/", () => {
-    if (document.activeElement !== textareaRef.current) {
+    const active = document.activeElement as HTMLElement;
+    const isInInputField = active?.tagName === 'INPUT' || 
+                           active?.tagName === 'TEXTAREA' || 
+                           active?.isContentEditable;
+    if (!isInInputField) {
       openTemplatePicker();
     }
   }, {

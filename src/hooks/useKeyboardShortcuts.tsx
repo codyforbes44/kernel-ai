@@ -42,11 +42,15 @@ export function useKeyboardShortcuts() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input/textarea
+      // Ignore if in IME composition mode (for Chinese, Japanese, Korean input)
+      if (e.isComposing) return;
+
+      // Ignore if typing in an input/textarea or inside a dialog
       const target = e.target as HTMLElement;
       const isInputField = target.tagName === 'INPUT' || 
                           target.tagName === 'TEXTAREA' || 
                           target.isContentEditable;
+      const isInsideDialog = target.closest('[role="dialog"]') !== null;
 
       for (const [, shortcut] of shortcutRegistry) {
         const modifierMatch = 
@@ -57,10 +61,15 @@ export function useKeyboardShortcuts() {
 
         const keyMatch = e.key.toLowerCase() === shortcut.key.toLowerCase();
 
-        // For Cmd/Ctrl shortcuts, allow even in input fields
+        // For Cmd/Ctrl shortcuts, allow even in input fields (but not in dialogs unless it requires modifier)
         const requiresModifier = shortcut.ctrl || shortcut.meta;
 
-        if (keyMatch && modifierMatch && (requiresModifier || !isInputField)) {
+        // Skip shortcuts without modifiers if in input field or dialog
+        if (!requiresModifier && (isInputField || isInsideDialog)) {
+          continue;
+        }
+
+        if (keyMatch && modifierMatch) {
           e.preventDefault();
           shortcut.callback();
           return;
