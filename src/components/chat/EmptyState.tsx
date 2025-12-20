@@ -16,6 +16,9 @@ import {
   Code2,
   ArrowRight,
   Compass,
+  Lightbulb,
+  BookOpen,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,31 +32,58 @@ const quickPrompts = [
     icon: Code,
     title: "Debug an error",
     prompt: "I'm getting an error in my Lovable project. Can you help me debug it?",
+    color: "text-red-500",
+    bgColor: "bg-red-500/10 group-hover:bg-red-500/20",
   },
   {
     icon: Sparkles,
     title: "Generate a component",
     prompt: "Create a modern, responsive React component for",
+    color: "text-blue-500",
+    bgColor: "bg-blue-500/10 group-hover:bg-blue-500/20",
   },
   {
     icon: Database,
     title: "Design database schema",
     prompt: "Help me design a database schema for",
+    color: "text-green-500",
+    bgColor: "bg-green-500/10 group-hover:bg-green-500/20",
   },
   {
     icon: Shield,
     title: "Review RLS policies",
     prompt: "Review my Row Level Security policies for potential issues",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-500/10 group-hover:bg-yellow-500/20",
   },
   {
     icon: Palette,
     title: "Improve UI/UX",
     prompt: "Suggest improvements for the user interface of my",
+    color: "text-pink-500",
+    bgColor: "bg-pink-500/10 group-hover:bg-pink-500/20",
   },
   {
     icon: Zap,
     title: "Optimize performance",
     prompt: "Help me optimize the performance of my Lovable app",
+    color: "text-orange-500",
+    bgColor: "bg-orange-500/10 group-hover:bg-orange-500/20",
+  },
+];
+
+const learningResources = [
+  {
+    icon: BookOpen,
+    title: "Documentation",
+    description: "Learn the basics",
+    url: "https://docs.lovable.dev",
+  },
+  {
+    icon: Rocket,
+    title: "Quick Start",
+    description: "Build your first app",
+    url: "https://docs.lovable.dev/user-guides/quickstart",
   },
 ];
 
@@ -69,7 +99,7 @@ function StartTourButton() {
         .from('profiles')
         .select('preferences')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       const prefs = data?.preferences as Record<string, unknown> | null;
       setHasCompletedTour(prefs?.hasCompletedTour === true);
@@ -81,12 +111,11 @@ function StartTourButton() {
   const handleStartTour = async () => {
     if (!user) return;
     
-    // Reset the tour completion flag to trigger the tour
     const { data } = await supabase
       .from('profiles')
       .select('preferences')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
     
     const currentPrefs = (data?.preferences as Record<string, unknown>) || {};
     
@@ -97,18 +126,16 @@ function StartTourButton() {
       })
       .eq('id', user.id);
     
-    // Reload the page to show the tour
     window.location.reload();
   };
 
-  // Only show the button if the user has already completed the tour
   if (!hasCompletedTour) return null;
 
   return (
     <button
       onClick={handleStartTour}
       className={cn(
-        "mt-6 flex items-center gap-2 px-4 py-2 rounded-lg text-sm",
+        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm",
         "text-muted-foreground hover:text-foreground",
         "bg-muted/50 hover:bg-muted border border-border/50 hover:border-border",
         "transition-all animate-fade-in"
@@ -119,6 +146,39 @@ function StartTourButton() {
       <Compass className="h-4 w-4" aria-hidden="true" />
       <span>Take a Tour</span>
     </button>
+  );
+}
+
+// Animated illustration component
+function EmptyStateIllustration({ type }: { type: "chat" | "welcome" }) {
+  if (type === "chat") {
+    return (
+      <div className="relative w-20 h-20 md:w-24 md:h-24">
+        {/* Animated circles */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 animate-pulse" />
+        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 animate-pulse" style={{ animationDelay: "150ms" }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <MessageSquare className="h-8 w-8 md:h-10 md:w-10 text-primary" aria-hidden="true" />
+        </div>
+        {/* Floating particles */}
+        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-accent/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+        <div className="absolute -bottom-1 -left-1 w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+        <div className="absolute top-1/2 -right-2 w-2 h-2 rounded-full bg-success/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-20 h-20 md:w-24 md:h-24">
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Sparkles className="h-10 w-10 md:h-12 md:w-12 text-primary animate-pulse" aria-hidden="true" />
+      </div>
+      {/* Decorative elements */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-accent/40 animate-bounce" />
+      <div className="absolute -bottom-1 left-1/4 w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "100ms" }} />
+      <div className="absolute top-1/4 -right-1 w-3 h-3 rounded-full bg-success/40 animate-bounce" style={{ animationDelay: "200ms" }} />
+    </div>
   );
 }
 
@@ -139,10 +199,8 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
         role="status"
         aria-label="No conversation selected"
       >
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 animate-scale-in">
-          <MessageSquare className="h-8 w-8 text-primary" aria-hidden="true" />
-        </div>
-        <h2 className="text-xl font-semibold mb-2">No Conversation Selected</h2>
+        <EmptyStateIllustration type="chat" />
+        <h2 className="text-xl font-semibold mb-2 mt-6">No Conversation Selected</h2>
         <p className="text-muted-foreground max-w-md mb-6">
           Select a conversation from the sidebar or create a new one to start
           chatting with your AI assistant.
@@ -151,12 +209,26 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
           <Button 
             onClick={handleNewConversation}
             disabled={isCreatingConversation}
+            className="gap-2"
             aria-label="Start a new conversation"
           >
-            <Sparkles className="h-4 w-4 mr-2" aria-hidden="true" />
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
             {isCreatingConversation ? "Creating..." : "New Conversation"}
           </Button>
         )}
+        
+        {/* Contextual tip */}
+        <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border/50 max-w-sm animate-fade-in" style={{ animationDelay: "200ms" }}>
+          <div className="flex items-start gap-3">
+            <Lightbulb className="h-5 w-5 text-warning shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="text-left">
+              <p className="text-sm font-medium">Pro tip</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Press <kbd className="px-1.5 py-0.5 rounded bg-background border text-xs font-mono">⌘N</kbd> to quickly create a new conversation.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -167,16 +239,9 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
       role="region"
       aria-label="Start a conversation"
     >
-      <div 
-        className={cn(
-          "w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5",
-          "flex items-center justify-center mb-4 md:mb-6 border border-primary/20",
-          "animate-scale-in"
-        )}
-      >
-        <Sparkles className="h-8 w-8 md:h-10 md:w-10 text-primary" aria-hidden="true" />
-      </div>
-      <h2 className="text-xl md:text-2xl font-bold mb-2 text-center">How can I help you today?</h2>
+      <EmptyStateIllustration type="welcome" />
+      
+      <h2 className="text-xl md:text-2xl font-bold mb-2 mt-6 text-center">How can I help you today?</h2>
       <p className="text-muted-foreground text-center max-w-lg mb-6 md:mb-8 text-sm md:text-base px-4">
         I'm your expert Lovable AI assistant. Ask me anything about building
         with Lovable, debugging issues, or improving your projects.
@@ -210,6 +275,7 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
         </div>
       </Link>
 
+      {/* Quick prompts grid */}
       <nav 
         className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 w-full max-w-2xl px-4"
         aria-label="Quick prompts"
@@ -228,8 +294,11 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
               style={{ animationDelay: `${150 + index * 50}ms` }}
               aria-label={`Use prompt: ${prompt.title}`}
             >
-              <div className="shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-lg bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <IconComponent className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground group-hover:text-primary transition-colors" aria-hidden="true" />
+              <div className={cn(
+                "shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-lg flex items-center justify-center transition-colors",
+                prompt.bgColor
+              )}>
+                <IconComponent className={cn("h-4 w-4 md:h-5 md:w-5", prompt.color)} aria-hidden="true" />
               </div>
               <div className="min-w-0">
                 <h3 className="font-medium text-sm mb-0.5 md:mb-1">{prompt.title}</h3>
@@ -242,12 +311,32 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
         })}
       </nav>
 
-      <StartTourButton />
+      {/* Learning resources - only show on larger screens */}
+      {!isMobile && (
+        <div className="flex items-center gap-4 mt-6 animate-fade-in" style={{ animationDelay: "500ms" }}>
+          {learningResources.map((resource, index) => (
+            <a
+              key={index}
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <resource.icon className="h-4 w-4" aria-hidden="true" />
+              <span>{resource.title}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 mt-4">
+        <StartTourButton />
+      </div>
 
       {!isMobile && (
         <div 
           className="mt-6 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in"
-          style={{ animationDelay: "500ms" }}
+          style={{ animationDelay: "550ms" }}
         >
           <span>Press</span>
           <kbd className="px-2 py-0.5 rounded bg-muted border border-border font-mono">
