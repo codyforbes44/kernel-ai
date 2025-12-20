@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef, createContext, useCo
 import { supabase } from '@/integrations/supabase/client';
 import type { Workspace, Project, Conversation } from '@/types/database';
 import { useAuth } from './useAuth';
+import { workspaceService } from '@/services/workspaceService';
+import { toast } from 'sonner';
 
 interface WorkspaceContextType {
   workspaces: Workspace[];
@@ -48,6 +50,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   
   const initializedRef = useRef(false);
+  const branchingRef = useRef(false);
 
   const currentWorkspace = useMemo(
     () => workspaces.find(w => w.id === selectedWorkspaceId) || null,
@@ -69,53 +72,29 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     
     setLoading(true);
     try {
-      const [workspacesResult, projectsResult, conversationsResult] = await Promise.all([
-        supabase
-          .from('workspaces')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at'),
-        supabase
-          .from('projects')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_archived', false)
-          .order('created_at'),
-        supabase
-          .from('conversations')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_archived', false)
-          .order('updated_at', { ascending: false })
+      const [workspacesData, projectsData, conversationsData] = await Promise.all([
+        workspaceService.getWorkspaces(user.id),
+        workspaceService.getProjects(user.id),
+        workspaceService.getConversations(user.id),
       ]);
 
-      const workspacesData = workspacesResult.data;
-      const projectsData = projectsResult.data;
-      const conversationsData = conversationsResult.data;
-
-      if (workspacesData) {
-        setWorkspaces(workspacesData as Workspace[]);
-      }
-      if (projectsData) {
-        setProjects(projectsData as Project[]);
-      }
-      if (conversationsData) {
-        setConversations(conversationsData as Conversation[]);
-      }
+      setWorkspaces(workspacesData);
+      setProjects(projectsData);
+      setConversations(conversationsData);
 
       if (!initializedRef.current) {
-        if (workspacesData && workspacesData.length > 0) {
+        if (workspacesData.length > 0) {
           const defaultWs = workspacesData.find(w => w.is_default) || workspacesData[0];
           setSelectedWorkspaceId(defaultWs.id);
         }
-        if (projectsData && projectsData.length > 0) {
+        if (projectsData.length > 0) {
           setSelectedProjectId(projectsData[0].id);
         }
         initializedRef.current = true;
       }
-
     } catch (error) {
       console.error('Error fetching workspace data:', error);
+      toast.error('Failed to load workspace data');
     } finally {
       setLoading(false);
     }
@@ -136,7 +115,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [user, fetchData]);
 
-  // Realtime subscription for conversations
+  // Realtime subscription for conversations with error handling
   useEffect(() => {
     if (!user) return;
 
@@ -189,7 +168,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          console.error('Realtime subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -213,106 +196,84 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     setIsCreatingConversation(true);
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert({
-          project_id: projectId,
-          user_id: user.id,
-          title,
-        })
-        .select()
-        .single();
+      const newConversation = await workspaceService.createConversation({
+        projectId,
+        userId: user.id,
+        title,
+      });
 
-      if (error) {
-        console.error('Error creating conversation:', error);
-        return null;
-      }
-
-      const newConversation = data as Conversation;
       setConversations(prev => [newConversation, ...prev]);
       setSelectedConversationId(newConversation.id);
       return newConversation;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      toast.error('Failed to create conversation');
+      return null;
     } finally {
       setIsCreatingConversation(false);
     }
   }, [user, isCreatingConversation]);
 
-  // Branch a conversation from a specific message
+  // Branch a conversation from a specific message with debouncing
   const branchConversation = useCallback(async (
     parentConversationId: string,
     branchPointMessageId: string,
     title?: string
   ) => {
-    if (!user || isCreatingConversation) return null;
+    if (!user || isCreatingConversation || branchingRef.current) return null;
 
     const parentConversation = conversations.find(c => c.id === parentConversationId);
     if (!parentConversation) return null;
 
+    branchingRef.current = true;
     setIsCreatingConversation(true);
+    
     try {
       // Get messages up to and including the branch point
-      const { data: messagesToCopy, error: msgError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', parentConversationId)
-        .order('created_at');
-
-      if (msgError) throw msgError;
+      const messagesToCopy = await workspaceService.getConversationMessages(parentConversationId);
 
       // Find the branch point message index
-      const branchIndex = messagesToCopy?.findIndex(m => m.id === branchPointMessageId) ?? -1;
+      const branchIndex = messagesToCopy.findIndex(m => m.id === branchPointMessageId);
       if (branchIndex === -1) {
         console.error('Branch point message not found');
+        toast.error('Could not find branch point');
         return null;
       }
 
       // Create the branched conversation
       const branchTitle = title || `Branch: ${parentConversation.title}`;
-      const { data: newConv, error: convError } = await supabase
-        .from('conversations')
-        .insert({
-          project_id: parentConversation.project_id,
-          user_id: user.id,
-          title: branchTitle,
-          parent_conversation_id: parentConversationId,
-          branch_point_message_id: branchPointMessageId,
-          lovable_project_url: parentConversation.lovable_project_url,
-          lovable_project_name: parentConversation.lovable_project_name,
-        })
-        .select()
-        .single();
-
-      if (convError) throw convError;
+      const newConversation = await workspaceService.createConversation({
+        projectId: parentConversation.project_id,
+        userId: user.id,
+        title: branchTitle,
+        parentConversationId,
+        branchPointMessageId,
+        lovableProjectUrl: parentConversation.lovable_project_url,
+        lovableProjectName: parentConversation.lovable_project_name,
+      });
 
       // Copy messages up to the branch point
-      const messagesToInsert = messagesToCopy
-        .slice(0, branchIndex + 1)
-        .map(m => ({
-          conversation_id: newConv.id,
-          user_id: user.id,
-          role: m.role,
-          content: m.content,
-          model: m.model,
-          metadata: m.metadata,
-        }));
+      await workspaceService.copyMessagesToConversation({
+        sourceConversationId: parentConversationId,
+        targetConversationId: newConversation.id,
+        userId: user.id,
+        upToMessageId: branchPointMessageId,
+      });
 
-      if (messagesToInsert.length > 0) {
-        const { error: insertError } = await supabase
-          .from('messages')
-          .insert(messagesToInsert);
-
-        if (insertError) throw insertError;
-      }
-
-      const newConversation = newConv as Conversation;
       setConversations(prev => [newConversation, ...prev]);
       setSelectedConversationId(newConversation.id);
+      toast.success('Branch created');
       return newConversation;
     } catch (error) {
       console.error('Error branching conversation:', error);
+      toast.error('Failed to create branch');
       return null;
     } finally {
       setIsCreatingConversation(false);
+      // Debounce: prevent rapid branching
+      setTimeout(() => {
+        branchingRef.current = false;
+      }, 1000);
     }
   }, [user, isCreatingConversation, conversations]);
 
@@ -324,91 +285,90 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const createProject = useCallback(async (name: string, description?: string) => {
     if (!user || !selectedWorkspaceId) return null;
 
-    const { data, error } = await supabase
-      .from('projects')
-      .insert({
-        workspace_id: selectedWorkspaceId,
-        user_id: user.id,
+    try {
+      const newProject = await workspaceService.createProject({
+        workspaceId: selectedWorkspaceId,
+        userId: user.id,
         name,
         description,
-      })
-      .select()
-      .single();
+      });
 
-    if (error) {
+      setProjects(prev => [...prev, newProject]);
+      setSelectedProjectId(newProject.id);
+      toast.success('Project created');
+      return newProject;
+    } catch (error) {
       console.error('Error creating project:', error);
+      toast.error('Failed to create project');
       return null;
     }
-
-    const newProject = data as Project;
-    setProjects(prev => [...prev, newProject]);
-    setSelectedProjectId(newProject.id);
-    return newProject;
   }, [user, selectedWorkspaceId]);
 
   const updateConversation = useCallback(async (id: string, updates: Partial<Conversation>) => {
-    const { error } = await supabase
-      .from('conversations')
-      .update(updates)
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await workspaceService.updateConversation(id, updates);
       setConversations(prev => 
         prev.map(c => c.id === id ? { ...c, ...updates } : c)
       );
+    } catch (error) {
+      console.error('Error updating conversation:', error);
+      toast.error('Failed to update conversation');
     }
   }, []);
 
   const deleteConversation = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('conversations')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await workspaceService.deleteConversation(id);
       setConversations(prev => prev.filter(c => c.id !== id));
       if (selectedConversationId === id) {
         setSelectedConversationId(null);
       }
+      toast.success('Conversation deleted');
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Failed to delete conversation');
     }
   }, [selectedConversationId]);
 
   const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
-    const { error } = await supabase
-      .from('projects')
-      .update(updates)
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await workspaceService.updateProject(id, updates);
       setProjects(prev => 
         prev.map(p => p.id === id ? { ...p, ...updates } : p)
       );
+      return true;
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast.error('Failed to update project');
+      return false;
     }
-    return !error;
   }, []);
 
   const deleteProject = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
+    try {
+      await workspaceService.deleteProject(id);
       setProjects(prev => prev.filter(p => p.id !== id));
       setConversations(prev => prev.filter(c => c.project_id !== id));
       if (selectedProjectId === id) {
         setSelectedProjectId(null);
       }
+      toast.success('Project deleted');
+      return true;
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast.error('Failed to delete project');
+      return false;
     }
-    return !error;
   }, [selectedProjectId]);
 
-  const projectConversations = conversations.filter(
-    c => c.project_id === selectedProjectId
+  const projectConversations = useMemo(() => 
+    conversations.filter(c => c.project_id === selectedProjectId),
+    [conversations, selectedProjectId]
   );
 
-  const workspaceProjects = projects.filter(
-    p => p.workspace_id === selectedWorkspaceId
+  const workspaceProjects = useMemo(() => 
+    projects.filter(p => p.workspace_id === selectedWorkspaceId),
+    [projects, selectedWorkspaceId]
   );
 
   const value: WorkspaceContextType = {
