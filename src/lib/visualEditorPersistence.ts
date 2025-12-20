@@ -19,19 +19,20 @@ export function applyVisualChangesToSource(
   const results: ApplyChangesResult[] = [];
   const fileChanges = new Map<string, { file: ProjectFile; changes: VisualChange[] }>();
 
-  // Group changes by file
+  // Group changes by file using source mapping
   for (const change of changes) {
-    // Try to find file by source mapping first
     let targetFile: ProjectFile | undefined;
     
+    // Use source mapping for precise file location
     if (change.sourceMapping?.filePath) {
-      targetFile = files.find(f => 
-        f.path === change.sourceMapping!.filePath || 
-        f.path === `/${change.sourceMapping!.filePath}`
-      );
+      const mappedPath = change.sourceMapping.filePath;
+      targetFile = files.find(f => {
+        const filePath = f.path.replace(/^\//, '');
+        return filePath === mappedPath || f.path === `/${mappedPath}`;
+      });
     }
 
-    // If no source mapping, try to find the likely file (App.tsx or similar)
+    // Fallback: try to find the likely file (App.tsx or similar)
     if (!targetFile) {
       targetFile = files.find(f => 
         f.path.includes('App.tsx') || 
@@ -86,18 +87,44 @@ function applyChangeToContent(content: string, change: VisualChange): string {
 }
 
 /**
- * Apply className changes to JSX
+ * Apply className changes to JSX using line number for precision
  */
 function applyClassChange(content: string, change: VisualChange): string {
-  const { oldValue, newValue, elementSelector } = change;
+  const { oldValue, newValue, sourceMapping } = change;
   
   if (!oldValue || !newValue) return content;
   
-  // Escape special regex characters in the old value
-  const escapedOldValue = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const lines = content.split('\n');
   
-  // Try to find and replace className with the old value
-  // Handle both className="..." and className={...}
+  // If we have source mapping with line number, target that specific line
+  if (sourceMapping?.lineNumber && sourceMapping.lineNumber <= lines.length) {
+    const targetLineIndex = sourceMapping.lineNumber - 1;
+    const targetLine = lines[targetLineIndex];
+    
+    // Try to update className on this specific line
+    const escapedOldValue = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const classNameRegex = new RegExp(
+      `(className\\s*=\\s*["'\`])${escapedOldValue}(["'\`])`,
+      'g'
+    );
+    
+    const updatedLine = targetLine.replace(classNameRegex, `$1${newValue}$2`);
+    
+    if (updatedLine !== targetLine) {
+      lines[targetLineIndex] = updatedLine;
+      return lines.join('\n');
+    }
+    
+    // If exact match didn't work, try partial class replacement on this line
+    const updatedLinePartial = applyPartialClassChange(targetLine, oldValue, newValue);
+    if (updatedLinePartial !== targetLine) {
+      lines[targetLineIndex] = updatedLinePartial;
+      return lines.join('\n');
+    }
+  }
+  
+  // Fallback: try global replacement
+  const escapedOldValue = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const classNameRegex = new RegExp(
     `(className\\s*=\\s*["'\`])${escapedOldValue}(["'\`])`,
     'g'
@@ -105,49 +132,56 @@ function applyClassChange(content: string, change: VisualChange): string {
   
   const newContent = content.replace(classNameRegex, `$1${newValue}$2`);
   
-  // If no replacement was made, try to find the classes and update them
-  if (newContent === content) {
-    // Try partial class replacement
-    const oldClasses = oldValue.split(/\s+/).filter(Boolean);
-    const newClasses = newValue.split(/\s+/).filter(Boolean);
-    
-    // Find classes that were added or removed
-    const addedClasses = newClasses.filter(c => !oldClasses.includes(c));
-    const removedClasses = oldClasses.filter(c => !newClasses.includes(c));
-    
-    let result = content;
-    
-    // Remove old classes
-    for (const cls of removedClasses) {
-      const clsRegex = new RegExp(`\\b${cls}\\b\\s*`, 'g');
-      result = result.replace(clsRegex, '');
-    }
-    
-    // Add new classes - find a className that contains some of the old classes
-    if (addedClasses.length > 0) {
-      const classesToAdd = addedClasses.join(' ');
-      
-      // Try to append to existing className
-      for (const oldClass of oldClasses) {
-        const appendRegex = new RegExp(
-          `(className\\s*=\\s*["'\`][^"'\`]*\\b${oldClass}\\b[^"'\`]*)(["'\`])`,
-          'g'
-        );
-        
-        if (appendRegex.test(result)) {
-          result = result.replace(appendRegex, `$1 ${classesToAdd}$2`);
-          break;
-        }
-      }
-    }
-    
-    // Clean up multiple spaces
-    result = result.replace(/\s{2,}/g, ' ').replace(/"\s+"/g, '""');
-    
-    return result;
+  if (newContent !== content) {
+    return newContent;
   }
   
-  return newContent;
+  // Try partial class replacement globally
+  return applyPartialClassChange(content, oldValue, newValue);
+}
+
+/**
+ * Apply partial class changes (adding/removing individual classes)
+ */
+function applyPartialClassChange(content: string, oldValue: string, newValue: string): string {
+  const oldClasses = oldValue.split(/\s+/).filter(Boolean);
+  const newClasses = newValue.split(/\s+/).filter(Boolean);
+  
+  // Find classes that were added or removed
+  const addedClasses = newClasses.filter(c => !oldClasses.includes(c));
+  const removedClasses = oldClasses.filter(c => !newClasses.includes(c));
+  
+  let result = content;
+  
+  // Remove old classes
+  for (const cls of removedClasses) {
+    const clsRegex = new RegExp(`\\b${cls}\\b\\s*`, 'g');
+    result = result.replace(clsRegex, '');
+  }
+  
+  // Add new classes - find a className that contains some of the old classes
+  if (addedClasses.length > 0) {
+    const classesToAdd = addedClasses.join(' ');
+    
+    // Try to append to existing className
+    for (const oldClass of oldClasses) {
+      const escapedClass = oldClass.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const appendRegex = new RegExp(
+        `(className\\s*=\\s*["'\`][^"'\`]*\\b${escapedClass}\\b[^"'\`]*)(["'\`])`,
+        'g'
+      );
+      
+      if (appendRegex.test(result)) {
+        result = result.replace(appendRegex, `$1 ${classesToAdd}$2`);
+        break;
+      }
+    }
+  }
+  
+  // Clean up multiple spaces
+  result = result.replace(/\s{2,}/g, ' ').replace(/"\s+"/g, '""');
+  
+  return result;
 }
 
 /**

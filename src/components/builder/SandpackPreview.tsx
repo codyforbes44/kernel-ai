@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import type { ProjectFile } from '@/types/builder';
 import type { SelectedElement, VisualChange } from '@/types/visual-editor';
 import { useVisualEditor, PropertyEditorPanel, getVisualEditorInjectionScript } from './visual-editor';
+import { injectSourceMapping } from '@/lib/jsxSourceMapper';
 import { toast } from 'sonner';
 
 interface SandpackPreviewProps {
@@ -35,7 +36,14 @@ function convertToSandpackFiles(files: ProjectFile[], injectVisualEditor: boolea
   for (const file of files) {
     if (file.content && file.type === 'file') {
       const path = file.path.startsWith('/') ? file.path : `/${file.path}`;
-      sandpackFiles[path] = file.content;
+      
+      // Inject source mapping into JSX/TSX files for visual editor
+      let content = file.content;
+      if (injectVisualEditor && path.match(/\.(jsx|tsx)$/)) {
+        content = injectSourceMapping(content, path);
+      }
+      
+      sandpackFiles[path] = content;
     }
   }
   

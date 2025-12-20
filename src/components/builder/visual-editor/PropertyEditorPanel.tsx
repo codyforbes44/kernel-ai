@@ -90,23 +90,35 @@ export function PropertyEditorPanel({
   return (
     <div className="h-full flex flex-col bg-card border-l border-border">
       {/* Header */}
-      <div className="h-10 flex items-center justify-between px-3 border-b border-border">
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            {selectedElement.tagName}
-          </Badge>
-          {selectedElement.id && (
-            <span className="text-xs text-muted-foreground">#{selectedElement.id}</span>
-          )}
+      <div className="h-auto flex flex-col border-b border-border">
+        <div className="h-10 flex items-center justify-between px-3">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="font-mono text-xs">
+              {selectedElement.tagName}
+            </Badge>
+            {selectedElement.id && (
+              <span className="text-xs text-muted-foreground">#{selectedElement.id}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onDeselect} title="Deselect">
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onDeselect} title="Deselect">
-            <RotateCcw className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Source location */}
+        {selectedElement.sourceMapping && (
+          <div className="px-3 pb-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
+              <span className="font-mono truncate">
+                {selectedElement.sourceMapping.filePath}:{selectedElement.sourceMapping.lineNumber}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
