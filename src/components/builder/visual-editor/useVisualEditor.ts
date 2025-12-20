@@ -1,11 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { SelectedElement, VisualChange, VisualEditorMessage } from '@/types/visual-editor';
+import type { ProjectFile } from '@/types/builder';
+import { applyVisualChangesToSource, generateChangesSummary } from '@/lib/visualEditorPersistence';
 
 interface UseVisualEditorOptions {
   iframeRef: React.RefObject<HTMLIFrameElement>;
   onElementSelected?: (element: SelectedElement) => void;
   onElementDeselected?: () => void;
   onChangeApplied?: (change: VisualChange) => void;
+  onSaveChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
+  files?: ProjectFile[];
 }
 
 export function useVisualEditor({
@@ -13,9 +17,12 @@ export function useVisualEditor({
   onElementSelected,
   onElementDeselected,
   onChangeApplied,
+  onSaveChanges,
+  files = [],
 }: UseVisualEditorOptions) {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const [hoveredElement, setHoveredElement] = useState<SelectedElement | null>(null);
   const [pendingChanges, setPendingChanges] = useState<VisualChange[]>([]);
@@ -195,12 +202,43 @@ export function useVisualEditor({
     }, 50);
   }, [sendMessage]);
 
+  // Save changes to source files
+  const saveChanges = useCallback(async () => {
+    if (pendingChanges.length === 0 || !onSaveChanges) return;
+    
+    setIsSaving(true);
+    try {
+      // Apply changes to source files
+      const results = applyVisualChangesToSource(pendingChanges, files);
+      
+      if (results.length > 0) {
+        // Convert to the format expected by onSaveChanges
+        const fileUpdates = results.map(r => ({
+          fileId: r.fileId,
+          content: r.newContent,
+        }));
+        
+        await onSaveChanges(fileUpdates);
+        setPendingChanges([]);
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [pendingChanges, files, onSaveChanges]);
+
+  // Get changes summary
+  const changesSummary = pendingChanges.length > 0 
+    ? generateChangesSummary(pendingChanges) 
+    : '';
+
   return {
     isEnabled,
     isReady,
+    isSaving,
     selectedElement,
     hoveredElement,
     pendingChanges,
+    changesSummary,
     enable,
     disable,
     toggle,
@@ -209,6 +247,7 @@ export function useVisualEditor({
     updateClasses,
     clearChanges,
     deselect,
+    saveChanges,
   };
 }
 
