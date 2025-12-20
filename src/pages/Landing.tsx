@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { GlassCard, GlassCardContent } from '@/components/ui/glass-card';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
@@ -113,18 +113,24 @@ export default function Landing() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <Card key={feature.title} className="border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors">
-                <CardContent className="p-6">
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+            {features.map((feature, index) => (
+              <GlassCard 
+                key={feature.title} 
+                variant="glow" 
+                size="default"
+                animatedBorder={index === 0}
+                className="group"
+              >
+                <GlassCardContent>
+                  <div className="h-12 w-12 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center mb-4 shadow-[0_0_15px_hsl(var(--primary)/0.2)] group-hover:shadow-[0_0_25px_hsl(var(--primary)/0.35)] transition-shadow duration-300">
                     <feature.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2 text-foreground">{feature.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {feature.description}
                   </p>
-                </CardContent>
-              </Card>
+                </GlassCardContent>
+              </GlassCard>
             ))}
           </div>
         </div>
