@@ -195,15 +195,48 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (!user || isCreatingConversation) return null;
 
     setIsCreatingConversation(true);
-    try {
-      // Check if this is the user's first conversation
-      const isFirstConversation = conversations.length === 0;
+    
+    // Check if this is the user's first conversation
+    const isFirstConversation = conversations.length === 0;
+    
+    // Create optimistic conversation with temporary ID
+    const optimisticId = `temp-${Date.now()}`;
+    const optimisticConversation: Conversation = {
+      id: optimisticId,
+      project_id: projectId,
+      user_id: user.id,
+      title,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_archived: false,
+      is_pinned: false,
+      message_count: 0,
+      token_count: 0,
+      last_message_at: null,
+      parent_conversation_id: null,
+      branch_point_message_id: null,
+      lovable_project_url: null,
+      lovable_project_name: null,
+      summary: null,
+      tags: null,
+    };
 
+    // Optimistically add to state and select it
+    setConversations(prev => [optimisticConversation, ...prev]);
+    setSelectedConversationId(optimisticId);
+
+    try {
       const newConversation = await workspaceService.createConversation({
         projectId,
         userId: user.id,
         title,
       });
+
+      // Replace optimistic conversation with real one
+      setConversations(prev => 
+        prev.map(c => c.id === optimisticId ? newConversation : c)
+      );
+      setSelectedConversationId(newConversation.id);
 
       // Add welcome message for first-time users
       if (isFirstConversation) {
@@ -226,10 +259,11 @@ What would you like to build today?`;
         });
       }
 
-      setConversations(prev => [newConversation, ...prev]);
-      setSelectedConversationId(newConversation.id);
       return newConversation;
     } catch (error) {
+      // Rollback optimistic update on error
+      setConversations(prev => prev.filter(c => c.id !== optimisticId));
+      setSelectedConversationId(null);
       console.error('Error creating conversation:', error);
       toast.error('Failed to create conversation');
       return null;
