@@ -16,7 +16,7 @@ const Index = () => {
   }
 
   if (!user) {
-    return null;
+    return <LoadingSpinner fullScreen />;
   }
 
   return (

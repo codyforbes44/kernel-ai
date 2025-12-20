@@ -61,17 +61,20 @@ const Auth = () => {
     }
   };
 
-  // Check for password reset token in URL
+  // Check for password reset token or signup tab in URL
   useEffect(() => {
     const type = searchParams.get('type');
+    const tab = searchParams.get('tab');
     if (type === 'recovery') {
       setMode('reset');
+    } else if (tab === 'signup') {
+      setMode('signup');
     }
   }, [searchParams]);
 
   useEffect(() => {
     if (!loading && user && mode !== 'reset') {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, loading, navigate, mode]);
 
