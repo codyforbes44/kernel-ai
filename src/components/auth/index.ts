@@ -6,4 +6,6 @@ export { SignUpForm } from "./SignUpForm";
 export { ForgotPasswordForm } from "./ForgotPasswordForm";
 export { ResetPasswordForm } from "./ResetPasswordForm";
 export { NewLocationAlert } from "./NewLocationAlert";
+export { BiometricButton } from "./BiometricButton";
+export { BiometricSetupPrompt } from "./BiometricSetupPrompt";
 export * from "./AuthIcons";

@@ -12,9 +12,12 @@ import { useHaptic } from "@/hooks/useHaptic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRateLimiting } from "@/hooks/useRateLimiting";
 import { useLoginGeolocation } from "@/hooks/useLoginGeolocation";
+import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { signInSchema, type SignInFormData } from "@/lib/validations";
 import { SocialAuthButtons, type OAuthProvider } from "./SocialAuthButtons";
 import { PasswordInput } from "./PasswordInput";
+import { BiometricButton } from "./BiometricButton";
+import { BiometricSetupPrompt } from "./BiometricSetupPrompt";
 import { ShieldAlert, Clock, MapPin } from "lucide-react";
 
 interface SignInFormProps {
@@ -35,8 +38,11 @@ export function SignInForm({
   const isMobile = useIsMobile();
   const { success, error: hapticError } = useHaptic();
   const { lockoutStatus, checkLockout, recordAttempt, formatLockoutTime, clearLockoutStatus } = useRateLimiting();
-  const { checkLoginLocation, currentLocation } = useLoginGeolocation();
+  const { checkLoginLocation } = useLoginGeolocation();
+  const { isAvailable: biometricAvailable, savedCredential, authenticate, isLoading: biometricLoading } = useBiometricAuth();
   const [countdown, setCountdown] = useState<number>(0);
+  const [showBiometricSetup, setShowBiometricSetup] = useState(false);
+  const [lastSignedInUser, setLastSignedInUser] = useState<{ email: string; userId: string } | null>(null);
 
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -60,6 +66,24 @@ export function SignInForm({
       return () => clearInterval(interval);
     }
   }, [lockoutStatus, clearLockoutStatus]);
+
+  const handleBiometricSignIn = async () => {
+    const result = await authenticate();
+    
+    if (result.success && result.email) {
+      // For biometric, we need stored credentials - prompt user to enter password once
+      // In a full implementation, you'd have a server-side token exchange
+      // For now, we prefill the email and let the user know
+      form.setValue('email', result.email);
+      if (isMobile) success();
+      toast.success("Identity verified!", {
+        description: "Please enter your password to complete sign in.",
+      });
+    } else {
+      if (isMobile) hapticError();
+      toast.error(result.error || "Biometric authentication failed");
+    }
+  };
 
   const handleSubmit = async (data: SignInFormData) => {
     // Check lockout status before attempting login
@@ -105,6 +129,13 @@ export function SignInForm({
             }
           );
         }
+
+        // Offer biometric setup if available and not already set up
+        if (biometricAvailable && !savedCredential) {
+          setLastSignedInUser({ email: data.email, userId });
+          // Delay the prompt slightly so the success toast shows first
+          setTimeout(() => setShowBiometricSetup(true), 500);
+        }
       }
       
       if (isMobile) success();
@@ -113,6 +144,7 @@ export function SignInForm({
   };
 
   const isLocked = lockoutStatus?.locked && countdown > 0;
+  const showBiometricButton = biometricAvailable && savedCredential;
 
   return (
     <div className="space-y-4">
@@ -135,10 +167,31 @@ export function SignInForm({
         </Alert>
       )}
 
+      {/* Biometric sign-in button for returning users */}
+      {showBiometricButton && (
+        <>
+          <BiometricButton
+            onClick={handleBiometricSignIn}
+            isLoading={biometricLoading}
+            disabled={form.formState.isSubmitting || !!isLocked}
+            email={savedCredential.email}
+          />
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or use another method</span>
+            </div>
+          </div>
+        </>
+      )}
+
       <SocialAuthButtons
         onProviderClick={onOAuthSignIn}
         loadingProvider={oauthLoading}
-        disabled={form.formState.isSubmitting || !!isLocked}
+        disabled={form.formState.isSubmitting || !!isLocked || biometricLoading}
       />
 
       <div className="relative">
@@ -191,7 +244,7 @@ export function SignInForm({
         <Button
           type="submit"
           className="w-full min-h-[44px] md:min-h-[40px] touch-manipulation"
-          disabled={form.formState.isSubmitting || !!isLocked}
+          disabled={form.formState.isSubmitting || !!isLocked || biometricLoading}
         >
           {form.formState.isSubmitting ? "Signing in..." : isLocked ? "Account Locked" : "Sign In"}
         </Button>
@@ -213,6 +266,16 @@ export function SignInForm({
           </button>
         </div>
       </form>
+
+      {/* Biometric setup prompt after successful login */}
+      {lastSignedInUser && (
+        <BiometricSetupPrompt
+          open={showBiometricSetup}
+          onOpenChange={setShowBiometricSetup}
+          email={lastSignedInUser.email}
+          userId={lastSignedInUser.userId}
+        />
+      )}
     </div>
   );
 }
