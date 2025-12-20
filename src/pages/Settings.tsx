@@ -272,11 +272,38 @@ export default function Settings() {
     }
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const handleDeleteAccount = async () => {
-    // Note: Full account deletion would need a backend function
-    toast.info('Account deletion requested. Contact support to complete.');
-    await supabase.auth.signOut();
-    navigate('/auth');
+    setIsDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('You must be signed in to delete your account');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Delete account error:', error);
+        toast.error('Failed to delete account. Please try again.');
+        return;
+      }
+
+      toast.success('Account deleted successfully');
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (err) {
+      console.error('Delete account error:', err);
+      toast.error('Failed to delete account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -860,7 +887,7 @@ export default function Settings() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Delete Account"
-        description="This will permanently delete your account and all associated data including conversations, messages, and templates. This action cannot be undone."
+        description="This will permanently delete your account and all associated data including conversations, messages, projects, and templates. This action cannot be undone."
         onConfirm={handleDeleteAccount}
       />
 
