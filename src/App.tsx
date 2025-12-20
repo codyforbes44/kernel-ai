@@ -13,6 +13,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 // Lazy load heavy pages
@@ -58,7 +59,8 @@ const App = () => (
               <BrowserRouter>
                 <CommandPalette />
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route
                     path="/admin"
