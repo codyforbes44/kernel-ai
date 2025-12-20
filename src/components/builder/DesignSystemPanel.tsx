@@ -15,7 +15,7 @@ import type { DesignSystem } from '@/types/marketplace';
 
 interface DesignSystemPanelProps {
   projectId: string;
-  onPreviewChange?: (cssVariables: string | null, systemName?: string) => void;
+  onPreviewChange?: (cssVariables: string | null, systemName?: string, fontsUrl?: string | null) => void;
 }
 
 const STYLE_PRESETS = [
@@ -44,6 +44,7 @@ export function DesignSystemPanel({ projectId, onPreviewChange }: DesignSystemPa
     isActivating,
     deleteSystem,
     generateCSSVariables,
+    generateGoogleFontsUrl,
     previewSystem,
     setPreviewSystem,
   } = useDesignSystem({ projectId });
@@ -52,11 +53,12 @@ export function DesignSystemPanel({ projectId, onPreviewChange }: DesignSystemPa
   useEffect(() => {
     if (previewSystem) {
       const css = generateCSSVariables(previewSystem);
-      onPreviewChange?.(css, previewSystem.name);
+      const fontsUrl = generateGoogleFontsUrl(previewSystem);
+      onPreviewChange?.(css, previewSystem.name, fontsUrl);
     } else {
       onPreviewChange?.(null);
     }
-  }, [previewSystem, generateCSSVariables, onPreviewChange]);
+  }, [previewSystem, generateCSSVariables, generateGoogleFontsUrl, onPreviewChange]);
 
   const handleTogglePreview = (system: DesignSystem) => {
     if (previewSystem?.id === system.id) {

@@ -52,6 +52,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   const [previewCSS, setPreviewCSS] = useState<string | null>(null);
   const [previewSystemName, setPreviewSystemName] = useState<string | null>(null);
+  const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
   
   const {
     project,
@@ -121,9 +122,10 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   }, [updateLocalContent, saveFile]);
 
   // Handle design system preview change
-  const handlePreviewChange = useCallback((css: string | null, systemName?: string) => {
+  const handlePreviewChange = useCallback((css: string | null, systemName?: string, fontsUrl?: string | null) => {
     setPreviewCSS(css);
     setPreviewSystemName(systemName || null);
+    setPreviewFontsUrl(fontsUrl || null);
   }, []);
 
   // Keyboard shortcuts - Ctrl/Cmd+S to save
@@ -181,7 +183,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
 
         {/* Content */}
         {showPreview ? (
-          <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} />
+          <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} previewFontsUrl={previewFontsUrl} />
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             <EditorTabs
@@ -244,6 +246,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   if (!newState) {
                     setPreviewCSS(null);
                     setPreviewSystemName(null);
+                    setPreviewFontsUrl(null);
                   }
                   if (newState) {
                     setShowAIChat(false);
@@ -442,6 +445,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   onSaveVisualChanges={handleSaveVisualChanges}
                   previewCSS={previewCSS}
                   previewSystemName={previewSystemName}
+                  previewFontsUrl={previewFontsUrl}
                 />
                 <ErrorCapture
                   onErrorsChange={setCapturedErrors}
