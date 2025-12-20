@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useConversationActions } from "@/hooks/useConversationActions";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +30,8 @@ import {
   Unlink,
   ExternalLink,
   MessageSquare,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { LinkProjectDialog } from "./LinkProjectDialog";
 import { RenameDialog } from "@/components/dialogs/RenameDialog";
@@ -33,6 +41,7 @@ import { ExportDialog } from "@/components/dialogs/ExportDialog";
 export function ChatHeader() {
   const { currentConversation, currentProject } = useWorkspace();
   const actions = useConversationActions(currentConversation);
+  const { theme, setTheme } = useTheme();
   
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -86,10 +95,28 @@ export function ChatHeader() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
+        <div className="flex items-center gap-1">
+          <span className="text-xs text-muted-foreground mr-1">
             {currentConversation.message_count || 0} messages
           </span>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle theme (⌘D)</TooltipContent>
+          </Tooltip>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
