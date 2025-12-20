@@ -1,21 +1,30 @@
 import { Link, useLocation } from "react-router-dom";
-import { MessageSquare, Code2, Settings, Sparkles } from "lucide-react";
+import { MessageSquare, Code2, Settings, Sparkles, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHaptic } from "@/hooks/useHaptic";
+import { useAdmin } from "@/hooks/useAdmin";
 
-const tabs = [
+const baseTabs = [
   { href: "/", label: "Chat", icon: MessageSquare },
   { href: "/builder", label: "Builder", icon: Code2 },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
+
+const settingsTab = { href: "/settings", label: "Settings", icon: Settings };
+const adminTab = { href: "/admin", label: "Admin", icon: Shield };
 
 export function MobileTabBar() {
   const location = useLocation();
   const { light } = useHaptic();
+  const { isAdmin } = useAdmin();
 
   const handleTabClick = () => {
     light();
   };
+
+  // Build tabs array: Chat, Builder, [Admin if admin], Settings
+  const tabs = isAdmin 
+    ? [...baseTabs, adminTab, settingsTab]
+    : [...baseTabs, settingsTab];
 
   return (
     <nav className="h-16 border-t border-border/50 bg-sidebar safe-area-bottom flex items-center justify-around px-2">
@@ -29,7 +38,7 @@ export function MobileTabBar() {
             to={tab.href}
             onClick={handleTabClick}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all min-w-[72px]",
+              "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all min-w-[60px]",
               "active:scale-95 touch-manipulation",
               isActive 
                 ? "text-primary" 
