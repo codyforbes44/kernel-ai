@@ -19,7 +19,8 @@ import {
   Copy,
   Check,
   AlertCircle,
-  Eye
+  Eye,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,7 @@ import { BuildLogViewer } from './BuildLogViewer';
 import { DeploymentPreview } from './DeploymentPreview';
 import { DeploymentDiffViewer } from './DeploymentDiffViewer';
 import { EnvVarsManager } from './EnvVarsManager';
+import { DeploymentAnalytics } from './DeploymentAnalytics';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -58,6 +60,7 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   } = useDeployments(projectId);
 
   const [showHistory, setShowHistory] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [newDomain, setNewDomain] = useState('');
   const [showDomainForm, setShowDomainForm] = useState(false);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
@@ -410,6 +413,30 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
                 title={previewUrl.includes('preview') ? 'Preview' : 'Production'}
                 onClose={() => setPreviewUrl(null)}
               />
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Deployment Analytics */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+              >
+                {showAnalytics ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </Button>
+            </div>
+            
+            {showAnalytics && (
+              <DeploymentAnalytics deployments={deployments} />
             )}
           </div>
 
