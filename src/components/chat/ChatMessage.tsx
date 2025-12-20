@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { messageService } from "@/services/messageService";
 import { lazy, Suspense } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useHaptic } from "@/hooks/useHaptic";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,8 +67,8 @@ export const ChatMessage = memo(function ChatMessage({
   const [isPinned, setIsPinned] = useState(message.is_pinned);
   const [helpfulState, setHelpfulState] = useState<boolean | null>(message.is_helpful);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showMobileActions, setShowMobileActions] = useState(false);
   const isMobile = useIsMobile();
+  const haptic = useHaptic();
   const isUser = message.role === "user";
 
   // Extract attachments from metadata - memoized for performance
@@ -77,6 +78,7 @@ export const ChatMessage = memo(function ChatMessage({
   );
 
   const handleCopy = async () => {
+    haptic.light();
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
     toast.success("Copied to clipboard");
@@ -84,6 +86,7 @@ export const ChatMessage = memo(function ChatMessage({
   };
 
   const handleStar = async () => {
+    haptic.medium();
     const newValue = !isStarred;
     setIsStarred(newValue);
     try {
@@ -96,18 +99,24 @@ export const ChatMessage = memo(function ChatMessage({
   };
 
   const handlePin = async () => {
+    haptic.medium();
     const newValue = !isPinned;
     setIsPinned(newValue);
     onPin?.(newValue);
   };
 
   const handleHelpful = async (value: boolean) => {
+    haptic.light();
     const newValue = helpfulState === value ? null : value;
     setHelpfulState(newValue);
     try {
       await messageService.setHelpful(message.id, newValue);
-      if (newValue === true) toast.success("Thanks for the feedback!");
-      else if (newValue === false) toast.success("Feedback recorded");
+      if (newValue === true) {
+        haptic.success();
+        toast.success("Thanks for the feedback!");
+      } else if (newValue === false) {
+        toast.success("Feedback recorded");
+      }
     } catch {
       setHelpfulState(helpfulState);
       toast.error("Failed to save feedback");
@@ -115,13 +124,18 @@ export const ChatMessage = memo(function ChatMessage({
   };
 
   const handleDelete = () => {
+    haptic.warning();
     setShowDeleteDialog(false);
     onDelete?.();
   };
 
-  // Mobile action menu component
+  const handleMenuOpen = () => {
+    haptic.light();
+  };
+
+  // Mobile action menu component with haptic feedback
   const MobileActionsMenu = () => (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && handleMenuOpen()}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
