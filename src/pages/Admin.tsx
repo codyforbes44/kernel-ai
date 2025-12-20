@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,25 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Hash } from 'lucide-react';
+import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Hash } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Message } from '@/types/database';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 export default function Admin() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useProtectedPage();
   const { isAdmin, loading: adminLoading, users, conversations, fetchAllUsers, fetchAllConversations, getConversationMessages, promoteToAdmin, demoteFromAdmin } = useAdmin();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [roleLoading, setRoleLoading] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin && user) {
@@ -77,11 +73,7 @@ export default function Admin() {
   };
 
   if (authLoading || adminLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!isAdmin) {
@@ -93,17 +85,15 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+      <PageHeader
+        title="Admin Panel"
+        backLabel="Chat"
+        actions={
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-semibold">Admin Panel</h1>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
@@ -308,7 +298,7 @@ export default function Admin() {
           <ScrollArea className="h-[60vh] pr-4">
             {messagesLoading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="animate-pulse text-muted-foreground">Loading messages...</div>
+                <LoadingSpinner />
               </div>
             ) : (
               <div className="space-y-4">

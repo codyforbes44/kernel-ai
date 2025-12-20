@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,9 +11,10 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { toast } from 'sonner';
 import {
-  ArrowLeft,
   User,
   Moon,
   Sun,
@@ -21,15 +22,21 @@ import {
   Shield,
   Trash2,
   Download,
-  Sparkles,
   History,
   Save,
   Loader2,
+  GraduationCap,
 } from 'lucide-react';
+import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading } = useProtectedPage();
+  const { signOut } = useProtectedPage().user ? { signOut: async () => {
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.auth.signOut();
+    navigate('/auth');
+  }} : { signOut: async () => {} };
   const { theme, setTheme } = useTheme();
   const { clearHistory } = useVariableHistory();
   const [displayName, setDisplayName] = useState('');
@@ -41,6 +48,7 @@ export default function Settings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   // Load profile data on mount
   useEffect(() => {
@@ -194,24 +202,34 @@ export default function Settings() {
   const handleDeleteAccount = async () => {
     // Note: Full account deletion would need a backend function
     toast.info('Account deletion requested. Contact support to complete.');
-    await signOut();
+    await supabase.auth.signOut();
     navigate('/auth');
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
+  if (authLoading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="container max-w-3xl mx-auto flex items-center gap-4 h-14 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4" />
+      <PageHeader
+        title="Settings"
+        backLabel="Chat"
+        actions={
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
+            Sign Out
           </Button>
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h1 className="font-semibold">Settings</h1>
-          </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Content */}
       <main className="container max-w-3xl mx-auto py-8 px-4 space-y-8">
@@ -291,6 +309,35 @@ export default function Settings() {
                 onCheckedChange={handleReducedMotionChange}
                 disabled={isLoadingProfile || isSavingPreferences}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Onboarding */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Getting Started
+            </CardTitle>
+            <CardDescription>Learn how to use the app</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Take the Tour</Label>
+                <p className="text-sm text-muted-foreground">
+                  View the welcome tour to learn about key features
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowTour(true)}
+                className="gap-2"
+              >
+                <GraduationCap className="h-4 w-4" />
+                Start Tour
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -414,6 +461,10 @@ export default function Settings() {
         description="This will permanently delete your account and all associated data including conversations, messages, and templates. This action cannot be undone."
         onConfirm={handleDeleteAccount}
       />
+
+      {showTour && (
+        <WelcomeTour forceShow onComplete={() => setShowTour(false)} />
+      )}
     </div>
   );
 }
