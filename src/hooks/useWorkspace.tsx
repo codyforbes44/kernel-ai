@@ -196,11 +196,35 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
     setIsCreatingConversation(true);
     try {
+      // Check if this is the user's first conversation
+      const isFirstConversation = conversations.length === 0;
+
       const newConversation = await workspaceService.createConversation({
         projectId,
         userId: user.id,
         title,
       });
+
+      // Add welcome message for first-time users
+      if (isFirstConversation) {
+        const welcomeMessage = `👋 **Welcome to your first conversation!**
+
+I'm here to help you build amazing things. Here are some tips to get started:
+
+• **Use templates** — Type \`/\` to see available prompt templates
+• **Keyboard shortcuts** — Press \`⌘K\` (or \`Ctrl+K\`) to open the command palette
+• **Link a project** — Connect your Lovable project for contextual assistance
+• **Try the Builder** — Create and preview code in real-time
+
+What would you like to build today?`;
+
+        await supabase.from('messages').insert({
+          conversation_id: newConversation.id,
+          user_id: user.id,
+          role: 'assistant',
+          content: welcomeMessage,
+        });
+      }
 
       setConversations(prev => [newConversation, ...prev]);
       setSelectedConversationId(newConversation.id);
@@ -212,7 +236,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsCreatingConversation(false);
     }
-  }, [user, isCreatingConversation]);
+  }, [user, isCreatingConversation, conversations.length]);
 
   // Branch a conversation from a specific message with debouncing
   const branchConversation = useCallback(async (
