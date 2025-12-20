@@ -1,4 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { GradientMesh } from './GradientMesh';
+import { ParticleField } from './ParticleField';
+import { AnimatedCodeBlocks } from './AnimatedCodeBlocks';
 
 export function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,32 +32,14 @@ export function HeroBackground() {
       className="absolute inset-0 overflow-hidden pointer-events-none"
       style={{ '--mouse-x': '0px', '--mouse-y': '0px' } as React.CSSProperties}
     >
-      {/* Gradient orbs */}
-      <div 
-        className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full opacity-30 blur-[100px] animate-pulse"
-        style={{ 
-          background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
-          transform: 'translate(calc(var(--mouse-x) * 0.5), calc(var(--mouse-y) * 0.5))',
-          transition: 'transform 0.3s ease-out'
-        }}
-      />
-      <div 
-        className="absolute top-1/2 -right-1/4 w-[500px] h-[500px] rounded-full opacity-20 blur-[100px]"
-        style={{ 
-          background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)',
-          transform: 'translate(calc(var(--mouse-x) * -0.3), calc(var(--mouse-y) * -0.3))',
-          transition: 'transform 0.3s ease-out',
-          animationDelay: '1s'
-        }}
-      />
-      <div 
-        className="absolute -bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full opacity-15 blur-[80px]"
-        style={{ 
-          background: 'radial-gradient(circle, hsl(var(--accent-foreground)) 0%, transparent 70%)',
-          transform: 'translate(calc(var(--mouse-x) * 0.2), calc(var(--mouse-y) * 0.2))',
-          transition: 'transform 0.3s ease-out'
-        }}
-      />
+      {/* Base gradient mesh */}
+      <GradientMesh />
+
+      {/* Particle system */}
+      <ParticleField />
+
+      {/* Animated code blocks */}
+      <AnimatedCodeBlocks />
 
       {/* Floating geometric shapes */}
       <FloatingShape 
@@ -107,15 +92,30 @@ export function HeroBackground() {
         shape="hexagon"
       />
 
+      {/* Terminal cursor blink effect */}
+      <div className="absolute top-[20%] right-[25%] flex items-center gap-1 opacity-30">
+        <span className="font-mono text-primary text-lg">&gt;_</span>
+        <span className="w-2 h-5 bg-primary animate-pulse" style={{ animationDuration: '1s' }} />
+      </div>
+
       {/* Grid pattern overlay */}
       <div 
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `
             linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
             linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)
           `,
           backgroundSize: '60px 60px'
+        }}
+      />
+
+      {/* Radial vignette */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 0%, hsl(var(--background)) 100%)',
+          opacity: 0.4,
         }}
       />
     </div>
@@ -159,10 +159,11 @@ function FloatingShape({ className, size, duration, delay, shape }: FloatingShap
         width: size,
         height: size,
         ...getShapeStyles(),
-        border: '1px solid hsl(var(--primary) / 0.2)',
-        background: 'hsl(var(--primary) / 0.05)',
+        border: '1px solid hsl(var(--primary) / 0.15)',
+        background: 'hsl(var(--primary) / 0.03)',
         animation: `float ${duration}s ease-in-out infinite`,
         animationDelay: `${delay}s`,
+        willChange: 'transform',
       }}
     />
   );

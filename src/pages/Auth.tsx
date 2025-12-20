@@ -38,7 +38,7 @@ const Auth = () => {
       case 'signin': return PAGE_SEO.auth.signIn.description;
       case 'signup': return PAGE_SEO.auth.signUp.description;
       case 'forgot': return PAGE_SEO.auth.forgotPassword.description;
-      case 'reset': return 'Set a new secure password for your AI Mate Companion account.';
+      case 'reset': return 'Set a new secure password for your Kernel account.';
       default: return PAGE_SEO.auth.signIn.description;
     }
   };
