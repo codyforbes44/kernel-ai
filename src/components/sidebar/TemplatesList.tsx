@@ -21,6 +21,7 @@ import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { ShareTemplateDialog } from '@/components/dialogs/ShareTemplateDialog';
 import { ImportFromCodeDialog } from '@/components/dialogs/ImportFromCodeDialog';
 import type { PromptTemplate, TemplateCategory } from '@/types/database';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import {
   Plus,
@@ -333,8 +334,53 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-3 animate-fade-in">
+        {/* Search skeleton */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-8 w-8 rounded" />
+          <Skeleton className="h-8 w-8 rounded" />
+        </div>
+        
+        {/* Favorites section skeleton */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-3 w-3 rounded" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          {[1, 2].map((i) => (
+            <div key={`fav-${i}`} className="p-3 rounded-lg border border-border/50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-3 w-3 rounded" />
+              </div>
+              <Skeleton className="h-3 w-3/4" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* All templates section skeleton */}
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          {[1, 2, 3].map((i) => (
+            <div key={`tpl-${i}`} className="p-3 rounded-lg border border-border/50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+              <Skeleton className="h-3 w-2/3" />
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
