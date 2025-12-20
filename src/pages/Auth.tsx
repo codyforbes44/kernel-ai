@@ -62,6 +62,12 @@ const AppleIcon = () => (
   </svg>
 );
 
+const LinkedInIcon = () => (
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+  </svg>
+);
+
 const Auth = () => {
   const { user, loading, signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -69,7 +75,7 @@ const Auth = () => {
   const [mode, setMode] = useState<AuthMode>('signin');
   const [showPassword, setShowPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | 'apple' | null>(null);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | 'apple' | 'linkedin_oidc' | null>(null);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
 
   // Get dynamic SEO based on mode
@@ -187,11 +193,12 @@ const Auth = () => {
     }
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'github' | 'apple') => {
+  const handleOAuthSignIn = async (provider: 'google' | 'github' | 'apple' | 'linkedin_oidc') => {
     setOauthLoading(provider);
     const { error } = await signInWithOAuth(provider);
     if (error) {
-      toast.error(`Failed to sign in with ${provider}: ${error.message}`);
+      const displayName = provider === 'linkedin_oidc' ? 'LinkedIn' : provider;
+      toast.error(`Failed to sign in with ${displayName}: ${error.message}`);
       setOauthLoading(null);
     }
     // Note: OAuth redirects away, so we don't need to reset loading on success
@@ -274,7 +281,7 @@ const Auth = () => {
             {mode === 'signin' && (
               <div className="space-y-4">
                 {/* Social Auth Buttons */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -316,6 +323,20 @@ const Auth = () => {
                       <AppleIcon />
                     )}
                     <span className="ml-2 hidden sm:inline">Apple</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleOAuthSignIn('linkedin_oidc')}
+                    disabled={oauthLoading !== null}
+                  >
+                    {oauthLoading === 'linkedin_oidc' ? (
+                      <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <LinkedInIcon />
+                    )}
+                    <span className="ml-2 hidden sm:inline">LinkedIn</span>
                   </Button>
                 </div>
 
@@ -390,7 +411,7 @@ const Auth = () => {
             {mode === 'signup' && (
               <div className="space-y-4">
                 {/* Social Auth Buttons */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -432,6 +453,20 @@ const Auth = () => {
                       <AppleIcon />
                     )}
                     <span className="ml-2 hidden sm:inline">Apple</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleOAuthSignIn('linkedin_oidc')}
+                    disabled={oauthLoading !== null}
+                  >
+                    {oauthLoading === 'linkedin_oidc' ? (
+                      <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <LinkedInIcon />
+                    )}
+                    <span className="ml-2 hidden sm:inline">LinkedIn</span>
                   </Button>
                 </div>
 
