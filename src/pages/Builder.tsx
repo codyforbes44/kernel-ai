@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,10 +14,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles } from 'lucide-react';
+import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function Builder() {
   const navigate = useNavigate();
@@ -44,16 +45,17 @@ export default function Builder() {
     setShowCreateDialog(true);
   };
 
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
+
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!user) {
-    navigate('/auth');
     return null;
   }
 
@@ -64,6 +66,14 @@ export default function Builder() {
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/')}
+                className="mr-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <Code2 className="h-5 w-5 text-white" />
               </div>
@@ -84,7 +94,7 @@ export default function Builder() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <LoadingSpinner />
           </div>
         ) : projects.length === 0 ? (
           /* Empty State */
