@@ -19,8 +19,10 @@ import {
   Lightbulb,
   BookOpen,
   Rocket,
+  FolderKanban,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CreateProjectDialog } from "@/components/dialogs/CreateProjectDialog";
 
 interface EmptyStateProps {
   type: "no-conversation" | "empty-conversation";
@@ -183,14 +185,59 @@ function EmptyStateIllustration({ type }: { type: "chat" | "welcome" }) {
 }
 
 export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
-  const { currentProject, createConversation, isCreatingConversation } = useWorkspace();
+  const { currentProject, projects, createConversation, isCreatingConversation } = useWorkspace();
   const isMobile = useIsMobile();
+  const [showCreateProject, setShowCreateProject] = useState(false);
 
   const handleNewConversation = async () => {
     if (currentProject && !isCreatingConversation) {
       await createConversation(currentProject.id);
     }
   };
+
+  // No projects state - prompt user to create one
+  if (projects.length === 0) {
+    return (
+      <>
+        <div 
+          className="flex flex-col items-center justify-center py-16 text-center animate-fade-in"
+          role="status"
+          aria-label="No projects found"
+        >
+          <EmptyStateIllustration type="welcome" />
+          <h2 className="text-xl font-semibold mb-2 mt-6">Welcome to AI Assistant!</h2>
+          <p className="text-muted-foreground max-w-md mb-6">
+            Create your first project to start organizing your conversations and building amazing things.
+          </p>
+          <Button 
+            onClick={() => setShowCreateProject(true)}
+            className="gap-2"
+            size="lg"
+          >
+            <FolderKanban className="h-4 w-4" />
+            Create Your First Project
+          </Button>
+          
+          <div className="mt-8 p-4 rounded-lg bg-muted/50 border border-border/50 max-w-sm animate-fade-in" style={{ animationDelay: "200ms" }}>
+            <div className="flex items-start gap-3">
+              <Lightbulb className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+              <div className="text-left">
+                <p className="text-sm font-medium">What are projects?</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Projects help you organize conversations by topic, client, or any way you prefer.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <CreateProjectDialog
+          open={showCreateProject}
+          onOpenChange={setShowCreateProject}
+        />
+      </>
+    );
+  }
 
   if (type === "no-conversation") {
     return (

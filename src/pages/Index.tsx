@@ -3,10 +3,13 @@ import { IDELayout } from '@/components/layout/IDELayout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { SEO } from '@/components/seo/SEO';
+import { TopNavBar } from '@/components/layout/TopNavBar';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const { user, loading } = useProtectedPage();
+  const isMobile = useIsMobile();
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -27,7 +30,12 @@ const Index = () => {
           BREADCRUMBS.home(SEO_CONFIG.siteUrl)
         ]}
       />
-      <IDELayout />
+      <div className="h-screen flex flex-col">
+        {!isMobile && <TopNavBar />}
+        <div className="flex-1 overflow-hidden">
+          <IDELayout />
+        </div>
+      </div>
       <WelcomeTour />
     </>
   );

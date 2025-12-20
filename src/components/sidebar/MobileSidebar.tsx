@@ -6,18 +6,23 @@ import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useTemplateInjection } from "@/hooks/useTemplateInjection";
 import { templateService } from "@/services/templateService";
 import { ConversationList } from "./ConversationList";
 import { TemplatesList } from "./TemplatesList";
+import { ProjectTree } from "./ProjectTree";
 import {
   Search,
   MessageSquare,
   FileText,
+  FolderKanban,
   Settings,
   LogOut,
   Sparkles,
   User,
+  Code2,
+  Shield,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 
@@ -29,6 +34,7 @@ interface MobileSidebarProps {
 export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const { currentProject, createConversation, refresh } = useWorkspace();
   const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,8 +63,13 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const handleTemplateSelect = (content: string) => {
     const variables = templateService.extractVariables(content);
     setPendingTemplate(content, variables);
-    onOpenChange(false); // Close the sidebar
-    setActiveTab("chats"); // Switch to chats tab
+    onOpenChange(false);
+    setActiveTab("chats");
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    onOpenChange(false);
   };
 
   return (
@@ -95,13 +106,17 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="mx-3 grid grid-cols-2">
-            <TabsTrigger value="chats" className="gap-2">
-              <MessageSquare className="h-4 w-4" />
+          <TabsList className="mx-3 grid grid-cols-3">
+            <TabsTrigger value="chats" className="gap-1.5 text-xs">
+              <MessageSquare className="h-3.5 w-3.5" />
               Chats
             </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
-              <FileText className="h-4 w-4" />
+            <TabsTrigger value="projects" className="gap-1.5 text-xs">
+              <FolderKanban className="h-3.5 w-3.5" />
+              Projects
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-1.5 text-xs">
+              <FileText className="h-3.5 w-3.5" />
               Templates
             </TabsTrigger>
           </TabsList>
@@ -117,11 +132,37 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
               </PullToRefresh>
             </TabsContent>
 
+            <TabsContent value="projects" className="m-0 p-3 h-full overflow-auto">
+              <ProjectTree searchQuery={searchQuery} />
+            </TabsContent>
+
             <TabsContent value="templates" className="m-0 p-3 h-full overflow-auto">
               <TemplatesList onSelectTemplate={handleTemplateSelect} />
             </TabsContent>
           </div>
         </Tabs>
+
+        {/* Navigation Links */}
+        <div className="px-3 py-2 border-t border-border/50 space-y-1">
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 gap-2"
+            onClick={() => handleNavigation("/builder")}
+          >
+            <Code2 className="h-4 w-4" />
+            App Builder
+          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-10 gap-2"
+              onClick={() => handleNavigation("/admin")}
+            >
+              <Shield className="h-4 w-4" />
+              Admin Dashboard
+            </Button>
+          )}
+        </div>
 
         <div className="p-3 border-t border-border/50 space-y-2">
           <div className="flex items-center gap-3 px-2 py-2">
@@ -137,10 +178,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             <Button
               variant="outline"
               className="flex-1 h-10"
-              onClick={() => {
-                navigate("/settings");
-                onOpenChange(false);
-              }}
+              onClick={() => handleNavigation("/settings")}
             >
               <Settings className="h-4 w-4 mr-2" />
               Settings

@@ -385,7 +385,14 @@ What would you like to build today?`;
     description?: string,
     options?: CreateProjectOptions
   ) => {
-    if (!user || !selectedWorkspaceId) return null;
+    if (!user) {
+      toast.error('You must be logged in to create a project');
+      return null;
+    }
+    if (!selectedWorkspaceId) {
+      toast.error('No workspace selected. Please refresh and try again.');
+      return null;
+    }
 
     // Create optimistic project with temporary ID
     const optimisticId = `temp-${Date.now()}`;
