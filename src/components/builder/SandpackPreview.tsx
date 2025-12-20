@@ -21,6 +21,7 @@ interface SandpackPreviewProps {
   onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
   previewCSS?: string | null;
   previewSystemName?: string | null;
+  previewFontsUrl?: string | null;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -35,7 +36,8 @@ const viewportConfig: Record<ViewportSize, { width: string; icon: React.ReactNod
 function convertToSandpackFiles(
   files: ProjectFile[], 
   injectVisualEditor: boolean,
-  previewCSS?: string | null
+  previewCSS?: string | null,
+  previewFontsUrl?: string | null
 ): Record<string, string> {
   const sandpackFiles: Record<string, string> = {};
   
@@ -77,12 +79,28 @@ function convertToSandpackFiles(
     );
   }
   
-  // Inject design system preview CSS if provided
-  if (previewCSS && sandpackFiles['/index.html']) {
-    sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
-      '</head>',
-      `<style id="design-system-preview">${previewCSS}</style></head>`
-    );
+  // Inject design system preview CSS and fonts if provided
+  if (sandpackFiles['/index.html']) {
+    let headInjection = '';
+    
+    // Add Google Fonts link if provided
+    if (previewFontsUrl) {
+      headInjection += `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="${previewFontsUrl}">`;
+    }
+    
+    // Add CSS variables
+    if (previewCSS) {
+      headInjection += `<style id="design-system-preview">${previewCSS}</style>`;
+    }
+    
+    if (headInjection) {
+      sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
+        '</head>',
+        `${headInjection}</head>`
+      );
+    }
   }
   
   if (!sandpackFiles['/src/main.tsx'] && !sandpackFiles['/src/index.tsx']) {
@@ -245,14 +263,15 @@ export function SandpackPreview({
   onSaveVisualChanges,
   previewCSS,
   previewSystemName,
+  previewFontsUrl,
 }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
   const [visualEditorEnabled, setVisualEditorEnabled] = useState(false);
 
   const sandpackFiles = useMemo(
-    () => convertToSandpackFiles(files, true, previewCSS), // Always inject visual editor, optionally inject CSS
-    [files, previewCSS]
+    () => convertToSandpackFiles(files, true, previewCSS, previewFontsUrl),
+    [files, previewCSS, previewFontsUrl]
   );
 
   const handleRefresh = () => {

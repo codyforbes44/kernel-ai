@@ -153,13 +153,68 @@ export function useDesignSystem({ projectId }: UseDesignSystemOptions) {
       });
     }
 
+    // Typography - font families
+    if (system.typography?.fontFamily) {
+      const { heading, body, mono } = system.typography.fontFamily;
+      if (heading) lines.push(`  --font-heading: '${heading}', sans-serif;`);
+      if (body) lines.push(`  --font-body: '${body}', sans-serif;`);
+      if (mono) lines.push(`  --font-mono: '${mono}', monospace;`);
+    }
+
     // Border radius
     if (system.border_radius) {
       lines.push(`  --radius: ${system.border_radius.DEFAULT || '0.5rem'};`);
     }
 
     lines.push('}');
+    
+    // Add font-family application rules
+    if (system.typography?.fontFamily) {
+      lines.push('');
+      lines.push('body { font-family: var(--font-body); }');
+      lines.push('h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }');
+      lines.push('code, pre { font-family: var(--font-mono); }');
+    }
+    
     return lines.join('\n');
+  };
+
+  // Generate Google Fonts URL from design system typography
+  const generateGoogleFontsUrl = (system: DesignSystem): string | null => {
+    if (!system.typography?.fontFamily) return null;
+    
+    const { heading, body, mono } = system.typography.fontFamily;
+    const fonts: string[] = [];
+    
+    // Helper to format font name for Google Fonts URL
+    const formatFontName = (font: string) => {
+      // Skip system fonts or generic fonts
+      if (!font || font.includes('system') || ['sans-serif', 'serif', 'monospace'].includes(font.toLowerCase())) {
+        return null;
+      }
+      // Replace spaces with + for URL
+      return font.replace(/\s+/g, '+');
+    };
+    
+    const uniqueFonts = new Set<string>();
+    
+    [heading, body].forEach(font => {
+      const formatted = formatFontName(font);
+      if (formatted) uniqueFonts.add(formatted);
+    });
+    
+    // Mono fonts often need special handling
+    const monoFormatted = formatFontName(mono);
+    if (monoFormatted) uniqueFonts.add(monoFormatted);
+    
+    if (uniqueFonts.size === 0) return null;
+    
+    // Build Google Fonts URL with common weights
+    const fontParams = Array.from(uniqueFonts)
+      .map(font => `family=${font}:wght@400;500;600;700`)
+      .join('&');
+    
+    return `https://fonts.googleapis.com/css2?${fontParams}&display=swap`;
   };
 
   // Clear preview when a system is activated
@@ -179,6 +234,7 @@ export function useDesignSystem({ projectId }: UseDesignSystemOptions) {
     deleteSystem: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
     generateCSSVariables,
+    generateGoogleFontsUrl,
     previewSystem,
     setPreviewSystem,
   };
