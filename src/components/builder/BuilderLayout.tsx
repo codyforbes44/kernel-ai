@@ -109,6 +109,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     setCapturedErrors([]);
   }, []);
 
+  // Handle visual editor changes save
+  const handleSaveVisualChanges = useCallback(async (changes: Array<{ fileId: string; content: string }>) => {
+    for (const { fileId, content } of changes) {
+      updateLocalContent(fileId, content);
+      await saveFile(fileId);
+    }
+    toast.success(`Saved ${changes.length} visual change${changes.length > 1 ? 's' : ''} to source code`);
+  }, [updateLocalContent, saveFile]);
+
   // Keyboard shortcuts - Ctrl/Cmd+S to save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -414,7 +423,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={(showAIChat || showHistory) ? 25 : 40} minSize={20}>
               <div className="h-full flex flex-col">
-                <SandpackPreview files={files} />
+                <SandpackPreview files={files} onSaveVisualChanges={handleSaveVisualChanges} />
                 <ErrorCapture
                   onErrorsChange={setCapturedErrors}
                   onTryToFix={handleTryToFix}

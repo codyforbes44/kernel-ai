@@ -17,6 +17,7 @@ interface SandpackPreviewProps {
   files: ProjectFile[];
   onError?: (error: string) => void;
   onVisualChange?: (change: VisualChange) => void;
+  onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -102,15 +103,20 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // Inner component that has access to Sandpack context
 function SandpackPreviewInner({
+  files,
   onVisualChange,
+  onSaveVisualChanges,
 }: {
+  files: ProjectFile[];
   onVisualChange?: (change: VisualChange) => void;
+  onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
 }) {
   const { sandpack } = useSandpack();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
   const {
     isEnabled,
+    isSaving,
     selectedElement,
     hoveredElement,
     enable,
@@ -121,14 +127,18 @@ function SandpackPreviewInner({
     updateClasses,
     deselect,
     pendingChanges,
+    saveChanges,
+    clearChanges,
   } = useVisualEditor({
     iframeRef,
+    files,
     onElementSelected: (element) => {
       // Element selected in preview
     },
     onChangeApplied: (change) => {
       onVisualChange?.(change);
     },
+    onSaveChanges: onSaveVisualChanges,
   });
 
   // Get iframe ref from Sandpack
@@ -176,19 +186,37 @@ function SandpackPreviewInner({
         </div>
       )}
 
-      {/* Changes indicator */}
+      {/* Changes indicator with save button */}
       {pendingChanges.length > 0 && (
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
           <div className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg">
             {pendingChanges.length} unsaved change{pendingChanges.length > 1 ? 's' : ''}
           </div>
+          <Button
+            size="sm"
+            variant="default"
+            className="h-7 text-xs shadow-lg"
+            onClick={saveChanges}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save to Code'}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs shadow-lg bg-background"
+            onClick={clearChanges}
+            disabled={isSaving}
+          >
+            Discard
+          </Button>
         </div>
       )}
     </>
   );
 }
 
-export function SandpackPreview({ files, onError, onVisualChange }: SandpackPreviewProps) {
+export function SandpackPreview({ files, onError, onVisualChange, onSaveVisualChanges }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
   const [visualEditorEnabled, setVisualEditorEnabled] = useState(false);
@@ -286,7 +314,11 @@ export function SandpackPreview({ files, onError, onVisualChange }: SandpackPrev
                   showOpenInCodeSandbox={false}
                 />
               </SandpackLayout>
-              <SandpackPreviewInner onVisualChange={onVisualChange} />
+              <SandpackPreviewInner 
+                files={files}
+                onVisualChange={onVisualChange} 
+                onSaveVisualChanges={onSaveVisualChanges}
+              />
             </div>
           </SandpackProvider>
         </div>
