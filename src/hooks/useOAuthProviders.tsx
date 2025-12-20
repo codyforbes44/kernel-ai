@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure';
+export type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
 
 interface OAuthConfig {
   configuredProviders: OAuthProvider[];
