@@ -9,6 +9,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { TemplateInjectionProvider } from "@/hooks/useTemplateInjection";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -47,12 +48,19 @@ function ReducedMotionLoader() {
   return null;
 }
 
+function OLEDSuggestionLoader() {
+  // This hook suggests OLED mode to mobile users on first visit
+  useOLEDSuggestion();
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
           <ReducedMotionLoader />
+          <OLEDSuggestionLoader />
           <WorkspaceProvider>
             <TemplateInjectionProvider>
               <TooltipProvider>
