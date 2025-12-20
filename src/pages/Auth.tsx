@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
 const Auth = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('signin');
@@ -71,10 +71,7 @@ const Auth = () => {
   });
 
   const handleSignIn = async (data: SignInFormData) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
+    const { error } = await signIn(data.email, data.password);
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
         toast.error('Invalid email or password');
@@ -87,14 +84,7 @@ const Auth = () => {
   };
 
   const handleSignUp = async (data: SignUpFormData) => {
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: { display_name: data.displayName },
-        emailRedirectTo: `${window.location.origin}/`,
-      },
-    });
+    const { error } = await signUp(data.email, data.password, data.displayName);
     if (error) {
       if (error.message.includes('already registered')) {
         toast.error('This email is already registered. Please sign in instead.');
@@ -109,9 +99,7 @@ const Auth = () => {
   };
 
   const handleForgotPassword = async (data: ResetPasswordFormData) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/auth?type=recovery`,
-    });
+    const { error } = await resetPassword(data.email);
     if (error) {
       toast.error(error.message);
     } else {
@@ -120,6 +108,7 @@ const Auth = () => {
   };
 
   const handleNewPassword = async (data: NewPasswordFormData) => {
+    // This still needs direct supabase call since it's updating the current session
     const { error } = await supabase.auth.updateUser({
       password: data.password,
     });
@@ -401,7 +390,7 @@ const Auth = () => {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Built for Lovable power users who ship fast ⚡
+          Built for Lovable power users who ship fast
         </p>
       </div>
     </div>
