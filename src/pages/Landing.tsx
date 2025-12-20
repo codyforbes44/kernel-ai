@@ -68,7 +68,7 @@ export default function Landing() {
       />
 
       {/* Hero Section */}
-      <section id="hero" className="relative pt-16 pb-20 px-4 scroll-mt-16">
+      <section id="hero" className="relative min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16">
         <HeroBackground />
         <div className="relative container mx-auto text-center max-w-4xl">
           <GlowBadge 
