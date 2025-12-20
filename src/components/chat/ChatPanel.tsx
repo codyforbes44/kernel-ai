@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useMessages } from "@/hooks/useMessages";
 import { useChat } from "@/hooks/useChat";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
 import { ModelSelector } from "./ModelSelector";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +26,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { currentConversation, branchConversation } = useWorkspace();
   const { messages, loading: messagesLoading, refresh } = useMessages(currentConversation?.id);
   const { streamingMessage, isStreaming, sendMessage, stopStreaming, selectedModel, setSelectedModel } = useChat();
+  const { preferences } = useUserPreferences();
   const { isOnline, isChecking, retryConnection, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -273,6 +275,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
               disabled={isStreaming}
+              defaultModel={preferences.defaultAIModel}
             />
           </div>
           <ChatInput

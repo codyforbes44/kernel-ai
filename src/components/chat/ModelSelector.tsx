@@ -13,6 +13,7 @@ interface ModelSelectorProps {
   selectedModel: AIModel;
   onModelChange: (model: AIModel) => void;
   disabled?: boolean;
+  defaultModel?: AIModel;
 }
 
 const modelIcons: Record<AIModel, React.ReactNode> = {
@@ -21,8 +22,9 @@ const modelIcons: Record<AIModel, React.ReactNode> = {
   'google/gemini-2.5-flash-lite': <Rocket className="h-3.5 w-3.5" />,
 };
 
-export function ModelSelector({ selectedModel, onModelChange, disabled }: ModelSelectorProps) {
+export function ModelSelector({ selectedModel, onModelChange, disabled, defaultModel }: ModelSelectorProps) {
   const currentModel = AI_MODELS[selectedModel];
+  const isDifferentFromDefault = defaultModel && selectedModel !== defaultModel;
 
   return (
     <DropdownMenu>
@@ -33,11 +35,15 @@ export function ModelSelector({ selectedModel, onModelChange, disabled }: ModelS
           disabled={disabled}
           className={cn(
             "h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground",
-            "border border-transparent hover:border-border/50"
+            "border border-transparent hover:border-border/50",
+            isDifferentFromDefault && "border-amber-500/50 text-amber-600 dark:text-amber-400"
           )}
         >
           {modelIcons[selectedModel]}
           <span className="hidden sm:inline">{currentModel.name}</span>
+          {isDifferentFromDefault && (
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Different from your default model" />
+          )}
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
