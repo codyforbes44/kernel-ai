@@ -19,6 +19,8 @@ interface SandpackPreviewProps {
   onError?: (error: string) => void;
   onVisualChange?: (change: VisualChange) => void;
   onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
+  previewCSS?: string | null;
+  previewSystemName?: string | null;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -30,7 +32,11 @@ const viewportConfig: Record<ViewportSize, { width: string; icon: React.ReactNod
 };
 
 // Convert project files to Sandpack format with visual editor injection
-function convertToSandpackFiles(files: ProjectFile[], injectVisualEditor: boolean): Record<string, string> {
+function convertToSandpackFiles(
+  files: ProjectFile[], 
+  injectVisualEditor: boolean,
+  previewCSS?: string | null
+): Record<string, string> {
   const sandpackFiles: Record<string, string> = {};
   
   for (const file of files) {
@@ -68,6 +74,14 @@ function convertToSandpackFiles(files: ProjectFile[], injectVisualEditor: boolea
     sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
       '</body>',
       `<script>${injectionScript}</script></body>`
+    );
+  }
+  
+  // Inject design system preview CSS if provided
+  if (previewCSS && sandpackFiles['/index.html']) {
+    sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
+      '</head>',
+      `<style id="design-system-preview">${previewCSS}</style></head>`
     );
   }
   
@@ -224,14 +238,21 @@ function SandpackPreviewInner({
   );
 }
 
-export function SandpackPreview({ files, onError, onVisualChange, onSaveVisualChanges }: SandpackPreviewProps) {
+export function SandpackPreview({ 
+  files, 
+  onError, 
+  onVisualChange, 
+  onSaveVisualChanges,
+  previewCSS,
+  previewSystemName,
+}: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
   const [visualEditorEnabled, setVisualEditorEnabled] = useState(false);
 
   const sandpackFiles = useMemo(
-    () => convertToSandpackFiles(files, true), // Always inject for now
-    [files]
+    () => convertToSandpackFiles(files, true, previewCSS), // Always inject visual editor, optionally inject CSS
+    [files, previewCSS]
   );
 
   const handleRefresh = () => {
@@ -240,6 +261,17 @@ export function SandpackPreview({ files, onError, onVisualChange, onSaveVisualCh
 
   return (
     <div className="h-full flex flex-col bg-background relative">
+      {/* Design System Preview Indicator */}
+      {previewSystemName && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-foreground"></span>
+          </span>
+          Previewing: {previewSystemName}
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-muted/30">
         <div className="flex items-center gap-1">

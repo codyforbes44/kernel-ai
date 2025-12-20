@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { Palette, Sparkles, Check, Trash2, Copy, Loader2, Type, Layers } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Palette, Sparkles, Check, Trash2, Copy, Loader2, Type, Layers, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,6 +15,7 @@ import type { DesignSystem } from '@/types/marketplace';
 
 interface DesignSystemPanelProps {
   projectId: string;
+  onPreviewChange?: (cssVariables: string | null, systemName?: string) => void;
 }
 
 const STYLE_PRESETS = [
@@ -29,7 +29,7 @@ const STYLE_PRESETS = [
   { value: 'nature', label: 'Nature Inspired' },
 ];
 
-export function DesignSystemPanel({ projectId }: DesignSystemPanelProps) {
+export function DesignSystemPanel({ projectId, onPreviewChange }: DesignSystemPanelProps) {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('modern');
   const [activeTab, setActiveTab] = useState('generate');
@@ -44,7 +44,32 @@ export function DesignSystemPanel({ projectId }: DesignSystemPanelProps) {
     isActivating,
     deleteSystem,
     generateCSSVariables,
+    previewSystem,
+    setPreviewSystem,
   } = useDesignSystem({ projectId });
+
+  // Notify parent when preview changes
+  useEffect(() => {
+    if (previewSystem) {
+      const css = generateCSSVariables(previewSystem);
+      onPreviewChange?.(css, previewSystem.name);
+    } else {
+      onPreviewChange?.(null);
+    }
+  }, [previewSystem, generateCSSVariables, onPreviewChange]);
+
+  const handleTogglePreview = (system: DesignSystem) => {
+    if (previewSystem?.id === system.id) {
+      setPreviewSystem(null);
+    } else {
+      setPreviewSystem(system);
+    }
+  };
+
+  const handleActivateSystem = (systemId: string) => {
+    setPreviewSystem(null);
+    activateSystem(systemId);
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -218,7 +243,7 @@ export function DesignSystemPanel({ projectId }: DesignSystemPanelProps) {
                         {!system.is_active && (
                           <Button
                             size="sm"
-                            onClick={() => activateSystem(system.id)}
+                            onClick={() => handleActivateSystem(system.id)}
                             disabled={isActivating}
                             className="flex-1 gap-1"
                           >
@@ -226,6 +251,19 @@ export function DesignSystemPanel({ projectId }: DesignSystemPanelProps) {
                             Apply
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant={previewSystem?.id === system.id ? 'default' : 'outline'}
+                          onClick={() => handleTogglePreview(system)}
+                          className="gap-1"
+                          title={previewSystem?.id === system.id ? 'Stop preview' : 'Preview in sandbox'}
+                        >
+                          {previewSystem?.id === system.id ? (
+                            <EyeOff className="h-3 w-3" />
+                          ) : (
+                            <Eye className="h-3 w-3" />
+                          )}
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

@@ -14,6 +14,7 @@ export function useDesignSystem({ projectId }: UseDesignSystemOptions) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [previewSystem, setPreviewSystem] = useState<DesignSystem | null>(null);
 
   // Fetch design systems for project
   const { data: designSystems = [], isLoading } = useQuery({
@@ -161,17 +162,25 @@ export function useDesignSystem({ projectId }: UseDesignSystemOptions) {
     return lines.join('\n');
   };
 
+  // Clear preview when a system is activated
+  const handleActivate = (systemId: string) => {
+    setPreviewSystem(null);
+    activateMutation.mutate(systemId);
+  };
+
   return {
     designSystems,
     activeSystem,
     isLoading,
     isGenerating,
     generateDesignSystem,
-    activateSystem: activateMutation.mutate,
+    activateSystem: handleActivate,
     isActivating: activateMutation.isPending,
     deleteSystem: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
     generateCSSVariables,
+    previewSystem,
+    setPreviewSystem,
   };
 }
 
