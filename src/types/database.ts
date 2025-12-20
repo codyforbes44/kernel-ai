@@ -10,6 +10,7 @@ export interface Profile {
     keyboard_sounds: boolean;
     reduced_motion: boolean;
   };
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }

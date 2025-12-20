@@ -27,6 +27,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Builder = lazy(() => import("./pages/Builder"));
 const BuilderProject = lazy(() => import("./pages/BuilderProject"));
 const SEODashboard = lazy(() => import("./pages/SEODashboard"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +80,16 @@ const App = () => (
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <Onboarding />
+                        </Suspense>
+                      </ErrorBoundary>
+                    }
+                  />
                   <Route
                     path="/admin"
                     element={
