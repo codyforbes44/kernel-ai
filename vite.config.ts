@@ -1,8 +1,54 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+
+// Sitemap generation plugin
+function sitemapPlugin(): Plugin {
+  const SITE_URL = 'https://kernel.cool';
+  
+  // Routes configuration for sitemap
+  const routes = [
+    { path: '/', changefreq: 'daily', priority: 1.0 },
+    { path: '/pricing', changefreq: 'monthly', priority: 0.9 },
+    { path: '/contact', changefreq: 'monthly', priority: 0.8 },
+    { path: '/auth', changefreq: 'monthly', priority: 0.8 },
+    { path: '/builder', changefreq: 'weekly', priority: 0.9 },
+    { path: '/privacy', changefreq: 'monthly', priority: 0.5 },
+    { path: '/terms', changefreq: 'monthly', priority: 0.5 },
+  ];
+
+  function generateSitemap(): string {
+    const today = new Date().toISOString().split('T')[0];
+    const urls = routes.map(route => {
+      const loc = route.path === '/' ? SITE_URL : `${SITE_URL}${route.path}`;
+      return `  <url>
+    <loc>${loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${route.changefreq}</changefreq>
+    <priority>${route.priority.toFixed(1)}</priority>
+  </url>`;
+    }).join('\n');
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>
+`;
+  }
+
+  return {
+    name: 'sitemap-generator',
+    buildStart() {
+      const sitemap = generateSitemap();
+      const outputPath = path.resolve(__dirname, 'public/sitemap.xml');
+      fs.writeFileSync(outputPath, sitemap, 'utf-8');
+      console.log('✅ Sitemap generated with', routes.length, 'URLs');
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -13,6 +59,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    mode === "production" && sitemapPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png", "offline.html"],
