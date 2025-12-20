@@ -382,21 +382,40 @@ serve(async (req) => {
     console.log(`[deploy] Created deployment ${deployment.id}, version ${version}`);
 
     try {
+      // Helper to stream build log updates
+      let buildLog = '';
+      const appendLog = async (message: string) => {
+        buildLog += message + '\n';
+        console.log(`[deploy] ${message}`);
+        // Stream update to database for realtime subscribers
+        await supabaseAdmin
+          .from('deployments')
+          .update({ build_log: buildLog })
+          .eq('id', deployment.id);
+      };
+
+      await appendLog(`[${new Date().toISOString()}] Build started`);
+      await appendLog(`Project: ${project.name}`);
+      await appendLog(`Environment: ${environment}`);
+      await appendLog(`Version: ${version}`);
+      await appendLog(`Files to process: ${files?.length || 0}`);
+      await appendLog('');
+
       // Generate the bundle
+      await appendLog('Generating static bundle...');
       const outputFiles = generateStaticPreview(
         files as ProjectFile[],
         project.name
       );
-
-      let buildLog = `Build started at ${new Date().toISOString()}\n`;
-      buildLog += `Project: ${project.name}\n`;
-      buildLog += `Environment: ${environment}\n`;
-      buildLog += `Version: ${version}\n`;
-      buildLog += `Files processed: ${files?.length || 0}\n\n`;
+      await appendLog(`Generated ${outputFiles.size} output files`);
 
       // Upload files to storage
       const deployPath = `${projectId}/${environment}/v${version}`;
       let totalSize = 0;
+      let uploadedCount = 0;
+
+      await appendLog('');
+      await appendLog('Uploading to storage...');
 
       for (const [filename, content] of outputFiles) {
         const filePath = `${deployPath}/${filename}`;
@@ -411,24 +430,32 @@ serve(async (req) => {
           });
 
         if (uploadError) {
-          buildLog += `Error uploading ${filename}: ${uploadError.message}\n`;
+          await appendLog(`✗ Error uploading ${filename}: ${uploadError.message}`);
           console.error(`[deploy] Upload error for ${filename}:`, uploadError);
         } else {
-          buildLog += `Uploaded: ${filename} (${blob.size} bytes)\n`;
+          uploadedCount++;
+          await appendLog(`✓ Uploaded: ${filename} (${blob.size} bytes)`);
         }
       }
 
       // Get public URL for the deployment
+      await appendLog('');
+      await appendLog('Finalizing deployment...');
+      
       const { data: publicUrl } = supabaseAdmin.storage
         .from('deployments')
         .getPublicUrl(`${deployPath}/index.html`);
 
       const buildDuration = Date.now() - startTime;
-      buildLog += `\nBuild completed in ${buildDuration}ms\n`;
-      buildLog += `Total bundle size: ${totalSize} bytes\n`;
-      buildLog += `Deploy URL: ${publicUrl.publicUrl}\n`;
+      await appendLog('');
+      await appendLog('═══════════════════════════════════════');
+      await appendLog(`Build completed in ${buildDuration}ms`);
+      await appendLog(`Files uploaded: ${uploadedCount}/${outputFiles.size}`);
+      await appendLog(`Total bundle size: ${formatBytes(totalSize)}`);
+      await appendLog(`Deploy URL: ${publicUrl.publicUrl}`);
+      await appendLog('═══════════════════════════════════════');
 
-      // Update deployment record
+      // Update deployment record with final status
       const { error: updateError } = await supabaseUser
         .from('deployments')
         .update({
@@ -505,4 +532,10 @@ function getMimeType(filename: string): string {
     ico: 'image/x-icon',
   };
   return mimeTypes[ext || ''] || 'application/octet-stream';
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
