@@ -30,15 +30,15 @@ export function ParticleField() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize particles
-    const particleCount = Math.min(50, Math.floor((window.innerWidth * window.innerHeight) / 25000));
+    // Initialize particles - more particles for denser network
+    const particleCount = Math.min(65, Math.floor((window.innerWidth * window.innerHeight) / 20000));
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      size: Math.random() * 2 + 1,
-      opacity: Math.random() * 0.3 + 0.1,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      size: Math.random() * 2.5 + 1,
+      opacity: Math.random() * 0.4 + 0.15,
     }));
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -51,22 +51,17 @@ export function ParticleField() {
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Get computed primary color
-      const primaryColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--primary')
-        .trim();
-
       particlesRef.current.forEach((particle) => {
         // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
 
-        // Mouse influence
+        // Mouse influence - stronger attraction for cyan glow effect
         const dx = mouseRef.current.x - particle.x;
         const dy = mouseRef.current.y - particle.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
-          const force = (150 - dist) / 150 * 0.01;
+        if (dist < 180) {
+          const force = (180 - dist) / 180 * 0.012;
           particle.vx += dx * force;
           particle.vy += dy * force;
         }
@@ -81,27 +76,33 @@ export function ParticleField() {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Draw particle
+        // Draw particle with cyan color
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsl(${primaryColor} / ${particle.opacity})`;
+        ctx.fillStyle = `rgba(0, 217, 255, ${particle.opacity * 0.85})`;
+        ctx.fill();
+        
+        // Add subtle glow halo
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 217, 255, ${particle.opacity * 0.1})`;
         ctx.fill();
       });
 
-      // Draw connections
+      // Draw connections with cyan color
       particlesRef.current.forEach((p1, i) => {
         particlesRef.current.slice(i + 1).forEach((p2) => {
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          if (dist < 120) {
+          if (dist < 140) {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            const opacity = (1 - dist / 120) * 0.15;
-            ctx.strokeStyle = `hsl(${primaryColor} / ${opacity})`;
-            ctx.lineWidth = 0.5;
+            const opacity = (1 - dist / 140) * 0.22;
+            ctx.strokeStyle = `rgba(0, 217, 255, ${opacity})`;
+            ctx.lineWidth = 0.6;
             ctx.stroke();
           }
         });
@@ -129,7 +130,7 @@ export function ParticleField() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 pointer-events-none"
-      style={{ opacity: 0.7 }}
+      style={{ opacity: 0.8 }}
     />
   );
 }

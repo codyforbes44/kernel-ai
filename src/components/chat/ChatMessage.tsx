@@ -176,8 +176,9 @@ export const ChatMessage = memo(function ChatMessage({
               "rounded-xl px-4 py-3",
               isUser
                 ? "bg-primary text-primary-foreground max-w-[85%]"
-                : "bg-muted/50 border border-border/50 w-full"
+                : "bg-card/80 backdrop-blur-sm border border-border/50 w-full shadow-[inset_0_1px_0_0_hsl(var(--primary)/0.1)] border-l-[3px] border-l-primary"
             )}
+            style={!isUser ? { boxShadow: '-4px 0 20px hsl(185 100% 50% / 0.12)' } : undefined}
           >
             {isUser ? (
               <>

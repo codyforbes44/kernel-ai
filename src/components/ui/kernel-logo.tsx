@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 interface KernelLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  glow?: boolean;
 }
 
 const sizeClasses = {
@@ -12,11 +13,12 @@ const sizeClasses = {
   xl: "text-xl w-12 h-12",
 };
 
-export function KernelLogo({ size = "md", className }: KernelLogoProps) {
+export function KernelLogo({ size = "md", className, glow = true }: KernelLogoProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-lg bg-primary/10 font-mono font-bold text-primary",
+        "flex items-center justify-center rounded-lg bg-primary/15 font-mono font-bold text-primary border border-primary/30 transition-all duration-300",
+        glow && "shadow-[0_0_15px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)]",
         sizeClasses[size],
         className
       )}
