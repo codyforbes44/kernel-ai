@@ -202,7 +202,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-sidebar-accent">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-sidebar-accent"
+                onClick={() => navigate('/settings')}
+              >
                 <Settings className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -375,7 +380,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               <Code2 className="h-4 w-4 mr-2" />
               App Builder
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/settings')}>
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </DropdownMenuItem>
