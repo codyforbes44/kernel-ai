@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GlassCard, GlassCardContent } from '@/components/ui/glass-card';
+import { FeatureCard } from '@/components/ui/feature-card';
 import { GlowBadge } from '@/components/ui/glow-badge';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
@@ -121,23 +121,15 @@ export default function Landing() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <GlassCard 
-                key={feature.title} 
-                variant="glow" 
-                size="default"
-                animatedBorder={index === 0}
-                className="group"
-              >
-                <GlassCardContent>
-                  <div className="h-12 w-12 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center mb-4 shadow-[0_0_15px_hsl(var(--primary)/0.2)] group-hover:shadow-[0_0_25px_hsl(var(--primary)/0.35)] transition-shadow duration-300">
-                    <feature.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2 text-foreground">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
-                </GlassCardContent>
-              </GlassCard>
+              <FeatureCard 
+                key={feature.title}
+                icon={<feature.icon className="h-6 w-6 text-primary" />}
+                title={feature.title}
+                description={feature.description}
+                animatedBorder={true}
+                borderSpeed={3 + index * 0.5}
+                variant="glow"
+              />
             ))}
           </div>
         </div>
