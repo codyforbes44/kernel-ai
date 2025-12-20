@@ -13,6 +13,8 @@ import { FileVersionHistory } from './FileVersionHistory';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
 import { DeploymentPanel } from './DeploymentPanel';
 import { GitHubPanel } from './GitHubPanel';
+import { DesignSystemPanel } from './DesignSystemPanel';
+import { ComponentMarketplace } from './ComponentMarketplace';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -25,7 +27,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -44,6 +46,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showDeployments, setShowDeployments] = useState(false);
   const [showGitHub, setShowGitHub] = useState(false);
+  const [showDesignSystem, setShowDesignSystem] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   
@@ -215,6 +219,50 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn('h-8 w-8', showDesignSystem && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowDesignSystem(!showDesignSystem);
+                  if (!showDesignSystem) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                    setShowGitHub(false);
+                    setShowMarketplace(false);
+                  }
+                }}
+              >
+                <Palette className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Design System</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('h-8 w-8', showMarketplace && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowMarketplace(!showMarketplace);
+                  if (!showMarketplace) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                    setShowGitHub(false);
+                    setShowDesignSystem(false);
+                  }
+                }}
+              >
+                <Package className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Component Marketplace</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
                 className={cn('h-8 w-8', showGitHub && 'bg-primary/10 text-primary')}
                 onClick={() => {
                   setShowGitHub(!showGitHub);
@@ -222,6 +270,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowAIChat(false);
                     setShowHistory(false);
                     setShowDeployments(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
                   }
                 }}
               >
@@ -242,6 +292,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowAIChat(false);
                     setShowHistory(false);
                     setShowGitHub(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
                   }
                 }}
               >
@@ -262,6 +314,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowAIChat(false);
                     setShowDeployments(false);
                     setShowGitHub(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
                   }
                 }}
                 disabled={!activeTabId}
@@ -283,6 +337,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowHistory(false);
                     setShowDeployments(false);
                     setShowGitHub(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
                   }
                 }}
               >
@@ -370,7 +426,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* AI Chat */}
-        {showAIChat && !showHistory && !showDeployments && !showGitHub && (
+        {showAIChat && !showHistory && !showDeployments && !showGitHub && !showDesignSystem && !showMarketplace && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -380,6 +436,32 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 errors={capturedErrors}
                 onClearErrors={handleClearErrors}
                 projectId={projectId}
+              />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* Design System Panel */}
+        {showDesignSystem && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <DesignSystemPanel projectId={projectId} />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* Component Marketplace Panel */}
+        {showMarketplace && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
+              <ComponentMarketplace 
+                projectId={projectId}
+                onInstallComponent={(code) => {
+                  toast.success('Component installed! Code copied to clipboard.');
+                  navigator.clipboard.writeText(code);
+                }}
               />
             </ResizablePanel>
           </>
