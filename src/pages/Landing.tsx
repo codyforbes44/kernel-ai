@@ -6,6 +6,7 @@ import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
 import { PublicLayout } from '@/components/layout/PublicLayout';
+import { BackToTopButton } from '@/components/ui/back-to-top-button';
 import { 
   MessageSquare, 
   Code2, 
@@ -153,6 +154,8 @@ export default function Landing() {
           </Button>
         </div>
       </section>
+
+      <BackToTopButton />
     </PublicLayout>
   );
 }
