@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Rocket, 
   Globe, 
@@ -12,7 +12,8 @@ import {
   History,
   FileCode,
   Zap,
-  RotateCcw
+  RotateCcw,
+  Radio
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +35,7 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
     latestPreview,
     latestProduction,
     customDomains,
+    activeBuilds,
     isLoading,
     deploy,
     isDeploying,
@@ -46,6 +48,33 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [newDomain, setNewDomain] = useState('');
   const [showDomainForm, setShowDomainForm] = useState(false);
+  const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
+
+  // Update elapsed time every second for active builds
+  useEffect(() => {
+    if (activeBuilds.length === 0) {
+      setElapsedTimes({});
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const times: Record<string, number> = {};
+      activeBuilds.forEach((build) => {
+        const startTime = build.startedAt ? new Date(build.startedAt).getTime() : new Date(build.createdAt).getTime();
+        times[build.id] = Math.floor((Date.now() - startTime) / 1000);
+      });
+      setElapsedTimes(times);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeBuilds]);
+
+  const formatElapsedTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
 
   const handleDeploy = async (environment: 'preview' | 'production') => {
     await deploy({ environment });
@@ -142,6 +171,79 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
               </Button>
             </div>
           </div>
+
+          {/* Active Builds Section */}
+          {activeBuilds.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-2">
+                  <Radio className="h-4 w-4 text-primary animate-pulse" />
+                  Active Builds
+                  <Badge variant="secondary" className="ml-auto text-[10px]">
+                    {activeBuilds.length} running
+                  </Badge>
+                </h3>
+                
+                <div className="space-y-2">
+                  {activeBuilds.map((build) => (
+                    <div 
+                      key={build.id}
+                      className="relative overflow-hidden bg-primary/5 border border-primary/20 rounded-lg p-3"
+                    >
+                      {/* Animated progress bar */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 animate-pulse" />
+                      
+                      <div className="relative space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            <span className="text-sm font-medium">
+                              v{build.version}
+                            </span>
+                            <Badge 
+                              variant="outline" 
+                              className="text-[10px] px-1.5 border-primary/30"
+                            >
+                              {build.environment}
+                            </Badge>
+                          </div>
+                          <Badge 
+                            className={cn(
+                              "text-[10px]",
+                              getStatusBadge(build.status)
+                            )}
+                          >
+                            {build.status}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {elapsedTimes[build.id] !== undefined 
+                              ? formatElapsedTime(elapsedTimes[build.id])
+                              : 'Starting...'}
+                          </span>
+                          {build.fileCount > 0 && (
+                            <span className="flex items-center gap-1">
+                              <FileCode className="h-3 w-3" />
+                              {build.fileCount} files
+                            </span>
+                          )}
+                          {build.commitMessage && (
+                            <span className="truncate max-w-[120px]" title={build.commitMessage}>
+                              {build.commitMessage}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           <Separator />
 
