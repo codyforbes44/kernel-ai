@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { TemplateInjectionProvider } from "@/hooks/useTemplateInjection";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
@@ -37,11 +38,18 @@ function LoadingFallback() {
   );
 }
 
+function ReducedMotionLoader() {
+  // This hook loads the user's reduced motion preference and applies it
+  useReducedMotion();
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <AuthProvider>
+          <ReducedMotionLoader />
           <WorkspaceProvider>
             <TemplateInjectionProvider>
               <TooltipProvider>

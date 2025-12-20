@@ -333,3 +333,23 @@
     transform: scale(1);
   }
 }
+
+/* Reduced motion support */
+.reduce-motion,
+.reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Also respect system preference */
+@media (prefers-reduced-motion: reduce) {
+  :root:not(.force-motion),
+  :root:not(.force-motion) * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

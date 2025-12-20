@@ -34,8 +34,10 @@ export default function Settings() {
   const { clearHistory } = useVariableHistory();
   const [displayName, setDisplayName] = useState('');
   const [originalDisplayName, setOriginalDisplayName] = useState('');
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -48,15 +50,25 @@ export default function Settings() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('display_name')
+          .select('display_name, preferences')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (error) throw error;
         
         const name = data?.display_name || '';
         setDisplayName(name);
         setOriginalDisplayName(name);
+        
+        // Load preferences
+        const prefs = data?.preferences as { reduced_motion?: boolean } | null;
+        const reducedMotionPref = prefs?.reduced_motion ?? false;
+        setReducedMotion(reducedMotionPref);
+        
+        // Apply reduced motion to document
+        if (reducedMotionPref) {
+          document.documentElement.classList.add('reduce-motion');
+        }
       } catch (error) {
         console.error('Failed to load profile:', error);
       } finally {
@@ -88,6 +100,53 @@ export default function Settings() {
       toast.error('Failed to update display name');
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const handleReducedMotionChange = async (enabled: boolean) => {
+    if (!user) return;
+    
+    setReducedMotion(enabled);
+    setIsSavingPreferences(true);
+    
+    // Apply immediately to document
+    if (enabled) {
+      document.documentElement.classList.add('reduce-motion');
+    } else {
+      document.documentElement.classList.remove('reduce-motion');
+    }
+    
+    try {
+      // Fetch current preferences first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
+      const updatedPrefs = { ...currentPrefs, reduced_motion: enabled };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ preferences: updatedPrefs })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success(enabled ? 'Reduced motion enabled' : 'Reduced motion disabled');
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      toast.error('Failed to save preference');
+      // Revert on error
+      setReducedMotion(!enabled);
+      if (!enabled) {
+        document.documentElement.classList.add('reduce-motion');
+      } else {
+        document.documentElement.classList.remove('reduce-motion');
+      }
+    } finally {
+      setIsSavingPreferences(false);
     }
   };
 
@@ -227,7 +286,11 @@ export default function Settings() {
                   Reduce animations throughout the app
                 </p>
               </div>
-              <Switch />
+              <Switch
+                checked={reducedMotion}
+                onCheckedChange={handleReducedMotionChange}
+                disabled={isLoadingProfile || isSavingPreferences}
+              />
             </div>
           </CardContent>
         </Card>
