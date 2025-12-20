@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
@@ -17,13 +17,14 @@ import {
   User,
   Moon,
   Sun,
-  Bell,
   Keyboard,
   Shield,
   Trash2,
   Download,
   Sparkles,
   History,
+  Save,
+  Loader2,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -32,9 +33,63 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const { clearHistory } = useVariableHistory();
   const [displayName, setDisplayName] = useState('');
+  const [originalDisplayName, setOriginalDisplayName] = useState('');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Load profile data on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) throw error;
+        
+        const name = data?.display_name || '';
+        setDisplayName(name);
+        setOriginalDisplayName(name);
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+    
+    loadProfile();
+  }, [user]);
+
+  const hasDisplayNameChanged = displayName !== originalDisplayName;
+
+  const handleSaveDisplayName = async () => {
+    if (!user || !hasDisplayNameChanged) return;
+    
+    setIsSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ display_name: displayName.trim() || null })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      setOriginalDisplayName(displayName.trim());
+      toast.success('Display name updated');
+    } catch (error) {
+      console.error('Failed to save display name:', error);
+      toast.error('Failed to update display name');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handleExportAllData = async () => {
     if (!user) return;
@@ -117,12 +172,27 @@ export default function Settings() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Enter your display name"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder={isLoadingProfile ? 'Loading...' : 'Enter your display name'}
+                  disabled={isLoadingProfile}
+                />
+                <Button
+                  onClick={handleSaveDisplayName}
+                  disabled={!hasDisplayNameChanged || isSavingProfile}
+                  className="gap-2 shrink-0"
+                >
+                  {isSavingProfile ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
