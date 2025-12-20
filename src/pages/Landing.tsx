@@ -16,6 +16,7 @@ import {
   Users,
   ArrowRight,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 
 const features = [
@@ -106,6 +107,16 @@ export default function Landing() {
             </Button>
           </div>
         </div>
+        
+        {/* Scroll Down Indicator */}
+        <a 
+          href="#features"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
+          aria-label="Scroll to features"
+        >
+          <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Scroll</span>
+          <ChevronDown className="h-6 w-6 animate-bounce" />
+        </a>
       </section>
 
       {/* Features Grid */}
