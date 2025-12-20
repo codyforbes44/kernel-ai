@@ -181,6 +181,45 @@ export function useDeployments(projectId: string) {
     },
   });
 
+  // Rollback mutation - uses dedicated rollback function that restores files from storage
+  const rollbackMutation = useMutation({
+    mutationFn: async (deploymentId: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rollback-deployment`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ deploymentId }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Rollback failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['deployments', projectId] });
+      toast.success(`Rolled back to v${data.deployment.rolled_back_from}!`, {
+        description: `New version v${data.deployment.version} deployed`,
+        action: data.deployment.deploy_url ? {
+          label: 'Open',
+          onClick: () => window.open(data.deployment.deploy_url, '_blank'),
+        } : undefined,
+      });
+    },
+    onError: (error) => {
+      toast.error('Rollback failed', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    },
+  });
+
   // Rollback to a specific deployment
   const rollback = async (deploymentId: string) => {
     const targetDeployment = deployments.find(d => d.id === deploymentId);
@@ -189,10 +228,12 @@ export function useDeployments(projectId: string) {
       return;
     }
 
-    return deployMutation.mutateAsync({
-      environment: targetDeployment.environment,
-      rollbackFromVersion: targetDeployment.version,
-    });
+    if (targetDeployment.status !== 'deployed') {
+      toast.error('Can only rollback to successfully deployed versions');
+      return;
+    }
+
+    return rollbackMutation.mutateAsync(deploymentId);
   };
 
   // Fetch custom domains
@@ -264,7 +305,7 @@ export function useDeployments(projectId: string) {
     deploy: deployMutation.mutateAsync,
     isDeploying: deployMutation.isPending,
     rollback,
-    isRollingBack: deployMutation.isPending,
+    isRollingBack: rollbackMutation.isPending,
     addDomain: addDomainMutation.mutateAsync,
     deleteDomain: deleteDomainMutation.mutateAsync,
   };
