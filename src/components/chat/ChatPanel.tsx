@@ -1,11 +1,12 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useMessages } from "@/hooks/useMessages";
-import { useChat, type AIModel } from "@/hooks/useChat";
+import { useChat } from "@/hooks/useChat";
 import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
 import { ModelSelector } from "./ModelSelector";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
@@ -182,7 +183,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
             <EmptyState type="no-conversation" />
           ) : messagesLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <LoadingSpinner />
             </div>
           ) : messages.length === 0 && !streamingMessage ? (
             <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />

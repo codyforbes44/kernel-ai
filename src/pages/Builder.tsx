@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
-import { useAuth } from '@/hooks/useAuth';
+import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,15 +14,16 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PageHeader } from '@/components/layout/PageHeader';
 
 export default function Builder() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useProtectedPage();
   const { projects, createProject, isLoading } = useBuilderProject();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
@@ -45,12 +46,6 @@ export default function Builder() {
     setShowCreateDialog(true);
   };
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    }
-  }, [authLoading, user, navigate]);
-
   if (authLoading) {
     return <LoadingSpinner fullScreen />;
   }
@@ -63,23 +58,17 @@ export default function Builder() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/')}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Code2 className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">App Builder</h1>
-                <p className="text-sm text-muted-foreground">Create and edit web applications</p>
+              <PageHeader
+                title="App Builder"
+                subtitle="Create and edit web applications"
+                backLabel="Chat"
+                className="border-0 p-0 bg-transparent"
+              />
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center ml-2">
+                <Code2 className="h-5 w-5 text-primary-foreground" />
               </div>
             </div>
             <Button onClick={handleOpenDialog} className="gap-2">
