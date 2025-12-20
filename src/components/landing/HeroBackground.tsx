@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { GradientMesh } from './GradientMesh';
 import { ParticleField } from './ParticleField';
 import { AnimatedCodeBlocks } from './AnimatedCodeBlocks';
 
 export function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -26,79 +27,114 @@ export function HeroBackground() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Scroll parallax effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Calculate parallax transforms for different layers
+  const slowParallax = scrollY * 0.3;
+  const mediumParallax = scrollY * 0.5;
+  const fastParallax = scrollY * 0.7;
+
   return (
     <div 
       ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none"
-      style={{ '--mouse-x': '0px', '--mouse-y': '0px' } as React.CSSProperties}
+      style={{ 
+        '--mouse-x': '0px', 
+        '--mouse-y': '0px',
+      } as React.CSSProperties}
     >
-      {/* Base gradient mesh */}
-      <GradientMesh />
+      {/* Base gradient mesh - slowest layer */}
+      <div style={{ transform: `translateY(${slowParallax}px)` }}>
+        <GradientMesh />
+      </div>
 
-      {/* Particle system */}
-      <ParticleField />
+      {/* Particle system - medium speed */}
+      <div style={{ transform: `translateY(${mediumParallax * 0.5}px)` }}>
+        <ParticleField />
+      </div>
 
-      {/* Animated code blocks */}
-      <AnimatedCodeBlocks />
+      {/* Animated code blocks - fast layer */}
+      <div style={{ transform: `translateY(${fastParallax * 0.3}px)` }}>
+        <AnimatedCodeBlocks />
+      </div>
 
-      {/* Floating geometric shapes */}
-      <FloatingShape 
-        className="top-[15%] left-[10%]" 
-        size={60} 
-        duration={20} 
-        delay={0}
-        shape="hexagon"
-      />
-      <FloatingShape 
-        className="top-[25%] right-[15%]" 
-        size={40} 
-        duration={25} 
-        delay={2}
-        shape="triangle"
-      />
-      <FloatingShape 
-        className="top-[60%] left-[5%]" 
-        size={30} 
-        duration={18} 
-        delay={4}
-        shape="circle"
-      />
-      <FloatingShape 
-        className="top-[70%] right-[10%]" 
-        size={50} 
-        duration={22} 
-        delay={1}
-        shape="square"
-      />
-      <FloatingShape 
-        className="top-[40%] left-[20%]" 
-        size={25} 
-        duration={30} 
-        delay={3}
-        shape="circle"
-      />
-      <FloatingShape 
-        className="top-[80%] left-[40%]" 
-        size={35} 
-        duration={24} 
-        delay={5}
-        shape="triangle"
-      />
-      <FloatingShape 
-        className="top-[10%] right-[30%]" 
-        size={45} 
-        duration={28} 
-        delay={2}
-        shape="hexagon"
-      />
+      {/* Floating geometric shapes - varied parallax speeds */}
+      <div style={{ transform: `translateY(${fastParallax * 0.4}px)` }}>
+        <FloatingShape 
+          className="top-[15%] left-[10%]" 
+          size={60} 
+          duration={20} 
+          delay={0}
+          shape="hexagon"
+        />
+        <FloatingShape 
+          className="top-[25%] right-[15%]" 
+          size={40} 
+          duration={25} 
+          delay={2}
+          shape="triangle"
+        />
+      </div>
+      
+      <div style={{ transform: `translateY(${mediumParallax * 0.6}px)` }}>
+        <FloatingShape 
+          className="top-[60%] left-[5%]" 
+          size={30} 
+          duration={18} 
+          delay={4}
+          shape="circle"
+        />
+        <FloatingShape 
+          className="top-[70%] right-[10%]" 
+          size={50} 
+          duration={22} 
+          delay={1}
+          shape="square"
+        />
+      </div>
+      
+      <div style={{ transform: `translateY(${slowParallax * 0.8}px)` }}>
+        <FloatingShape 
+          className="top-[40%] left-[20%]" 
+          size={25} 
+          duration={30} 
+          delay={3}
+          shape="circle"
+        />
+        <FloatingShape 
+          className="top-[80%] left-[40%]" 
+          size={35} 
+          duration={24} 
+          delay={5}
+          shape="triangle"
+        />
+        <FloatingShape 
+          className="top-[10%] right-[30%]" 
+          size={45} 
+          duration={28} 
+          delay={2}
+          shape="hexagon"
+        />
+      </div>
 
       {/* Terminal cursor blink effect - cyan themed */}
-      <div className="absolute top-[20%] right-[25%] flex items-center gap-1 opacity-40">
+      <div 
+        className="absolute top-[20%] right-[25%] flex items-center gap-1 opacity-40"
+        style={{ transform: `translateY(${fastParallax * 0.5}px)` }}
+      >
         <span className="font-mono text-primary text-lg drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]">&gt;_</span>
         <span className="w-2 h-5 bg-primary animate-pulse shadow-[0_0_10px_hsl(var(--primary)/0.5)]" style={{ animationDuration: '1s' }} />
       </div>
 
-      {/* Grid pattern overlay */}
+      {/* Grid pattern overlay - stationary */}
       <div 
         className="absolute inset-0 opacity-[0.02]"
         style={{
@@ -110,7 +146,7 @@ export function HeroBackground() {
         }}
       />
 
-      {/* Radial vignette */}
+      {/* Radial vignette - stationary */}
       <div 
         className="absolute inset-0"
         style={{
