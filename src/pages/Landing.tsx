@@ -91,14 +91,14 @@ export default function Landing() {
             and launch your web applications without the complexity.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="min-w-[180px] h-12 text-base" asChild>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto px-4 sm:px-0">
+            <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
               <Link to="/auth?tab=signup">
                 Start Building Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="min-w-[180px] h-12 text-base" asChild>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
               <Link to="/auth">
                 Sign In
               </Link>
