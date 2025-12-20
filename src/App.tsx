@@ -63,33 +63,41 @@ const App = () => (
                   <Route
                     path="/admin"
                     element={
-                      <Suspense fallback={<LoadingFallback />}>
-                        <Admin />
-                      </Suspense>
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <Admin />
+                        </Suspense>
+                      </ErrorBoundary>
                     }
                   />
                   <Route
                     path="/settings"
                     element={
-                      <Suspense fallback={<LoadingFallback />}>
-                        <Settings />
-                    </Suspense>
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <Settings />
+                        </Suspense>
+                      </ErrorBoundary>
                     }
                   />
                   <Route
                     path="/builder"
                     element={
-                      <Suspense fallback={<LoadingFallback />}>
-                        <Builder />
-                      </Suspense>
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <Builder />
+                        </Suspense>
+                      </ErrorBoundary>
                     }
                   />
                   <Route
                     path="/builder/:projectId"
                     element={
-                      <Suspense fallback={<LoadingFallback />}>
-                        <BuilderProject />
-                      </Suspense>
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <BuilderProject />
+                        </Suspense>
+                      </ErrorBoundary>
                     }
                   />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

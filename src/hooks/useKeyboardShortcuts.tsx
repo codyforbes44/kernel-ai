@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 
 type ShortcutCallback = () => void;
 
@@ -12,27 +12,31 @@ interface ShortcutConfig {
   description: string;
 }
 
-const shortcuts: ShortcutConfig[] = [];
+// Use a WeakMap to store shortcuts per component instance
+const shortcutRegistry = new Map<string, ShortcutConfig>();
+let shortcutIdCounter = 0;
 
 export function useKeyboardShortcuts() {
+  const registeredIdsRef = useRef<Set<string>>(new Set());
+
   const registerShortcut = useCallback((config: ShortcutConfig) => {
-    const existingIndex = shortcuts.findIndex(
-      s => s.key === config.key && 
-           s.ctrl === config.ctrl && 
-           s.meta === config.meta && 
-           s.shift === config.shift &&
-           s.alt === config.alt
-    );
-    
-    if (existingIndex >= 0) {
-      shortcuts[existingIndex] = config;
-    } else {
-      shortcuts.push(config);
-    }
+    const id = `shortcut-${++shortcutIdCounter}`;
+    shortcutRegistry.set(id, config);
+    registeredIdsRef.current.add(id);
 
     return () => {
-      const index = shortcuts.indexOf(config);
-      if (index >= 0) shortcuts.splice(index, 1);
+      shortcutRegistry.delete(id);
+      registeredIdsRef.current.delete(id);
+    };
+  }, []);
+
+  // Cleanup all shortcuts registered by this hook instance on unmount
+  useEffect(() => {
+    return () => {
+      registeredIdsRef.current.forEach(id => {
+        shortcutRegistry.delete(id);
+      });
+      registeredIdsRef.current.clear();
     };
   }, []);
 
@@ -44,7 +48,7 @@ export function useKeyboardShortcuts() {
                           target.tagName === 'TEXTAREA' || 
                           target.isContentEditable;
 
-      for (const shortcut of shortcuts) {
+      for (const [, shortcut] of shortcutRegistry) {
         const modifierMatch = 
           (shortcut.ctrl ? e.ctrlKey : !e.ctrlKey || shortcut.meta) &&
           (shortcut.meta ? e.metaKey : !e.metaKey || shortcut.ctrl) &&
@@ -67,6 +71,9 @@ export function useKeyboardShortcuts() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Return shortcuts as an array for external use
+  const shortcuts = Array.from(shortcutRegistry.values());
 
   return { registerShortcut, shortcuts };
 }

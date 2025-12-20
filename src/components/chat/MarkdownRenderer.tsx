@@ -55,12 +55,12 @@ function CodeBlock({ language, value }: CodeBlockProps) {
             >
               {collapsed ? (
                 <>
-                  <ChevronDown className="h-3 w-3 mr-1" />
+                  <ChevronDown className="h-3 w-3 mr-1" aria-hidden="true" />
                   Expand
                 </>
               ) : (
                 <>
-                  <ChevronUp className="h-3 w-3 mr-1" />
+                  <ChevronUp className="h-3 w-3 mr-1" aria-hidden="true" />
                   Collapse
                 </>
               )}
@@ -74,12 +74,12 @@ function CodeBlock({ language, value }: CodeBlockProps) {
           >
             {copied ? (
               <>
-                <Check className="h-3 w-3 mr-1" />
+                <Check className="h-3 w-3 mr-1" aria-hidden="true" />
                 Copied!
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3 mr-1" />
+                <Copy className="h-3 w-3 mr-1" aria-hidden="true" />
                 Copy
               </>
             )}
