@@ -20,6 +20,8 @@ import {
   type NewPasswordFormData,
 } from "@/lib/validations";
 import { supabase } from "@/integrations/supabase/client";
+import { SEO } from "@/components/seo/SEO";
+import { PAGE_SEO } from "@/lib/seo";
 
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
@@ -31,6 +33,27 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
+
+  // Get dynamic SEO based on mode
+  const getSEOTitle = () => {
+    switch (mode) {
+      case 'signin': return PAGE_SEO.auth.signIn.title;
+      case 'signup': return PAGE_SEO.auth.signUp.title;
+      case 'forgot': return PAGE_SEO.auth.forgotPassword.title;
+      case 'reset': return 'Set New Password';
+      default: return PAGE_SEO.auth.signIn.title;
+    }
+  };
+
+  const getSEODescription = () => {
+    switch (mode) {
+      case 'signin': return PAGE_SEO.auth.signIn.description;
+      case 'signup': return PAGE_SEO.auth.signUp.description;
+      case 'forgot': return PAGE_SEO.auth.forgotPassword.description;
+      case 'reset': return 'Set a new secure password for your AI Mate Companion account.';
+      default: return PAGE_SEO.auth.signIn.description;
+    }
+  };
 
   // Check for password reset token in URL
   useEffect(() => {
@@ -165,6 +188,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
+      <SEO
+        title={getSEOTitle()}
+        description={getSEODescription()}
+        ogImage={PAGE_SEO.auth.ogImage}
+      />
       <div className="w-full max-w-md space-y-8">
         {/* Logo & Title */}
         <div className="text-center space-y-2">

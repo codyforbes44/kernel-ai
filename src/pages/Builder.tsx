@@ -20,6 +20,8 @@ import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { SEO } from '@/components/seo/SEO';
+import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG } from '@/lib/seo';
 
 export default function Builder() {
   const navigate = useNavigate();
@@ -56,6 +58,13 @@ export default function Builder() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={PAGE_SEO.builder.title}
+        description={PAGE_SEO.builder.description}
+        ogImage={PAGE_SEO.builder.ogImage}
+        structuredData={getSoftwareApplicationSchema(SEO_CONFIG.siteUrl)}
+      />
+      
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="max-w-6xl mx-auto px-4 py-4">
