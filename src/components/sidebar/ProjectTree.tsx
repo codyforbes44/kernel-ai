@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { RenameDialog } from "@/components/dialogs/RenameDialog";
 import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { Project } from "@/types/database";
 
@@ -31,7 +32,7 @@ interface ProjectTreeProps {
 }
 
 export function ProjectTree({ searchQuery }: ProjectTreeProps) {
-  const { projects, currentProject, setCurrentProject, createProject, updateProject, deleteProject } = useWorkspace();
+  const { projects, currentProject, setCurrentProject, createProject, updateProject, deleteProject, loading } = useWorkspace();
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   
   // Dialog states
@@ -73,6 +74,25 @@ export function ProjectTree({ searchQuery }: ProjectTreeProps) {
       toast.error("Failed to delete project");
     }
   };
+
+  // Show loading skeleton while fetching
+  if (loading) {
+    return (
+      <div className="space-y-1 animate-fade-in">
+        <div className="flex items-center justify-between px-2 py-1">
+          <Skeleton className="h-3 w-14" />
+          <Skeleton className="h-5 w-5 rounded" />
+        </div>
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-2 px-2 py-1.5">
+            <Skeleton className="h-4 w-4 rounded" />
+            <Skeleton className="h-4 w-4 rounded" />
+            <Skeleton className="h-4 flex-1" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
