@@ -77,7 +77,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   if (collapsed) {
     return (
       <aside 
-        className="h-full flex flex-col bg-sidebar border-r border-border/50"
+        className="h-full flex flex-col bg-sidebar border-r border-primary/10"
         role="navigation"
         aria-label="Sidebar navigation (collapsed)"
       >
@@ -88,7 +88,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={onToggleCollapse}
-                className="hover:bg-sidebar-accent"
+                className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 aria-label="Expand sidebar"
                 aria-expanded="false"
               >
@@ -98,7 +98,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <TooltipContent side="right">Expand sidebar (⌘B)</TooltipContent>
           </Tooltip>
 
-          <Separator className="my-1" />
+          <Separator className="my-1 bg-primary/10" />
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -107,7 +107,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 size="icon"
                 onClick={handleNewConversation}
                 disabled={isCreatingConversation}
-                className="hover:bg-sidebar-accent"
+                className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 aria-label="Start new conversation"
               >
                 {isCreatingConversation ? (
@@ -126,8 +126,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "hover:bg-sidebar-accent",
-                  activeTab === "conversations" && "bg-sidebar-accent"
+                  "hover:bg-primary/10 hover:text-primary transition-all duration-200",
+                  activeTab === "conversations" && "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
                 )}
                 onClick={() => setActiveTab("conversations")}
               >
@@ -143,8 +143,8 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "hover:bg-sidebar-accent",
-                  activeTab === "templates" && "bg-sidebar-accent"
+                  "hover:bg-primary/10 hover:text-primary transition-all duration-200",
+                  activeTab === "templates" && "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
                 )}
                 onClick={() => setActiveTab("templates")}
               >
@@ -165,7 +165,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   variant="ghost"
                   size="icon"
                   onClick={installApp}
-                  className="hover:bg-sidebar-accent text-primary"
+                  className="hover:bg-primary/10 text-primary hover:shadow-[0_0_12px_hsl(var(--primary)/0.2)] transition-all duration-200"
                 >
                   <Download className="h-4 w-4" />
                 </Button>
@@ -180,7 +180,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/builder')}
-                className="hover:bg-sidebar-accent"
+                className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
               >
                 <Code2 className="h-4 w-4" />
               </Button>
@@ -195,7 +195,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate('/admin')}
-                  className="hover:bg-sidebar-accent"
+                  className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 >
                   <Shield className="h-4 w-4" />
                 </Button>
@@ -209,7 +209,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="hover:bg-sidebar-accent"
+                className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 onClick={() => navigate('/settings')}
               >
                 <Settings className="h-4 w-4" />
@@ -222,7 +222,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-sidebar-accent">
+                  <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary transition-all duration-200">
                     <User className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -247,16 +247,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   return (
     <aside 
-      className="h-full flex flex-col bg-sidebar border-r border-border/50"
+      className="h-full flex flex-col bg-sidebar border-r border-primary/10"
       role="navigation"
       aria-label="Sidebar navigation"
     >
       {/* Header */}
-      <div className="p-3 flex items-center justify-between border-b border-border/50">
+      <div className="p-3 flex items-center justify-between border-b border-primary/10">
         <div className="flex items-center gap-2">
           <KernelLogo size="sm" />
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Kernel</span>
+            <span className="text-sm font-semibold text-foreground">Kernel</span>
             <span className="text-xs text-muted-foreground">
               {currentWorkspace?.name || "Personal"}
             </span>
@@ -266,7 +266,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           variant="ghost"
           size="icon"
           onClick={onToggleCollapse}
-          className="hover:bg-sidebar-accent h-8 w-8"
+          className="hover:bg-primary/10 hover:text-primary h-8 w-8 transition-all duration-200"
           aria-label="Collapse sidebar"
           aria-expanded="true"
         >
@@ -282,7 +282,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             placeholder="Search... (⌘K)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 h-9 bg-sidebar-accent/50 border-transparent focus:border-primary/50"
+            className="pl-8 h-9 bg-card/50 border-primary/20 focus:border-primary/50 focus:shadow-[0_0_12px_hsl(var(--primary)/0.15)] transition-all duration-200"
             aria-label="Search conversations and templates"
           />
         </div>
@@ -293,7 +293,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         <Button
           onClick={handleNewConversation}
           disabled={isCreatingConversation}
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 hover:shadow-[0_0_15px_hsl(var(--primary)/0.2)] transition-all duration-200"
           variant="outline"
         >
           {isCreatingConversation ? (
@@ -311,8 +311,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            "flex-1 justify-start gap-2",
-            activeTab === "conversations" && "bg-sidebar-accent"
+            "flex-1 justify-start gap-2 transition-all duration-200",
+            activeTab === "conversations" 
+              ? "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]" 
+              : "hover:bg-primary/10 hover:text-primary"
           )}
           onClick={() => setActiveTab("conversations")}
         >
@@ -323,8 +325,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            "flex-1 justify-start gap-2",
-            activeTab === "templates" && "bg-sidebar-accent"
+            "flex-1 justify-start gap-2 transition-all duration-200",
+            activeTab === "templates" 
+              ? "bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]" 
+              : "hover:bg-primary/10 hover:text-primary"
           )}
           onClick={() => setActiveTab("templates")}
         >
@@ -333,7 +337,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </Button>
       </div>
 
-      <Separator className="my-2" />
+      <Separator className="my-2 bg-primary/10" />
 
       {/* Content */}
       <ScrollArea className="flex-1 px-2">
@@ -348,14 +352,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border/50">
+      <div className="p-3 border-t border-primary/10">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 h-auto py-2"
+              className="w-full justify-start gap-2 h-auto py-2 hover:bg-primary/10 transition-all duration-200"
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shadow-[0_0_10px_hsl(var(--primary)/0.15)]">
                 <User className="h-4 w-4 text-primary" />
               </div>
               <div className="flex flex-col items-start text-left">
