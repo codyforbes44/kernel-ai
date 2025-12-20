@@ -9,6 +9,7 @@ import { MessageSearch } from "./MessageSearch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
@@ -205,99 +206,167 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
         </div>
       )}
 
-      <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-        <div className={cn("mx-auto py-6 space-y-6", isMobile ? "max-w-full px-2" : "max-w-3xl")}>
-          {!currentConversation ? (
-            <EmptyState type="no-conversation" />
-          ) : messagesLoading ? (
-            <div className="space-y-6 animate-fade-in">
-              {/* User message skeleton */}
-              <div className="flex justify-end">
-                <div className="max-w-[80%] space-y-2">
-                  <div className="flex items-center justify-end gap-2 mb-1">
-                    <Skeleton className="h-3 w-16" delay={0} />
-                    <Skeleton className="h-6 w-6 rounded-full" delay={25} />
+      {isMobile ? (
+        <PullToRefresh onRefresh={refresh} className="flex-1">
+          <div className={cn("mx-auto py-6 space-y-6 px-4", "max-w-full")}>
+            {!currentConversation ? (
+              <EmptyState type="no-conversation" />
+            ) : messagesLoading ? (
+              <div className="space-y-6 animate-fade-in">
+                {/* User message skeleton */}
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center justify-end gap-2 mb-1">
+                      <Skeleton className="h-3 w-16" delay={0} />
+                      <Skeleton className="h-6 w-6 rounded-full" delay={25} />
+                    </div>
+                    <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
+                      <Skeleton className="h-4 w-48" delay={50} />
+                      <Skeleton className="h-4 w-32" delay={75} />
+                    </div>
                   </div>
-                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
-                    <Skeleton className="h-4 w-48" delay={50} />
-                    <Skeleton className="h-4 w-32" delay={75} />
+                </div>
+                
+                {/* Assistant message skeleton */}
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skeleton className="h-6 w-6 rounded-full" delay={100} />
+                      <Skeleton className="h-3 w-20" delay={125} />
+                    </div>
+                    <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
+                      <Skeleton className="h-4 w-full" delay={150} />
+                      <Skeleton className="h-4 w-full" delay={175} />
+                      <Skeleton className="h-4 w-3/4" delay={200} />
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Assistant message skeleton */}
-              <div className="flex justify-start">
-                <div className="max-w-[80%] space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Skeleton className="h-6 w-6 rounded-full" delay={100} />
-                    <Skeleton className="h-3 w-20" delay={125} />
+            ) : messages.length === 0 && !streamingMessage ? (
+              <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    id={`message-${message.id}`}
+                    className={cn(
+                      "transition-all duration-500",
+                      highlightedMessageId === message.id && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
+                    )}
+                  >
+                    <ChatMessage
+                      message={message}
+                      onRegenerate={() => handleRegenerate(message.id)}
+                      onEdit={handleEdit}
+                      onDelete={() => handleDeleteMessage(message.id)}
+                      onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
+                      onBranch={handleBranchFromMessage}
+                    />
                   </div>
-                  <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
-                    <Skeleton className="h-4 w-full" delay={150} />
-                    <Skeleton className="h-4 w-full" delay={175} />
-                    <Skeleton className="h-4 w-3/4" delay={200} />
-                    <Skeleton className="h-4 w-5/6" delay={225} />
+                ))}
+                {streamingMessageObj && (
+                  <ChatMessage message={streamingMessageObj} isStreaming />
+                )}
+              </>
+            )}
+          </div>
+        </PullToRefresh>
+      ) : (
+        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
+          <div className={cn("mx-auto py-6 space-y-6", "max-w-3xl")}>
+            {!currentConversation ? (
+              <EmptyState type="no-conversation" />
+            ) : messagesLoading ? (
+              <div className="space-y-6 animate-fade-in">
+                {/* User message skeleton */}
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center justify-end gap-2 mb-1">
+                      <Skeleton className="h-3 w-16" delay={0} />
+                      <Skeleton className="h-6 w-6 rounded-full" delay={25} />
+                    </div>
+                    <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
+                      <Skeleton className="h-4 w-48" delay={50} />
+                      <Skeleton className="h-4 w-32" delay={75} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Assistant message skeleton */}
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skeleton className="h-6 w-6 rounded-full" delay={100} />
+                      <Skeleton className="h-3 w-20" delay={125} />
+                    </div>
+                    <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
+                      <Skeleton className="h-4 w-full" delay={150} />
+                      <Skeleton className="h-4 w-full" delay={175} />
+                      <Skeleton className="h-4 w-3/4" delay={200} />
+                      <Skeleton className="h-4 w-5/6" delay={225} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Second user message skeleton */}
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center justify-end gap-2 mb-1">
+                      <Skeleton className="h-3 w-12" delay={250} />
+                      <Skeleton className="h-6 w-6 rounded-full" delay={275} />
+                    </div>
+                    <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
+                      <Skeleton className="h-4 w-36" delay={300} />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Second assistant message skeleton */}
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Skeleton className="h-6 w-6 rounded-full" delay={325} />
+                      <Skeleton className="h-3 w-16" delay={350} />
+                    </div>
+                    <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
+                      <Skeleton className="h-4 w-full" delay={375} />
+                      <Skeleton className="h-4 w-2/3" delay={400} />
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Second user message skeleton */}
-              <div className="flex justify-end">
-                <div className="max-w-[80%] space-y-2">
-                  <div className="flex items-center justify-end gap-2 mb-1">
-                    <Skeleton className="h-3 w-12" delay={250} />
-                    <Skeleton className="h-6 w-6 rounded-full" delay={275} />
+            ) : messages.length === 0 && !streamingMessage ? (
+              <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    id={`message-${message.id}`}
+                    className={cn(
+                      "transition-all duration-500",
+                      highlightedMessageId === message.id && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
+                    )}
+                  >
+                    <ChatMessage
+                      message={message}
+                      onRegenerate={() => handleRegenerate(message.id)}
+                      onEdit={handleEdit}
+                      onDelete={() => handleDeleteMessage(message.id)}
+                      onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
+                      onBranch={handleBranchFromMessage}
+                    />
                   </div>
-                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
-                    <Skeleton className="h-4 w-36" delay={300} />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Second assistant message skeleton */}
-              <div className="flex justify-start">
-                <div className="max-w-[80%] space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Skeleton className="h-6 w-6 rounded-full" delay={325} />
-                    <Skeleton className="h-3 w-16" delay={350} />
-                  </div>
-                  <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
-                    <Skeleton className="h-4 w-full" delay={375} />
-                    <Skeleton className="h-4 w-2/3" delay={400} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : messages.length === 0 && !streamingMessage ? (
-            <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />
-          ) : (
-            <>
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  id={`message-${message.id}`}
-                  className={cn(
-                    "transition-all duration-500",
-                    highlightedMessageId === message.id && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
-                  )}
-                >
-                  <ChatMessage
-                    message={message}
-                    onRegenerate={() => handleRegenerate(message.id)}
-                    onEdit={handleEdit}
-                    onDelete={() => handleDeleteMessage(message.id)}
-                    onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
-                    onBranch={handleBranchFromMessage}
-                  />
-                </div>
-              ))}
-              {streamingMessageObj && (
-                <ChatMessage message={streamingMessageObj} isStreaming />
-              )}
-            </>
-          )}
-        </div>
-      </ScrollArea>
+                ))}
+                {streamingMessageObj && (
+                  <ChatMessage message={streamingMessageObj} isStreaming />
+                )}
+              </>
+            )}
+          </div>
+        </ScrollArea>
+      )}
 
       <div className={cn(
         "border-t border-border/50 bg-background/80 backdrop-blur-sm",
