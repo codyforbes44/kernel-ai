@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { FolderPlus, MessageSquarePlus } from "lucide-react";
 
 interface CreateProjectDialogProps {
@@ -21,9 +22,23 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogProps) {
   const { createProject } = useWorkspace();
+  const { preferences, updatePreference } = useUserPreferences();
   const [projectName, setProjectName] = useState("");
   const [autoCreateChat, setAutoCreateChat] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+
+  // Sync with user preferences when dialog opens
+  useEffect(() => {
+    if (open) {
+      setAutoCreateChat(preferences.autoCreateChatOnProject ?? true);
+    }
+  }, [open, preferences.autoCreateChatOnProject]);
+
+  const handleAutoCreateChatChange = (checked: boolean) => {
+    setAutoCreateChat(checked);
+    // Save preference for future sessions
+    updatePreference('autoCreateChatOnProject', checked);
+  };
 
   const handleCreate = async () => {
     if (!projectName.trim()) return;
@@ -37,7 +52,6 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
       
       // Reset and close
       setProjectName("");
-      setAutoCreateChat(true);
       onOpenChange(false);
     } finally {
       setIsCreating(false);
@@ -81,7 +95,7 @@ export function CreateProjectDialog({ open, onOpenChange }: CreateProjectDialogP
             <Checkbox
               id="auto-chat"
               checked={autoCreateChat}
-              onCheckedChange={(checked) => setAutoCreateChat(checked === true)}
+              onCheckedChange={(checked) => handleAutoCreateChatChange(checked === true)}
               className="mt-0.5"
             />
             <div className="space-y-1">
