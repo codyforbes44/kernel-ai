@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { useDeployments, type Deployment, type CustomDomain } from '@/hooks/useDeployments';
 import { BuildLogViewer } from './BuildLogViewer';
 import { DeploymentPreview } from './DeploymentPreview';
+import { DeploymentDiffViewer } from './DeploymentDiffViewer';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -149,12 +150,18 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
-          {/* Quick Deploy Section */}
+          {/* Pre-Deploy Diff Section */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium flex items-center gap-2">
               <Zap className="h-4 w-4" />
-              Quick Deploy
+              Deploy Changes
             </h3>
+            
+            {/* Show diff viewer */}
+            <DeploymentDiffViewer 
+              projectId={projectId}
+              lastDeployedAt={latestProduction?.completedAt || latestPreview?.completedAt}
+            />
             
             <div className="grid grid-cols-2 gap-2">
               <Button
