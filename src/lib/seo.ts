@@ -1,7 +1,7 @@
 // SEO Configuration
 export const SEO_CONFIG = {
   siteName: 'Kernel',
-  siteUrl: typeof window !== 'undefined' ? window.location.origin : 'https://kernel.app',
+  siteUrl: typeof window !== 'undefined' ? window.location.origin : 'https://kernel.cool',
   defaultTitle: 'Kernel - AI Development Platform',
   defaultDescription: 'Build beautiful web applications with AI-powered assistance. Features intelligent chat, visual builder, design systems, and instant deployment.',
   defaultOgImage: '/og-images/default.png',

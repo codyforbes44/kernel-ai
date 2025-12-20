@@ -19,4 +19,4 @@ Disallow: /settings
 Disallow: /admin
 Disallow: /builder/
 
-Sitemap: https://ai-mate.lovable.app/sitemap.xml
+Sitemap: https://kernel.cool/sitemap.xml
