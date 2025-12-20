@@ -6,7 +6,7 @@ import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
 import { ModelSelector } from "./ModelSelector";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
 import { ChatHeader } from "./ChatHeader";
@@ -182,8 +182,63 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
           {!currentConversation ? (
             <EmptyState type="no-conversation" />
           ) : messagesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <LoadingSpinner />
+            <div className="space-y-6 animate-fade-in">
+              {/* User message skeleton */}
+              <div className="flex justify-end">
+                <div className="max-w-[80%] space-y-2">
+                  <div className="flex items-center justify-end gap-2 mb-1">
+                    <Skeleton className="h-3 w-16" delay={0} />
+                    <Skeleton className="h-6 w-6 rounded-full" delay={25} />
+                  </div>
+                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
+                    <Skeleton className="h-4 w-48" delay={50} />
+                    <Skeleton className="h-4 w-32" delay={75} />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Assistant message skeleton */}
+              <div className="flex justify-start">
+                <div className="max-w-[80%] space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Skeleton className="h-6 w-6 rounded-full" delay={100} />
+                    <Skeleton className="h-3 w-20" delay={125} />
+                  </div>
+                  <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
+                    <Skeleton className="h-4 w-full" delay={150} />
+                    <Skeleton className="h-4 w-full" delay={175} />
+                    <Skeleton className="h-4 w-3/4" delay={200} />
+                    <Skeleton className="h-4 w-5/6" delay={225} />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Second user message skeleton */}
+              <div className="flex justify-end">
+                <div className="max-w-[80%] space-y-2">
+                  <div className="flex items-center justify-end gap-2 mb-1">
+                    <Skeleton className="h-3 w-12" delay={250} />
+                    <Skeleton className="h-6 w-6 rounded-full" delay={275} />
+                  </div>
+                  <div className="bg-primary/10 rounded-2xl rounded-tr-md p-4 space-y-2">
+                    <Skeleton className="h-4 w-36" delay={300} />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Second assistant message skeleton */}
+              <div className="flex justify-start">
+                <div className="max-w-[80%] space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Skeleton className="h-6 w-6 rounded-full" delay={325} />
+                    <Skeleton className="h-3 w-16" delay={350} />
+                  </div>
+                  <div className="bg-muted/50 rounded-2xl rounded-tl-md p-4 space-y-3">
+                    <Skeleton className="h-4 w-full" delay={375} />
+                    <Skeleton className="h-4 w-2/3" delay={400} />
+                  </div>
+                </div>
+              </div>
             </div>
           ) : messages.length === 0 && !streamingMessage ? (
             <EmptyState type="empty-conversation" onPromptSelect={handleSendMessage} />
