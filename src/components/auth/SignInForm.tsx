@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlowInput } from "@/components/ui/glow-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
@@ -153,13 +153,14 @@ export function SignInForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="signin-email">Email</Label>
-          <Input
+          <GlowInput
             id="signin-email"
             type="email"
             inputMode="email"
             autoComplete="email"
             placeholder="you@example.com"
-            className="bg-background min-h-[44px] md:min-h-[40px]"
+            variant="glow"
+            className="min-h-[44px] md:min-h-[40px]"
             disabled={!!isLocked}
             {...form.register('email')}
           />
