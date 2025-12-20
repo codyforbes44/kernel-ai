@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, X, MessageSquare, FileText, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hapticFeedback } from "@/hooks/useHaptic";
 
@@ -8,38 +9,108 @@ interface FloatingActionButtonProps {
   className?: string;
   disabled?: boolean;
   isLoading?: boolean;
+  /** Enable expandable menu with multiple actions */
+  expandable?: boolean;
+  /** Actions to show when expanded */
+  actions?: Array<{
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+  }>;
 }
+
+const defaultActions = [
+  { icon: <MessageSquare className="h-5 w-5" />, label: "New Chat", onClick: () => {} },
+  { icon: <FileText className="h-5 w-5" />, label: "Templates", onClick: () => {} },
+  { icon: <Sparkles className="h-5 w-5" />, label: "Quick Prompt", onClick: () => {} },
+];
 
 export function FloatingActionButton({
   onClick,
   className,
   disabled,
   isLoading,
+  expandable = false,
+  actions = defaultActions,
 }: FloatingActionButtonProps) {
-  const handleClick = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleMainClick = () => {
     hapticFeedback("medium");
-    onClick();
+    if (expandable) {
+      setIsExpanded(!isExpanded);
+    } else {
+      onClick();
+    }
+  };
+
+  const handleActionClick = (action: typeof actions[0]) => {
+    hapticFeedback("light");
+    action.onClick();
+    setIsExpanded(false);
   };
 
   return (
-    <Button
-      size="icon"
-      onClick={handleClick}
-      disabled={disabled}
-      className={cn(
-        "fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg",
-        "bg-primary hover:bg-primary/90 text-primary-foreground",
-        "transition-all duration-200 hover:scale-105 active:scale-95",
-        "safe-area-bottom z-50",
-        disabled && "opacity-50",
-        className
+    <div className={cn("fixed bottom-20 right-4 z-50 safe-area-bottom", className)}>
+      {/* Expandable actions */}
+      {expandable && isExpanded && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm animate-fade-in" 
+            onClick={() => setIsExpanded(false)}
+            aria-hidden="true"
+          />
+          
+          {/* Action buttons */}
+          <div className="absolute bottom-16 right-0 flex flex-col-reverse gap-3 animate-fade-in">
+            {actions.map((action, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 animate-slide-up"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <span className="px-3 py-1.5 rounded-lg bg-card border border-border text-sm font-medium shadow-lg whitespace-nowrap">
+                  {action.label}
+                </span>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={() => handleActionClick(action)}
+                  className="h-12 w-12 rounded-full shadow-lg"
+                  aria-label={action.label}
+                >
+                  {action.icon}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
-    >
-      {isLoading ? (
-        <Loader2 className="h-6 w-6 animate-spin" />
-      ) : (
-        <Plus className="h-6 w-6" />
-      )}
-    </Button>
+
+      {/* Main FAB */}
+      <Button
+        size="icon"
+        onClick={handleMainClick}
+        disabled={disabled}
+        className={cn(
+          "h-14 w-14 rounded-full shadow-lg",
+          "bg-primary hover:bg-primary/90 text-primary-foreground",
+          "transition-all duration-200 hover:scale-105 active:scale-95",
+          disabled && "opacity-50",
+          isExpanded && "rotate-45"
+        )}
+        aria-label={isExpanded ? "Close menu" : "New conversation"}
+        aria-expanded={expandable ? isExpanded : undefined}
+      >
+        {isLoading ? (
+          <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+        ) : isExpanded ? (
+          <X className="h-6 w-6" aria-hidden="true" />
+        ) : (
+          <Plus className="h-6 w-6" aria-hidden="true" />
+        )}
+      </Button>
+    </div>
   );
 }

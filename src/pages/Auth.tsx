@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PasswordStrengthIndicator } from "@/components/ui/password-strength";
 import { toast } from "sonner";
 import { Sparkles, Terminal, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
 import { useForm, UseFormRegisterReturn } from "react-hook-form";
@@ -301,9 +302,10 @@ const Auth = () => {
                   signUpForm.register('password'),
                   signUpForm.formState.errors.password?.message
                 )}
-                <div className="text-xs text-muted-foreground">
-                  Password must be 8+ characters with uppercase, lowercase, and a number
-                </div>
+                <PasswordStrengthIndicator 
+                  password={signUpForm.watch('password') || ''} 
+                  showRequirements={true}
+                />
                 <Button type="submit" className="w-full" disabled={signUpForm.formState.isSubmitting}>
                   {signUpForm.formState.isSubmitting ? "Creating account..." : "Sign Up"}
                 </Button>
@@ -391,9 +393,10 @@ const Auth = () => {
                   newPasswordForm.register('confirmPassword'),
                   newPasswordForm.formState.errors.confirmPassword?.message
                 )}
-                <div className="text-xs text-muted-foreground">
-                  Password must be 8+ characters with uppercase, lowercase, and a number
-                </div>
+                <PasswordStrengthIndicator 
+                  password={newPasswordForm.watch('password') || ''} 
+                  showRequirements={true}
+                />
                 <Button type="submit" className="w-full" disabled={newPasswordForm.formState.isSubmitting}>
                   {newPasswordForm.formState.isSubmitting ? "Updating..." : "Update Password"}
                 </Button>
