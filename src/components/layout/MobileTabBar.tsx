@@ -1,0 +1,62 @@
+import { Link, useLocation } from "react-router-dom";
+import { MessageSquare, Code2, Settings, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useHaptic } from "@/hooks/useHaptic";
+
+const tabs = [
+  { href: "/", label: "Chat", icon: MessageSquare },
+  { href: "/builder", label: "Builder", icon: Code2 },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+export function MobileTabBar() {
+  const location = useLocation();
+  const { light } = useHaptic();
+
+  const handleTabClick = () => {
+    light();
+  };
+
+  return (
+    <nav className="h-16 border-t border-border/50 bg-sidebar safe-area-bottom flex items-center justify-around px-2">
+      {tabs.map((tab) => {
+        const isActive = location.pathname === tab.href;
+        const Icon = tab.icon;
+
+        return (
+          <Link
+            key={tab.href}
+            to={tab.href}
+            onClick={handleTabClick}
+            className={cn(
+              "flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-xl transition-all min-w-[72px]",
+              "active:scale-95 touch-manipulation",
+              isActive 
+                ? "text-primary" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <div className={cn(
+              "relative flex items-center justify-center w-10 h-7 rounded-full transition-colors",
+              isActive && "bg-primary/15"
+            )}>
+              <Icon className={cn(
+                "h-5 w-5 transition-transform",
+                isActive && "scale-110"
+              )} />
+              {isActive && (
+                <Sparkles className="absolute -top-1 -right-1 h-2.5 w-2.5 text-primary animate-pulse" />
+              )}
+            </div>
+            <span className={cn(
+              "text-[10px] font-medium",
+              isActive && "font-semibold"
+            )}>
+              {tab.label}
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
