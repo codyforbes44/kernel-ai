@@ -18,7 +18,8 @@ import {
   RefreshCw,
   Copy,
   Check,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { useDeployments, type Deployment, type CustomDomain } from '@/hooks/useDeployments';
 import { BuildLogViewer } from './BuildLogViewer';
+import { DeploymentPreview } from './DeploymentPreview';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -60,6 +62,7 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   const [viewingLogId, setViewingLogId] = useState<string | null>(null);
   const [expandedDomainId, setExpandedDomainId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Update elapsed time every second for active builds
   useEffect(() => {
@@ -291,7 +294,20 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
             <div className="bg-muted/50 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-muted-foreground">PREVIEW</span>
-                {latestPreview && getStatusIcon(latestPreview.status)}
+                <div className="flex items-center gap-1">
+                  {latestPreview?.deployUrl && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5"
+                      onClick={() => setPreviewUrl(latestPreview.deployUrl)}
+                      title="Preview in panel"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {latestPreview && getStatusIcon(latestPreview.status)}
+                </div>
               </div>
               {latestPreview?.deployUrl ? (
                 <a
@@ -321,7 +337,20 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-primary">PRODUCTION</span>
-                {latestProduction && getStatusIcon(latestProduction.status)}
+                <div className="flex items-center gap-1">
+                  {latestProduction?.deployUrl && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5"
+                      onClick={() => setPreviewUrl(latestProduction.deployUrl)}
+                      title="Preview in panel"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {latestProduction && getStatusIcon(latestProduction.status)}
+                </div>
               </div>
               {latestProduction?.deployUrl ? (
                 <a
@@ -346,6 +375,15 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
                 </div>
               )}
             </div>
+
+            {/* Deployment Preview */}
+            {previewUrl && (
+              <DeploymentPreview
+                url={previewUrl}
+                title={previewUrl.includes('preview') ? 'Preview' : 'Production'}
+                onClose={() => setPreviewUrl(null)}
+              />
+            )}
           </div>
 
           <Separator />
