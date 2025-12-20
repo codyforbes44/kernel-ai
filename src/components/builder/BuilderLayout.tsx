@@ -11,6 +11,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { BuilderChat } from './BuilderChat';
 import { FileVersionHistory } from './FileVersionHistory';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
+import { DeploymentPanel } from './DeploymentPanel';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Play, Save, Code2, Eye, Sparkles, History, ArrowLeft } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -40,6 +41,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showExplorer, setShowExplorer] = useState(true);
   const [showAIChat, setShowAIChat] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  const [showDeployments, setShowDeployments] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   
@@ -211,10 +213,32 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn('h-8 w-8', showDeployments && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowDeployments(!showDeployments);
+                  if (!showDeployments) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                  }
+                }}
+              >
+                <Rocket className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Deployments</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
                 className={cn('h-8 w-8', showHistory && 'bg-primary/10 text-primary')}
                 onClick={() => {
                   setShowHistory(!showHistory);
-                  if (!showHistory) setShowAIChat(false);
+                  if (!showHistory) {
+                    setShowAIChat(false);
+                    setShowDeployments(false);
+                  }
                 }}
                 disabled={!activeTabId}
               >
@@ -231,13 +255,16 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 className={cn('h-8 w-8', showAIChat && 'bg-primary/10 text-primary')}
                 onClick={() => {
                   setShowAIChat(!showAIChat);
-                  if (!showAIChat) setShowHistory(false);
+                  if (!showAIChat) {
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                  }
                 }}
               >
                 <Sparkles className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Toggle AI Assistant</TooltipContent>
+            <TooltipContent>AI Assistant</TooltipContent>
           </Tooltip>
           <Button
             variant="ghost"
@@ -247,10 +274,6 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           >
             <Save className="h-4 w-4" />
             Save
-          </Button>
-          <Button variant="default" size="sm" className="gap-2">
-            <Play className="h-4 w-4" />
-            Run
           </Button>
         </div>
       </div>
@@ -322,7 +345,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* AI Chat */}
-        {showAIChat && !showHistory && (
+        {showAIChat && !showHistory && !showDeployments && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -332,6 +355,19 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 errors={capturedErrors}
                 onClearErrors={handleClearErrors}
                 projectId={projectId}
+              />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* Deployments Panel */}
+        {showDeployments && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <DeploymentPanel
+                projectId={projectId}
+                onClose={() => setShowDeployments(false)}
               />
             </ResizablePanel>
           </>

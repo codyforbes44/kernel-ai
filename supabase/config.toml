@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.builder-ai-enhanced]
 verify_jwt = false
+
+[functions.deploy-project]
+verify_jwt = false
