@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
 import {
   MessageSquare,
   Sparkles,
@@ -9,6 +10,8 @@ import {
   Database,
   Shield,
   Palette,
+  Code2,
+  ArrowRight,
 } from "lucide-react";
 
 interface EmptyStateProps {
@@ -93,6 +96,27 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
         I'm your expert Lovable AI assistant. Ask me anything about building
         with Lovable, debugging issues, or improving your projects.
       </p>
+
+      {/* Build Apps Card */}
+      <Link
+        to="/builder"
+        className="w-full max-w-2xl mx-4 mb-6 p-4 md:p-5 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent hover:border-primary/50 hover:from-primary/15 transition-all group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="shrink-0 w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+            <Code2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-base mb-0.5 flex items-center gap-2">
+              Build Apps
+              <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Create web applications with a visual editor, live preview, and AI-powered code generation
+            </p>
+          </div>
+        </div>
+      </Link>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 w-full max-w-2xl px-4">
         {quickPrompts.map((prompt, index) => (
