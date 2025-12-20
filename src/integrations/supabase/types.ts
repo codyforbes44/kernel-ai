@@ -772,6 +772,7 @@ export type Database = {
           id: string
           is_helpful: boolean | null
           is_pinned: boolean | null
+          is_read: boolean | null
           is_starred: boolean | null
           metadata: Json | null
           model: string | null
@@ -787,6 +788,7 @@ export type Database = {
           id?: string
           is_helpful?: boolean | null
           is_pinned?: boolean | null
+          is_read?: boolean | null
           is_starred?: boolean | null
           metadata?: Json | null
           model?: string | null
@@ -802,6 +804,7 @@ export type Database = {
           id?: string
           is_helpful?: boolean | null
           is_pinned?: boolean | null
+          is_read?: boolean | null
           is_starred?: boolean | null
           metadata?: Json | null
           model?: string | null

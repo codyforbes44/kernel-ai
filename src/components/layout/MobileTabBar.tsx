@@ -3,6 +3,7 @@ import { MessageSquare, Code2, Settings, Sparkles, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type TabKey = "chat" | "builder" | "settings" | "admin";
 
@@ -39,14 +40,7 @@ export function MobileTabBar() {
   const location = useLocation();
   const { light } = useHaptic();
   const { isAdmin } = useAdmin();
-
-  // Mock notification counts - replace with useNotifications() when is_read column exists
-  const notificationCounts = {
-    chat: 0,
-    builder: 0,
-    settings: 0,
-    admin: 0,
-  };
+  const { counts: notificationCounts } = useNotifications();
 
   const handleTabClick = () => {
     light();
