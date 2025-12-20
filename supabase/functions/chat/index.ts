@@ -5,13 +5,129 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Input validation helpers
+function isValidMessage(msg: unknown): msg is { role: string; content: string } {
+  return (
+    typeof msg === "object" &&
+    msg !== null &&
+    typeof (msg as Record<string, unknown>).role === "string" &&
+    ["user", "assistant", "system"].includes((msg as Record<string, unknown>).role as string) &&
+    typeof (msg as Record<string, unknown>).content === "string" &&
+    ((msg as Record<string, unknown>).content as string).length <= 50000
+  );
+}
+
+function isValidUrl(url: unknown): boolean {
+  if (typeof url !== "string") return false;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  return str.slice(0, maxLength).replace(/[<>]/g, "");
+}
+
+interface ChatRequest {
+  messages: Array<{ role: string; content: string }>;
+  model?: string;
+  lovableProjectUrl?: string;
+  lovableProjectName?: string;
+}
+
+function validateChatRequest(body: unknown): { valid: true; data: ChatRequest } | { valid: false; error: string } {
+  if (typeof body !== "object" || body === null) {
+    return { valid: false, error: "Invalid request body" };
+  }
+
+  const { messages, model, lovableProjectUrl, lovableProjectName } = body as Record<string, unknown>;
+
+  // Validate messages array
+  if (!Array.isArray(messages)) {
+    return { valid: false, error: "messages must be an array" };
+  }
+
+  if (messages.length === 0) {
+    return { valid: false, error: "messages array cannot be empty" };
+  }
+
+  if (messages.length > 100) {
+    return { valid: false, error: "messages array exceeds maximum length of 100" };
+  }
+
+  for (let i = 0; i < messages.length; i++) {
+    if (!isValidMessage(messages[i])) {
+      return { valid: false, error: `Invalid message at index ${i}: must have valid role and content` };
+    }
+  }
+
+  // Validate model (optional)
+  if (model !== undefined && typeof model !== "string") {
+    return { valid: false, error: "model must be a string" };
+  }
+
+  const allowedModels = [
+    "google/gemini-2.5-flash",
+    "google/gemini-2.5-pro",
+    "google/gemini-3-pro-preview",
+    "google/gemini-2.5-flash-lite",
+    "openai/gpt-5",
+    "openai/gpt-5-mini",
+    "openai/gpt-5-nano",
+  ];
+
+  const selectedModel = typeof model === "string" ? model : "google/gemini-2.5-flash";
+  if (!allowedModels.includes(selectedModel)) {
+    return { valid: false, error: `Invalid model. Allowed: ${allowedModels.join(", ")}` };
+  }
+
+  // Validate URLs (optional)
+  if (lovableProjectUrl !== undefined && lovableProjectUrl !== null) {
+    if (typeof lovableProjectUrl !== "string" || !isValidUrl(lovableProjectUrl)) {
+      return { valid: false, error: "lovableProjectUrl must be a valid URL" };
+    }
+  }
+
+  // Validate project name (optional)
+  if (lovableProjectName !== undefined && lovableProjectName !== null) {
+    if (typeof lovableProjectName !== "string" || lovableProjectName.length > 200) {
+      return { valid: false, error: "lovableProjectName must be a string with max 200 characters" };
+    }
+  }
+
+  return {
+    valid: true,
+    data: {
+      messages: messages as ChatRequest["messages"],
+      model: selectedModel,
+      lovableProjectUrl: typeof lovableProjectUrl === "string" ? lovableProjectUrl : undefined,
+      lovableProjectName: typeof lovableProjectName === "string" ? sanitizeString(lovableProjectName, 200) : undefined,
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, model = "google/gemini-2.5-flash", lovableProjectUrl, lovableProjectName } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const validation = validateChatRequest(rawBody);
+    if (!validation.valid) {
+      console.log("[chat] Validation error:", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages, model, lovableProjectUrl, lovableProjectName } = validation.data;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
