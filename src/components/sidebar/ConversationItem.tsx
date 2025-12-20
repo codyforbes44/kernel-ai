@@ -67,24 +67,25 @@ export const ConversationItem = memo(function ConversationItem({
   const itemContent = (
     <div
       className={cn(
-        "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer",
-        "hover:bg-sidebar-accent transition-colors",
-        isActive && "bg-sidebar-accent",
+        "group flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-all duration-200",
+        "hover:bg-primary/10 hover:shadow-[0_0_12px_hsl(var(--primary)/0.2)]",
+        isActive && "bg-primary/15 shadow-[0_0_16px_hsl(var(--primary)/0.25)] border border-primary/20",
+        !isActive && "border border-transparent",
         isBranch && "ml-3 border-l-2 border-primary/30"
       )}
       onClick={onSelect}
     >
       {isBranch ? (
-        <GitBranch className="h-4 w-4 text-primary/70 shrink-0" />
+        <GitBranch className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-primary" : "text-primary/70")} />
       ) : (
-        <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
+        <MessageSquare className={cn("h-4 w-4 shrink-0 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary/70")} />
       )}
 
       <div className="flex-1 min-w-0">
-        <p className={cn("text-sm truncate", isActive && "font-medium")}>
+        <p className={cn("text-sm truncate transition-colors", isActive ? "font-medium text-primary" : "group-hover:text-primary/90")}>
           {conversation.title}
         </p>
-        <p className="text-xs text-muted-foreground truncate">
+        <p className={cn("text-xs truncate transition-colors", isActive ? "text-primary/70" : "text-muted-foreground")}>
           {formatDistanceToNow(new Date(conversation.updated_at), {
             addSuffix: true,
           })}
@@ -130,7 +131,7 @@ export const ConversationItem = memo(function ConversationItem({
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 hover:bg-sidebar-accent shrink-0",
+              "h-8 w-8 shrink-0 hover:bg-primary/15 hover:text-primary transition-all",
               isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             )}
           >
