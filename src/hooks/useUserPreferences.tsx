@@ -2,13 +2,53 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export type AIModel = 
+  | 'google/gemini-2.5-flash'
+  | 'google/gemini-2.5-pro'
+  | 'google/gemini-2.5-flash-lite'
+  | 'openai/gpt-5'
+  | 'openai/gpt-5-mini';
+
+export type MessageDensity = 'compact' | 'comfortable' | 'spacious';
+export type CodeTheme = 'auto' | 'dark' | 'light';
+
 export interface UserPreferences {
+  // Workflow
   autoCreateChatOnProject?: boolean;
-  // Add more preferences here as needed
+  
+  // AI Settings
+  defaultAIModel?: AIModel;
+  streamResponses?: boolean;
+  
+  // Notifications
+  soundEnabled?: boolean;
+  desktopNotifications?: boolean;
+  
+  // Message Formatting
+  messageDensity?: MessageDensity;
+  showTimestamps?: boolean;
+  codeBlockTheme?: CodeTheme;
+  enableMarkdownPreview?: boolean;
 }
+
+export const AI_MODEL_OPTIONS: { value: AIModel; label: string; description: string }[] = [
+  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast & balanced (recommended)' },
+  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Most capable, slower' },
+  { value: 'google/gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', description: 'Fastest, basic tasks' },
+  { value: 'openai/gpt-5', label: 'GPT-5', description: 'Powerful reasoning' },
+  { value: 'openai/gpt-5-mini', label: 'GPT-5 Mini', description: 'Good balance of speed & quality' },
+];
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   autoCreateChatOnProject: true,
+  defaultAIModel: 'google/gemini-2.5-flash',
+  streamResponses: true,
+  soundEnabled: false,
+  desktopNotifications: false,
+  messageDensity: 'comfortable',
+  showTimestamps: true,
+  codeBlockTheme: 'auto',
+  enableMarkdownPreview: true,
 };
 
 export function useUserPreferences() {
