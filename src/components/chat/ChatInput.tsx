@@ -348,23 +348,26 @@ export function ChatInput({
           }
           disabled={disabled || isLoading || isUploading}
           className={cn(
-            "min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent",
+            "min-h-[52px] md:min-h-[60px] max-h-[200px] resize-none border-0 bg-transparent",
             "focus-visible:ring-0 focus-visible:ring-offset-0",
-            "pr-24 py-4 px-4"
+            "pr-24 py-3 md:py-4 px-3 md:px-4",
+            "text-[16px] md:text-sm", // 16px on mobile prevents iOS zoom
+            "touch-manipulation"
           )}
           rows={1}
           aria-label="Message input"
           aria-describedby="chat-input-help"
         />
 
-        <div className="absolute right-2 bottom-2 flex items-center gap-1">
+        <div className="absolute right-2 bottom-2 flex items-center gap-0.5 md:gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-8 w-8 text-muted-foreground hover:text-foreground",
+                  "h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground",
+                  "touch-manipulation active:scale-95",
                   attachedFiles.length > 0 && "text-primary"
                 )}
                 disabled={disabled || isUploading}
@@ -382,23 +385,26 @@ export function ChatInput({
             </TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-8 w-8 text-muted-foreground hover:text-foreground",
-                  showTemplates && "bg-primary/10 text-primary"
-                )}
-                disabled={disabled}
-                onClick={openTemplatePicker}
-              >
-                <Command className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Insert template (/)</TooltipContent>
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground",
+                    "touch-manipulation active:scale-95",
+                    showTemplates && "bg-primary/10 text-primary"
+                  )}
+                  disabled={disabled}
+                  onClick={openTemplatePicker}
+                >
+                  <Command className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Insert template (/)</TooltipContent>
+            </Tooltip>
+          )}
 
           {isLoading ? (
             <Tooltip>
@@ -406,7 +412,7 @@ export function ChatInput({
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-9 w-9 md:h-8 md:w-8 touch-manipulation active:scale-95"
                   onClick={onStop}
                 >
                   <Square className="h-4 w-4" />
@@ -419,20 +425,20 @@ export function ChatInput({
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-9 w-9 md:h-8 md:w-8 touch-manipulation active:scale-95"
                   onClick={handleSubmit}
                   disabled={(!message.trim() && attachedFiles.length === 0) || disabled || showTemplates || isUploading}
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Send message (⌘Enter)</TooltipContent>
+              <TooltipContent>Send message {isMobile ? "" : "(⌘Enter)"}</TooltipContent>
             </Tooltip>
           )}
         </div>
 
-        {/* Character count */}
-        {message.length > 0 && !showTemplates && (
+        {/* Character count - hide on mobile */}
+        {message.length > 0 && !showTemplates && !isMobile && (
           <div className="absolute left-4 bottom-2 text-xs text-muted-foreground">
             {message.length} chars
           </div>
