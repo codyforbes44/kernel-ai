@@ -11,6 +11,8 @@ export interface RouteConfig {
   requiresAuth: boolean;
   /** Whether route is dynamic (has params) */
   isDynamic?: boolean;
+  /** Robots directive: 'allow' | 'disallow' | 'noindex' */
+  robots?: 'allow' | 'disallow' | 'noindex';
 }
 
 export const routes: RouteConfig[] = [
@@ -22,6 +24,7 @@ export const routes: RouteConfig[] = [
     priority: 1.0,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/pricing',
@@ -31,6 +34,7 @@ export const routes: RouteConfig[] = [
     priority: 0.9,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/contact',
@@ -40,6 +44,7 @@ export const routes: RouteConfig[] = [
     priority: 0.8,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/auth',
@@ -49,6 +54,7 @@ export const routes: RouteConfig[] = [
     priority: 0.8,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/builder',
@@ -58,6 +64,7 @@ export const routes: RouteConfig[] = [
     priority: 0.9,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/privacy',
@@ -67,6 +74,7 @@ export const routes: RouteConfig[] = [
     priority: 0.5,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
   {
     path: '/terms',
@@ -76,8 +84,9 @@ export const routes: RouteConfig[] = [
     priority: 0.5,
     includeInSitemap: true,
     requiresAuth: false,
+    robots: 'allow',
   },
-  // Protected routes - not included in sitemap
+  // Protected routes - not included in sitemap, blocked from crawlers
   {
     path: '/dashboard',
     title: 'Dashboard',
@@ -85,6 +94,7 @@ export const routes: RouteConfig[] = [
     priority: 0.7,
     includeInSitemap: false,
     requiresAuth: true,
+    robots: 'disallow',
   },
   {
     path: '/admin',
@@ -93,6 +103,7 @@ export const routes: RouteConfig[] = [
     priority: 0.3,
     includeInSitemap: false,
     requiresAuth: true,
+    robots: 'disallow',
   },
   {
     path: '/settings',
@@ -101,15 +112,17 @@ export const routes: RouteConfig[] = [
     priority: 0.5,
     includeInSitemap: false,
     requiresAuth: true,
+    robots: 'disallow',
   },
   {
-    path: '/builder/:projectId',
+    path: '/builder/',
     title: 'Project Builder',
     changefreq: 'daily',
     priority: 0.6,
     includeInSitemap: false,
     requiresAuth: true,
     isDynamic: true,
+    robots: 'disallow',
   },
 ];
 
@@ -124,3 +137,7 @@ export const getPublicRoutes = () =>
 // Get protected routes
 export const getProtectedRoutes = () => 
   routes.filter(route => route.requiresAuth);
+
+// Get disallowed routes for robots.txt
+export const getDisallowedRoutes = () => 
+  routes.filter(route => route.robots === 'disallow');
