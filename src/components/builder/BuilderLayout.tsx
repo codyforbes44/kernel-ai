@@ -13,7 +13,16 @@ import { FileVersionHistory } from './FileVersionHistory';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Play, Save, Code2, Eye, Sparkles, History } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { Play, Save, Code2, Eye, Sparkles, History, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -90,7 +99,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <LoadingSpinner size="lg" />
           <p className="text-sm text-muted-foreground">Loading project...</p>
         </div>
       </div>
@@ -162,14 +171,22 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-card">
-        <div className="flex items-center gap-4">
-          <Link to="/builder" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Projects</span>
-          </Link>
-          <div className="h-4 w-px bg-border" />
-          <span className="text-sm font-medium">{project?.name}</span>
-        </div>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/builder" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                  <Code2 className="h-4 w-4" />
+                  Builder
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-medium">{project?.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
