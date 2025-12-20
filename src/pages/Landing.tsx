@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
+import { KernelLogo } from '@/components/ui/kernel-logo';
 import { 
   MessageSquare, 
   Code2, 
@@ -12,7 +13,6 @@ import {
   Shield, 
   Users,
   ArrowRight,
-  Sparkles
 } from 'lucide-react';
 
 const features = [
@@ -52,7 +52,7 @@ export default function Landing() {
   return (
     <>
       <SEO
-        title="Build Apps with AI | Lovable Builder"
+        title="Build Apps with AI | Kernel"
         description="Create beautiful web applications with AI-powered assistance. Features intelligent chat, visual builder, design systems, and instant deployment."
         ogImage={PAGE_SEO.home.ogImage}
         structuredData={[
@@ -66,8 +66,8 @@ export default function Landing() {
         <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
           <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">Lovable</span>
+              <KernelLogo size="sm" />
+              <span className="font-bold text-xl">Kernel</span>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="ghost" asChild>
@@ -85,7 +85,7 @@ export default function Landing() {
           <HeroBackground />
           <div className="relative container mx-auto text-center max-w-4xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8">
-              <Sparkles className="h-4 w-4" />
+              <span className="font-mono font-bold">{">_"}</span>
               <span>AI-Powered Development Platform</span>
             </div>
             
@@ -168,11 +168,11 @@ export default function Landing() {
         <footer className="border-t border-border/40 py-8 px-4">
           <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Sparkles className="h-5 w-5" />
-              <span className="font-medium">Lovable</span>
+              <KernelLogo size="sm" />
+              <span className="font-medium">Kernel</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Lovable. All rights reserved.
+              © {new Date().getFullYear()} Kernel. All rights reserved.
             </p>
           </div>
         </footer>

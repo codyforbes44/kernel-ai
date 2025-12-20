@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Terminal, Sparkles } from "lucide-react";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import { cn } from "@/lib/utils";
 
 interface AuthCardProps {
@@ -20,13 +20,12 @@ export function AuthCard({ children, title, description, className }: AuthCardPr
       <div className="w-full max-w-md space-y-8">
         {/* Logo & Title */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20">
-            <Terminal className="w-8 h-8 text-primary" />
+          <div className="inline-flex">
+            <KernelLogo size="xl" className="border border-primary/20" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Lovable Expert Assistant</h1>
-          <p className="text-muted-foreground text-sm flex items-center justify-center gap-1">
-            <Sparkles className="w-4 h-4" />
-            Your personal AI companion for Lovable
+          <h1 className="text-2xl font-bold tracking-tight">Kernel</h1>
+          <p className="text-muted-foreground text-sm">
+            Your AI-powered development companion
           </p>
         </div>
 
@@ -39,7 +38,7 @@ export function AuthCard({ children, title, description, className }: AuthCardPr
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Built for Lovable power users who ship fast
+          Built for developers who ship fast
         </p>
       </div>
     </div>

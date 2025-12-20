@@ -17,9 +17,9 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png", "offline.html"],
       manifest: {
-        name: "AI Mate Companion",
-        short_name: "AI Mate",
-        description: "Personal AI assistant for power users",
+        name: "Kernel",
+        short_name: "Kernel",
+        description: "AI-powered development platform",
         theme_color: "#0a0a0f",
         background_color: "#0a0a0f",
         display: "standalone",
