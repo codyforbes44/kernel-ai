@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Allow: /auth
+Allow: /builder
+
+Disallow: /settings
+Disallow: /admin
+Disallow: /builder/
+
+Sitemap: https://ai-mate.lovable.app/sitemap.xml

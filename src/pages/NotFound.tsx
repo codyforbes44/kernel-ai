@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Home, Code2, Sparkles, ArrowLeft } from "lucide-react";
+import { SEO } from "@/components/seo/SEO";
+import { PAGE_SEO } from "@/lib/seo";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +15,13 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <SEO
+        title={PAGE_SEO.notFound.title}
+        description={PAGE_SEO.notFound.description}
+        ogImage={PAGE_SEO.notFound.ogImage}
+        noIndex={PAGE_SEO.notFound.noIndex}
+      />
+      
       <Card className="max-w-md w-full border-border/50">
         <CardContent className="pt-10 pb-8 px-8">
           <div className="text-center">

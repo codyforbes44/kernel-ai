@@ -5,6 +5,8 @@ import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { useUserPreferences, AI_MODEL_OPTIONS } from '@/hooks/useUserPreferences';
 import { supabase } from '@/integrations/supabase/client';
+import { SEO } from '@/components/seo/SEO';
+import { PAGE_SEO } from '@/lib/seo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -236,6 +238,11 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={PAGE_SEO.settings.title}
+        description={PAGE_SEO.settings.description}
+        noIndex={PAGE_SEO.settings.noIndex}
+      />
       <PageHeader
         title="Settings"
         backLabel="Chat"

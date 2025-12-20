@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { SEO } from '@/components/seo/SEO';
+import { PAGE_SEO } from '@/lib/seo';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -85,6 +87,13 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={PAGE_SEO.admin.title}
+        description={PAGE_SEO.admin.description}
+        noIndex={PAGE_SEO.admin.noIndex}
+        noFollow={PAGE_SEO.admin.noFollow}
+      />
+      
       <PageHeader
         title="Admin Panel"
         backLabel="Chat"
