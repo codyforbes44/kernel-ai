@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus } from 'lucide-react';
+import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useBuilderConversation, type BuilderMessage } from '@/hooks/useBuilderConversation';
 import type { ProjectFile } from '@/types/builder';
+import type { CapturedError } from './ErrorCapture';
 
 interface FileOperation {
   type: 'create' | 'update' | 'delete';
@@ -19,19 +21,12 @@ interface AIResponse {
   error?: string;
 }
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  operations?: FileOperation[];
-  isApplied?: boolean;
-  isStreaming?: boolean;
-}
-
 interface BuilderChatProps {
   files: ProjectFile[];
   onApplyOperations: (operations: FileOperation[]) => Promise<void>;
   projectId: string;
+  errors?: CapturedError[];
+  onClearErrors?: () => void;
 }
 
 // Parse the streamed JSON response
@@ -55,57 +50,101 @@ function parseStreamedResponse(content: string): AIResponse | null {
   }
 }
 
-export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function BuilderChat({ files, onApplyOperations, projectId, errors = [], onClearErrors }: BuilderChatProps) {
+  const {
+    conversationId,
+    messages: persistedMessages,
+    isLoading: isLoadingConversation,
+    addMessage,
+    updateMessage,
+    startNewConversation,
+    updateTitle,
+  } = useBuilderConversation(projectId);
+
+  const [localMessages, setLocalMessages] = useState<BuilderMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Sync persisted messages to local state
+  useEffect(() => {
+    if (persistedMessages.length > 0) {
+      setLocalMessages(persistedMessages);
+    }
+  }, [persistedMessages]);
+
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [localMessages]);
 
-  const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = useCallback(async (customContent?: string, errorContext?: CapturedError[]) => {
+    const messageContent = customContent || input.trim();
+    if (!messageContent || isLoading) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: BuilderMessage = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: input.trim(),
+      content: messageContent,
+      errorContext,
+      createdAt: new Date(),
     };
 
     const assistantId = crypto.randomUUID();
     
-    setMessages(prev => [...prev, userMessage]);
+    setLocalMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
     // Add streaming assistant message
-    setMessages(prev => [...prev, {
+    const streamingMessage: BuilderMessage = {
       id: assistantId,
       role: 'assistant',
       content: '',
       isStreaming: true,
-    }]);
+      createdAt: new Date(),
+    };
+    setLocalMessages(prev => [...prev, streamingMessage]);
 
     try {
+      // Persist user message
+      await addMessage({
+        role: 'user',
+        content: messageContent,
+        errorContext,
+      });
+
+      // Update conversation title based on first message
+      if (localMessages.length === 0) {
+        await updateTitle(messageContent.slice(0, 50));
+      }
+
       // Prepare file context (limit to key files to avoid token limits)
       const fileContext = files
         .filter(f => f.type === 'file' && f.content)
-        .slice(0, 10)
+        .slice(0, 15)
         .map(f => ({
           path: f.path,
           content: f.content || '',
           language: f.language || 'plaintext',
         }));
 
+      // Prepare error context for AI
+      const errorPayload = errorContext?.map(e => ({
+        type: e.type,
+        message: e.message,
+        stack: e.stack,
+        file: e.file,
+        line: e.line,
+        column: e.column,
+      })) || [];
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/builder-ai`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/builder-ai-enhanced`,
         {
           method: 'POST',
           headers: {
@@ -114,10 +153,15 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
           },
           body: JSON.stringify({
             messages: [
-              ...messages.map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: input.trim() },
+              ...localMessages.filter(m => !m.isStreaming).map(m => ({ 
+                role: m.role, 
+                content: m.content 
+              })),
+              { role: 'user', content: messageContent },
             ],
             files: fileContext,
+            errors: errorPayload,
+            conversationId,
           }),
         }
       );
@@ -162,7 +206,7 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
             if (content) {
               streamedContent += content;
               // Update the streaming message
-              setMessages(prev => prev.map(m => 
+              setLocalMessages(prev => prev.map(m => 
                 m.id === assistantId 
                   ? { ...m, content: streamedContent }
                   : m
@@ -197,20 +241,35 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
       const parsedResponse = parseStreamedResponse(streamedContent);
       
       if (parsedResponse) {
-        setMessages(prev => prev.map(m => 
-          m.id === assistantId 
-            ? { 
-                ...m, 
-                content: parsedResponse.thinking || 'Here are the changes I suggest:',
-                operations: parsedResponse.operations,
-                isStreaming: false,
-                isApplied: false,
-              }
-            : m
+        const finalMessage: BuilderMessage = {
+          id: assistantId,
+          role: 'assistant',
+          content: parsedResponse.thinking || 'Here are the changes I suggest:',
+          operations: parsedResponse.operations,
+          isStreaming: false,
+          isApplied: false,
+          createdAt: new Date(),
+        };
+
+        setLocalMessages(prev => prev.map(m => 
+          m.id === assistantId ? finalMessage : m
         ));
+
+        // Persist assistant message
+        await addMessage({
+          role: 'assistant',
+          content: parsedResponse.thinking || 'Here are the changes I suggest:',
+          operations: parsedResponse.operations,
+          isApplied: false,
+        });
+
+        // Clear errors if we were fixing them
+        if (errorContext && errorContext.length > 0 && onClearErrors) {
+          onClearErrors();
+        }
       } else {
         // Could not parse, show raw content
-        setMessages(prev => prev.map(m => 
+        setLocalMessages(prev => prev.map(m => 
           m.id === assistantId 
             ? { 
                 ...m, 
@@ -219,13 +278,18 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
               }
             : m
         ));
+
+        await addMessage({
+          role: 'assistant',
+          content: streamedContent || 'I generated some code but had trouble parsing it.',
+        });
       }
     } catch (error) {
       console.error('AI chat error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
       
       // Update error in the assistant message
-      setMessages(prev => prev.map(m => 
+      setLocalMessages(prev => prev.map(m => 
         m.id === assistantId 
           ? { 
               ...m, 
@@ -237,15 +301,40 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, files]);
+  }, [input, isLoading, localMessages, files, conversationId, addMessage, updateTitle, onClearErrors]);
+
+  // Method to fix errors - called from parent
+  const handleFixErrors = useCallback((errorsToFix: CapturedError[]) => {
+    const errorDescriptions = errorsToFix.map(e => 
+      `[${e.type.toUpperCase()}] ${e.message}${e.file ? ` in ${e.file}` : ''}${e.line ? `:${e.line}` : ''}`
+    ).join('\n');
+
+    const prompt = `Please fix the following error${errorsToFix.length > 1 ? 's' : ''}:\n\n${errorDescriptions}`;
+    sendMessage(prompt, errorsToFix);
+  }, [sendMessage]);
+
+  // Expose handleFixErrors to parent
+  useEffect(() => {
+    if (errors.length > 0) {
+      // Store the handler for parent access
+      (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors = handleFixErrors;
+    }
+    return () => {
+      delete (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors;
+    };
+  }, [handleFixErrors, errors.length]);
 
   const applyOperations = async (messageId: string, operations: FileOperation[]) => {
     setApplyingId(messageId);
     try {
       await onApplyOperations(operations);
-      setMessages(prev => prev.map(m => 
+      setLocalMessages(prev => prev.map(m => 
         m.id === messageId ? { ...m, isApplied: true } : m
       ));
+      
+      // Update persisted message
+      await updateMessage({ id: messageId, updates: { isApplied: true } });
+      
       toast.success(`Applied ${operations.length} file operation(s)`);
     } catch (error) {
       toast.error('Failed to apply changes');
@@ -270,17 +359,41 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
     }
   };
 
+  const handleNewConversation = async () => {
+    await startNewConversation();
+    setLocalMessages([]);
+  };
+
+  if (isLoadingConversation) {
+    return (
+      <div className="h-full flex items-center justify-center bg-background border-l border-border">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col bg-background border-l border-border">
       {/* Header */}
-      <div className="h-10 flex items-center gap-2 px-3 border-b border-border bg-muted/30">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">AI Assistant</span>
+      <div className="h-10 flex items-center justify-between gap-2 px-3 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">AI Assistant</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={handleNewConversation}
+          title="New conversation"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-3" ref={scrollRef}>
-        {messages.length === 0 ? (
+        {localMessages.length === 0 ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center max-w-[250px]">
               <Sparkles className="h-8 w-8 mx-auto mb-3 text-primary/50" />
@@ -311,7 +424,7 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
           </div>
         ) : (
           <div className="space-y-4">
-            {messages.map(message => (
+            {localMessages.map(message => (
               <div
                 key={message.id}
                 className={cn(
@@ -321,6 +434,12 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
               >
                 {message.role === 'user' ? (
                   <div className="bg-primary text-primary-foreground px-3 py-2 rounded-lg max-w-[85%]">
+                    {message.errorContext && message.errorContext.length > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1">
+                        <RotateCcw className="h-3 w-3" />
+                        Fixing {message.errorContext.length} error{message.errorContext.length > 1 ? 's' : ''}
+                      </div>
+                    )}
                     {message.content}
                   </div>
                 ) : (
@@ -414,7 +533,7 @@ export function BuilderChat({ files, onApplyOperations, projectId }: BuilderChat
           <Button
             size="icon"
             className="absolute right-2 bottom-2 h-8 w-8"
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
           >
             {isLoading ? (

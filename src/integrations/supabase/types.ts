@@ -14,6 +14,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      builder_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          project_id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_conversations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      builder_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          error_context: Json | null
+          id: string
+          is_applied: boolean | null
+          operations: Json | null
+          role: string
+          tokens_used: number | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          error_context?: Json | null
+          id?: string
+          is_applied?: boolean | null
+          operations?: Json | null
+          role: string
+          tokens_used?: number | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          error_context?: Json | null
+          id?: string
+          is_applied?: boolean | null
+          operations?: Json | null
+          role?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builder_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "builder_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       builder_projects: {
         Row: {
           created_at: string
@@ -124,6 +206,63 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      error_logs: {
+        Row: {
+          column_number: number | null
+          created_at: string | null
+          error_type: string
+          file_path: string | null
+          id: string
+          is_resolved: boolean | null
+          line_number: number | null
+          message: string
+          project_id: string
+          resolution_message_id: string | null
+          stack_trace: string | null
+        }
+        Insert: {
+          column_number?: number | null
+          created_at?: string | null
+          error_type: string
+          file_path?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          line_number?: number | null
+          message: string
+          project_id: string
+          resolution_message_id?: string | null
+          stack_trace?: string | null
+        }
+        Update: {
+          column_number?: number | null
+          created_at?: string | null
+          error_type?: string
+          file_path?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          line_number?: number | null
+          message?: string
+          project_id?: string
+          resolution_message_id?: string | null
+          stack_trace?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "error_logs_resolution_message_id_fkey"
+            columns: ["resolution_message_id"]
+            isOneToOne: false
+            referencedRelation: "builder_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -316,6 +455,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_analysis: {
+        Row: {
+          component_map: Json | null
+          created_at: string | null
+          dependency_graph: Json | null
+          id: string
+          import_map: Json | null
+          last_analyzed_at: string | null
+          project_id: string
+          type_definitions: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          component_map?: Json | null
+          created_at?: string | null
+          dependency_graph?: Json | null
+          id?: string
+          import_map?: Json | null
+          last_analyzed_at?: string | null
+          project_id: string
+          type_definitions?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          component_map?: Json | null
+          created_at?: string | null
+          dependency_graph?: Json | null
+          id?: string
+          import_map?: Json | null
+          last_analyzed_at?: string | null
+          project_id?: string
+          type_definitions?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_analysis_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_files: {
         Row: {
