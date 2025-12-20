@@ -196,18 +196,18 @@ export function SignInForm({
           {form.formState.isSubmitting ? "Signing in..." : isLocked ? "Account Locked" : "Sign In"}
         </Button>
 
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-sm pt-1">
           <button
             type="button"
             onClick={onForgotPassword}
-            className="text-muted-foreground hover:text-primary touch-manipulation"
+            className="text-muted-foreground hover:text-primary touch-manipulation py-2 -my-2 px-1 -mx-1"
           >
             Forgot password?
           </button>
           <button
             type="button"
             onClick={onSwitchToSignUp}
-            className="text-primary hover:underline touch-manipulation"
+            className="text-primary hover:underline touch-manipulation py-2 -my-2 px-1 -mx-1"
           >
             Sign up
           </button>

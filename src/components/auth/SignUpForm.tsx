@@ -122,12 +122,12 @@ export function SignUpForm({
           {form.formState.isSubmitting ? "Creating account..." : "Sign Up"}
         </Button>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground pt-1">
           Already have an account?{" "}
           <button
             type="button"
             onClick={onSwitchToSignIn}
-            className="text-primary hover:underline touch-manipulation"
+            className="text-primary hover:underline touch-manipulation py-2 -my-2 px-1"
           >
             Sign in
           </button>
