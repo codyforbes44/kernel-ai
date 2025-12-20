@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus } from 'lucide-react';
+import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useBuilderConversation, type BuilderMessage } from '@/hooks/useBuilderConversation';
+import { useSchemaGenerator, isSchemaRequest } from '@/hooks/useSchemaGenerator';
+import { SchemaPreview, type GeneratedSchema } from './SchemaPreview';
 import type { ProjectFile } from '@/types/builder';
 import type { CapturedError } from './ErrorCapture';
 
@@ -19,6 +21,11 @@ interface AIResponse {
   thinking: string;
   operations: FileOperation[];
   error?: string;
+}
+
+// Extended message type to include schema
+interface ExtendedBuilderMessage extends BuilderMessage {
+  generatedSchema?: GeneratedSchema;
 }
 
 interface BuilderChatProps {
@@ -61,7 +68,9 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
     updateTitle,
   } = useBuilderConversation(projectId);
 
-  const [localMessages, setLocalMessages] = useState<BuilderMessage[]>([]);
+  const { isGenerating, generateSchema } = useSchemaGenerator();
+
+  const [localMessages, setLocalMessages] = useState<ExtendedBuilderMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [applyingId, setApplyingId] = useState<string | null>(null);
@@ -71,7 +80,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
   // Sync persisted messages to local state
   useEffect(() => {
     if (persistedMessages.length > 0) {
-      setLocalMessages(persistedMessages);
+      setLocalMessages(persistedMessages as ExtendedBuilderMessage[]);
     }
   }, [persistedMessages]);
 
@@ -84,9 +93,9 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
 
   const sendMessage = useCallback(async (customContent?: string, errorContext?: CapturedError[]) => {
     const messageContent = customContent || input.trim();
-    if (!messageContent || isLoading) return;
+    if (!messageContent || isLoading || isGenerating) return;
 
-    const userMessage: BuilderMessage = {
+    const userMessage: ExtendedBuilderMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: messageContent,
@@ -100,11 +109,14 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
     setInput('');
     setIsLoading(true);
 
-    // Add streaming assistant message
-    const streamingMessage: BuilderMessage = {
+    // Check if this is a schema generation request
+    const isSchemaReq = isSchemaRequest(messageContent);
+
+    // Add streaming/loading assistant message
+    const streamingMessage: ExtendedBuilderMessage = {
       id: assistantId,
       role: 'assistant',
-      content: '',
+      content: isSchemaReq ? 'Generating database schema...' : '',
       isStreaming: true,
       createdAt: new Date(),
     };
@@ -119,6 +131,45 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
       });
 
       // Update conversation title based on first message
+      if (localMessages.length === 0) {
+        await updateTitle(messageContent.slice(0, 50));
+      }
+
+      // Handle schema generation separately
+      if (isSchemaReq) {
+        const schema = await generateSchema(messageContent);
+        
+        if (schema) {
+          const schemaMessage: ExtendedBuilderMessage = {
+            id: assistantId,
+            role: 'assistant',
+            content: schema.thinking || 'I generated a database schema for you:',
+            generatedSchema: schema,
+            isStreaming: false,
+            createdAt: new Date(),
+          };
+
+          setLocalMessages(prev => prev.map(m => 
+            m.id === assistantId ? schemaMessage : m
+          ));
+
+          // Persist with schema info
+          await addMessage({
+            role: 'assistant',
+            content: `${schema.thinking}\n\n---\n\nGenerated ${schema.tables.length} table(s) with ${schema.rlsPolicies.length} RLS policies.`,
+            operations: [], // Schema doesn't have file operations
+          });
+        } else {
+          setLocalMessages(prev => prev.map(m => 
+            m.id === assistantId 
+              ? { ...m, content: 'Failed to generate schema. Please try again.', isStreaming: false }
+              : m
+          ));
+        }
+        
+        setIsLoading(false);
+        return;
+      }
       if (localMessages.length === 0) {
         await updateTitle(messageContent.slice(0, 50));
       }
@@ -419,6 +470,24 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
                 >
                   "Add a navigation bar"
                 </button>
+                <div className="border-t border-border pt-2 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+                    <Database className="h-3.5 w-3.5" />
+                    Database Schema
+                  </div>
+                  <button
+                    onClick={() => setInput('Create a database schema for a blog with posts, authors, and comments')}
+                    className="w-full text-xs text-left px-3 py-2 rounded-md bg-muted/50 hover:bg-muted transition-colors"
+                  >
+                    "Create a blog database schema"
+                  </button>
+                  <button
+                    onClick={() => setInput('Create database tables to store user profiles with settings and preferences')}
+                    className="w-full text-xs text-left px-3 py-2 rounded-md bg-muted/50 hover:bg-muted transition-colors mt-1"
+                  >
+                    "User profiles database"
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -465,6 +534,14 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
                         message.content
                       )}
                     </div>
+                    
+                    {/* Generated Schema */}
+                    {(message as ExtendedBuilderMessage).generatedSchema && !message.isStreaming && (
+                      <SchemaPreview 
+                        schema={(message as ExtendedBuilderMessage).generatedSchema!}
+                        onCopy={() => toast.success('SQL copied to clipboard')}
+                      />
+                    )}
                     
                     {/* File Operations */}
                     {message.operations && message.operations.length > 0 && !message.isStreaming && (
