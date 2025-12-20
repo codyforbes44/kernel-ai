@@ -19,6 +19,7 @@ export interface UserPreferences {
   // Notifications
   soundEnabled?: boolean;
   desktopNotifications?: boolean;
+  deploymentNotifications?: boolean;
   
   // Message Formatting
   messageDensity?: MessageDensity;
@@ -41,6 +42,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   streamResponses: true,
   soundEnabled: false,
   desktopNotifications: false,
+  deploymentNotifications: true,
   messageDensity: 'comfortable',
   showTimestamps: true,
   codeBlockTheme: 'auto',
