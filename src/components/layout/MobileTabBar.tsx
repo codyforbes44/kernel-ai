@@ -53,7 +53,7 @@ export function MobileTabBar() {
 
   return (
     <nav 
-      className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-around px-2 z-50"
+      className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-around px-2 z-50 animate-fade-in"
       style={{ 
         paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
         minHeight: '64px'
