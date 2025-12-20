@@ -64,6 +64,7 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   const [expandedDomainId, setExpandedDomainId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [commitMessage, setCommitMessage] = useState('');
 
   // Update elapsed time every second for active builds
   useEffect(() => {
@@ -92,7 +93,8 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   };
 
   const handleDeploy = async (environment: 'preview' | 'production') => {
-    await deploy({ environment });
+    await deploy({ environment, commitMessage: commitMessage.trim() || undefined });
+    setCommitMessage('');
   };
 
   const handleAddDomain = async () => {
@@ -162,6 +164,23 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
               projectId={projectId}
               lastDeployedAt={latestProduction?.completedAt || latestPreview?.completedAt}
             />
+            
+            {/* Commit message input */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground">Commit message (optional)</label>
+              <Input
+                placeholder="Describe your changes..."
+                value={commitMessage}
+                onChange={(e) => setCommitMessage(e.target.value)}
+                className="h-8 text-sm"
+                maxLength={200}
+              />
+              {commitMessage && (
+                <span className="text-[10px] text-muted-foreground">
+                  {commitMessage.length}/200 characters
+                </span>
+              )}
+            </div>
             
             <div className="grid grid-cols-2 gap-2">
               <Button
