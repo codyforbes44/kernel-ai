@@ -13,7 +13,8 @@ import {
   FileCode,
   Zap,
   RotateCcw,
-  Radio
+  Radio,
+  Terminal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { useDeployments, type Deployment } from '@/hooks/useDeployments';
+import { BuildLogViewer } from './BuildLogViewer';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -49,6 +51,7 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   const [newDomain, setNewDomain] = useState('');
   const [showDomainForm, setShowDomainForm] = useState(false);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
+  const [viewingLogId, setViewingLogId] = useState<string | null>(null);
 
   // Update elapsed time every second for active builds
   useEffect(() => {
@@ -185,59 +188,84 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
                   </Badge>
                 </h3>
                 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {activeBuilds.map((build) => (
-                    <div 
-                      key={build.id}
-                      className="relative overflow-hidden bg-primary/5 border border-primary/20 rounded-lg p-3"
-                    >
-                      {/* Animated progress bar */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 animate-pulse" />
-                      
-                      <div className="relative space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                            <span className="text-sm font-medium">
-                              v{build.version}
-                            </span>
-                            <Badge 
-                              variant="outline" 
-                              className="text-[10px] px-1.5 border-primary/30"
-                            >
-                              {build.environment}
-                            </Badge>
-                          </div>
-                          <Badge 
-                            className={cn(
-                              "text-[10px]",
-                              getStatusBadge(build.status)
-                            )}
-                          >
-                            {build.status}
-                          </Badge>
-                        </div>
+                    <div key={build.id} className="space-y-2">
+                      <div 
+                        className="relative overflow-hidden bg-primary/5 border border-primary/20 rounded-lg p-3 cursor-pointer hover:bg-primary/10 transition-colors"
+                        onClick={() => setViewingLogId(viewingLogId === build.id ? null : build.id)}
+                      >
+                        {/* Animated progress bar */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/20 to-primary/10 animate-pulse" />
                         
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {elapsedTimes[build.id] !== undefined 
-                              ? formatElapsedTime(elapsedTimes[build.id])
-                              : 'Starting...'}
-                          </span>
-                          {build.fileCount > 0 && (
+                        <div className="relative space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                              <span className="text-sm font-medium">
+                                v{build.version}
+                              </span>
+                              <Badge 
+                                variant="outline" 
+                                className="text-[10px] px-1.5 border-primary/30"
+                              >
+                                {build.environment}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px]"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setViewingLogId(viewingLogId === build.id ? null : build.id);
+                                }}
+                              >
+                                <Terminal className="h-3 w-3 mr-1" />
+                                Logs
+                              </Button>
+                              <Badge 
+                                className={cn(
+                                  "text-[10px]",
+                                  getStatusBadge(build.status)
+                                )}
+                              >
+                                {build.status}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">
-                              <FileCode className="h-3 w-3" />
-                              {build.fileCount} files
+                              <Clock className="h-3 w-3" />
+                              {elapsedTimes[build.id] !== undefined 
+                                ? formatElapsedTime(elapsedTimes[build.id])
+                                : 'Starting...'}
                             </span>
-                          )}
-                          {build.commitMessage && (
-                            <span className="truncate max-w-[120px]" title={build.commitMessage}>
-                              {build.commitMessage}
-                            </span>
-                          )}
+                            {build.fileCount > 0 && (
+                              <span className="flex items-center gap-1">
+                                <FileCode className="h-3 w-3" />
+                                {build.fileCount} files
+                              </span>
+                            )}
+                            {build.commitMessage && (
+                              <span className="truncate max-w-[120px]" title={build.commitMessage}>
+                                {build.commitMessage}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Build Log Viewer */}
+                      {viewingLogId === build.id && (
+                        <BuildLogViewer
+                          deploymentId={build.id}
+                          initialLog={build.buildLog}
+                          onClose={() => setViewingLogId(null)}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
