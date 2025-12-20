@@ -15,6 +15,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
 
 // Lazy load heavy pages
 const Admin = lazy(() => import("./pages/Admin"));
@@ -60,6 +61,7 @@ const App = () => (
                 <CommandPalette />
                 <Routes>
                   <Route path="/" element={<Landing />} />
+                  <Route path="/pricing" element={<Pricing />} />
                   <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route
