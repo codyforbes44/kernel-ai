@@ -12,6 +12,8 @@ export function getVisualEditorInjectionScript(): string {
   let hoveredElement = null;
   let highlightOverlay = null;
   let selectionOverlay = null;
+  let lastClickTime = 0;
+  let lastClickElement = null;
 
   // Create overlay elements
   function createOverlays() {
@@ -79,7 +81,15 @@ export function getVisualEditorInjectionScript(): string {
         fontFamily: styles.fontFamily,
         fontWeight: styles.fontWeight,
         padding: styles.padding,
+        paddingTop: styles.paddingTop,
+        paddingRight: styles.paddingRight,
+        paddingBottom: styles.paddingBottom,
+        paddingLeft: styles.paddingLeft,
         margin: styles.margin,
+        marginTop: styles.marginTop,
+        marginRight: styles.marginRight,
+        marginBottom: styles.marginBottom,
+        marginLeft: styles.marginLeft,
         borderRadius: styles.borderRadius,
         border: styles.border,
         opacity: styles.opacity,
@@ -150,6 +160,20 @@ export function getVisualEditorInjectionScript(): string {
     e.preventDefault();
     e.stopPropagation();
 
+    const now = Date.now();
+    const isDoubleClick = (now - lastClickTime < 300) && (lastClickElement === target);
+    lastClickTime = now;
+    lastClickElement = target;
+
+    // Handle double-click for inline text editing
+    if (isDoubleClick && target.childNodes.length === 1 && target.childNodes[0].nodeType === Node.TEXT_NODE) {
+      window.parent.postMessage({
+        type: 'VISUAL_EDITOR_ELEMENT_DOUBLE_CLICKED',
+        payload: getElementInfo(target)
+      }, '*');
+      return;
+    }
+
     // Deselect if clicking same element
     if (selectedElement === target) {
       selectedElement = null;
@@ -213,6 +237,30 @@ export function getVisualEditorInjectionScript(): string {
           selectedElement.className = payload.classes;
         }
         break;
+
+      case 'VISUAL_EDITOR_DUPLICATE':
+        if (selectedElement && selectedElement.parentElement) {
+          const clone = selectedElement.cloneNode(true);
+          selectedElement.parentElement.insertBefore(clone, selectedElement.nextSibling);
+          // Select the cloned element
+          selectedElement = clone;
+          const rect = clone.getBoundingClientRect();
+          positionOverlay(selectionOverlay, rect);
+          window.parent.postMessage({
+            type: 'VISUAL_EDITOR_ELEMENT_SELECTED',
+            payload: getElementInfo(clone)
+          }, '*');
+        }
+        break;
+
+      case 'VISUAL_EDITOR_DELETE':
+        if (selectedElement && selectedElement.parentElement) {
+          selectedElement.parentElement.removeChild(selectedElement);
+          selectedElement = null;
+          selectionOverlay.style.display = 'none';
+          window.parent.postMessage({ type: 'VISUAL_EDITOR_ELEMENT_DESELECTED' }, '*');
+        }
+        break;
     }
   }
 
@@ -224,12 +272,24 @@ export function getVisualEditorInjectionScript(): string {
     }
   }
 
+  // Handle ESC key to deselect/disable
+  function handleKeyDown(e) {
+    if (e.key === 'Escape' && isEnabled) {
+      if (selectedElement) {
+        selectedElement = null;
+        selectionOverlay.style.display = 'none';
+        window.parent.postMessage({ type: 'VISUAL_EDITOR_ELEMENT_DESELECTED' }, '*');
+      }
+    }
+  }
+
   // Initialize
   function init() {
     createOverlays();
     
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('click', handleClick, true);
+    document.addEventListener('keydown', handleKeyDown);
     window.addEventListener('message', handleMessage);
     window.addEventListener('scroll', updateSelectionPosition, { passive: true });
     window.addEventListener('resize', updateSelectionPosition, { passive: true });
