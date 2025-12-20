@@ -68,6 +68,12 @@ const LinkedInIcon = () => (
   </svg>
 );
 
+const MicrosoftIcon = () => (
+  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z" />
+  </svg>
+);
+
 const Auth = () => {
   const { user, loading, signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
   const navigate = useNavigate();
@@ -75,7 +81,7 @@ const Auth = () => {
   const [mode, setMode] = useState<AuthMode>('signin');
   const [showPassword, setShowPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | 'apple' | 'linkedin_oidc' | null>(null);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | null>(null);
   const [passwordResetComplete, setPasswordResetComplete] = useState(false);
 
   // Get dynamic SEO based on mode
@@ -193,11 +199,15 @@ const Auth = () => {
     }
   };
 
-  const handleOAuthSignIn = async (provider: 'google' | 'github' | 'apple' | 'linkedin_oidc') => {
+  const handleOAuthSignIn = async (provider: 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure') => {
     setOauthLoading(provider);
     const { error } = await signInWithOAuth(provider);
     if (error) {
-      const displayName = provider === 'linkedin_oidc' ? 'LinkedIn' : provider;
+      const displayNames: Record<string, string> = {
+        linkedin_oidc: 'LinkedIn',
+        azure: 'Microsoft',
+      };
+      const displayName = displayNames[provider] || provider;
       toast.error(`Failed to sign in with ${displayName}: ${error.message}`);
       setOauthLoading(null);
     }
@@ -281,7 +291,7 @@ const Auth = () => {
             {mode === 'signin' && (
               <div className="space-y-4">
                 {/* Social Auth Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -337,6 +347,20 @@ const Auth = () => {
                       <LinkedInIcon />
                     )}
                     <span className="ml-2 hidden sm:inline">LinkedIn</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleOAuthSignIn('azure')}
+                    disabled={oauthLoading !== null}
+                  >
+                    {oauthLoading === 'azure' ? (
+                      <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <MicrosoftIcon />
+                    )}
+                    <span className="ml-2 hidden sm:inline">Microsoft</span>
                   </Button>
                 </div>
 
@@ -411,7 +435,7 @@ const Auth = () => {
             {mode === 'signup' && (
               <div className="space-y-4">
                 {/* Social Auth Buttons */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -467,6 +491,20 @@ const Auth = () => {
                       <LinkedInIcon />
                     )}
                     <span className="ml-2 hidden sm:inline">LinkedIn</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleOAuthSignIn('azure')}
+                    disabled={oauthLoading !== null}
+                  >
+                    {oauthLoading === 'azure' ? (
+                      <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <MicrosoftIcon />
+                    )}
+                    <span className="ml-2 hidden sm:inline">Microsoft</span>
                   </Button>
                 </div>
 
