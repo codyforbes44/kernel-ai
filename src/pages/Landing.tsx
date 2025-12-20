@@ -67,7 +67,7 @@ export default function Landing() {
       />
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-20 px-4">
+      <section id="hero" className="relative pt-16 pb-20 px-4 scroll-mt-16">
         <HeroBackground />
         <div className="relative container mx-auto text-center max-w-4xl">
           <GlowBadge 
@@ -108,7 +108,7 @@ export default function Landing() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="features" className="py-20 px-4 bg-muted/30 scroll-mt-16">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -136,7 +136,7 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section id="cta" className="py-20 px-4 scroll-mt-16">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Get Started?
