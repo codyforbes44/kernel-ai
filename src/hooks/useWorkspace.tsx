@@ -423,30 +423,52 @@ What would you like to build today?`;
   }, [user, selectedWorkspaceId]);
 
   const updateConversation = useCallback(async (id: string, updates: Partial<Conversation>) => {
+    // Store previous state for rollback
+    const previousConversation = conversations.find(c => c.id === id);
+    
+    // Optimistically update
+    setConversations(prev => 
+      prev.map(c => c.id === id ? { ...c, ...updates } : c)
+    );
+
     try {
       await workspaceService.updateConversation(id, updates);
-      setConversations(prev => 
-        prev.map(c => c.id === id ? { ...c, ...updates } : c)
-      );
     } catch (error) {
+      // Rollback on error
+      if (previousConversation) {
+        setConversations(prev => 
+          prev.map(c => c.id === id ? previousConversation : c)
+        );
+      }
       console.error('Error updating conversation:', error);
       toast.error('Failed to update conversation');
     }
-  }, []);
+  }, [conversations]);
 
   const deleteConversation = useCallback(async (id: string) => {
+    // Store previous state for rollback
+    const previousConversations = conversations;
+    const wasSelected = selectedConversationId === id;
+    
+    // Optimistically remove
+    setConversations(prev => prev.filter(c => c.id !== id));
+    if (wasSelected) {
+      setSelectedConversationId(null);
+    }
+
     try {
       await workspaceService.deleteConversation(id);
-      setConversations(prev => prev.filter(c => c.id !== id));
-      if (selectedConversationId === id) {
-        setSelectedConversationId(null);
-      }
       toast.success('Conversation deleted');
     } catch (error) {
+      // Rollback on error
+      setConversations(previousConversations);
+      if (wasSelected) {
+        setSelectedConversationId(id);
+      }
       console.error('Error deleting conversation:', error);
       toast.error('Failed to delete conversation');
     }
-  }, [selectedConversationId]);
+  }, [conversations, selectedConversationId]);
 
   const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
     try {
