@@ -1,18 +1,22 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import {
   SandpackProvider,
   SandpackPreview as SandpackPreviewPane,
   SandpackLayout,
+  useSandpack,
 } from '@codesandbox/sandpack-react';
-import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ProjectFile } from '@/types/builder';
-import { useState } from 'react';
+import type { SelectedElement, VisualChange } from '@/types/visual-editor';
+import { useVisualEditor, PropertyEditorPanel, getVisualEditorInjectionScript } from './visual-editor';
+import { toast } from 'sonner';
 
 interface SandpackPreviewProps {
   files: ProjectFile[];
   onError?: (error: string) => void;
+  onVisualChange?: (change: VisualChange) => void;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -23,13 +27,12 @@ const viewportConfig: Record<ViewportSize, { width: string; icon: React.ReactNod
   mobile: { width: '375px', icon: <Smartphone className="h-4 w-4" />, label: 'Mobile' },
 };
 
-// Convert project files to Sandpack format
-function convertToSandpackFiles(files: ProjectFile[]): Record<string, string> {
+// Convert project files to Sandpack format with visual editor injection
+function convertToSandpackFiles(files: ProjectFile[], injectVisualEditor: boolean): Record<string, string> {
   const sandpackFiles: Record<string, string> = {};
   
   for (const file of files) {
     if (file.content && file.type === 'file') {
-      // Sandpack expects paths without leading slash for some files
       const path = file.path.startsWith('/') ? file.path : `/${file.path}`;
       sandpackFiles[path] = file.content;
     }
@@ -50,6 +53,15 @@ function convertToSandpackFiles(files: ProjectFile[]): Record<string, string> {
 </html>`;
   }
   
+  // Inject visual editor script into index.html if enabled
+  if (injectVisualEditor && sandpackFiles['/index.html']) {
+    const injectionScript = getVisualEditorInjectionScript();
+    sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
+      '</body>',
+      `<script>${injectionScript}</script></body>`
+    );
+  }
+  
   if (!sandpackFiles['/src/main.tsx'] && !sandpackFiles['/src/index.tsx']) {
     sandpackFiles['/src/main.tsx'] = `import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -66,20 +78,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   if (!sandpackFiles['/src/App.tsx'] && !sandpackFiles['/src/App.jsx']) {
     sandpackFiles['/src/App.tsx'] = `export default function App() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: 'white',
-      textAlign: 'center',
-      padding: '20px'
-    }}>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Welcome to the Builder</h1>
-      <p style={{ opacity: 0.9 }}>Edit App.tsx to start building your app</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-center p-5">
+      <h1 className="text-4xl font-bold mb-4">Welcome to the Builder</h1>
+      <p className="text-lg opacity-90">Edit App.tsx to start building your app</p>
+      <button className="mt-6 px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-opacity-90 transition">
+        Get Started
+      </button>
     </div>
   );
 }`;
@@ -96,18 +100,110 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   return sandpackFiles;
 }
 
-export function SandpackPreview({ files }: SandpackPreviewProps) {
+// Inner component that has access to Sandpack context
+function SandpackPreviewInner({
+  onVisualChange,
+}: {
+  onVisualChange?: (change: VisualChange) => void;
+}) {
+  const { sandpack } = useSandpack();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  const {
+    isEnabled,
+    selectedElement,
+    hoveredElement,
+    enable,
+    disable,
+    toggle,
+    updateStyle,
+    updateText,
+    updateClasses,
+    deselect,
+    pendingChanges,
+  } = useVisualEditor({
+    iframeRef,
+    onElementSelected: (element) => {
+      // Element selected in preview
+    },
+    onChangeApplied: (change) => {
+      onVisualChange?.(change);
+    },
+  });
+
+  // Get iframe ref from Sandpack
+  useEffect(() => {
+    const checkIframe = () => {
+      const iframe = document.querySelector('.sp-preview-iframe') as HTMLIFrameElement;
+      if (iframe && iframeRef.current !== iframe) {
+        (iframeRef as React.MutableRefObject<HTMLIFrameElement>).current = iframe;
+      }
+    };
+    
+    checkIframe();
+    const interval = setInterval(checkIframe, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleCloseEditor = useCallback(() => {
+    disable();
+  }, [disable]);
+
+  return (
+    <>
+      {/* Visual Editor Toggle in toolbar */}
+      <Button
+        variant={isEnabled ? 'default' : 'ghost'}
+        size="icon"
+        className={cn('h-7 w-7', isEnabled && 'bg-primary text-primary-foreground')}
+        onClick={toggle}
+        title={isEnabled ? 'Disable Visual Editor' : 'Enable Visual Editor'}
+      >
+        <MousePointer2 className="h-4 w-4" />
+      </Button>
+
+      {/* Property Editor Panel */}
+      {isEnabled && (
+        <div className="absolute right-0 top-10 bottom-0 w-72 z-10">
+          <PropertyEditorPanel
+            selectedElement={selectedElement}
+            onUpdateStyle={updateStyle}
+            onUpdateText={updateText}
+            onUpdateClasses={updateClasses}
+            onDeselect={deselect}
+            onClose={handleCloseEditor}
+          />
+        </div>
+      )}
+
+      {/* Changes indicator */}
+      {pendingChanges.length > 0 && (
+        <div className="absolute bottom-4 left-4 z-10">
+          <div className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg">
+            {pendingChanges.length} unsaved change{pendingChanges.length > 1 ? 's' : ''}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export function SandpackPreview({ files, onError, onVisualChange }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [visualEditorEnabled, setVisualEditorEnabled] = useState(false);
 
-  const sandpackFiles = useMemo(() => convertToSandpackFiles(files), [files]);
+  const sandpackFiles = useMemo(
+    () => convertToSandpackFiles(files, true), // Always inject for now
+    [files]
+  );
 
   const handleRefresh = () => {
     setRefreshKey(k => k + 1);
   };
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative">
       {/* Toolbar */}
       <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-muted/30">
         <div className="flex items-center gap-1">
@@ -142,7 +238,6 @@ export function SandpackPreview({ files }: SandpackPreviewProps) {
             size="icon"
             className="h-7 w-7"
             onClick={() => {
-              // Open preview in new window - Sandpack handles this internally
               const previewFrame = document.querySelector('.sp-preview-iframe') as HTMLIFrameElement;
               if (previewFrame?.src) {
                 window.open(previewFrame.src, '_blank');
@@ -155,9 +250,9 @@ export function SandpackPreview({ files }: SandpackPreviewProps) {
       </div>
 
       {/* Preview Area */}
-      <div className="flex-1 flex items-center justify-center bg-muted/20 p-4 overflow-auto">
+      <div className="flex-1 flex items-center justify-center bg-muted/20 p-4 overflow-auto relative">
         <div
-          className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 h-full"
+          className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 h-full relative"
           style={{
             width: viewportConfig[viewport].width,
             maxWidth: '100%',
@@ -183,13 +278,16 @@ export function SandpackPreview({ files }: SandpackPreviewProps) {
             }}
             theme="auto"
           >
-            <SandpackLayout style={{ height: '100%', border: 'none' }}>
-              <SandpackPreviewPane 
-                style={{ height: '100%' }}
-                showRefreshButton={false}
-                showOpenInCodeSandbox={false}
-              />
-            </SandpackLayout>
+            <div className="h-full relative">
+              <SandpackLayout style={{ height: '100%', border: 'none' }}>
+                <SandpackPreviewPane 
+                  style={{ height: '100%' }}
+                  showRefreshButton={false}
+                  showOpenInCodeSandbox={false}
+                />
+              </SandpackLayout>
+              <SandpackPreviewInner onVisualChange={onVisualChange} />
+            </div>
           </SandpackProvider>
         </div>
       </div>
