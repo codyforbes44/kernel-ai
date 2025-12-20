@@ -13,7 +13,7 @@ export function MobileLayout() {
   const { currentProject, currentConversation } = useWorkspace();
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-background">
+    <div className="h-[100dvh] w-screen flex flex-col overflow-hidden bg-background">
       <SkipLink href="#mobile-main-content" />
       <MobileHeader
         onOpenSidebar={() => setSidebarOpen(true)}
