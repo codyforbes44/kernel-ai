@@ -1,0 +1,353 @@
+import { useState } from 'react';
+import { 
+  Rocket, 
+  Globe, 
+  ExternalLink, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  History,
+  FileCode,
+  Zap
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { useDeployments, type Deployment } from '@/hooks/useDeployments';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+
+interface DeploymentPanelProps {
+  projectId: string;
+  onClose?: () => void;
+}
+
+export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
+  const {
+    deployments,
+    latestPreview,
+    latestProduction,
+    customDomains,
+    isLoading,
+    deploy,
+    isDeploying,
+    addDomain,
+    deleteDomain,
+  } = useDeployments(projectId);
+
+  const [showHistory, setShowHistory] = useState(false);
+  const [newDomain, setNewDomain] = useState('');
+  const [showDomainForm, setShowDomainForm] = useState(false);
+
+  const handleDeploy = async (environment: 'preview' | 'production') => {
+    await deploy({ environment });
+  };
+
+  const handleAddDomain = async () => {
+    if (!newDomain.trim()) return;
+    await addDomain(newDomain);
+    setNewDomain('');
+    setShowDomainForm(false);
+  };
+
+  const getStatusIcon = (status: Deployment['status']) => {
+    switch (status) {
+      case 'deployed':
+        return <CheckCircle className="h-4 w-4 text-success" />;
+      case 'building':
+        return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-destructive" />;
+      default:
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const getStatusBadge = (status: Deployment['status']) => {
+    const variants: Record<Deployment['status'], string> = {
+      deployed: 'bg-success/20 text-success',
+      building: 'bg-primary/20 text-primary',
+      failed: 'bg-destructive/20 text-destructive',
+      pending: 'bg-muted text-muted-foreground',
+    };
+    return variants[status] || variants.pending;
+  };
+
+  const formatBytes = (bytes: number | null) => {
+    if (!bytes) return '-';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center bg-background border-l border-border">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex flex-col bg-background border-l border-border">
+      {/* Header */}
+      <div className="h-10 flex items-center gap-2 px-3 border-b border-border bg-muted/30">
+        <Rocket className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">Deployments</span>
+      </div>
+
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-6">
+          {/* Quick Deploy Section */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Quick Deploy
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => handleDeploy('preview')}
+                disabled={isDeploying}
+              >
+                {isDeploying ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Globe className="h-5 w-5 text-primary" />
+                )}
+                <span className="text-xs">Preview</span>
+              </Button>
+              
+              <Button
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => handleDeploy('production')}
+                disabled={isDeploying}
+              >
+                {isDeploying ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Rocket className="h-5 w-5" />
+                )}
+                <span className="text-xs">Production</span>
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Current Deployments */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Live Deployments</h3>
+            
+            {/* Preview */}
+            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">PREVIEW</span>
+                {latestPreview && getStatusIcon(latestPreview.status)}
+              </div>
+              {latestPreview?.deployUrl ? (
+                <a
+                  href={latestPreview.deployUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                >
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{latestPreview.subdomain || 'View'}</span>
+                </a>
+              ) : (
+                <span className="text-xs text-muted-foreground">Not deployed</span>
+              )}
+              {latestPreview && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>v{latestPreview.version}</span>
+                  <span>•</span>
+                  <span>{formatBytes(latestPreview.bundleSizeBytes)}</span>
+                  <span>•</span>
+                  <span>{formatDistanceToNow(new Date(latestPreview.createdAt), { addSuffix: true })}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Production */}
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-primary">PRODUCTION</span>
+                {latestProduction && getStatusIcon(latestProduction.status)}
+              </div>
+              {latestProduction?.deployUrl ? (
+                <a
+                  href={latestProduction.deployUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary hover:underline flex items-center gap-1 truncate"
+                >
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{latestProduction.subdomain || 'View'}</span>
+                </a>
+              ) : (
+                <span className="text-xs text-muted-foreground">Not deployed</span>
+              )}
+              {latestProduction && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>v{latestProduction.version}</span>
+                  <span>•</span>
+                  <span>{formatBytes(latestProduction.bundleSizeBytes)}</span>
+                  <span>•</span>
+                  <span>{formatDistanceToNow(new Date(latestProduction.createdAt), { addSuffix: true })}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Custom Domains */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium">Custom Domains</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => setShowDomainForm(!showDomainForm)}
+              >
+                {showDomainForm ? 'Cancel' : '+ Add'}
+              </Button>
+            </div>
+
+            {showDomainForm && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="yourdomain.com"
+                  value={newDomain}
+                  onChange={(e) => setNewDomain(e.target.value)}
+                  className="h-8 text-sm"
+                />
+                <Button size="sm" className="h-8" onClick={handleAddDomain}>
+                  Add
+                </Button>
+              </div>
+            )}
+
+            {customDomains.length > 0 ? (
+              <div className="space-y-2">
+                {customDomains.map((domain) => (
+                  <div
+                    key={domain.id}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{domain.domain}</span>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "text-[10px] px-1.5",
+                          domain.status === 'active' && "bg-success/20 text-success",
+                          domain.status === 'verifying' && "bg-primary/20 text-primary",
+                          domain.status === 'failed' && "bg-destructive/20 text-destructive"
+                        )}
+                      >
+                        {domain.status}
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => deleteDomain(domain.id)}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                No custom domains configured
+              </p>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Deployment History */}
+          <div className="space-y-3">
+            <button
+              className="w-full flex items-center justify-between text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <span className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Deployment History
+              </span>
+              {showHistory ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+
+            {showHistory && (
+              <div className="space-y-2">
+                {deployments.length > 0 ? (
+                  deployments.slice(0, 10).map((deployment) => (
+                    <div
+                      key={deployment.id}
+                      className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(deployment.status)}
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium">v{deployment.version}</span>
+                            <Badge 
+                              variant="outline" 
+                              className="text-[10px] px-1 py-0"
+                            >
+                              {deployment.environment}
+                            </Badge>
+                          </div>
+                          <div className="text-muted-foreground">
+                            {formatDistanceToNow(new Date(deployment.createdAt), { addSuffix: true })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">
+                          {deployment.buildDurationMs ? `${deployment.buildDurationMs}ms` : '-'}
+                        </span>
+                        {deployment.deployUrl && (
+                          <a
+                            href={deployment.deployUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No deployments yet
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}

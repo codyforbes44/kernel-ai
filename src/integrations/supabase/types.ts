@@ -210,6 +210,130 @@ export type Database = {
           },
         ]
       }
+      custom_domains: {
+        Row: {
+          created_at: string | null
+          domain: string
+          id: string
+          is_primary: boolean | null
+          is_verified: boolean | null
+          project_id: string
+          redirect_www: boolean | null
+          ssl_issued_at: string | null
+          ssl_status: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          verification_token: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain: string
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          project_id: string
+          redirect_www?: boolean | null
+          ssl_issued_at?: string | null
+          ssl_status?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_token?: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string
+          id?: string
+          is_primary?: boolean | null
+          is_verified?: boolean | null
+          project_id?: string
+          redirect_www?: boolean | null
+          ssl_issued_at?: string | null
+          ssl_status?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_token?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_domains_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deployments: {
+        Row: {
+          build_duration_ms: number | null
+          build_log: string | null
+          bundle_size_bytes: number | null
+          commit_message: string | null
+          completed_at: string | null
+          created_at: string | null
+          deploy_url: string | null
+          environment: string
+          file_count: number | null
+          id: string
+          project_id: string
+          started_at: string | null
+          status: string
+          subdomain: string | null
+          user_id: string
+          version: number
+        }
+        Insert: {
+          build_duration_ms?: number | null
+          build_log?: string | null
+          bundle_size_bytes?: number | null
+          commit_message?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          deploy_url?: string | null
+          environment?: string
+          file_count?: number | null
+          id?: string
+          project_id: string
+          started_at?: string | null
+          status?: string
+          subdomain?: string | null
+          user_id: string
+          version?: number
+        }
+        Update: {
+          build_duration_ms?: number | null
+          build_log?: string | null
+          bundle_size_bytes?: number | null
+          commit_message?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          deploy_url?: string | null
+          environment?: string
+          file_count?: number | null
+          id?: string
+          project_id?: string
+          started_at?: string | null
+          status?: string
+          subdomain?: string | null
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           column_number: number | null
@@ -819,6 +943,10 @@ export type Database = {
     }
     Functions: {
       check_account_lockout: { Args: { p_email: string }; Returns: Json }
+      generate_subdomain: {
+        Args: { project_id: string; project_name: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
