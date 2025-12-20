@@ -10,7 +10,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null; userId?: string }>;
   signInWithOAuth: (provider: OAuthProvider) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true): Promise<{ error: Error | null; userId?: string }> => {
     try {
       // Note: Supabase handles session persistence automatically via localStorage
       // The rememberMe flag could be used to set a shorter session expiry in the future
@@ -100,8 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         localStorage.removeItem('auth_remember_me');
       }
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error };
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error, userId: data?.user?.id };
     } catch (error) {
       return { error: error as Error };
     }
