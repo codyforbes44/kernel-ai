@@ -15,6 +15,9 @@ verify_jwt = false
 [functions.deploy-project]
 verify_jwt = false
 
+[functions.rollback-deployment]
+verify_jwt = false
+
 [functions.generate-schema]
 verify_jwt = false
 
