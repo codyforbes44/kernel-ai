@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GlassCard, GlassCardContent } from '@/components/ui/glass-card';
+import { GlowBadge } from '@/components/ui/glow-badge';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
@@ -13,6 +14,7 @@ import {
   Shield, 
   Users,
   ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 
 const features = [
@@ -68,10 +70,15 @@ export default function Landing() {
       <section className="relative pt-16 pb-20 px-4">
         <HeroBackground />
         <div className="relative container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8">
-            <span className="font-mono font-bold">{">_"}</span>
-            <span>AI-Powered Development Platform</span>
-          </div>
+          <GlowBadge 
+            variant="glow" 
+            size="lg" 
+            pulse 
+            icon={<Sparkles className="h-4 w-4" />}
+            className="mb-8"
+          >
+            AI-Powered Development Platform
+          </GlowBadge>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text">
             Build Beautiful Apps
