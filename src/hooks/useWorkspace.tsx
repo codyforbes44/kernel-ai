@@ -77,11 +77,55 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     
     setLoading(true);
     try {
-      const [workspacesData, projectsData, conversationsData] = await Promise.all([
+      let [workspacesData, projectsData, conversationsData] = await Promise.all([
         workspaceService.getWorkspaces(user.id),
         workspaceService.getProjects(user.id),
         workspaceService.getConversations(user.id),
       ]);
+
+      // Defensive: auto-create workspace and project if user has none
+      // This handles edge cases where the trigger failed or user data is incomplete
+      if (workspacesData.length === 0) {
+        console.warn('No workspace found for user, creating default workspace...');
+        
+        // Create default workspace
+        const { data: newWorkspace, error: wsError } = await supabase
+          .from('workspaces')
+          .insert({
+            user_id: user.id,
+            name: 'My Workspace',
+            is_default: true,
+          })
+          .select()
+          .single();
+
+        if (wsError) {
+          console.error('Failed to create default workspace:', wsError);
+          toast.error('Failed to initialize workspace. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        workspacesData = [newWorkspace as Workspace];
+
+        // Create default project
+        const { data: newProject, error: projError } = await supabase
+          .from('projects')
+          .insert({
+            workspace_id: newWorkspace.id,
+            user_id: user.id,
+            name: 'General',
+            description: 'General conversations',
+          })
+          .select()
+          .single();
+
+        if (!projError && newProject) {
+          projectsData = [newProject as Project];
+        }
+
+        toast.success('Workspace initialized successfully');
+      }
 
       setWorkspaces(workspacesData);
       setProjects(projectsData);
