@@ -26,6 +26,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Builder = lazy(() => import("./pages/Builder"));
 const BuilderProject = lazy(() => import("./pages/BuilderProject"));
+const SEODashboard = lazy(() => import("./pages/SEODashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +115,16 @@ const App = () => (
                       <ErrorBoundary>
                         <Suspense fallback={<LoadingFallback />}>
                           <BuilderProject />
+                        </Suspense>
+                      </ErrorBoundary>
+                    }
+                  />
+                  <Route
+                    path="/seo"
+                    element={
+                      <ErrorBoundary>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <SEODashboard />
                         </Suspense>
                       </ErrorBoundary>
                     }
