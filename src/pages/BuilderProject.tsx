@@ -3,7 +3,7 @@ import { BuilderLayout } from '@/components/builder/BuilderLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SEO } from '@/components/seo/SEO';
-import { PAGE_SEO } from '@/lib/seo';
+import { PAGE_SEO, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -47,7 +47,8 @@ export default function BuilderProject() {
         title={PAGE_SEO.builderProject.titleTemplate(projectName)}
         description={PAGE_SEO.builderProject.descriptionTemplate(projectName, templateName)}
         ogImage={PAGE_SEO.builderProject.ogImage}
-        noIndex // Individual projects shouldn't be indexed
+        noIndex
+        structuredData={BREADCRUMBS.builderProject(SEO_CONFIG.siteUrl, projectName, projectId)}
       />
       <BuilderLayout projectId={projectId} />
     </>
