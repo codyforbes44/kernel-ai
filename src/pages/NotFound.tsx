@@ -2,9 +2,10 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Code2, Sparkles, ArrowLeft } from "lucide-react";
+import { Home, Code2, ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/seo/SEO";
 import { PAGE_SEO } from "@/lib/seo";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 
 const NotFound = () => {
   const location = useLocation();
@@ -27,7 +28,7 @@ const NotFound = () => {
           <div className="text-center">
             {/* Logo/Icon */}
             <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <Sparkles className="h-8 w-8 text-primary" />
+              <KernelLogo size="lg" />
             </div>
 
             {/* Error Code */}

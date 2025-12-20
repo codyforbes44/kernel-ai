@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { SEO } from '@/components/seo/SEO';
-import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
+import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
 import { KernelLogo } from '@/components/ui/kernel-logo';
 import { 
@@ -52,11 +52,14 @@ export default function Landing() {
   return (
     <>
       <SEO
-        title="Build Apps with AI | Kernel"
-        description="Create beautiful web applications with AI-powered assistance. Features intelligent chat, visual builder, design systems, and instant deployment."
-        ogImage={PAGE_SEO.home.ogImage}
+        title={PAGE_SEO.landing.title}
+        description={PAGE_SEO.landing.description}
+        ogImage={PAGE_SEO.landing.ogImage}
+        keywords={PAGE_SEO.landing.keywords}
         structuredData={[
           getWebsiteSchema(SEO_CONFIG.siteUrl),
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          getProductSchema(SEO_CONFIG.siteUrl),
           BREADCRUMBS.home(SEO_CONFIG.siteUrl)
         ]}
       />
