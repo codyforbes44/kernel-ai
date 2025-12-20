@@ -10,6 +10,7 @@ import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { BuilderChat } from './BuilderChat';
 import { FileVersionHistory } from './FileVersionHistory';
+import { ErrorCapture, type CapturedError } from './ErrorCapture';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showExplorer, setShowExplorer] = useState(true);
   const [showAIChat, setShowAIChat] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
+  const [isFixingErrors, setIsFixingErrors] = useState(false);
   
   const {
     project,
@@ -82,6 +85,21 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     await saveFile(activeTabId);
     toast.success('Version restored');
   }, [activeTabId, activeFile, getFileContent, updateLocalContent, saveFile]);
+
+  // Handle "Try to Fix" from error capture
+  const handleTryToFix = useCallback((errors: CapturedError[]) => {
+    setIsFixingErrors(true);
+    // Trigger AI chat fix via window function
+    const fixHandler = (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors;
+    if (fixHandler) {
+      fixHandler(errors);
+    }
+    setTimeout(() => setIsFixingErrors(false), 1000);
+  }, []);
+
+  const handleClearErrors = useCallback(() => {
+    setCapturedErrors([]);
+  }, []);
 
   // Keyboard shortcuts - Ctrl/Cmd+S to save
   useEffect(() => {
@@ -291,7 +309,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={(showAIChat || showHistory) ? 25 : 40} minSize={20}>
-              <SandpackPreview files={files} />
+              <div className="h-full flex flex-col">
+                <SandpackPreview files={files} />
+                <ErrorCapture
+                  onErrorsChange={setCapturedErrors}
+                  onTryToFix={handleTryToFix}
+                  isFixing={isFixingErrors}
+                />
+              </div>
             </ResizablePanel>
           </>
         )}
@@ -304,6 +329,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <BuilderChat
                 files={files}
                 onApplyOperations={applyAIOperations}
+                errors={capturedErrors}
+                onClearErrors={handleClearErrors}
                 projectId={projectId}
               />
             </ResizablePanel>
