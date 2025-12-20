@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Check, X, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Check, X, ArrowRight, Loader2 } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, getOrganizationSchema, getProductSchema } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { pricingFAQs } from "@/lib/faq-data";
+import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (typeof value === "boolean") {
@@ -72,6 +75,67 @@ function PriceDisplay({ plan, isYearly }: { plan: typeof plans[0]; isYearly: boo
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { plan: currentPlan, subscribed, createCheckoutSession } = useSubscription();
+
+  // Handle checkout canceled state
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'canceled') {
+      toast.info('Checkout was canceled. You can try again anytime.');
+    }
+  }, [searchParams]);
+
+  const handleSubscribe = async (planName: string) => {
+    if (planName === "Enterprise") {
+      return; // Contact sales link handles this
+    }
+
+    if (planName === "Free") {
+      return; // Free plan doesn't need checkout
+    }
+
+    if (!user) {
+      toast.info('Please sign in to subscribe');
+      return;
+    }
+
+    setIsLoading(planName);
+    try {
+      const priceId = isYearly ? STRIPE_PRICES.PRO_YEARLY : STRIPE_PRICES.PRO_MONTHLY;
+      await createCheckoutSession(priceId);
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  const getButtonContent = (plan: typeof plans[0]) => {
+    const isCurrentPlan = (plan.name === "Free" && !subscribed) || 
+                          (plan.name === "Pro" && subscribed);
+    
+    if (isCurrentPlan) {
+      return {
+        text: "Current Plan",
+        disabled: true,
+        variant: "outline" as const,
+      };
+    }
+
+    if (plan.name === "Pro" && !subscribed) {
+      return {
+        text: isLoading === plan.name ? "Loading..." : plan.cta,
+        disabled: isLoading === plan.name,
+        variant: "default" as const,
+      };
+    }
+
+    return {
+      text: plan.cta,
+      disabled: false,
+      variant: plan.popular ? "default" as const : "outline" as const,
+    };
+  };
 
   const pricingSeo = {
     title: "Pricing - Kernel",
@@ -135,58 +199,102 @@ export default function Pricing() {
       <section className="pb-20 px-4">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {plans.map((plan) => (
-              <Card 
-                key={plan.name}
-                className={`relative flex flex-col ${
-                  plan.popular 
-                    ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]" 
-                    : "border-border"
-                }`}
-              >
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    Most Popular
-                  </Badge>
-                )}
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 p-3 rounded-xl bg-primary/10 w-fit">
-                    <plan.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center pb-6 flex-grow">
-                  <PriceDisplay plan={plan} isYearly={isYearly} />
-                  <ul className="space-y-3 text-left">
-                    {plan.features.map((feature) => (
-                      <li key={feature.text} className="flex items-center gap-3">
-                        {feature.included ? (
-                          <Check className="h-4 w-4 text-primary shrink-0" />
+            {plans.map((plan) => {
+              const buttonContent = getButtonContent(plan);
+              const isCurrentPlan = (plan.name === "Free" && !subscribed) || 
+                                    (plan.name === "Pro" && subscribed);
+
+              return (
+                <Card 
+                  key={plan.name}
+                  className={`relative flex flex-col ${
+                    plan.popular 
+                      ? "border-primary shadow-lg shadow-primary/10 scale-[1.02]" 
+                      : "border-border"
+                  } ${isCurrentPlan ? "ring-2 ring-primary/50" : ""}`}
+                >
+                  {plan.popular && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      Most Popular
+                    </Badge>
+                  )}
+                  {isCurrentPlan && user && (
+                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-primary/20 text-primary">
+                      Your Plan
+                    </Badge>
+                  )}
+                  <CardHeader className="text-center pb-4">
+                    <div className="mx-auto mb-4 p-3 rounded-xl bg-primary/10 w-fit">
+                      <plan.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-center pb-6 flex-grow">
+                    <PriceDisplay plan={plan} isYearly={isYearly} />
+                    <ul className="space-y-3 text-left">
+                      {plan.features.map((feature) => (
+                        <li key={feature.text} className="flex items-center gap-3">
+                          {feature.included ? (
+                            <Check className="h-4 w-4 text-primary shrink-0" />
+                          ) : (
+                            <X className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                          )}
+                          <span className={`text-sm ${feature.included ? "text-muted-foreground" : "text-muted-foreground/60"}`}>
+                            {feature.text}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    {plan.name === "Enterprise" ? (
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/contact">
+                          {plan.cta}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    ) : plan.name === "Free" ? (
+                      <Button 
+                        variant={buttonContent.variant} 
+                        className="w-full" 
+                        disabled={buttonContent.disabled}
+                        asChild={!buttonContent.disabled}
+                      >
+                        {buttonContent.disabled ? (
+                          <span>{buttonContent.text}</span>
                         ) : (
-                          <X className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                          <Link to="/auth?tab=signup">
+                            {buttonContent.text}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
                         )}
-                        <span className={`text-sm ${feature.included ? "text-muted-foreground" : "text-muted-foreground/60"}`}>
-                          {feature.text}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    variant={plan.popular ? "default" : "outline"} 
-                    className="w-full" 
-                    asChild
-                  >
-                    <Link to={plan.name === "Enterprise" ? "/contact" : "/auth?tab=signup"}>
-                      {plan.cta}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant={buttonContent.variant}
+                        className="w-full" 
+                        disabled={buttonContent.disabled || isLoading === plan.name}
+                        onClick={() => handleSubscribe(plan.name)}
+                      >
+                        {isLoading === plan.name ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            {buttonContent.text}
+                            {!buttonContent.disabled && <ArrowRight className="ml-2 h-4 w-4" />}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>

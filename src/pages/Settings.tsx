@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { useUserPreferences, AI_MODEL_OPTIONS } from '@/hooks/useUserPreferences';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
@@ -15,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -43,6 +45,9 @@ import {
   Monitor,
   Sparkles,
   Smartphone,
+  CreditCard,
+  Crown,
+  ExternalLink,
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
@@ -50,6 +55,7 @@ import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSett
 
 export default function Settings() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useProtectedPage();
   const { signOut } = useProtectedPage().user ? { signOut: async () => {
     const { supabase } = await import('@/integrations/supabase/client');
@@ -59,6 +65,14 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const { clearHistory } = useVariableHistory();
   const { preferences, updatePreference, loading: preferencesLoading } = useUserPreferences();
+  const { 
+    subscribed, 
+    plan, 
+    subscriptionEnd, 
+    isLoading: subscriptionLoading, 
+    openCustomerPortal,
+    checkSubscription 
+  } = useSubscription();
   const [displayName, setDisplayName] = useState('');
   const [originalDisplayName, setOriginalDisplayName] = useState('');
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -70,6 +84,15 @@ export default function Settings() {
   const [clearHistoryDialogOpen, setClearHistoryDialogOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  // Handle checkout success state
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      toast.success('Welcome to Pro! Your subscription is now active.');
+      checkSubscription();
+    }
+  }, [searchParams, checkSubscription]);
 
   // Load profile data on mount
   useEffect(() => {
@@ -377,6 +400,92 @@ export default function Settings() {
                 </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Subscription */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Subscription
+            </CardTitle>
+            <CardDescription>Manage your plan and billing</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {subscriptionLoading ? (
+              <div className="flex items-center gap-2 py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Loading subscription...</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${subscribed ? 'bg-primary/10' : 'bg-muted'}`}>
+                      {subscribed ? (
+                        <Crown className="h-5 w-5 text-primary" />
+                      ) : (
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium capitalize">{plan} Plan</span>
+                        {subscribed && (
+                          <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+                            Active
+                          </Badge>
+                        )}
+                      </div>
+                      {subscriptionEnd && (
+                        <p className="text-sm text-muted-foreground">
+                          Renews on {new Date(subscriptionEnd).toLocaleDateString()}
+                        </p>
+                      )}
+                      {!subscribed && (
+                        <p className="text-sm text-muted-foreground">
+                          Upgrade to unlock unlimited features
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {subscribed ? (
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={async () => {
+                        setIsOpeningPortal(true);
+                        try {
+                          await openCustomerPortal();
+                        } finally {
+                          setIsOpeningPortal(false);
+                        }
+                      }}
+                      disabled={isOpeningPortal}
+                    >
+                      {isOpeningPortal ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ExternalLink className="h-4 w-4" />
+                      )}
+                      Manage Subscription
+                    </Button>
+                  ) : (
+                    <Button
+                      className="gap-2"
+                      onClick={() => navigate('/pricing')}
+                    >
+                      <Crown className="h-4 w-4" />
+                      Upgrade to Pro
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
