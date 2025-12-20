@@ -12,6 +12,7 @@ import { BuilderChat } from './BuilderChat';
 import { FileVersionHistory } from './FileVersionHistory';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
 import { DeploymentPanel } from './DeploymentPanel';
+import { GitHubPanel } from './GitHubPanel';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -42,6 +43,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showAIChat, setShowAIChat] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showDeployments, setShowDeployments] = useState(false);
+  const [showGitHub, setShowGitHub] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   
@@ -213,12 +215,33 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn('h-8 w-8', showGitHub && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowGitHub(!showGitHub);
+                  if (!showGitHub) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                  }
+                }}
+              >
+                <Github className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>GitHub</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
                 className={cn('h-8 w-8', showDeployments && 'bg-primary/10 text-primary')}
                 onClick={() => {
                   setShowDeployments(!showDeployments);
                   if (!showDeployments) {
                     setShowAIChat(false);
                     setShowHistory(false);
+                    setShowGitHub(false);
                   }
                 }}
               >
@@ -229,7 +252,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
+            <Button
                 variant="ghost"
                 size="icon"
                 className={cn('h-8 w-8', showHistory && 'bg-primary/10 text-primary')}
@@ -238,6 +261,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   if (!showHistory) {
                     setShowAIChat(false);
                     setShowDeployments(false);
+                    setShowGitHub(false);
                   }
                 }}
                 disabled={!activeTabId}
@@ -249,7 +273,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
+            <Button
                 variant="ghost"
                 size="icon"
                 className={cn('h-8 w-8', showAIChat && 'bg-primary/10 text-primary')}
@@ -258,6 +282,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   if (!showAIChat) {
                     setShowHistory(false);
                     setShowDeployments(false);
+                    setShowGitHub(false);
                   }
                 }}
               >
@@ -345,7 +370,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* AI Chat */}
-        {showAIChat && !showHistory && !showDeployments && (
+        {showAIChat && !showHistory && !showDeployments && !showGitHub && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -368,6 +393,19 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               <DeploymentPanel
                 projectId={projectId}
                 onClose={() => setShowDeployments(false)}
+              />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* GitHub Panel */}
+        {showGitHub && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <GitHubPanel
+                projectId={projectId}
+                projectName={project?.name}
               />
             </ResizablePanel>
           </>
