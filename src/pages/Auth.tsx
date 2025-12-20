@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Sparkles, Terminal, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
 import { useForm, UseFormRegisterReturn } from "react-hook-form";
@@ -109,7 +110,7 @@ const Auth = () => {
   // Sign In Form
   const signInForm = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', rememberMe: true },
   });
 
   // Sign Up Form
@@ -131,7 +132,7 @@ const Auth = () => {
   });
 
   const handleSignIn = async (data: SignInFormData) => {
-    const { error } = await signIn(data.email, data.password);
+    const { error } = await signIn(data.email, data.password, data.rememberMe);
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
         toast.error('Invalid email or password');
@@ -347,6 +348,21 @@ const Auth = () => {
                     signInForm.register('password'),
                     signInForm.formState.errors.password?.message
                   )}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="remember-me"
+                      checked={signInForm.watch('rememberMe')}
+                      onCheckedChange={(checked) => 
+                        signInForm.setValue('rememberMe', checked === true)
+                      }
+                    />
+                    <Label
+                      htmlFor="remember-me"
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      Remember me
+                    </Label>
+                  </div>
                   <Button type="submit" className="w-full" disabled={signInForm.formState.isSubmitting}>
                     {signInForm.formState.isSubmitting ? "Signing in..." : "Sign In"}
                   </Button>
