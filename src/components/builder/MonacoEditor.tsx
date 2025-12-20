@@ -89,7 +89,7 @@ export function MonacoEditor({
         height="100%"
         language={getMonacoLanguage(language)}
         value={value}
-        theme={theme === 'dark' ? 'vs-dark' : 'light'}
+        theme={theme === 'light' ? 'light' : 'vs-dark'}
         onChange={handleChange}
         onMount={handleEditorDidMount}
         path={path}
