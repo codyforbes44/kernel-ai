@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptic } from "@/hooks/useHaptic";
-import { GoogleIcon, GitHubIcon, AppleIcon, LinkedInIcon, MicrosoftIcon } from "./AuthIcons";
+import { GoogleIcon, GitHubIcon, AppleIcon, LinkedInIcon, MicrosoftIcon, XIcon } from "./AuthIcons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure';
+export type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
 
 interface SocialAuthButtonsProps {
   onProviderClick: (provider: OAuthProvider) => void;
@@ -16,6 +16,7 @@ interface SocialAuthButtonsProps {
 const providers: { id: OAuthProvider; label: string; shortLabel: string; Icon: React.ComponentType }[] = [
   { id: 'google', label: 'Google', shortLabel: 'Google', Icon: GoogleIcon },
   { id: 'github', label: 'GitHub', shortLabel: 'GitHub', Icon: GitHubIcon },
+  { id: 'twitter', label: 'X', shortLabel: 'X', Icon: XIcon },
   { id: 'apple', label: 'Apple', shortLabel: 'Apple', Icon: AppleIcon },
   { id: 'linkedin_oidc', label: 'LinkedIn', shortLabel: 'LinkedIn', Icon: LinkedInIcon },
   { id: 'azure', label: 'Microsoft', shortLabel: 'MS', Icon: MicrosoftIcon },
