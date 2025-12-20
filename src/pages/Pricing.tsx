@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Check, X, Zap, Crown, Building2, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, getOrganizationSchema, getProductSchema } from "@/lib/seo";
@@ -12,8 +14,8 @@ const plans = [
   {
     name: "Free",
     description: "Perfect for trying out Kernel",
-    price: "$0",
-    period: "forever",
+    monthlyPrice: 0,
+    yearlyPrice: 0,
     icon: Zap,
     highlight: false,
     cta: "Get Started",
@@ -29,8 +31,8 @@ const plans = [
   {
     name: "Pro",
     description: "For professionals and power users",
-    price: "$19",
-    period: "/month",
+    monthlyPrice: 19,
+    yearlyPrice: 190, // ~17% discount ($228 -> $190)
     icon: Crown,
     highlight: true,
     cta: "Start Pro Trial",
@@ -50,8 +52,8 @@ const plans = [
   {
     name: "Enterprise",
     description: "For teams and organizations",
-    price: "Custom",
-    period: "",
+    monthlyPrice: null,
+    yearlyPrice: null,
     icon: Building2,
     highlight: false,
     cta: "Contact Sales",
@@ -111,7 +113,55 @@ function FeatureValue({ value }: { value: boolean | string }) {
   return <span className="text-foreground">{value}</span>;
 }
 
+function PriceDisplay({ plan, isYearly }: { plan: typeof plans[0]; isYearly: boolean }) {
+  if (plan.monthlyPrice === null) {
+    return (
+      <div className="mb-6">
+        <span className="text-4xl font-bold">Custom</span>
+      </div>
+    );
+  }
+
+  if (plan.monthlyPrice === 0) {
+    return (
+      <div className="mb-6">
+        <span className="text-4xl font-bold">$0</span>
+        <span className="text-muted-foreground"> forever</span>
+      </div>
+    );
+  }
+
+  const monthlyEquivalent = isYearly ? Math.round(plan.yearlyPrice! / 12) : plan.monthlyPrice;
+  const savings = isYearly ? Math.round((1 - plan.yearlyPrice! / (plan.monthlyPrice * 12)) * 100) : 0;
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-baseline justify-center gap-1">
+        <span className="text-4xl font-bold">${monthlyEquivalent}</span>
+        <span className="text-muted-foreground">/month</span>
+      </div>
+      {isYearly && (
+        <div className="mt-2 space-y-1">
+          <p className="text-sm text-muted-foreground">
+            ${plan.yearlyPrice}/year
+          </p>
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
+            Save {savings}%
+          </Badge>
+        </div>
+      )}
+      {!isYearly && (
+        <p className="text-sm text-muted-foreground mt-2">
+          Billed monthly
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function Pricing() {
+  const [isYearly, setIsYearly] = useState(false);
+
   const pricingSeo = {
     title: "Pricing - Kernel",
     description: "Choose the perfect Kernel plan for your needs. From free tier to enterprise solutions with advanced AI code generation.",
@@ -148,7 +198,7 @@ export default function Pricing() {
         </header>
 
         {/* Hero Section */}
-        <section className="pt-32 pb-16 px-4">
+        <section className="pt-32 pb-8 px-4">
           <div className="container mx-auto text-center max-w-3xl">
             <Badge variant="secondary" className="mb-4">
               Simple, transparent pricing
@@ -160,6 +210,32 @@ export default function Pricing() {
               Start for free, upgrade as you grow. All plans include our core AI-powered 
               development features with no hidden fees.
             </p>
+          </div>
+        </section>
+
+        {/* Billing Toggle */}
+        <section className="pb-8 px-4">
+          <div className="container mx-auto flex justify-center">
+            <div className="inline-flex items-center gap-4 p-2 rounded-full bg-muted/50 border border-border">
+              <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors ${
+                !isYearly ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              }`}>
+                Monthly
+              </span>
+              <Switch
+                checked={isYearly}
+                onCheckedChange={setIsYearly}
+                aria-label="Toggle annual billing"
+              />
+              <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors flex items-center gap-2 ${
+                isYearly ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+              }`}>
+                Yearly
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-xs">
+                  Save 17%
+                </Badge>
+              </span>
+            </div>
           </div>
         </section>
 
@@ -189,10 +265,7 @@ export default function Pricing() {
                     <CardDescription>{plan.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="text-center pb-6 flex-grow">
-                    <div className="mb-6">
-                      <span className="text-4xl font-bold">{plan.price}</span>
-                      <span className="text-muted-foreground">{plan.period}</span>
-                    </div>
+                    <PriceDisplay plan={plan} isYearly={isYearly} />
                     <ul className="space-y-3 text-left">
                       {plan.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-3">
@@ -299,6 +372,10 @@ export default function Pricing() {
                 {
                   q: "Do you offer discounts for startups or students?",
                   a: "Yes! We offer special pricing for qualified startups and educational institutions. Contact our sales team for details."
+                },
+                {
+                  q: "What's the difference between monthly and yearly billing?",
+                  a: "Yearly billing gives you 2 months free (17% savings). You'll be charged once per year instead of monthly, and you can cancel anytime."
                 },
               ].map((faq) => (
                 <div key={faq.q} className="border border-border rounded-lg p-6 bg-card">
