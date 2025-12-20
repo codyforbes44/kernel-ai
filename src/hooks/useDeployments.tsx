@@ -95,7 +95,15 @@ export function useDeployments(projectId: string) {
 
   // Deploy mutation
   const deployMutation = useMutation({
-    mutationFn: async ({ environment, commitMessage }: { environment: 'preview' | 'production'; commitMessage?: string }) => {
+    mutationFn: async ({ 
+      environment, 
+      commitMessage,
+      rollbackFromVersion 
+    }: { 
+      environment: 'preview' | 'production'; 
+      commitMessage?: string;
+      rollbackFromVersion?: number;
+    }) => {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-project`,
         {
@@ -107,7 +115,9 @@ export function useDeployments(projectId: string) {
           body: JSON.stringify({
             projectId,
             environment,
-            commitMessage,
+            commitMessage: rollbackFromVersion 
+              ? `Rollback to v${rollbackFromVersion}` 
+              : commitMessage,
           }),
         }
       );
@@ -119,9 +129,12 @@ export function useDeployments(projectId: string) {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['deployments', projectId] });
-      toast.success(`Deployed to ${data.deployment.environment}!`, {
+      const message = variables.rollbackFromVersion 
+        ? `Rolled back to v${variables.rollbackFromVersion}!`
+        : `Deployed to ${data.deployment.environment}!`;
+      toast.success(message, {
         description: `Version ${data.deployment.version} is now live`,
         action: data.deployment.deploy_url ? {
           label: 'Open',
@@ -135,6 +148,20 @@ export function useDeployments(projectId: string) {
       });
     },
   });
+
+  // Rollback to a specific deployment
+  const rollback = async (deploymentId: string) => {
+    const targetDeployment = deployments.find(d => d.id === deploymentId);
+    if (!targetDeployment) {
+      toast.error('Deployment not found');
+      return;
+    }
+
+    return deployMutation.mutateAsync({
+      environment: targetDeployment.environment,
+      rollbackFromVersion: targetDeployment.version,
+    });
+  };
 
   // Fetch custom domains
   const { data: customDomains = [] } = useQuery({
@@ -203,6 +230,8 @@ export function useDeployments(projectId: string) {
     isLoading,
     deploy: deployMutation.mutateAsync,
     isDeploying: deployMutation.isPending,
+    rollback,
+    isRollingBack: deployMutation.isPending,
     addDomain: addDomainMutation.mutateAsync,
     deleteDomain: deleteDomainMutation.mutateAsync,
   };

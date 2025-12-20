@@ -11,7 +11,8 @@ import {
   ChevronUp,
   History,
   FileCode,
-  Zap
+  Zap,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,8 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
     isLoading,
     deploy,
     isDeploying,
+    rollback,
+    isRollingBack,
     addDomain,
     deleteDomain,
   } = useDeployments(projectId);
@@ -321,16 +324,32 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <span className="text-muted-foreground mr-1">
                           {deployment.buildDurationMs ? `${deployment.buildDurationMs}ms` : '-'}
                         </span>
+                        {deployment.status === 'deployed' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => rollback(deployment.id)}
+                            disabled={isRollingBack || isDeploying}
+                            title="Rollback to this version"
+                          >
+                            {isRollingBack ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <RotateCcw className="h-3 w-3" />
+                            )}
+                          </Button>
+                        )}
                         {deployment.deployUrl && (
                           <a
                             href={deployment.deployUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-primary hover:text-primary/80"
+                            className="text-primary hover:text-primary/80 p-1"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </a>
