@@ -30,6 +30,7 @@ import { useDeployments, type Deployment, type CustomDomain } from '@/hooks/useD
 import { BuildLogViewer } from './BuildLogViewer';
 import { DeploymentPreview } from './DeploymentPreview';
 import { DeploymentDiffViewer } from './DeploymentDiffViewer';
+import { EnvVarsManager } from './EnvVarsManager';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -411,6 +412,11 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
               />
             )}
           </div>
+
+          <Separator />
+
+          {/* Environment Variables */}
+          <EnvVarsManager projectId={projectId} />
 
           <Separator />
 
