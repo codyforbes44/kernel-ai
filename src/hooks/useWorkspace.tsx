@@ -343,6 +343,25 @@ What would you like to build today?`;
   const createProject = useCallback(async (name: string, description?: string) => {
     if (!user || !selectedWorkspaceId) return null;
 
+    // Create optimistic project with temporary ID
+    const optimisticId = `temp-${Date.now()}`;
+    const optimisticProject: Project = {
+      id: optimisticId,
+      workspace_id: selectedWorkspaceId,
+      user_id: user.id,
+      name,
+      description: description || null,
+      icon: '',
+      color: '',
+      is_archived: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Optimistically add to state and select it
+    setProjects(prev => [...prev, optimisticProject]);
+    setSelectedProjectId(optimisticId);
+
     try {
       const newProject = await workspaceService.createProject({
         workspaceId: selectedWorkspaceId,
@@ -351,11 +370,17 @@ What would you like to build today?`;
         description,
       });
 
-      setProjects(prev => [...prev, newProject]);
+      // Replace optimistic project with real one
+      setProjects(prev => 
+        prev.map(p => p.id === optimisticId ? newProject : p)
+      );
       setSelectedProjectId(newProject.id);
       toast.success('Project created');
       return newProject;
     } catch (error) {
+      // Rollback optimistic update on error
+      setProjects(prev => prev.filter(p => p.id !== optimisticId));
+      setSelectedProjectId(null);
       console.error('Error creating project:', error);
       toast.error('Failed to create project');
       return null;
