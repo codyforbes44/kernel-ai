@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useCallback, useMemo, lazy, Suspense, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -16,6 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { SortableConversationItem } from "./SortableConversationItem";
 import { ConversationItem } from "./ConversationItem";
@@ -43,6 +44,14 @@ interface ConversationListProps {
 const getOrderKey = (projectId: string | undefined) => 
   `conversation-order-${projectId || 'all'}`;
 
+// Threshold for enabling virtual scrolling
+const VIRTUAL_SCROLL_THRESHOLD = 50;
+const ESTIMATED_ITEM_HEIGHT = 56;
+
+type ListItem = 
+  | { type: 'header'; label: string; icon?: 'pin' | 'branch' }
+  | { type: 'conversation'; conversation: Conversation; isDragDisabled: boolean };
+
 export function ConversationList({ searchQuery, onSelect, isMobile }: ConversationListProps) {
   const {
     conversations,
@@ -66,6 +75,8 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
       return [];
     }
   });
+
+  const parentRef = useRef<HTMLDivElement>(null);
 
   // Update custom order when project changes
   useMemo(() => {
@@ -123,14 +134,11 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
       const aIndex = customOrder.indexOf(a.id);
       const bIndex = customOrder.indexOf(b.id);
       
-      // If both are in custom order, use that
       if (aIndex !== -1 && bIndex !== -1) {
         return aIndex - bIndex;
       }
-      // If only one is in custom order, prioritize it
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
-      // Otherwise, keep original order (by updated_at)
       return 0;
     });
   }, [customOrder]);
@@ -144,9 +152,50 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     return {
       pinnedConversations: sortByCustomOrder(pinned),
       rootConversations: sortByCustomOrder(root),
-      branchConversations: branches, // Don't sort branches
+      branchConversations: branches,
     };
   }, [filteredConversations, sortByCustomOrder]);
+
+  // Create a flat list with headers for virtual scrolling
+  const flatList = useMemo<ListItem[]>(() => {
+    const items: ListItem[] = [];
+    
+    if (pinnedConversations.length > 0) {
+      items.push({ type: 'header', label: 'Pinned', icon: 'pin' });
+      pinnedConversations.forEach(conv => {
+        items.push({ type: 'conversation', conversation: conv, isDragDisabled: false });
+      });
+    }
+    
+    if (rootConversations.length > 0) {
+      items.push({ type: 'header', label: 'Recent' });
+      rootConversations.forEach(conv => {
+        items.push({ type: 'conversation', conversation: conv, isDragDisabled: false });
+      });
+    }
+    
+    if (branchConversations.length > 0) {
+      items.push({ type: 'header', label: 'Branches', icon: 'branch' });
+      branchConversations.forEach(conv => {
+        items.push({ type: 'conversation', conversation: conv, isDragDisabled: true });
+      });
+    }
+    
+    return items;
+  }, [pinnedConversations, rootConversations, branchConversations]);
+
+  // Determine if we should use virtual scrolling
+  const useVirtual = filteredConversations.length > VIRTUAL_SCROLL_THRESHOLD;
+
+  const virtualizer = useVirtualizer({
+    count: flatList.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => {
+      const item = flatList[index];
+      return item?.type === 'header' ? 28 : ESTIMATED_ITEM_HEIGHT;
+    },
+    overscan: 5,
+  });
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -158,7 +207,6 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
 
     if (!over || active.id === over.id) return;
 
-    // Determine which list the items belong to
     const isPinnedItem = pinnedConversations.some(c => c.id === active.id);
     const isRootItem = rootConversations.some(c => c.id === active.id);
 
@@ -168,7 +216,7 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     } else if (isRootItem) {
       items = rootConversations;
     } else {
-      return; // Don't allow reordering branches
+      return;
     }
 
     const oldIndex = items.findIndex(c => c.id === active.id);
@@ -179,8 +227,6 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     const newItems = arrayMove(items, oldIndex, newIndex);
     const newOrder = newItems.map(c => c.id);
 
-    // Merge with existing order for other sections
-    const allIds = [...pinnedConversations, ...rootConversations].map(c => c.id);
     const updatedOrder = isPinnedItem
       ? [...newOrder, ...rootConversations.map(c => c.id)]
       : [...pinnedConversations.map(c => c.id), ...newOrder];
@@ -237,12 +283,10 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     }
   }, [conversations, setCurrentConversation, onSelect]);
 
-  // Find active conversation for overlay
   const activeConversation = activeId 
     ? [...pinnedConversations, ...rootConversations, ...branchConversations].find(c => c.id === activeId)
     : null;
 
-  // Show loading skeleton
   if (loading) {
     return (
       <div className="space-y-3 animate-fade-in">
@@ -274,36 +318,52 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     );
   }
 
-  const renderSortableItem = (conversation: Conversation, isDragDisabled = false) => (
-    <SortableConversationItem
-      key={conversation.id}
-      conversation={conversation}
-      isActive={currentConversation?.id === conversation.id}
-      branchCount={branchCounts.get(conversation.id) || 0}
-      onSelect={() => {
-        setCurrentConversation(conversation);
-        onSelect?.();
-      }}
-      onRename={() => setRenameDialog(conversation)}
-      onDelete={() => setDeleteDialog(conversation)}
-      onPin={() => handlePin(conversation)}
-      onArchive={() => handleArchive(conversation)}
-      onOpenProject={() => {
-        if (conversation.lovable_project_url) {
-          openLovableProject(conversation.lovable_project_url);
-        }
-      }}
-      onCopyProjectUrl={() => {
-        if (conversation.lovable_project_url) {
-          copyProjectUrl(conversation.lovable_project_url);
-        }
-      }}
-      onUnlinkProject={() => handleUnlinkProject(conversation)}
-      onGoToParent={conversation.parent_conversation_id ? () => handleGoToParent(conversation) : undefined}
-      isMobile={isMobile}
-      isDragDisabled={isDragDisabled}
-    />
-  );
+  const renderItem = (item: ListItem) => {
+    if (item.type === 'header') {
+      return (
+        <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1 py-1">
+          {item.icon === 'pin' && <Pin className="h-3 w-3" />}
+          {item.icon === 'branch' && <GitBranch className="h-3 w-3" />}
+          {item.label}
+        </span>
+      );
+    }
+
+    const { conversation, isDragDisabled } = item;
+    return (
+      <SortableConversationItem
+        key={conversation.id}
+        conversation={conversation}
+        isActive={currentConversation?.id === conversation.id}
+        branchCount={branchCounts.get(conversation.id) || 0}
+        onSelect={() => {
+          setCurrentConversation(conversation);
+          onSelect?.();
+        }}
+        onRename={() => setRenameDialog(conversation)}
+        onDelete={() => setDeleteDialog(conversation)}
+        onPin={() => handlePin(conversation)}
+        onArchive={() => handleArchive(conversation)}
+        onOpenProject={() => {
+          if (conversation.lovable_project_url) {
+            openLovableProject(conversation.lovable_project_url);
+          }
+        }}
+        onCopyProjectUrl={() => {
+          if (conversation.lovable_project_url) {
+            copyProjectUrl(conversation.lovable_project_url);
+          }
+        }}
+        onUnlinkProject={() => handleUnlinkProject(conversation)}
+        onGoToParent={conversation.parent_conversation_id ? () => handleGoToParent(conversation) : undefined}
+        isMobile={isMobile}
+        isDragDisabled={isDragDisabled}
+      />
+    );
+  };
+
+  // Get all conversation IDs for sortable context
+  const allSortableIds = [...pinnedConversations, ...rootConversations].map(c => c.id);
 
   return (
     <>
@@ -314,47 +374,54 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="space-y-3">
-          {pinnedConversations.length > 0 && (
-            <div className="space-y-1">
-              <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <Pin className="h-3 w-3" />
-                Pinned
-              </span>
-              <SortableContext
-                items={pinnedConversations.map(c => c.id)}
-                strategy={verticalListSortingStrategy}
+        <SortableContext
+          items={allSortableIds}
+          strategy={verticalListSortingStrategy}
+        >
+          {useVirtual ? (
+            // Virtual scrolling for large lists
+            <div
+              ref={parentRef}
+              className="h-[calc(100vh-200px)] overflow-auto"
+            >
+              <div
+                style={{
+                  height: `${virtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
               >
-                {pinnedConversations.map(conv => renderSortableItem(conv))}
-              </SortableContext>
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                  const item = flatList[virtualRow.index];
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                    >
+                      {renderItem(item)}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
-
-          {rootConversations.length > 0 && (
+          ) : (
+            // Regular rendering for small lists
             <div className="space-y-1">
-              <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Recent
-              </span>
-              <SortableContext
-                items={rootConversations.map(c => c.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {rootConversations.map(conv => renderSortableItem(conv))}
-              </SortableContext>
+              {flatList.map((item, index) => (
+                <div key={item.type === 'header' ? `header-${item.label}` : item.conversation.id}>
+                  {renderItem(item)}
+                </div>
+              ))}
             </div>
           )}
-
-          {branchConversations.length > 0 && (
-            <div className="space-y-1">
-              <span className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <GitBranch className="h-3 w-3" />
-                Branches
-              </span>
-              {/* Branches are not sortable */}
-              {branchConversations.map(conv => renderSortableItem(conv, true))}
-            </div>
-          )}
-        </div>
+        </SortableContext>
 
         <DragOverlay>
           {activeConversation ? (
