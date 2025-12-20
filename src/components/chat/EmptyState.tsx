@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import {
   MessageSquare,
@@ -12,6 +15,7 @@ import {
   Palette,
   Code2,
   ArrowRight,
+  Compass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +56,71 @@ const quickPrompts = [
     prompt: "Help me optimize the performance of my Lovable app",
   },
 ];
+
+function StartTourButton() {
+  const { user } = useAuth();
+  const [hasCompletedTour, setHasCompletedTour] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchPreferences = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', user.id)
+        .single();
+      
+      const prefs = data?.preferences as Record<string, unknown> | null;
+      setHasCompletedTour(prefs?.hasCompletedTour === true);
+    };
+    
+    fetchPreferences();
+  }, [user]);
+
+  const handleStartTour = async () => {
+    if (!user) return;
+    
+    // Reset the tour completion flag to trigger the tour
+    const { data } = await supabase
+      .from('profiles')
+      .select('preferences')
+      .eq('id', user.id)
+      .single();
+    
+    const currentPrefs = (data?.preferences as Record<string, unknown>) || {};
+    
+    await supabase
+      .from('profiles')
+      .update({ 
+        preferences: { ...currentPrefs, hasCompletedTour: false } 
+      })
+      .eq('id', user.id);
+    
+    // Reload the page to show the tour
+    window.location.reload();
+  };
+
+  // Only show the button if the user has already completed the tour
+  if (!hasCompletedTour) return null;
+
+  return (
+    <button
+      onClick={handleStartTour}
+      className={cn(
+        "mt-6 flex items-center gap-2 px-4 py-2 rounded-lg text-sm",
+        "text-muted-foreground hover:text-foreground",
+        "bg-muted/50 hover:bg-muted border border-border/50 hover:border-border",
+        "transition-all animate-fade-in"
+      )}
+      style={{ animationDelay: "450ms" }}
+      aria-label="Start the welcome tour"
+    >
+      <Compass className="h-4 w-4" aria-hidden="true" />
+      <span>Take a Tour</span>
+    </button>
+  );
+}
 
 export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
   const { currentProject, createConversation, isCreatingConversation } = useWorkspace();
@@ -173,9 +242,11 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
         })}
       </nav>
 
+      <StartTourButton />
+
       {!isMobile && (
         <div 
-          className="mt-8 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in"
+          className="mt-6 flex items-center gap-2 text-xs text-muted-foreground animate-fade-in"
           style={{ animationDelay: "500ms" }}
         >
           <span>Press</span>
