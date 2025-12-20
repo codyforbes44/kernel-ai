@@ -4,18 +4,49 @@ import { cn } from "@/lib/utils";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useAdmin } from "@/hooks/useAdmin";
 
-const baseTabs = [
-  { href: "/", label: "Chat", icon: MessageSquare },
-  { href: "/builder", label: "Builder", icon: Code2 },
+type TabKey = "chat" | "builder" | "settings" | "admin";
+
+interface Tab {
+  href: string;
+  label: string;
+  icon: typeof MessageSquare;
+  key: TabKey;
+}
+
+const baseTabs: Tab[] = [
+  { href: "/", label: "Chat", icon: MessageSquare, key: "chat" },
+  { href: "/builder", label: "Builder", icon: Code2, key: "builder" },
 ];
 
-const settingsTab = { href: "/settings", label: "Settings", icon: Settings };
-const adminTab = { href: "/admin", label: "Admin", icon: Shield };
+const settingsTab: Tab = { href: "/settings", label: "Settings", icon: Settings, key: "settings" };
+const adminTab: Tab = { href: "/admin", label: "Admin", icon: Shield, key: "admin" };
+
+interface NotificationBadgeProps {
+  count: number;
+}
+
+function NotificationBadge({ count }: NotificationBadgeProps) {
+  if (count === 0) return null;
+  
+  return (
+    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full animate-in zoom-in-50 duration-200">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 export function MobileTabBar() {
   const location = useLocation();
   const { light } = useHaptic();
   const { isAdmin } = useAdmin();
+
+  // Mock notification counts - replace with useNotifications() when is_read column exists
+  const notificationCounts = {
+    chat: 0,
+    builder: 0,
+    settings: 0,
+    admin: 0,
+  };
 
   const handleTabClick = () => {
     light();
@@ -59,8 +90,10 @@ export function MobileTabBar() {
                 "h-5 w-5 transition-transform",
                 isActive && "scale-110"
               )} />
-              {isActive && (
+              {isActive ? (
                 <Sparkles className="absolute -top-1 -right-1 h-2.5 w-2.5 text-primary animate-pulse" />
+              ) : (
+                <NotificationBadge count={notificationCounts[tab.key]} />
               )}
             </div>
             <span className={cn(
