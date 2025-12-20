@@ -135,6 +135,74 @@ export type Database = {
         }
         Relationships: []
       }
+      component_installations: {
+        Row: {
+          component_id: string
+          id: string
+          installed_at: string | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          component_id: string
+          id?: string
+          installed_at?: string | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          component_id?: string
+          id?: string
+          installed_at?: string | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "component_installations_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "component_installations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      component_likes: {
+        Row: {
+          component_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          component_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          component_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "component_likes_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_components"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           branch_point_message_id: string | null
@@ -327,6 +395,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "deployments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_systems: {
+        Row: {
+          border_radius: Json
+          colors: Json
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          project_id: string | null
+          shadows: Json
+          spacing: Json
+          typography: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          border_radius?: Json
+          colors?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          project_id?: string | null
+          shadows?: Json
+          spacing?: Json
+          typography?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          border_radius?: Json
+          colors?: Json
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          project_id?: string | null
+          shadows?: Json
+          spacing?: Json
+          typography?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_systems_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "builder_projects"
@@ -580,6 +704,63 @@ export type Database = {
           id?: string
           ip_address?: string | null
           success?: boolean
+        }
+        Relationships: []
+      }
+      marketplace_components: {
+        Row: {
+          author_id: string
+          category: string
+          code: string
+          created_at: string | null
+          dependencies: Json | null
+          description: string | null
+          downloads: number | null
+          id: string
+          is_public: boolean | null
+          likes: number | null
+          name: string
+          preview_image_url: string | null
+          props_schema: Json | null
+          tags: string[] | null
+          updated_at: string | null
+          version: string | null
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          code: string
+          created_at?: string | null
+          dependencies?: Json | null
+          description?: string | null
+          downloads?: number | null
+          id?: string
+          is_public?: boolean | null
+          likes?: number | null
+          name: string
+          preview_image_url?: string | null
+          props_schema?: Json | null
+          tags?: string[] | null
+          updated_at?: string | null
+          version?: string | null
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          code?: string
+          created_at?: string | null
+          dependencies?: Json | null
+          description?: string | null
+          downloads?: number | null
+          id?: string
+          is_public?: boolean | null
+          likes?: number | null
+          name?: string
+          preview_image_url?: string | null
+          props_schema?: Json | null
+          tags?: string[] | null
+          updated_at?: string | null
+          version?: string | null
         }
         Relationships: []
       }
