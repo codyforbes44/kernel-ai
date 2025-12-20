@@ -9,6 +9,7 @@ interface UseVisualEditorOptions {
   onElementDeselected?: () => void;
   onChangeApplied?: (change: VisualChange) => void;
   onSaveChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
+  onDoubleClick?: (element: SelectedElement) => void;
   files?: ProjectFile[];
 }
 
@@ -18,6 +19,7 @@ export function useVisualEditor({
   onElementDeselected,
   onChangeApplied,
   onSaveChanges,
+  onDoubleClick,
   files = [],
 }: UseVisualEditorOptions) {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -26,6 +28,15 @@ export function useVisualEditor({
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const [hoveredElement, setHoveredElement] = useState<SelectedElement | null>(null);
   const [pendingChanges, setPendingChanges] = useState<VisualChange[]>([]);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
+  
+  // Undo/Redo state
+  const [undoStack, setUndoStack] = useState<VisualChange[][]>([]);
+  const [redoStack, setRedoStack] = useState<VisualChange[][]>([]);
+  
+  // Recent colors for color picker
+  const [recentColors, setRecentColors] = useState<string[]>([]);
+  
   const isEnabledRef = useRef(isEnabled);
 
   // Keep ref in sync
@@ -61,12 +72,18 @@ export function useVisualEditor({
           setSelectedElement(null);
           onElementDeselected?.();
           break;
+
+        case 'VISUAL_EDITOR_ELEMENT_DOUBLE_CLICKED' as any:
+          if ((data as any).payload) {
+            onDoubleClick?.((data as any).payload);
+          }
+          break;
       }
     }
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [onElementSelected, onElementDeselected]);
+  }, [onElementSelected, onElementDeselected, onDoubleClick]);
 
   // Send message to iframe
   const sendMessage = useCallback((message: VisualEditorMessage) => {
@@ -87,6 +104,7 @@ export function useVisualEditor({
     setIsEnabled(false);
     setSelectedElement(null);
     setHoveredElement(null);
+    setIsInlineEditing(false);
     sendMessage({ type: 'VISUAL_EDITOR_DISABLE' });
   }, [sendMessage]);
 
@@ -99,9 +117,17 @@ export function useVisualEditor({
     }
   }, [isEnabled, enable, disable]);
 
+  // Save state for undo
+  const pushToUndoStack = useCallback(() => {
+    setUndoStack(prev => [...prev, [...pendingChanges]]);
+    setRedoStack([]); // Clear redo on new action
+  }, [pendingChanges]);
+
   // Update style on selected element
   const updateStyle = useCallback((property: string, value: string) => {
     if (!selectedElement) return;
+
+    pushToUndoStack();
 
     const oldValue = selectedElement.styles[property as keyof typeof selectedElement.styles] || '';
     
@@ -127,11 +153,13 @@ export function useVisualEditor({
       ...prev,
       styles: { ...prev.styles, [property]: value },
     } : null);
-  }, [selectedElement, sendMessage, onChangeApplied]);
+  }, [selectedElement, sendMessage, onChangeApplied, pushToUndoStack]);
 
   // Update text on selected element
   const updateText = useCallback((text: string) => {
     if (!selectedElement) return;
+
+    pushToUndoStack();
 
     const oldValue = selectedElement.textContent;
 
@@ -156,11 +184,13 @@ export function useVisualEditor({
       ...prev,
       textContent: text,
     } : null);
-  }, [selectedElement, sendMessage, onChangeApplied]);
+  }, [selectedElement, sendMessage, onChangeApplied, pushToUndoStack]);
 
   // Update classes on selected element
   const updateClasses = useCallback((classes: string) => {
     if (!selectedElement) return;
+
+    pushToUndoStack();
 
     const oldValue = selectedElement.className;
 
@@ -186,21 +216,64 @@ export function useVisualEditor({
       className: classes,
       tailwindClasses: classes.split(/\s+/).filter(c => c.length > 0),
     } : null);
-  }, [selectedElement, sendMessage, onChangeApplied]);
+  }, [selectedElement, sendMessage, onChangeApplied, pushToUndoStack]);
+
+  // Undo last change
+  const undo = useCallback(() => {
+    if (undoStack.length === 0) return;
+    
+    const lastState = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, [...pendingChanges]]);
+    setUndoStack(prev => prev.slice(0, -1));
+    setPendingChanges(lastState);
+  }, [undoStack, pendingChanges]);
+
+  // Redo last undone change
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return;
+    
+    const nextState = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, [...pendingChanges]]);
+    setRedoStack(prev => prev.slice(0, -1));
+    setPendingChanges(nextState);
+  }, [redoStack, pendingChanges]);
 
   // Clear pending changes
   const clearChanges = useCallback(() => {
     setPendingChanges([]);
+    setUndoStack([]);
+    setRedoStack([]);
   }, []);
 
   // Deselect element
   const deselect = useCallback(() => {
     setSelectedElement(null);
+    setIsInlineEditing(false);
     sendMessage({ type: 'VISUAL_EDITOR_DISABLE' });
     setTimeout(() => {
       sendMessage({ type: 'VISUAL_EDITOR_ENABLE' });
     }, 50);
   }, [sendMessage]);
+
+  // Start inline editing
+  const startInlineEdit = useCallback(() => {
+    if (selectedElement?.textContent) {
+      setIsInlineEditing(true);
+    }
+  }, [selectedElement]);
+
+  // End inline editing
+  const endInlineEdit = useCallback(() => {
+    setIsInlineEditing(false);
+  }, []);
+
+  // Add a color to recent colors
+  const addRecentColor = useCallback((color: string) => {
+    setRecentColors(prev => {
+      const filtered = prev.filter(c => c.toLowerCase() !== color.toLowerCase());
+      return [color, ...filtered].slice(0, 8);
+    });
+  }, []);
 
   // Save changes to source files
   const saveChanges = useCallback(async () => {
@@ -220,6 +293,8 @@ export function useVisualEditor({
         
         await onSaveChanges(fileUpdates);
         setPendingChanges([]);
+        setUndoStack([]);
+        setRedoStack([]);
       }
     } finally {
       setIsSaving(false);
@@ -239,6 +314,10 @@ export function useVisualEditor({
     hoveredElement,
     pendingChanges,
     changesSummary,
+    isInlineEditing,
+    recentColors,
+    canUndo: undoStack.length > 0,
+    canRedo: redoStack.length > 0,
     enable,
     disable,
     toggle,
@@ -248,6 +327,11 @@ export function useVisualEditor({
     clearChanges,
     deselect,
     saveChanges,
+    undo,
+    redo,
+    startInlineEdit,
+    endInlineEdit,
+    addRecentColor,
   };
 }
 

@@ -1,4 +1,9 @@
 export { PropertyEditorPanel } from './PropertyEditorPanel';
 export { SelectionOverlay } from './SelectionOverlay';
 export { useVisualEditor } from './useVisualEditor';
+export { FloatingToolbar } from './FloatingToolbar';
+export { InlineTextEditor } from './InlineTextEditor';
+export { BoxModelEditor } from './BoxModelEditor';
+export { ColorPickerPopover } from './ColorPickerPopover';
+export { VisualEditsButton } from './VisualEditsButton';
 export { getVisualEditorInjectionScript } from './useVisualEditorInjection';

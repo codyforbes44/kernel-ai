@@ -10,7 +10,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ProjectFile } from '@/types/builder';
 import type { SelectedElement, VisualChange } from '@/types/visual-editor';
-import { useVisualEditor, PropertyEditorPanel, getVisualEditorInjectionScript } from './visual-editor';
+import { 
+  useVisualEditor, 
+  PropertyEditorPanel, 
+  getVisualEditorInjectionScript,
+  FloatingToolbar,
+  InlineTextEditor,
+  VisualEditsButton,
+} from './visual-editor';
 import { injectSourceMapping } from '@/lib/jsxSourceMapper';
 import { toast } from 'sonner';
 
@@ -22,6 +29,7 @@ interface SandpackPreviewProps {
   previewCSS?: string | null;
   previewSystemName?: string | null;
   previewFontsUrl?: string | null;
+  onVisualEditorToggle?: (enabled: boolean) => void;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -146,19 +154,28 @@ function SandpackPreviewInner({
   files,
   onVisualChange,
   onSaveVisualChanges,
+  onVisualEditorToggle,
 }: {
   files: ProjectFile[];
   onVisualChange?: (change: VisualChange) => void;
   onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
+  onVisualEditorToggle?: (enabled: boolean) => void;
 }) {
   const { sandpack } = useSandpack();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [showInlineEditor, setShowInlineEditor] = useState(false);
+  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const {
     isEnabled,
     isSaving,
     selectedElement,
     hoveredElement,
+    isInlineEditing,
+    recentColors,
+    canUndo,
+    canRedo,
     enable,
     disable,
     toggle,
@@ -169,17 +186,36 @@ function SandpackPreviewInner({
     pendingChanges,
     saveChanges,
     clearChanges,
+    undo,
+    redo,
+    startInlineEdit,
+    endInlineEdit,
+    addRecentColor,
   } = useVisualEditor({
     iframeRef,
     files,
     onElementSelected: (element) => {
-      // Element selected in preview
+      setShowFloatingToolbar(true);
+    },
+    onElementDeselected: () => {
+      setShowFloatingToolbar(false);
+      setShowInlineEditor(false);
+    },
+    onDoubleClick: (element) => {
+      if (element.textContent) {
+        setShowInlineEditor(true);
+      }
     },
     onChangeApplied: (change) => {
       onVisualChange?.(change);
     },
     onSaveChanges: onSaveVisualChanges,
   });
+
+  // Notify parent of visual editor toggle
+  useEffect(() => {
+    onVisualEditorToggle?.(isEnabled);
+  }, [isEnabled, onVisualEditorToggle]);
 
   // Get iframe ref from Sandpack
   useEffect(() => {
@@ -199,22 +235,95 @@ function SandpackPreviewInner({
     disable();
   }, [disable]);
 
+  const handleInlineTextSave = useCallback((text: string) => {
+    updateText(text);
+    setShowInlineEditor(false);
+  }, [updateText]);
+
+  const handleInlineTextCancel = useCallback(() => {
+    setShowInlineEditor(false);
+  }, []);
+
+  const handleDuplicate = useCallback(() => {
+    if (selectedElement) {
+      const iframe = iframeRef.current;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'VISUAL_EDITOR_DUPLICATE' }, '*');
+      }
+      toast.success('Element duplicated');
+    }
+  }, [selectedElement]);
+
+  const handleDelete = useCallback(() => {
+    if (selectedElement) {
+      const iframe = iframeRef.current;
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'VISUAL_EDITOR_DELETE' }, '*');
+      }
+      toast.success('Element deleted');
+    }
+  }, [selectedElement]);
+
+  // Calculate floating toolbar position (relative to container)
+  const getToolbarPosition = useCallback(() => {
+    if (!selectedElement || !containerRef.current) return { top: 0, left: 0 };
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    return {
+      top: selectedElement.rect.top - containerRect.top,
+      left: selectedElement.rect.left - containerRect.left + (selectedElement.rect.width / 2),
+    };
+  }, [selectedElement]);
+
   return (
-    <>
+    <div ref={containerRef} className="relative h-full">
       {/* Visual Editor Toggle in toolbar */}
-      <Button
-        variant={isEnabled ? 'default' : 'ghost'}
-        size="icon"
-        className={cn('h-7 w-7', isEnabled && 'bg-primary text-primary-foreground')}
-        onClick={toggle}
-        title={isEnabled ? 'Disable Visual Editor' : 'Enable Visual Editor'}
-      >
-        <MousePointer2 className="h-4 w-4" />
-      </Button>
+      <div className="absolute top-2 right-2 z-20">
+        <VisualEditsButton
+          isActive={isEnabled}
+          onClick={toggle}
+        />
+      </div>
+
+      {/* Floating Toolbar */}
+      {isEnabled && showFloatingToolbar && selectedElement && !showInlineEditor && (
+        <FloatingToolbar
+          element={selectedElement}
+          position={getToolbarPosition()}
+          onEditText={() => setShowInlineEditor(true)}
+          onEditColor={() => {
+            // Focus on style tab in property panel
+          }}
+          onDuplicate={handleDuplicate}
+          onDelete={handleDelete}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+        />
+      )}
+
+      {/* Inline Text Editor */}
+      {isEnabled && showInlineEditor && selectedElement && selectedElement.textContent && (
+        <InlineTextEditor
+          initialText={selectedElement.textContent}
+          position={{
+            top: selectedElement.rect.top,
+            left: selectedElement.rect.left,
+            width: selectedElement.rect.width,
+            height: selectedElement.rect.height,
+          }}
+          fontSize={selectedElement.styles.fontSize}
+          fontWeight={selectedElement.styles.fontWeight}
+          color={selectedElement.styles.color}
+          onSave={handleInlineTextSave}
+          onCancel={handleInlineTextCancel}
+        />
+      )}
 
       {/* Property Editor Panel */}
       {isEnabled && (
-        <div className="absolute right-0 top-10 bottom-0 w-72 z-10">
+        <div className="absolute right-0 top-12 bottom-0 w-72 z-10">
           <PropertyEditorPanel
             selectedElement={selectedElement}
             onUpdateStyle={updateStyle}
@@ -252,7 +361,7 @@ function SandpackPreviewInner({
           </Button>
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -264,10 +373,10 @@ export function SandpackPreview({
   previewCSS,
   previewSystemName,
   previewFontsUrl,
+  onVisualEditorToggle,
 }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [visualEditorEnabled, setVisualEditorEnabled] = useState(false);
 
   const sandpackFiles = useMemo(
     () => convertToSandpackFiles(files, true, previewCSS, previewFontsUrl),
@@ -377,6 +486,7 @@ export function SandpackPreview({
                 files={files}
                 onVisualChange={onVisualChange} 
                 onSaveVisualChanges={onSaveVisualChanges}
+                onVisualEditorToggle={onVisualEditorToggle}
               />
             </div>
           </SandpackProvider>
