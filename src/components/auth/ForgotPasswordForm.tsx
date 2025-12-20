@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlowInput } from "@/components/ui/glow-input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle } from "lucide-react";
@@ -63,13 +63,14 @@ export function ForgotPasswordForm({ onResetPassword, onBack }: ForgotPasswordFo
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="forgot-email">Email</Label>
-        <Input
+        <GlowInput
           id="forgot-email"
           type="email"
           inputMode="email"
           autoComplete="email"
           placeholder="you@example.com"
-          className="bg-background min-h-[44px] md:min-h-[40px]"
+          variant="glow"
+          className="min-h-[44px] md:min-h-[40px]"
           {...form.register('email')}
         />
         {form.formState.errors.email && (

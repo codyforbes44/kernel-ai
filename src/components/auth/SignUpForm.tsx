@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlowInput } from "@/components/ui/glow-input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength";
@@ -72,12 +72,13 @@ export function SignUpForm({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="signup-name">Display Name</Label>
-          <Input
+          <GlowInput
             id="signup-name"
             type="text"
             autoComplete="name"
             placeholder="Your name"
-            className="bg-background min-h-[44px] md:min-h-[40px]"
+            variant="glow"
+            className="min-h-[44px] md:min-h-[40px]"
             {...form.register('displayName')}
           />
           {form.formState.errors.displayName && (
@@ -87,13 +88,14 @@ export function SignUpForm({
 
         <div className="space-y-2">
           <Label htmlFor="signup-email">Email</Label>
-          <Input
+          <GlowInput
             id="signup-email"
             type="email"
             inputMode="email"
             autoComplete="email"
             placeholder="you@example.com"
-            className="bg-background min-h-[44px] md:min-h-[40px]"
+            variant="glow"
+            className="min-h-[44px] md:min-h-[40px]"
             {...form.register('email')}
           />
           {form.formState.errors.email && (
