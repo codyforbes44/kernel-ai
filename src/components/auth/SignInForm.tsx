@@ -11,13 +11,14 @@ import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRateLimiting } from "@/hooks/useRateLimiting";
+import { useLoginGeolocation } from "@/hooks/useLoginGeolocation";
 import { signInSchema, type SignInFormData } from "@/lib/validations";
 import { SocialAuthButtons, type OAuthProvider } from "./SocialAuthButtons";
 import { PasswordInput } from "./PasswordInput";
-import { ShieldAlert, Clock } from "lucide-react";
+import { ShieldAlert, Clock, MapPin } from "lucide-react";
 
 interface SignInFormProps {
-  onSignIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>;
+  onSignIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null; userId?: string }>;
   onOAuthSignIn: (provider: OAuthProvider) => Promise<void>;
   oauthLoading: OAuthProvider | null;
   onForgotPassword: () => void;
@@ -34,6 +35,7 @@ export function SignInForm({
   const isMobile = useIsMobile();
   const { success, error: hapticError } = useHaptic();
   const { lockoutStatus, checkLockout, recordAttempt, formatLockoutTime, clearLockoutStatus } = useRateLimiting();
+  const { checkLoginLocation, currentLocation } = useLoginGeolocation();
   const [countdown, setCountdown] = useState<number>(0);
 
   const form = useForm<SignInFormData>({
@@ -68,7 +70,7 @@ export function SignInForm({
       return;
     }
 
-    const { error } = await onSignIn(data.email, data.password, data.rememberMe);
+    const { error, userId } = await onSignIn(data.email, data.password, data.rememberMe);
     
     if (error) {
       // Record failed attempt
@@ -88,6 +90,22 @@ export function SignInForm({
     } else {
       // Record successful attempt
       await recordAttempt(data.email, true);
+      
+      // Check for new login location
+      if (userId) {
+        const { isNewLocation, location } = await checkLoginLocation(userId);
+        if (isNewLocation && location) {
+          const locationText = [location.city, location.country].filter(Boolean).join(', ');
+          toast.warning(
+            `New login location detected: ${locationText || location.ip}`,
+            {
+              duration: 8000,
+              icon: <MapPin className="h-4 w-4" />,
+              description: "If this wasn't you, please change your password.",
+            }
+          );
+        }
+      }
       
       if (isMobile) success();
       toast.success("Welcome back!");

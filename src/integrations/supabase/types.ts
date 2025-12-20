@@ -163,6 +163,53 @@ export type Database = {
           },
         ]
       }
+      login_alerts: {
+        Row: {
+          alert_type: string
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          ip_address: string
+          is_dismissed: boolean | null
+          is_read: boolean | null
+          location_id: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_address: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          location_id?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string
+          is_dismissed?: boolean | null
+          is_read?: boolean | null
+          location_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_alerts_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "user_login_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_attempts: {
         Row: {
           created_at: string
@@ -474,6 +521,57 @@ export type Database = {
           messages_sent?: number | null
           templates_used?: number | null
           tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_login_locations: {
+        Row: {
+          city: string | null
+          country: string | null
+          country_code: string | null
+          first_seen_at: string
+          id: string
+          ip_address: string
+          is_trusted: boolean | null
+          isp: string | null
+          last_seen_at: string
+          latitude: number | null
+          login_count: number | null
+          longitude: number | null
+          region: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          first_seen_at?: string
+          id?: string
+          ip_address: string
+          is_trusted?: boolean | null
+          isp?: string | null
+          last_seen_at?: string
+          latitude?: number | null
+          login_count?: number | null
+          longitude?: number | null
+          region?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          country_code?: string | null
+          first_seen_at?: string
+          id?: string
+          ip_address?: string
+          is_trusted?: boolean | null
+          isp?: string | null
+          last_seen_at?: string
+          latitude?: number | null
+          login_count?: number | null
+          longitude?: number | null
+          region?: string | null
           user_id?: string
         }
         Relationships: []
