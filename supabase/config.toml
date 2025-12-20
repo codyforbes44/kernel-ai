@@ -26,3 +26,15 @@ verify_jwt = false
 
 [functions.generate-design-system]
 verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = false
