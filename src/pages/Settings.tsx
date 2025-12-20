@@ -61,6 +61,7 @@ export default function Settings() {
   const [displayName, setDisplayName] = useState('');
   const [originalDisplayName, setOriginalDisplayName] = useState('');
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
@@ -88,13 +89,19 @@ export default function Settings() {
         setOriginalDisplayName(name);
         
         // Load preferences
-        const prefs = data?.preferences as { reduced_motion?: boolean } | null;
+        const prefs = data?.preferences as { reduced_motion?: boolean; high_contrast?: boolean } | null;
         const reducedMotionPref = prefs?.reduced_motion ?? false;
+        const highContrastPref = prefs?.high_contrast ?? false;
         setReducedMotion(reducedMotionPref);
+        setHighContrast(highContrastPref);
         
         // Apply reduced motion to document
         if (reducedMotionPref) {
           document.documentElement.classList.add('reduce-motion');
+        }
+        // Apply high contrast to document
+        if (highContrastPref) {
+          document.documentElement.classList.add('high-contrast');
         }
       } catch (error) {
         console.error('Failed to load profile:', error);
@@ -171,6 +178,53 @@ export default function Settings() {
         document.documentElement.classList.add('reduce-motion');
       } else {
         document.documentElement.classList.remove('reduce-motion');
+      }
+    } finally {
+      setIsSavingPreferences(false);
+    }
+  };
+
+  const handleHighContrastChange = async (enabled: boolean) => {
+    if (!user) return;
+    
+    setHighContrast(enabled);
+    setIsSavingPreferences(true);
+    
+    // Apply immediately to document
+    if (enabled) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+    
+    try {
+      // Fetch current preferences first
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
+      const updatedPrefs = { ...currentPrefs, high_contrast: enabled };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ preferences: updatedPrefs })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success(enabled ? 'High contrast enabled' : 'High contrast disabled');
+    } catch (error) {
+      console.error('Failed to save preference:', error);
+      toast.error('Failed to save preference');
+      // Revert on error
+      setHighContrast(!enabled);
+      if (!enabled) {
+        document.documentElement.classList.add('high-contrast');
+      } else {
+        document.documentElement.classList.remove('high-contrast');
       }
     } finally {
       setIsSavingPreferences(false);
@@ -357,6 +411,26 @@ export default function Settings() {
                   ? 'Theme will automatically match your system preferences' 
                   : `Using ${theme} theme`}
               </p>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 2a10 10 0 0 1 0 20" fill="currentColor" />
+                  </svg>
+                  High Contrast
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Increase text contrast and reduce visual complexity
+                </p>
+              </div>
+              <Switch
+                checked={highContrast}
+                onCheckedChange={handleHighContrastChange}
+                disabled={isLoadingProfile || isSavingPreferences}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
