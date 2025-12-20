@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ import {
   Save,
   Loader2,
   GraduationCap,
+  Settings2,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 
@@ -39,6 +42,7 @@ export default function Settings() {
   }} : { signOut: async () => {} };
   const { theme, setTheme } = useTheme();
   const { clearHistory } = useVariableHistory();
+  const { preferences, updatePreference, loading: preferencesLoading } = useUserPreferences();
   const [displayName, setDisplayName] = useState('');
   const [originalDisplayName, setOriginalDisplayName] = useState('');
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -308,6 +312,38 @@ export default function Settings() {
                 checked={reducedMotion}
                 onCheckedChange={handleReducedMotionChange}
                 disabled={isLoadingProfile || isSavingPreferences}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              Preferences
+            </CardTitle>
+            <CardDescription>Customize your workflow settings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <MessageSquarePlus className="h-4 w-4 text-primary" />
+                  Auto-create chat on new project
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically start a chat session when creating a new project
+                </p>
+              </div>
+              <Switch
+                checked={preferences.autoCreateChatOnProject ?? true}
+                onCheckedChange={(checked) => {
+                  updatePreference('autoCreateChatOnProject', checked);
+                  toast.success(checked ? 'Auto-chat enabled' : 'Auto-chat disabled');
+                }}
+                disabled={preferencesLoading}
               />
             </div>
           </CardContent>
