@@ -17,6 +17,124 @@ interface GitHubRepo {
   updated_at: string;
 }
 
+// Input validation helpers
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  return str.slice(0, maxLength).replace(/[<>]/g, "");
+}
+
+function isValidGitHubName(name: string): boolean {
+  // GitHub repo/owner names: alphanumeric, hyphens, max 100 chars
+  return /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,99}$/.test(name);
+}
+
+const ALLOWED_ACTIONS = [
+  "list-repos",
+  "create-repo",
+  "link-repo",
+  "unlink-repo",
+  "push",
+  "pull",
+  "get-status",
+  "get-commits",
+] as const;
+
+type GitHubAction = typeof ALLOWED_ACTIONS[number];
+
+interface SyncRequest {
+  action: GitHubAction;
+  projectId?: string;
+  repoName?: string;
+  repoOwner?: string;
+  defaultBranch?: string;
+  isPrivate?: boolean;
+  description?: string;
+  commitMessage?: string;
+}
+
+function validateSyncRequest(body: unknown): { valid: true; data: SyncRequest } | { valid: false; error: string } {
+  if (typeof body !== "object" || body === null) {
+    return { valid: false, error: "Invalid request body" };
+  }
+
+  const { action, projectId, repoName, repoOwner, defaultBranch, isPrivate, description, commitMessage } = 
+    body as Record<string, unknown>;
+
+  // Validate action (required)
+  if (typeof action !== "string" || !ALLOWED_ACTIONS.includes(action as GitHubAction)) {
+    return { valid: false, error: `Invalid action. Allowed: ${ALLOWED_ACTIONS.join(", ")}` };
+  }
+
+  // Validate projectId (optional but must be UUID if provided)
+  if (projectId !== undefined && projectId !== null) {
+    if (typeof projectId !== "string" || !isValidUUID(projectId)) {
+      return { valid: false, error: "projectId must be a valid UUID" };
+    }
+  }
+
+  // Validate repoName (optional but must be valid GitHub name if provided)
+  if (repoName !== undefined && repoName !== null) {
+    if (typeof repoName !== "string" || !isValidGitHubName(repoName)) {
+      return { valid: false, error: "repoName must be a valid GitHub repository name" };
+    }
+  }
+
+  // Validate repoOwner (optional but must be valid GitHub name if provided)
+  if (repoOwner !== undefined && repoOwner !== null) {
+    if (typeof repoOwner !== "string" || !isValidGitHubName(repoOwner)) {
+      return { valid: false, error: "repoOwner must be a valid GitHub username" };
+    }
+  }
+
+  // Validate defaultBranch (optional, max 100 chars)
+  if (defaultBranch !== undefined && defaultBranch !== null) {
+    if (typeof defaultBranch !== "string" || defaultBranch.length > 100) {
+      return { valid: false, error: "defaultBranch must be a string with max 100 characters" };
+    }
+    // Branch names: alphanumeric, hyphens, underscores, forward slashes
+    if (!/^[a-zA-Z0-9/_-]+$/.test(defaultBranch)) {
+      return { valid: false, error: "defaultBranch contains invalid characters" };
+    }
+  }
+
+  // Validate isPrivate (optional boolean)
+  if (isPrivate !== undefined && typeof isPrivate !== "boolean") {
+    return { valid: false, error: "isPrivate must be a boolean" };
+  }
+
+  // Validate description (optional, max 500 chars)
+  if (description !== undefined && description !== null) {
+    if (typeof description !== "string" || description.length > 500) {
+      return { valid: false, error: "description must be a string with max 500 characters" };
+    }
+  }
+
+  // Validate commitMessage (optional, max 500 chars)
+  if (commitMessage !== undefined && commitMessage !== null) {
+    if (typeof commitMessage !== "string" || commitMessage.length > 500) {
+      return { valid: false, error: "commitMessage must be a string with max 500 characters" };
+    }
+  }
+
+  return {
+    valid: true,
+    data: {
+      action: action as GitHubAction,
+      projectId: typeof projectId === "string" ? projectId : undefined,
+      repoName: typeof repoName === "string" ? repoName : undefined,
+      repoOwner: typeof repoOwner === "string" ? repoOwner : undefined,
+      defaultBranch: typeof defaultBranch === "string" ? defaultBranch : undefined,
+      isPrivate: typeof isPrivate === "boolean" ? isPrivate : undefined,
+      description: typeof description === "string" ? sanitizeString(description, 500) : undefined,
+      commitMessage: typeof commitMessage === "string" ? sanitizeString(commitMessage, 500) : undefined,
+    },
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -64,7 +182,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { action, projectId, ...params } = await req.json();
+    // Validate input
+    const rawBody = await req.json();
+    const validation = validateSyncRequest(rawBody);
+    
+    if (!validation.valid) {
+      console.log("[github-sync] Validation error:", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { action, projectId, repoName, repoOwner, defaultBranch, isPrivate, description, commitMessage } = validation.data;
     console.log("GitHub sync action:", action, "projectId:", projectId);
 
     // List user's repositories
@@ -97,7 +227,12 @@ Deno.serve(async (req) => {
 
     // Create a new repository
     if (action === "create-repo") {
-      const { repoName, isPrivate = false, description = "" } = params;
+      if (!repoName) {
+        return new Response(
+          JSON.stringify({ error: "repoName is required for create-repo action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       console.log("Creating repository:", repoName);
 
@@ -110,8 +245,8 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           name: repoName,
-          private: isPrivate,
-          description,
+          private: isPrivate ?? false,
+          description: description ?? "",
           auto_init: true,
         }),
       });
@@ -136,11 +271,9 @@ Deno.serve(async (req) => {
 
     // Link a repository to a project
     if (action === "link-repo") {
-      const { repoOwner, repoName, defaultBranch = "main" } = params;
-
       if (!projectId || !repoOwner || !repoName) {
         return new Response(
-          JSON.stringify({ error: "Missing required parameters" }),
+          JSON.stringify({ error: "projectId, repoOwner, and repoName are required for link-repo action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -154,7 +287,7 @@ Deno.serve(async (req) => {
           github_connection_id: connection.id,
           repo_owner: repoOwner,
           repo_name: repoName,
-          default_branch: defaultBranch,
+          default_branch: defaultBranch ?? "main",
         }, { onConflict: "project_id" })
         .select()
         .single();
@@ -178,7 +311,7 @@ Deno.serve(async (req) => {
     if (action === "unlink-repo") {
       if (!projectId) {
         return new Response(
-          JSON.stringify({ error: "Missing projectId" }),
+          JSON.stringify({ error: "projectId is required for unlink-repo action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -205,11 +338,11 @@ Deno.serve(async (req) => {
 
     // Push to GitHub
     if (action === "push") {
-      const { commitMessage = "Update from Lovable Builder" } = params;
+      const actualCommitMessage = commitMessage ?? "Update from Lovable Builder";
 
       if (!projectId) {
         return new Response(
-          JSON.stringify({ error: "Missing projectId" }),
+          JSON.stringify({ error: "projectId is required for push action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -340,7 +473,7 @@ Deno.serve(async (req) => {
 
         // Create commit
         const commitPayload: Record<string, unknown> = {
-          message: commitMessage,
+          message: actualCommitMessage,
           tree: treeData.sha,
         };
 
@@ -417,7 +550,7 @@ Deno.serve(async (req) => {
         await serviceClient.from("github_commits").insert({
           project_repo_id: projectRepo.id,
           commit_sha: newCommit.sha,
-          commit_message: commitMessage,
+          commit_message: actualCommitMessage,
           author_name: connection.github_username,
           committed_at: new Date().toISOString(),
           direction: "push",
@@ -431,7 +564,7 @@ Deno.serve(async (req) => {
             success: true,
             commit: {
               sha: newCommit.sha,
-              message: commitMessage,
+              message: actualCommitMessage,
             },
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -457,7 +590,7 @@ Deno.serve(async (req) => {
     if (action === "pull") {
       if (!projectId) {
         return new Response(
-          JSON.stringify({ error: "Missing projectId" }),
+          JSON.stringify({ error: "projectId is required for pull action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -499,51 +632,66 @@ Deno.serve(async (req) => {
         }
 
         const treeData = await treeResponse.json();
-        const files = treeData.tree.filter((item: { type: string }) => item.type === "blob");
+        console.log("Fetched tree with", treeData.tree?.length || 0, "items");
 
-        console.log("Pulling", files.length, "files from GitHub");
+        // Get content for each file
+        const filePromises = [];
+        for (const item of treeData.tree || []) {
+          if (item.type !== "blob") continue;
+          
+          // Skip binary files and large files
+          if (item.size > 1000000) continue; // 1MB limit
 
-        // Fetch each file content and update/create in database
-        let filesUpdated = 0;
-        for (const file of files) {
-          const contentResponse = await fetch(
-            `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/git/blobs/${file.sha}`,
-            {
-              headers: {
-                Authorization: `Bearer ${connection.access_token}`,
-                Accept: "application/vnd.github.v3+json",
-              },
-            }
+          filePromises.push(
+            fetch(
+              `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/contents/${item.path}?ref=${projectRepo.default_branch}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${connection.access_token}`,
+                  Accept: "application/vnd.github.v3.raw",
+                },
+              }
+            ).then(async (res) => {
+              if (!res.ok) return null;
+              try {
+                const content = await res.text();
+                return { path: item.path, content, type: "file" };
+              } catch {
+                return null;
+              }
+            })
           );
+        }
 
-          if (contentResponse.ok) {
-            const blobData = await contentResponse.json();
-            const content = blobData.encoding === "base64"
-              ? atob(blobData.content)
-              : blobData.content;
+        const files = (await Promise.all(filePromises)).filter(Boolean);
+        console.log("Fetched content for", files.length, "files");
 
-            const fileName = file.path.split("/").pop();
-            const language = getLanguageFromPath(file.path);
+        // Clear existing files and insert new ones
+        await serviceClient
+          .from("project_files")
+          .delete()
+          .eq("project_id", projectId);
 
-            // Upsert file
-            await serviceClient
-              .from("project_files")
-              .upsert({
+        if (files.length > 0) {
+          const { error: insertError } = await serviceClient
+            .from("project_files")
+            .insert(
+              files.map((f) => ({
                 project_id: projectId,
-                path: file.path,
-                name: fileName,
-                type: "file",
-                content,
-                language,
-                updated_at: new Date().toISOString(),
-              }, { onConflict: "project_id,path", ignoreDuplicates: false });
+                path: f!.path,
+                content: f!.content,
+                type: f!.type,
+                name: f!.path.split("/").pop() || f!.path,
+              }))
+            );
 
-            filesUpdated++;
+          if (insertError) {
+            console.error("Failed to insert files:", insertError);
           }
         }
 
-        // Get latest commit
-        const commitResponse = await fetch(
+        // Get latest commit info
+        const commitsResponse = await fetch(
           `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/commits/${projectRepo.default_branch}`,
           {
             headers: {
@@ -553,9 +701,21 @@ Deno.serve(async (req) => {
           }
         );
 
-        let latestCommit = null;
-        if (commitResponse.ok) {
-          latestCommit = await commitResponse.json();
+        let latestCommitSha = null;
+        if (commitsResponse.ok) {
+          const commitData = await commitsResponse.json();
+          latestCommitSha = commitData.sha;
+
+          // Record the pull
+          await serviceClient.from("github_commits").insert({
+            project_repo_id: projectRepo.id,
+            commit_sha: commitData.sha,
+            commit_message: commitData.commit?.message || "Pulled from GitHub",
+            author_name: commitData.commit?.author?.name || connection.github_username,
+            committed_at: commitData.commit?.author?.date || new Date().toISOString(),
+            direction: "pull",
+            files_changed: files.length,
+          });
         }
 
         // Update project repo
@@ -564,34 +724,17 @@ Deno.serve(async (req) => {
           .update({
             sync_status: "idle",
             last_synced_at: new Date().toISOString(),
-            last_commit_sha: latestCommit?.sha || null,
+            last_commit_sha: latestCommitSha,
           })
           .eq("id", projectRepo.id);
 
-        // Record commit
-        if (latestCommit) {
-          await serviceClient.from("github_commits").upsert({
-            project_repo_id: projectRepo.id,
-            commit_sha: latestCommit.sha,
-            commit_message: latestCommit.commit?.message || "Pull from GitHub",
-            author_name: latestCommit.commit?.author?.name || connection.github_username,
-            author_email: latestCommit.commit?.author?.email,
-            committed_at: latestCommit.commit?.author?.date,
-            direction: "pull",
-            files_changed: filesUpdated,
-          }, { onConflict: "project_repo_id,commit_sha" });
-        }
-
-        console.log("Pull successful, updated", filesUpdated, "files");
+        console.log("Pull successful, imported", files.length, "files");
 
         return new Response(
           JSON.stringify({
             success: true,
-            filesUpdated,
-            commit: latestCommit ? {
-              sha: latestCommit.sha,
-              message: latestCommit.commit?.message,
-            } : null,
+            files_imported: files.length,
+            commit_sha: latestCommitSha,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -612,11 +755,49 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Get commit history
-    if (action === "commits") {
+    // Get sync status
+    if (action === "get-status") {
       if (!projectId) {
         return new Response(
-          JSON.stringify({ error: "Missing projectId" }),
+          JSON.stringify({ error: "projectId is required for get-status action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: projectRepo, error: repoError } = await serviceClient
+        .from("project_repos")
+        .select("*")
+        .eq("project_id", projectId)
+        .single();
+
+      if (repoError) {
+        return new Response(
+          JSON.stringify({ linked: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          linked: true,
+          repo: {
+            owner: projectRepo.repo_owner,
+            name: projectRepo.repo_name,
+            branch: projectRepo.default_branch,
+          },
+          sync_status: projectRepo.sync_status,
+          last_synced: projectRepo.last_synced_at,
+          last_commit: projectRepo.last_commit_sha,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get commit history
+    if (action === "get-commits") {
+      if (!projectId) {
+        return new Response(
+          JSON.stringify({ error: "projectId is required for get-commits action" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -638,8 +819,8 @@ Deno.serve(async (req) => {
         .from("github_commits")
         .select("*")
         .eq("project_repo_id", projectRepo.id)
-        .order("synced_at", { ascending: false })
-        .limit(50);
+        .order("committed_at", { ascending: false })
+        .limit(20);
 
       return new Response(
         JSON.stringify({ commits: commits || [] }),
@@ -648,35 +829,15 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ error: "Invalid action" }),
+      JSON.stringify({ error: "Unknown action" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
     console.error("GitHub sync error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
-
-function getLanguageFromPath(path: string): string {
-  const ext = path.split(".").pop()?.toLowerCase();
-  const langMap: Record<string, string> = {
-    ts: "typescript",
-    tsx: "typescript",
-    js: "javascript",
-    jsx: "javascript",
-    json: "json",
-    html: "html",
-    css: "css",
-    scss: "scss",
-    md: "markdown",
-    sql: "sql",
-    yaml: "yaml",
-    yml: "yaml",
-  };
-  return langMap[ext || ""] || "plaintext";
-}

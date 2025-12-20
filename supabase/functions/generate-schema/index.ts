@@ -24,6 +24,75 @@ interface GeneratedSchema {
   thinking: string;
 }
 
+// Input validation helpers
+function sanitizeString(str: string, maxLength: number): string {
+  return str.slice(0, maxLength).replace(/[<>]/g, "");
+}
+
+function isValidTableName(name: string): boolean {
+  // Only allow alphanumeric, underscores, and must start with letter or underscore
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name) && name.length <= 63;
+}
+
+function validateSchemaRequest(body: unknown): { valid: true; data: SchemaRequest } | { valid: false; error: string } {
+  if (typeof body !== "object" || body === null) {
+    return { valid: false, error: "Invalid request body" };
+  }
+
+  const { description, existingTables, includeRLS, includeTriggers } = body as Record<string, unknown>;
+
+  // Validate description (required, max 5000 chars)
+  if (typeof description !== "string") {
+    return { valid: false, error: "description is required and must be a string" };
+  }
+
+  if (description.trim().length === 0) {
+    return { valid: false, error: "description cannot be empty" };
+  }
+
+  if (description.length > 5000) {
+    return { valid: false, error: "description must be 5000 characters or less" };
+  }
+
+  // Validate existingTables (optional, array of valid table names)
+  if (existingTables !== undefined && existingTables !== null) {
+    if (!Array.isArray(existingTables)) {
+      return { valid: false, error: "existingTables must be an array" };
+    }
+
+    if (existingTables.length > 100) {
+      return { valid: false, error: "existingTables cannot have more than 100 entries" };
+    }
+
+    for (const tableName of existingTables) {
+      if (typeof tableName !== "string" || !isValidTableName(tableName)) {
+        return { valid: false, error: `Invalid table name: ${tableName}` };
+      }
+    }
+  }
+
+  // Validate boolean fields
+  if (includeRLS !== undefined && typeof includeRLS !== "boolean") {
+    return { valid: false, error: "includeRLS must be a boolean" };
+  }
+
+  if (includeTriggers !== undefined && typeof includeTriggers !== "boolean") {
+    return { valid: false, error: "includeTriggers must be a boolean" };
+  }
+
+  return {
+    valid: true,
+    data: {
+      description: sanitizeString(description.trim(), 5000),
+      existingTables: Array.isArray(existingTables) 
+        ? existingTables.filter((t): t is string => typeof t === "string" && isValidTableName(t))
+        : undefined,
+      includeRLS: typeof includeRLS === "boolean" ? includeRLS : true,
+      includeTriggers: typeof includeTriggers === "boolean" ? includeTriggers : true,
+    },
+  };
+}
+
 const SCHEMA_SYSTEM_PROMPT = `You are an expert PostgreSQL database architect specialized in Supabase. You generate production-ready SQL schemas from natural language descriptions.
 
 IMPORTANT: Always respond with valid JSON containing the schema.
@@ -92,8 +161,19 @@ serve(async (req) => {
   }
 
   try {
-    const { description, existingTables = [], includeRLS = true, includeTriggers = true } = 
-      await req.json() as SchemaRequest;
+    // Validate input
+    const rawBody = await req.json();
+    const validation = validateSchemaRequest(rawBody);
+    
+    if (!validation.valid) {
+      console.log("[generate-schema] Validation error:", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { description, existingTables = [], includeRLS, includeTriggers } = validation.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

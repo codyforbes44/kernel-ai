@@ -18,16 +18,58 @@ interface ProjectFile {
   type: 'file' | 'folder';
 }
 
+// Input validation helpers
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+function sanitizeString(str: string, maxLength: number): string {
+  return str.slice(0, maxLength).replace(/[<>]/g, "");
+}
+
+function validateDeployRequest(body: unknown): { valid: true; data: DeployRequest } | { valid: false; error: string } {
+  if (typeof body !== "object" || body === null) {
+    return { valid: false, error: "Invalid request body" };
+  }
+
+  const { projectId, environment, commitMessage } = body as Record<string, unknown>;
+
+  // Validate projectId (required, must be UUID)
+  if (typeof projectId !== "string" || !isValidUUID(projectId)) {
+    return { valid: false, error: "projectId must be a valid UUID" };
+  }
+
+  // Validate environment (required, must be 'preview' or 'production')
+  if (environment !== "preview" && environment !== "production") {
+    return { valid: false, error: "environment must be 'preview' or 'production'" };
+  }
+
+  // Validate commitMessage (optional, max 500 chars)
+  if (commitMessage !== undefined && commitMessage !== null) {
+    if (typeof commitMessage !== "string") {
+      return { valid: false, error: "commitMessage must be a string" };
+    }
+    if (commitMessage.length > 500) {
+      return { valid: false, error: "commitMessage must be 500 characters or less" };
+    }
+  }
+
+  return {
+    valid: true,
+    data: {
+      projectId,
+      environment,
+      commitMessage: typeof commitMessage === "string" ? sanitizeString(commitMessage, 500) : undefined,
+    },
+  };
+}
+
 // Generate an optimized HTML bundle
 function generateBundle(files: ProjectFile[], projectName: string): string {
   // Find key files
   const appFile = files.find(f => f.path.includes('App.tsx') || f.path.includes('App.jsx'));
   const cssFiles = files.filter(f => f.path.endsWith('.css'));
-  const components = files.filter(f => 
-    (f.path.endsWith('.tsx') || f.path.endsWith('.jsx')) && 
-    !f.path.includes('main') && 
-    !f.path.includes('App')
-  );
 
   // Combine CSS
   const combinedCSS = cssFiles
@@ -36,16 +78,24 @@ function generateBundle(files: ProjectFile[], projectName: string): string {
     .join('\n');
 
   // Extract the main component content (simplified for demo)
-  let appContent = appFile?.content || '';
+  const appContent = appFile?.content || '';
+  
+  // Escape the project name for safe HTML insertion
+  const safeProjectName = projectName.replace(/[<>&"']/g, (c) => ({
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[c] || c));
   
   // Simple JSX to HTML conversion for preview
-  // In a real implementation, this would use a proper bundler
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${projectName}</title>
+  <title>${safeProjectName}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -73,6 +123,15 @@ root.render(<App />);
 function generateStaticPreview(files: ProjectFile[], projectName: string): Map<string, string> {
   const outputFiles = new Map<string, string>();
   
+  // Escape the project name for safe HTML insertion
+  const safeProjectName = projectName.replace(/[<>&"']/g, (c) => ({
+    '<': '&lt;',
+    '>': '&gt;',
+    '&': '&amp;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[c] || c));
+  
   // Find all component files
   const componentFiles = files.filter(f => 
     f.type === 'file' && 
@@ -83,11 +142,8 @@ function generateStaticPreview(files: ProjectFile[], projectName: string): Map<s
   // Find CSS files
   const cssFiles = files.filter(f => f.type === 'file' && f.content && f.path.endsWith('.css'));
   
-  // Find the App component
-  const appFile = files.find(f => f.path.includes('App.tsx') || f.path.includes('App.jsx'));
-  
   // Combine all CSS
-  let combinedCSS = cssFiles.map(f => f.content).join('\n\n');
+  const combinedCSS = cssFiles.map(f => f.content).join('\n\n');
   
   // Build component code - strip imports and exports for inline use
   let componentCode = '';
@@ -113,7 +169,7 @@ function generateStaticPreview(files: ProjectFile[], projectName: string): Map<s
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${projectName}</title>
+  <title>${safeProjectName}</title>
   <meta name="description" content="Built with the AI-powered builder">
   
   <!-- React & Babel for runtime compilation -->
@@ -158,7 +214,7 @@ ${componentCode}
               fontFamily: 'system-ui' 
             } 
           }, 
-            React.createElement('h1', null, '${projectName}'),
+            React.createElement('h1', null, '${safeProjectName}'),
             React.createElement('p', { style: { color: '#666', marginTop: '10px' } }, 'No App component found')
           )
         );
@@ -223,6 +279,20 @@ serve(async (req) => {
       );
     }
 
+    // Validate input
+    const rawBody = await req.json();
+    const validation = validateDeployRequest(rawBody);
+    
+    if (!validation.valid) {
+      console.log("[deploy] Validation error:", validation.error);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { projectId, environment, commitMessage } = validation.data;
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -233,15 +303,6 @@ serve(async (req) => {
     const supabaseUser = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader } }
     });
-
-    const { projectId, environment, commitMessage } = await req.json() as DeployRequest;
-    
-    if (!projectId) {
-      return new Response(
-        JSON.stringify({ error: 'Project ID is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     const startTime = Date.now();
     console.log(`[deploy] Starting ${environment} deployment for project ${projectId}`);
