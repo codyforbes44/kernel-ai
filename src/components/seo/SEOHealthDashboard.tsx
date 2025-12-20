@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { routes, RouteConfig } from "@/lib/routes";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { 
   CheckCircle2, 
   XCircle, 
@@ -10,10 +12,26 @@ import {
   FileText, 
   Shield, 
   ExternalLink,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  GitCompare,
+  Copy,
+  Check,
+  X
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useSitemapDiff } from "@/hooks/useSitemapDiff";
+import { SitemapDiffViewer } from "./SitemapDiffViewer";
+import { generateSitemapXml } from "@/lib/sitemap";
+import { toast } from "@/hooks/use-toast";
 
 const SITE_URL = "https://kernel.cool";
 
@@ -65,6 +83,10 @@ function RouteStatus({ route }: RouteStatusProps) {
 }
 
 export function SEOHealthDashboard() {
+  const [diffDialogOpen, setDiffDialogOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { diff, isLoading, error, compareSitemap, clearDiff } = useSitemapDiff();
+  
   const sitemapRoutes = routes.filter(r => r.includeInSitemap && !r.isDynamic);
   const blockedRoutes = routes.filter(r => r.robots === 'disallow');
   const publicRoutes = routes.filter(r => !r.requiresAuth);
@@ -75,6 +97,27 @@ export function SEOHealthDashboard() {
   
   const today = new Date().toISOString().split('T')[0];
   
+  const handleCompare = async () => {
+    await compareSitemap();
+    setDiffDialogOpen(true);
+  };
+  
+  const handleCopyGenerated = async () => {
+    const generated = generateSitemapXml();
+    await navigator.clipboard.writeText(generated);
+    setCopied(true);
+    toast({
+      title: "Copied to clipboard",
+      description: "The generated sitemap XML has been copied.",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+  
+  const handleCloseDialog = () => {
+    setDiffDialogOpen(false);
+    clearDiff();
+  };
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -84,12 +127,100 @@ export function SEOHealthDashboard() {
           <p className="text-muted-foreground">Monitor sitemap coverage and robots.txt rules</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCompare}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            {isLoading ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <GitCompare className="w-4 h-4" />
+            )}
+            Check for Changes
+          </Button>
           <Badge variant="secondary" className="text-xs">
             <FileText className="w-3 h-3 mr-1" />
             Last updated: {today}
           </Badge>
         </div>
       </div>
+      
+      {/* Diff Dialog */}
+      <Dialog open={diffDialogOpen} onOpenChange={handleCloseDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCompare className="w-5 h-5" />
+              Sitemap Comparison
+            </DialogTitle>
+            <DialogDescription>
+              Comparing current sitemap.xml with generated version from routes configuration
+            </DialogDescription>
+          </DialogHeader>
+          
+          {error && (
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              {error}
+            </div>
+          )}
+          
+          {diff && (
+            <div className="space-y-4">
+              {diff.hasChanges ? (
+                <>
+                  <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-amber-500">
+                        <AlertTriangle className="w-4 h-4" />
+                        <span className="font-medium">Changes detected</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyGenerated}
+                        className="gap-2"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                        Copy Generated XML
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      The current sitemap.xml differs from what would be generated. Run <code className="text-xs bg-muted px-1 py-0.5 rounded">npm run build</code> to regenerate.
+                    </p>
+                  </div>
+                  <SitemapDiffViewer 
+                    lines={diff.lines} 
+                    addedCount={diff.addedCount} 
+                    removedCount={diff.removedCount} 
+                  />
+                </>
+              ) : (
+                <div className="p-6 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                  <h3 className="font-semibold text-lg">Sitemap is up to date</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    No changes needed. The current sitemap matches the routes configuration.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
