@@ -286,6 +286,33 @@ What would you like to build today?`;
     branchingRef.current = true;
     setIsCreatingConversation(true);
     
+    // Create optimistic branch with temporary ID
+    const optimisticId = `temp-branch-${Date.now()}`;
+    const branchTitle = title || `Branch: ${parentConversation.title}`;
+    const optimisticBranch: Conversation = {
+      id: optimisticId,
+      project_id: parentConversation.project_id,
+      user_id: user.id,
+      title: branchTitle,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_archived: false,
+      is_pinned: false,
+      message_count: 0,
+      token_count: 0,
+      last_message_at: null,
+      parent_conversation_id: parentConversationId,
+      branch_point_message_id: branchPointMessageId,
+      lovable_project_url: parentConversation.lovable_project_url,
+      lovable_project_name: parentConversation.lovable_project_name,
+      summary: null,
+      tags: null,
+    };
+
+    // Optimistically add to state and select it
+    setConversations(prev => [optimisticBranch, ...prev]);
+    setSelectedConversationId(optimisticId);
+    
     try {
       // Get messages up to and including the branch point
       const messagesToCopy = await workspaceService.getConversationMessages(parentConversationId);
@@ -293,13 +320,15 @@ What would you like to build today?`;
       // Find the branch point message index
       const branchIndex = messagesToCopy.findIndex(m => m.id === branchPointMessageId);
       if (branchIndex === -1) {
+        // Rollback optimistic update
+        setConversations(prev => prev.filter(c => c.id !== optimisticId));
+        setSelectedConversationId(parentConversationId);
         console.error('Branch point message not found');
         toast.error('Could not find branch point');
         return null;
       }
 
       // Create the branched conversation
-      const branchTitle = title || `Branch: ${parentConversation.title}`;
       const newConversation = await workspaceService.createConversation({
         projectId: parentConversation.project_id,
         userId: user.id,
@@ -318,11 +347,17 @@ What would you like to build today?`;
         upToMessageId: branchPointMessageId,
       });
 
-      setConversations(prev => [newConversation, ...prev]);
+      // Replace optimistic branch with real one
+      setConversations(prev => 
+        prev.map(c => c.id === optimisticId ? newConversation : c)
+      );
       setSelectedConversationId(newConversation.id);
       toast.success('Branch created');
       return newConversation;
     } catch (error) {
+      // Rollback optimistic update on error
+      setConversations(prev => prev.filter(c => c.id !== optimisticId));
+      setSelectedConversationId(parentConversationId);
       console.error('Error branching conversation:', error);
       toast.error('Failed to create branch');
       return null;
