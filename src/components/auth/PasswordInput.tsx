@@ -12,6 +12,7 @@ interface PasswordInputProps {
   error?: string;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function PasswordInput({
@@ -21,6 +22,7 @@ export function PasswordInput({
   error,
   placeholder = "••••••••",
   className,
+  disabled,
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,6 +36,7 @@ export function PasswordInput({
           placeholder={placeholder}
           className="bg-background pr-10 min-h-[44px] md:min-h-[40px]"
           autoComplete={id.includes("new") || id.includes("confirm") ? "new-password" : "current-password"}
+          disabled={disabled}
           {...register}
         />
         <button

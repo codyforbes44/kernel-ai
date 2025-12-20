@@ -163,6 +163,30 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -513,12 +537,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_account_lockout: { Args: { p_email: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      record_login_attempt: {
+        Args: { p_email: string; p_ip_address?: string; p_success: boolean }
+        Returns: undefined
       }
     }
     Enums: {
