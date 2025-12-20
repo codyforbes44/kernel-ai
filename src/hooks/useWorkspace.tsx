@@ -471,35 +471,59 @@ What would you like to build today?`;
   }, [conversations, selectedConversationId]);
 
   const updateProject = useCallback(async (id: string, updates: Partial<Project>) => {
+    // Store previous state for rollback
+    const previousProject = projects.find(p => p.id === id);
+    
+    // Optimistically update
+    setProjects(prev => 
+      prev.map(p => p.id === id ? { ...p, ...updates } : p)
+    );
+
     try {
       await workspaceService.updateProject(id, updates);
-      setProjects(prev => 
-        prev.map(p => p.id === id ? { ...p, ...updates } : p)
-      );
       return true;
     } catch (error) {
+      // Rollback on error
+      if (previousProject) {
+        setProjects(prev => 
+          prev.map(p => p.id === id ? previousProject : p)
+        );
+      }
       console.error('Error updating project:', error);
       toast.error('Failed to update project');
       return false;
     }
-  }, []);
+  }, [projects]);
 
   const deleteProject = useCallback(async (id: string) => {
+    // Store previous state for rollback
+    const previousProjects = projects;
+    const previousConversations = conversations;
+    const wasSelected = selectedProjectId === id;
+    
+    // Optimistically remove project and its conversations
+    setProjects(prev => prev.filter(p => p.id !== id));
+    setConversations(prev => prev.filter(c => c.project_id !== id));
+    if (wasSelected) {
+      setSelectedProjectId(null);
+    }
+
     try {
       await workspaceService.deleteProject(id);
-      setProjects(prev => prev.filter(p => p.id !== id));
-      setConversations(prev => prev.filter(c => c.project_id !== id));
-      if (selectedProjectId === id) {
-        setSelectedProjectId(null);
-      }
       toast.success('Project deleted');
       return true;
     } catch (error) {
+      // Rollback on error
+      setProjects(previousProjects);
+      setConversations(previousConversations);
+      if (wasSelected) {
+        setSelectedProjectId(id);
+      }
       console.error('Error deleting project:', error);
       toast.error('Failed to delete project');
       return false;
     }
-  }, [selectedProjectId]);
+  }, [projects, conversations, selectedProjectId]);
 
   const projectConversations = useMemo(() => 
     conversations.filter(c => c.project_id === selectedProjectId),
