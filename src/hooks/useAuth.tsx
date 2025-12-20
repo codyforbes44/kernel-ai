@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from '@/types/database';
 
-type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc';
+type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
