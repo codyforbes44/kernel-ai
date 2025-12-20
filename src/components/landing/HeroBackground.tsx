@@ -92,10 +92,10 @@ export function HeroBackground() {
         shape="hexagon"
       />
 
-      {/* Terminal cursor blink effect */}
-      <div className="absolute top-[20%] right-[25%] flex items-center gap-1 opacity-30">
-        <span className="font-mono text-primary text-lg">&gt;_</span>
-        <span className="w-2 h-5 bg-primary animate-pulse" style={{ animationDuration: '1s' }} />
+      {/* Terminal cursor blink effect - cyan themed */}
+      <div className="absolute top-[20%] right-[25%] flex items-center gap-1 opacity-40">
+        <span className="font-mono text-primary text-lg drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]">&gt;_</span>
+        <span className="w-2 h-5 bg-primary animate-pulse shadow-[0_0_10px_hsl(var(--primary)/0.5)]" style={{ animationDuration: '1s' }} />
       </div>
 
       {/* Grid pattern overlay */}
@@ -159,8 +159,9 @@ function FloatingShape({ className, size, duration, delay, shape }: FloatingShap
         width: size,
         height: size,
         ...getShapeStyles(),
-        border: '1px solid hsl(var(--primary) / 0.15)',
-        background: 'hsl(var(--primary) / 0.03)',
+        border: '1px solid hsl(185 100% 50% / 0.2)',
+        background: 'hsl(185 100% 50% / 0.04)',
+        boxShadow: '0 0 15px hsl(185 100% 50% / 0.08)',
         animation: `float ${duration}s ease-in-out infinite`,
         animationDelay: `${delay}s`,
         willChange: 'transform',

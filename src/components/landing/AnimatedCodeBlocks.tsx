@@ -40,16 +40,17 @@ function CodeBlock({ snippet, position, delay, duration }: CodeBlockProps) {
   return (
     <div
       className={`absolute font-mono text-xs px-3 py-1.5 rounded-md border transition-all duration-700
-        ${visible ? 'opacity-40 translate-y-0' : 'opacity-0 translate-y-2'}`}
+        ${visible ? 'opacity-50 translate-y-0' : 'opacity-0 translate-y-2'}`}
       style={{
         top: position.top,
         left: position.left,
-        background: 'hsl(var(--card) / 0.6)',
-        borderColor: 'hsl(var(--primary) / 0.2)',
+        background: 'hsl(220 30% 8% / 0.7)',
+        borderColor: 'hsl(185 100% 50% / 0.25)',
         backdropFilter: 'blur(8px)',
+        boxShadow: visible ? '0 0 15px hsl(185 100% 50% / 0.1)' : 'none',
       }}
     >
-      <span className="text-primary/60">{snippet.code}</span>
+      <span className="text-[hsl(185_100%_60%)]">{snippet.code}</span>
     </div>
   );
 }
