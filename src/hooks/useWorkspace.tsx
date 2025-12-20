@@ -5,6 +5,11 @@ import { useAuth } from './useAuth';
 import { workspaceService } from '@/services/workspaceService';
 import { toast } from 'sonner';
 
+export interface CreateProjectOptions {
+  autoCreateConversation?: boolean;
+  conversationTitle?: string;
+}
+
 interface WorkspaceContextType {
   workspaces: Workspace[];
   projects: Project[];
@@ -26,7 +31,7 @@ interface WorkspaceContextType {
   createConversation: (projectId: string, title?: string) => Promise<Conversation | null>;
   branchConversation: (parentConversationId: string, branchPointMessageId: string, title?: string) => Promise<Conversation | null>;
   getChildBranches: (conversationId: string) => Conversation[];
-  createProject: (name: string, description?: string) => Promise<Project | null>;
+  createProject: (name: string, description?: string, options?: CreateProjectOptions) => Promise<Project | null>;
   updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<boolean>;
@@ -375,7 +380,11 @@ What would you like to build today?`;
     return conversations.filter(c => c.parent_conversation_id === conversationId);
   }, [conversations]);
 
-  const createProject = useCallback(async (name: string, description?: string) => {
+  const createProject = useCallback(async (
+    name: string, 
+    description?: string,
+    options?: CreateProjectOptions
+  ) => {
     if (!user || !selectedWorkspaceId) return null;
 
     // Create optimistic project with temporary ID
@@ -410,6 +419,13 @@ What would you like to build today?`;
         prev.map(p => p.id === optimisticId ? newProject : p)
       );
       setSelectedProjectId(newProject.id);
+      
+      // Auto-create conversation if requested
+      if (options?.autoCreateConversation && newProject) {
+        const conversationTitle = options.conversationTitle || `${name} - Chat`;
+        await createConversation(newProject.id, conversationTitle);
+      }
+      
       toast.success('Project created');
       return newProject;
     } catch (error) {
@@ -420,7 +436,7 @@ What would you like to build today?`;
       toast.error('Failed to create project');
       return null;
     }
-  }, [user, selectedWorkspaceId]);
+  }, [user, selectedWorkspaceId, createConversation]);
 
   const updateConversation = useCallback(async (id: string, updates: Partial<Conversation>) => {
     // Store previous state for rollback

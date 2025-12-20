@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { RenameDialog } from "@/components/dialogs/RenameDialog";
 import { DeleteConfirmDialog } from "@/components/dialogs/DeleteConfirmDialog";
+import { CreateProjectDialog } from "@/components/dialogs/CreateProjectDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import type { Project } from "@/types/database";
@@ -32,10 +33,11 @@ interface ProjectTreeProps {
 }
 
 export function ProjectTree({ searchQuery }: ProjectTreeProps) {
-  const { projects, currentProject, setCurrentProject, createProject, updateProject, deleteProject, loading } = useWorkspace();
+  const { projects, currentProject, setCurrentProject, updateProject, deleteProject, loading } = useWorkspace();
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   
   // Dialog states
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [renameProject, setRenameProject] = useState<Project | null>(null);
   const [deleteProjectItem, setDeleteProjectItem] = useState<Project | null>(null);
 
@@ -105,7 +107,7 @@ export function ProjectTree({ searchQuery }: ProjectTreeProps) {
             variant="ghost"
             size="icon"
             className="h-5 w-5 hover:bg-sidebar-accent"
-            onClick={() => createProject("New Project")}
+            onClick={() => setShowCreateDialog(true)}
           >
             <Plus className="h-3 w-3" />
           </Button>
@@ -118,7 +120,7 @@ export function ProjectTree({ searchQuery }: ProjectTreeProps) {
               variant="link"
               size="sm"
               className="text-primary"
-              onClick={() => createProject("My First Project")}
+              onClick={() => setShowCreateDialog(true)}
             >
               Create your first project
             </Button>
@@ -200,6 +202,12 @@ export function ProjectTree({ searchQuery }: ProjectTreeProps) {
           })
         )}
       </div>
+
+      {/* Create Project Dialog */}
+      <CreateProjectDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
 
       {/* Rename Dialog */}
       <RenameDialog
