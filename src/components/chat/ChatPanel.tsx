@@ -5,6 +5,7 @@ import { useChat } from "@/hooks/useChat";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { useOfflineQueue, type QueuedMessage } from "@/hooks/useOfflineQueue";
 import { ModelSelector } from "./ModelSelector";
+import { MessageSearch } from "./MessageSearch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +31,7 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   const { isOnline, isChecking, retryConnection, queue, queueLength, isSyncing, addToQueue, setSyncHandler } = useOfflineQueue();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
   // Set up sync handler for queued messages
   const handleSyncMessage = useCallback(async (queuedMsg: QueuedMessage) => {
@@ -146,6 +148,28 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
     }
   };
 
+  // Handle search result selection - scroll to and highlight message
+  const handleSearchResultSelect = useCallback((messageId: string) => {
+    setHighlightedMessageId(messageId);
+    
+    // Find the message element and scroll to it
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    
+    // Clear highlight after a delay
+    setTimeout(() => setHighlightedMessageId(null), 2000);
+  }, []);
+    
+    const branched = await branchConversation(currentConversation.id, messageId);
+    if (branched) {
+      toast.success("Conversation branched! You can now continue from this point.");
+    } else {
+      toast.error("Failed to branch conversation");
+    }
+  };
+
   const streamingMessageObj: Message | null = streamingMessage ? {
     id: "streaming",
     content: streamingMessage,
@@ -165,6 +189,16 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
   return (
     <div className="h-full flex flex-col bg-background">
       {!isMobile && <ChatHeader />}
+
+      {/* Search bar for conversations with messages */}
+      {currentConversation && messages.length > 0 && !isMobile && (
+        <div className="flex justify-end px-4 py-2 border-b border-border/30">
+          <MessageSearch
+            messages={messages}
+            onResultSelect={handleSearchResultSelect}
+          />
+        </div>
+      )}
 
       {/* Offline indicator for desktop */}
       {!isMobile && (!isOnline || queueLength > 0 || isSyncing) && (
@@ -247,15 +281,23 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
           ) : (
             <>
               {messages.map((message) => (
-                <ChatMessage
+                <div
                   key={message.id}
-                  message={message}
-                  onRegenerate={() => handleRegenerate(message.id)}
-                  onEdit={handleEdit}
-                  onDelete={() => handleDeleteMessage(message.id)}
-                  onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
-                  onBranch={handleBranchFromMessage}
-                />
+                  id={`message-${message.id}`}
+                  className={cn(
+                    "transition-all duration-500",
+                    highlightedMessageId === message.id && "ring-2 ring-primary ring-offset-2 ring-offset-background rounded-lg"
+                  )}
+                >
+                  <ChatMessage
+                    message={message}
+                    onRegenerate={() => handleRegenerate(message.id)}
+                    onEdit={handleEdit}
+                    onDelete={() => handleDeleteMessage(message.id)}
+                    onPin={(isPinned) => handlePinMessage(message.id, isPinned)}
+                    onBranch={handleBranchFromMessage}
+                  />
+                </div>
               ))}
               {streamingMessageObj && (
                 <ChatMessage message={streamingMessageObj} isStreaming />
