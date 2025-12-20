@@ -80,14 +80,14 @@ export function ProjectTree({ searchQuery }: ProjectTreeProps) {
     return (
       <div className="space-y-1 animate-fade-in">
         <div className="flex items-center justify-between px-2 py-1">
-          <Skeleton className="h-3 w-14" />
-          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-3 w-14" delay={0} />
+          <Skeleton className="h-5 w-5 rounded" delay={50} />
         </div>
-        {[1, 2, 3].map((i) => (
+        {[0, 1, 2].map((i) => (
           <div key={i} className="flex items-center gap-2 px-2 py-1.5">
-            <Skeleton className="h-4 w-4 rounded" />
-            <Skeleton className="h-4 w-4 rounded" />
-            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-4 w-4 rounded" delay={100 + i * 75} />
+            <Skeleton className="h-4 w-4 rounded" delay={125 + i * 75} />
+            <Skeleton className="h-4 flex-1" delay={150 + i * 75} />
           </div>
         ))}
       </div>

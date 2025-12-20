@@ -337,28 +337,28 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
       <div className="space-y-3 animate-fade-in">
         {/* Search skeleton */}
         <div className="flex items-center gap-2">
-          <Skeleton className="h-9 flex-1" />
-          <Skeleton className="h-8 w-8 rounded" />
-          <Skeleton className="h-8 w-8 rounded" />
+          <Skeleton className="h-9 flex-1" delay={0} />
+          <Skeleton className="h-8 w-8 rounded" delay={50} />
+          <Skeleton className="h-8 w-8 rounded" delay={100} />
         </div>
         
         {/* Favorites section skeleton */}
         <div className="space-y-2">
           <div className="flex items-center gap-1">
-            <Skeleton className="h-3 w-3 rounded" />
-            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-3 rounded" delay={150} />
+            <Skeleton className="h-3 w-16" delay={175} />
           </div>
-          {[1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <div key={`fav-${i}`} className="p-3 rounded-lg border border-border/50 space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
-                <Skeleton className="h-3 w-3 rounded" />
+                <Skeleton className="h-4 w-4 rounded" delay={200 + i * 100} />
+                <Skeleton className="h-4 flex-1" delay={225 + i * 100} />
+                <Skeleton className="h-3 w-3 rounded" delay={250 + i * 100} />
               </div>
-              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-3 w-3/4" delay={275 + i * 100} />
               <div className="flex items-center gap-2">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-5 w-16 rounded-full" delay={300 + i * 100} />
+                <Skeleton className="h-3 w-20" delay={325 + i * 100} />
               </div>
             </div>
           ))}
@@ -366,17 +366,17 @@ export function TemplatesList({ onSelectTemplate }: TemplatesListProps) {
         
         {/* All templates section skeleton */}
         <div className="space-y-2">
-          <Skeleton className="h-3 w-24" />
-          {[1, 2, 3].map((i) => (
+          <Skeleton className="h-3 w-24" delay={450} />
+          {[0, 1, 2].map((i) => (
             <div key={`tpl-${i}`} className="p-3 rounded-lg border border-border/50 space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-4 w-4 rounded" delay={500 + i * 100} />
+                <Skeleton className="h-4 flex-1" delay={525 + i * 100} />
               </div>
-              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-2/3" delay={550 + i * 100} />
               <div className="flex items-center gap-2">
-                <Skeleton className="h-5 w-20 rounded-full" />
-                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-5 w-20 rounded-full" delay={575 + i * 100} />
+                <Skeleton className="h-3 w-16" delay={600 + i * 100} />
               </div>
             </div>
           ))}
