@@ -3,6 +3,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useHaptic } from "@/hooks/useHaptic";
 import { GoogleIcon, GitHubIcon, AppleIcon, LinkedInIcon, MicrosoftIcon, XIcon } from "./AuthIcons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
 
@@ -48,16 +49,25 @@ export function SocialAuthButtons({
     return null; // Don't show the section if no providers configured
   }
 
+  // Calculate grid layout based on number of providers
+  const getGridClasses = () => {
+    const count = availableProviders.length;
+    if (count <= 3) return "grid-cols-3";
+    if (count <= 4) return "grid-cols-2 sm:grid-cols-4";
+    if (count <= 6) return "grid-cols-3 sm:grid-cols-6";
+    return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6";
+  };
+
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-        {availableProviders.map(({ id, label, shortLabel, Icon }) => (
+      <div className={cn("grid gap-2", getGridClasses())}>
+        {availableProviders.map(({ id, label, Icon }) => (
           <Tooltip key={id}>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
-                className="w-full min-h-[44px] touch-manipulation"
+                className="w-full min-h-[44px] sm:min-h-[40px] touch-manipulation px-2 sm:px-3"
                 onClick={() => handleClick(id)}
                 disabled={disabled || loadingProvider !== null}
               >
@@ -66,8 +76,7 @@ export function SocialAuthButtons({
                 ) : (
                   <Icon />
                 )}
-                <span className="ml-2 hidden sm:inline md:hidden lg:inline">{label}</span>
-                <span className="ml-2 hidden md:inline lg:hidden">{shortLabel}</span>
+                <span className="sr-only">{label}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

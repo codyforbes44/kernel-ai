@@ -85,7 +85,7 @@ export function PasswordStrengthIndicator({
 
       {/* Requirements checklist */}
       {showRequirements && (
-        <ul className="grid grid-cols-2 gap-1" aria-label="Password requirements">
+        <ul className="grid grid-cols-1 xs:grid-cols-2 gap-1" aria-label="Password requirements">
           {requirements.map((req, index) => {
             const isPassed = req.test(password);
             return (
@@ -97,9 +97,9 @@ export function PasswordStrengthIndicator({
                 )}
               >
                 {isPassed ? (
-                  <Check className="h-3 w-3" aria-hidden="true" />
+                  <Check className="h-3 w-3 shrink-0" aria-hidden="true" />
                 ) : (
-                  <X className="h-3 w-3" aria-hidden="true" />
+                  <X className="h-3 w-3 shrink-0" aria-hidden="true" />
                 )}
                 <span>{req.label}</span>
               </li>
