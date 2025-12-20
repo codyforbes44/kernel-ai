@@ -115,26 +115,26 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     return (
       <div className="space-y-3 animate-fade-in">
         <div className="space-y-1">
-          <Skeleton className="h-3 w-16 mx-2" />
-          {[1, 2, 3].map((i) => (
+          <Skeleton className="h-3 w-16 mx-2" delay={0} />
+          {[0, 1, 2].map((i) => (
             <div key={i} className="px-2 py-2 space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-4 w-4 rounded" delay={50 + i * 100} />
+                <Skeleton className="h-4 flex-1" delay={75 + i * 100} />
               </div>
-              <Skeleton className="h-3 w-24 ml-6" />
+              <Skeleton className="h-3 w-24 ml-6" delay={100 + i * 100} />
             </div>
           ))}
         </div>
         <div className="space-y-1">
-          <Skeleton className="h-3 w-12 mx-2" />
-          {[1, 2].map((i) => (
+          <Skeleton className="h-3 w-12 mx-2" delay={350} />
+          {[0, 1].map((i) => (
             <div key={i} className="px-2 py-2 space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-4 w-4 rounded" delay={400 + i * 100} />
+                <Skeleton className="h-4 flex-1" delay={425 + i * 100} />
               </div>
-              <Skeleton className="h-3 w-20 ml-6" />
+              <Skeleton className="h-3 w-20 ml-6" delay={450 + i * 100} />
             </div>
           ))}
         </div>
