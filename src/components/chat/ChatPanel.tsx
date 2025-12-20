@@ -161,14 +161,6 @@ export function ChatPanel({ isMobile }: ChatPanelProps = {}) {
     // Clear highlight after a delay
     setTimeout(() => setHighlightedMessageId(null), 2000);
   }, []);
-    
-    const branched = await branchConversation(currentConversation.id, messageId);
-    if (branched) {
-      toast.success("Conversation branched! You can now continue from this point.");
-    } else {
-      toast.error("Failed to branch conversation");
-    }
-  };
 
   const streamingMessageObj: Message | null = streamingMessage ? {
     id: "streaming",
