@@ -1,32 +1,32 @@
 // SEO Configuration
 export const SEO_CONFIG = {
-  siteName: 'AI Mate Companion',
-  siteUrl: typeof window !== 'undefined' ? window.location.origin : 'https://ai-mate.lovable.app',
-  defaultTitle: 'AI Mate Companion',
-  defaultDescription: 'Personal AI assistant for power users who have shipped 250+ products on Lovable. Chat with intelligent AI, build apps, and supercharge your workflow.',
+  siteName: 'Kernel',
+  siteUrl: typeof window !== 'undefined' ? window.location.origin : 'https://kernel.app',
+  defaultTitle: 'Kernel',
+  defaultDescription: 'AI-powered development platform. Build beautiful web applications with intelligent chat, visual builder, design systems, and instant deployment.',
   defaultOgImage: '/og-images/default.png',
-  twitterHandle: '@Lovable',
+  twitterHandle: '@KernelDev',
 };
 
 // Per-page SEO configuration
 export const PAGE_SEO = {
   home: {
     title: 'AI Chat Assistant',
-    description: 'Chat with your personal AI companion. Get intelligent assistance for development, debugging, and building on Lovable.',
+    description: 'Chat with your AI development companion. Get intelligent assistance for development, debugging, and building apps.',
     ogImage: '/og-images/chat.png',
   },
   auth: {
     signIn: {
       title: 'Sign In',
-      description: 'Sign in to AI Mate Companion - Your personal AI assistant for Lovable power users.',
+      description: 'Sign in to Kernel - Your AI-powered development companion.',
     },
     signUp: {
       title: 'Create Account',
-      description: 'Join AI Mate Companion and unlock the power of AI-assisted development.',
+      description: 'Join Kernel and unlock the power of AI-assisted development.',
     },
     forgotPassword: {
       title: 'Reset Password',
-      description: 'Reset your AI Mate Companion password and regain access to your account.',
+      description: 'Reset your Kernel password and regain access to your account.',
     },
     ogImage: '/og-images/auth.png',
   },
@@ -43,12 +43,12 @@ export const PAGE_SEO = {
   },
   settings: {
     title: 'Settings',
-    description: 'Manage your AI Mate Companion preferences, appearance, and account settings.',
+    description: 'Manage your Kernel preferences, appearance, and account settings.',
     noIndex: true,
   },
   admin: {
     title: 'Admin Panel',
-    description: 'Administrative dashboard for AI Mate Companion.',
+    description: 'Administrative dashboard for Kernel.',
     noIndex: true,
     noFollow: true,
   },
@@ -69,15 +69,15 @@ export const getWebsiteSchema = (siteUrl: string) => ({
   "description": SEO_CONFIG.defaultDescription,
   "publisher": {
     "@type": "Organization",
-    "name": "Lovable",
-    "url": "https://lovable.dev"
+    "name": "Kernel",
+    "url": siteUrl
   }
 });
 
 export const getSoftwareApplicationSchema = (siteUrl: string) => ({
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "AI Mate App Builder",
+  "name": "Kernel App Builder",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Web",
   "url": `${siteUrl}/builder`,
@@ -89,7 +89,7 @@ export const getSoftwareApplicationSchema = (siteUrl: string) => ({
   },
   "publisher": {
     "@type": "Organization",
-    "name": "Lovable"
+    "name": "Kernel"
   }
 });
 

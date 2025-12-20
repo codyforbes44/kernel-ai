@@ -5,9 +5,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import {
   MessageSquare,
-  Sparkles,
   Zap,
   Code,
   Database,
@@ -33,12 +33,12 @@ const quickPrompts = [
   {
     icon: Code,
     title: "Debug an error",
-    prompt: "I'm getting an error in my Lovable project. Can you help me debug it?",
+    prompt: "I'm getting an error in my project. Can you help me debug it?",
     color: "text-red-500",
     bgColor: "bg-red-500/10 group-hover:bg-red-500/20",
   },
   {
-    icon: Sparkles,
+    icon: Zap,
     title: "Generate a component",
     prompt: "Create a modern, responsive React component for",
     color: "text-blue-500",
@@ -68,7 +68,7 @@ const quickPrompts = [
   {
     icon: Zap,
     title: "Optimize performance",
-    prompt: "Help me optimize the performance of my Lovable app",
+    prompt: "Help me optimize the performance of my app",
     color: "text-orange-500",
     bgColor: "bg-orange-500/10 group-hover:bg-orange-500/20",
   },
@@ -174,7 +174,7 @@ function EmptyStateIllustration({ type }: { type: "chat" | "welcome" }) {
     <div className="relative w-20 h-20 md:w-24 md:h-24">
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <Sparkles className="h-10 w-10 md:h-12 md:w-12 text-primary animate-pulse" aria-hidden="true" />
+        <KernelLogo size="xl" className="animate-pulse" />
       </div>
       {/* Decorative elements */}
       <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-accent/40 animate-bounce" />
@@ -205,7 +205,7 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
           aria-label="No projects found"
         >
           <EmptyStateIllustration type="welcome" />
-          <h2 className="text-xl font-semibold mb-2 mt-6">Welcome to AI Assistant!</h2>
+          <h2 className="text-xl font-semibold mb-2 mt-6">Welcome to Kernel!</h2>
           <p className="text-muted-foreground max-w-md mb-6">
             Create your first project to start organizing your conversations and building amazing things.
           </p>
@@ -259,7 +259,7 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
             className="gap-2"
             aria-label="Start a new conversation"
           >
-            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            <span className="font-mono font-bold">{">_"}</span>
             {isCreatingConversation ? "Creating..." : "New Conversation"}
           </Button>
         )}
@@ -290,8 +290,8 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
       
       <h2 className="text-xl md:text-2xl font-bold mb-2 mt-6 text-center">How can I help you today?</h2>
       <p className="text-muted-foreground text-center max-w-lg mb-6 md:mb-8 text-sm md:text-base px-4">
-        I'm your expert Lovable AI assistant. Ask me anything about building
-        with Lovable, debugging issues, or improving your projects.
+        I'm Kernel, your AI-powered development assistant. Ask me anything about building
+        apps, debugging issues, or improving your projects.
       </p>
 
       {/* Build Apps Card */}

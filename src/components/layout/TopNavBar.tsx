@@ -2,12 +2,12 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import {
   MessageSquare,
   Code2,
   Settings,
   Shield,
-  Sparkles,
   User,
   LogOut,
 } from "lucide-react";
@@ -36,10 +36,8 @@ export function TopNavBar() {
     <header className="h-12 border-b border-border/50 bg-sidebar flex items-center justify-between px-4">
       {/* Logo & Brand */}
       <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Sparkles className="h-4 w-4 text-primary" />
-        </div>
-        <span className="font-semibold text-sm hidden sm:inline">AI Assistant</span>
+        <KernelLogo size="sm" />
+        <span className="font-semibold text-sm hidden sm:inline">Kernel</span>
       </Link>
 
       {/* Navigation Links */}

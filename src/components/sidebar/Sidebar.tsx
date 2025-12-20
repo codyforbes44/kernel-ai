@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import {
   Tooltip,
   TooltipContent,
@@ -28,14 +29,10 @@ import {
   Plus,
   Search,
   MessageSquare,
-  FolderOpen,
   Settings,
   LogOut,
   User,
-  Sparkles,
   FileText,
-  Pin,
-  Archive,
   Shield,
   Download,
   Loader2,
@@ -257,11 +254,9 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       {/* Header */}
       <div className="p-3 flex items-center justify-between border-b border-border/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-primary" />
-          </div>
+          <KernelLogo size="sm" />
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Expert Assistant</span>
+            <span className="text-sm font-semibold">Kernel</span>
             <span className="text-xs text-muted-foreground">
               {currentWorkspace?.name || "Personal"}
             </span>

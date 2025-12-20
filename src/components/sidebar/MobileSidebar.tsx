@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -19,10 +20,10 @@ import {
   FolderKanban,
   Settings,
   LogOut,
-  Sparkles,
   User,
   Code2,
   Shield,
+  Plus,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 
@@ -77,10 +78,8 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
       <SheetContent side="left" className="w-[85vw] max-w-sm p-0 flex flex-col">
         <SheetHeader className="p-4 border-b border-border/50">
           <SheetTitle className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-primary" />
-            </div>
-            <span>AI Assistant</span>
+            <KernelLogo size="sm" />
+            <span>Kernel</span>
           </SheetTitle>
         </SheetHeader>
 
@@ -100,7 +99,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             onClick={handleNewConversation}
             disabled={!currentProject}
           >
-            <Sparkles className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             New Conversation
           </Button>
         </div>
