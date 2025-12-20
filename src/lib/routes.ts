@@ -124,6 +124,16 @@ export const routes: RouteConfig[] = [
     isDynamic: true,
     robots: 'disallow',
   },
+  {
+    path: '/seo',
+    title: 'SEO Dashboard',
+    description: 'Monitor sitemap coverage and robots.txt rules',
+    changefreq: 'weekly',
+    priority: 0.3,
+    includeInSitemap: false,
+    requiresAuth: false,
+    robots: 'disallow', // Internal tool, don't index
+  },
 ];
 
 // Get routes for sitemap generation
