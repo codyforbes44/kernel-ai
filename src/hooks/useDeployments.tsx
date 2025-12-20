@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -88,6 +89,37 @@ export function useDeployments(projectId: string) {
     },
     enabled: !!projectId && !!user,
   });
+
+  // Subscribe to realtime updates for this project's deployments
+  useEffect(() => {
+    if (!projectId || !user) return;
+
+    const channel = supabase
+      .channel(`deployments-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'deployments',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Deployment update:', payload);
+          queryClient.invalidateQueries({ queryKey: ['deployments', projectId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, user, queryClient]);
+
+  // Get active/building deployments
+  const activeBuilds = deployments.filter(
+    d => d.status === 'pending' || d.status === 'building'
+  );
 
   // Get latest deployment per environment
   const latestPreview = deployments.find(d => d.environment === 'preview' && d.status === 'deployed');
@@ -227,6 +259,7 @@ export function useDeployments(projectId: string) {
     latestPreview,
     latestProduction,
     customDomains,
+    activeBuilds,
     isLoading,
     deploy: deployMutation.mutateAsync,
     isDeploying: deployMutation.isPending,
