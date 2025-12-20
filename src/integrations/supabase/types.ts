@@ -426,6 +426,92 @@ export type Database = {
           },
         ]
       }
+      github_commits: {
+        Row: {
+          author_email: string | null
+          author_name: string | null
+          commit_message: string | null
+          commit_sha: string
+          committed_at: string | null
+          direction: string
+          files_changed: number | null
+          id: string
+          project_repo_id: string
+          synced_at: string | null
+        }
+        Insert: {
+          author_email?: string | null
+          author_name?: string | null
+          commit_message?: string | null
+          commit_sha: string
+          committed_at?: string | null
+          direction: string
+          files_changed?: number | null
+          id?: string
+          project_repo_id: string
+          synced_at?: string | null
+        }
+        Update: {
+          author_email?: string | null
+          author_name?: string | null
+          commit_message?: string | null
+          commit_sha?: string
+          committed_at?: string | null
+          direction?: string
+          files_changed?: number | null
+          id?: string
+          project_repo_id?: string
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "github_commits_project_repo_id_fkey"
+            columns: ["project_repo_id"]
+            isOneToOne: false
+            referencedRelation: "project_repos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      github_connections: {
+        Row: {
+          access_token: string
+          avatar_url: string | null
+          created_at: string | null
+          github_user_id: string
+          github_username: string
+          id: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          avatar_url?: string | null
+          created_at?: string | null
+          github_user_id: string
+          github_username: string
+          id?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          avatar_url?: string | null
+          created_at?: string | null
+          github_user_id?: string
+          github_username?: string
+          id?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       login_alerts: {
         Row: {
           alert_type: string
@@ -669,6 +755,63 @@ export type Database = {
             foreignKeyName: "project_files_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_repos: {
+        Row: {
+          created_at: string | null
+          default_branch: string | null
+          github_connection_id: string
+          id: string
+          last_commit_sha: string | null
+          last_synced_at: string | null
+          project_id: string
+          repo_full_name: string | null
+          repo_name: string
+          repo_owner: string
+          sync_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_branch?: string | null
+          github_connection_id: string
+          id?: string
+          last_commit_sha?: string | null
+          last_synced_at?: string | null
+          project_id: string
+          repo_full_name?: string | null
+          repo_name: string
+          repo_owner: string
+          sync_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_branch?: string | null
+          github_connection_id?: string
+          id?: string
+          last_commit_sha?: string | null
+          last_synced_at?: string | null
+          project_id?: string
+          repo_full_name?: string | null
+          repo_name?: string
+          repo_owner?: string
+          sync_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_repos_github_connection_id_fkey"
+            columns: ["github_connection_id"]
+            isOneToOne: false
+            referencedRelation: "github_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_repos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
             referencedRelation: "builder_projects"
             referencedColumns: ["id"]
           },

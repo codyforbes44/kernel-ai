@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.generate-schema]
 verify_jwt = false
+
+[functions.github-auth]
+verify_jwt = false
+
+[functions.github-sync]
+verify_jwt = false
