@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronRight, ChevronLeft, Sparkles, MessageSquare, Layers, Command, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,8 @@ interface WelcomeTourProps {
   forceShow?: boolean;
 }
 
-export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps) {
+export const WelcomeTour = forwardRef<HTMLDivElement, WelcomeTourProps>(
+  function WelcomeTour({ onComplete, forceShow = false }, ref) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasChecked, setHasChecked] = useState(false);
@@ -161,6 +162,7 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
 
   return createPortal(
     <div 
+      ref={ref}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
@@ -170,13 +172,14 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
       <div 
         className="absolute inset-0 bg-background/80 backdrop-blur-sm animate-in fade-in-0 duration-300"
         onClick={handleSkip}
+        aria-hidden="true"
       />
       
       {/* Tour Card */}
       <div className="relative z-10 w-full max-w-md animate-in zoom-in-95 fade-in-0 slide-in-from-bottom-4 duration-300">
         <div className="rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
           {/* Progress bar */}
-          <div className="h-1 bg-muted">
+          <div className="h-1 bg-muted" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
             <div 
               className="h-full bg-primary transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
@@ -195,13 +198,13 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
               className="h-8 w-8"
               aria-label="Skip tour"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
 
           {/* Content */}
           <div className="p-6 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary" aria-hidden="true">
               {step.icon}
             </div>
             
@@ -215,8 +218,8 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
           </div>
 
           {/* Step indicators */}
-          <div className="flex justify-center gap-1.5 pb-4">
-            {tourSteps.map((_, index) => (
+          <nav className="flex justify-center gap-1.5 pb-4" aria-label="Tour steps">
+            {tourSteps.map((s, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentStep(index)}
@@ -226,10 +229,11 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
                     ? "w-6 bg-primary" 
                     : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 )}
-                aria-label={`Go to step ${index + 1}`}
+                aria-label={`Go to step ${index + 1}: ${s.title}`}
+                aria-current={index === currentStep ? "step" : undefined}
               />
             ))}
-          </div>
+          </nav>
 
           {/* Footer */}
           <div className="flex items-center justify-between p-4 border-t border-border bg-muted/30">
@@ -242,7 +246,7 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
                 'Skip'
               ) : (
                 <>
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                   Back
                 </>
               )}
@@ -254,7 +258,7 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
               ) : (
                 <>
                   Next
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </>
               )}
             </Button>
@@ -264,4 +268,4 @@ export function WelcomeTour({ onComplete, forceShow = false }: WelcomeTourProps)
     </div>,
     document.body
   );
-}
+});

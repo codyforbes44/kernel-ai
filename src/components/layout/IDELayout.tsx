@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/sidebar/Sidebar";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { ContextPanel } from "@/components/context/ContextPanel";
 import { MobileLayout } from "@/components/layout/MobileLayout";
+import { SkipLink } from "@/components/ui/skip-link";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function IDELayout() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background">
+      <SkipLink href="#main-content" />
       <ResizablePanelGroup direction="horizontal" className="h-full">
         {/* Sidebar */}
         <ResizablePanel
@@ -56,7 +58,9 @@ export function IDELayout() {
 
         {/* Main Chat Panel */}
         <ResizablePanel defaultSize={contextPanelOpen ? 55 : 80} minSize={40}>
-          <ChatPanel />
+          <main id="main-content" className="h-full" tabIndex={-1}>
+            <ChatPanel />
+          </main>
         </ResizablePanel>
 
         {/* Context Panel (toggleable) */}
