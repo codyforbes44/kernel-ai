@@ -27,7 +27,13 @@ export function MobileTabBar() {
     : [...baseTabs, settingsTab];
 
   return (
-    <nav className="h-16 border-t border-border/50 bg-sidebar safe-area-bottom flex items-center justify-around px-2">
+    <nav 
+      className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-around px-2 z-50"
+      style={{ 
+        paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
+        minHeight: '64px'
+      }}
+    >
       {tabs.map((tab) => {
         const isActive = location.pathname === tab.href;
         const Icon = tab.icon;
