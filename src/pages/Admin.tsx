@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Hash } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Search, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Message } from '@/types/database';
@@ -17,6 +18,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
+import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -105,35 +107,9 @@ export default function Admin() {
       />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalConversations}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-              <Hash className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalMessages}</div>
-            </CardContent>
-          </Card>
+        {/* Enhanced Analytics Dashboard */}
+        <div className="mb-8">
+          <AnalyticsDashboard variant="full" showExport />
         </div>
 
         {/* Main Content */}
