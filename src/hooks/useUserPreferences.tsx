@@ -1,13 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { AI_MODELS, type AIModel } from '@/lib/constants';
 
-export type AIModel = 
-  | 'google/gemini-2.5-flash'
-  | 'google/gemini-2.5-pro'
-  | 'google/gemini-2.5-flash-lite'
-  | 'openai/gpt-5'
-  | 'openai/gpt-5-mini';
+export type { AIModel } from '@/lib/constants';
 
 export type MessageDensity = 'compact' | 'comfortable' | 'spacious';
 export type CodeTheme = 'auto' | 'dark' | 'light';
@@ -31,13 +27,13 @@ export interface UserPreferences {
   enableMarkdownPreview?: boolean;
 }
 
-export const AI_MODEL_OPTIONS: { value: AIModel; label: string; description: string }[] = [
-  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast & balanced (recommended)' },
-  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Most capable, slower' },
-  { value: 'google/gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', description: 'Fastest, basic tasks' },
-  { value: 'openai/gpt-5', label: 'GPT-5', description: 'Powerful reasoning' },
-  { value: 'openai/gpt-5-mini', label: 'GPT-5 Mini', description: 'Good balance of speed & quality' },
-];
+export const AI_MODEL_OPTIONS: { value: AIModel; label: string; description: string }[] = Object.entries(AI_MODELS).map(
+  ([key, model]) => ({
+    value: key as AIModel,
+    label: model.name,
+    description: model.description,
+  })
+);
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   autoCreateChatOnProject: true,

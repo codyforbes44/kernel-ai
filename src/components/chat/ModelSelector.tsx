@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sparkles, Zap, Rocket, ChevronDown } from "lucide-react";
-import { AI_MODELS, type AIModel } from "@/hooks/useChat";
+import { AI_MODELS, type AIModel } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface ModelSelectorProps {

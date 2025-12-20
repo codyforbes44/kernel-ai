@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useUserPreferences } from './useUserPreferences';
 import { format } from 'date-fns';
 import { AI_MODELS, MAX_CONTEXT_MESSAGES } from '@/lib/constants';
 import type { AIModel } from '@/lib/constants';
@@ -42,12 +43,20 @@ async function trackUsage(userId: string, messagesSent: number = 0, tokensUsed: 
 
 export function useChat() {
   const { user } = useAuth();
+  const { preferences, loading: preferencesLoading } = useUserPreferences();
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<AIModel>('google/gemini-2.5-flash');
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastSendTimeRef = useRef<number>(0);
+
+  // Sync with user preferences when they load
+  useEffect(() => {
+    if (!preferencesLoading && preferences.defaultAIModel) {
+      setSelectedModel(preferences.defaultAIModel);
+    }
+  }, [preferences.defaultAIModel, preferencesLoading]);
 
   const sendMessage = useCallback(async (
     content: string, 
