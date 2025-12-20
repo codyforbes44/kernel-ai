@@ -16,7 +16,7 @@ import {
 type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
 const Auth = () => {
-  const { user, loading, signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
+  const { user, profile, loading, signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('signin');
@@ -74,9 +74,14 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user && mode !== 'reset') {
-      navigate("/dashboard");
+      // Redirect to onboarding if user hasn't completed it
+      if (profile && !profile.onboarding_completed) {
+        navigate("/onboarding");
+      } else if (profile) {
+        navigate("/dashboard");
+      }
     }
-  }, [user, loading, navigate, mode]);
+  }, [user, profile, loading, navigate, mode]);
 
   const handleOAuthSignIn = async (provider: OAuthProvider) => {
     setOauthLoading(provider);
