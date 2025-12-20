@@ -337,6 +337,50 @@ export type Database = {
           },
         ]
       }
+      deployment_env_vars: {
+        Row: {
+          created_at: string
+          environment: string
+          id: string
+          is_secret: boolean
+          key: string
+          project_id: string
+          updated_at: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          environment?: string
+          id?: string
+          is_secret?: boolean
+          key: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          environment?: string
+          id?: string
+          is_secret?: boolean
+          key?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployment_env_vars_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deployments: {
         Row: {
           build_duration_ms: number | null
