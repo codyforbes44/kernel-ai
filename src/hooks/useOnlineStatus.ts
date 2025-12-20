@@ -5,10 +5,12 @@ const OFFLINE_DELAY_MS = 3000; // Wait 3 seconds before showing offline
 const CONNECTIVITY_CHECK_INTERVAL_MS = 30000; // Check every 30 seconds when offline
 
 export function useOnlineStatus() {
-  const [isOnline, setIsOnline] = useState(true);
+  // Start with browser's online status instead of assuming true
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [isChecking, setIsChecking] = useState(false);
   const offlineTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSuccessfulApiCallRef = useRef<number>(Date.now());
+  const hasInitializedRef = useRef<boolean>(false);
 
   // Track successful API calls
   const markApiSuccess = useCallback(() => {
@@ -45,6 +47,14 @@ export function useOnlineStatus() {
   }, [checkConnectivity]);
 
   useEffect(() => {
+    // Run initial connectivity check on mount
+    if (!hasInitializedRef.current && navigator.onLine) {
+      hasInitializedRef.current = true;
+      checkConnectivity().then((online) => {
+        setIsOnline(online);
+      });
+    }
+
     const handleOnline = async () => {
       // Clear any pending offline timeout
       if (offlineTimeoutRef.current) {
