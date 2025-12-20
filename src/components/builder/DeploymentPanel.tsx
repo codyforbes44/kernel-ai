@@ -14,14 +14,18 @@ import {
   Zap,
   RotateCcw,
   Radio,
-  Terminal
+  Terminal,
+  RefreshCw,
+  Copy,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { useDeployments, type Deployment } from '@/hooks/useDeployments';
+import { useDeployments, type Deployment, type CustomDomain } from '@/hooks/useDeployments';
 import { BuildLogViewer } from './BuildLogViewer';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -45,6 +49,8 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
     isRollingBack,
     addDomain,
     deleteDomain,
+    verifyDomain,
+    isVerifyingDomain,
   } = useDeployments(projectId);
 
   const [showHistory, setShowHistory] = useState(false);
@@ -52,6 +58,8 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
   const [showDomainForm, setShowDomainForm] = useState(false);
   const [elapsedTimes, setElapsedTimes] = useState<Record<string, number>>({});
   const [viewingLogId, setViewingLogId] = useState<string | null>(null);
+  const [expandedDomainId, setExpandedDomainId] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Update elapsed time every second for active builds
   useEffect(() => {
@@ -373,33 +381,171 @@ export function DeploymentPanel({ projectId, onClose }: DeploymentPanelProps) {
             {customDomains.length > 0 ? (
               <div className="space-y-2">
                 {customDomains.map((domain) => (
-                  <div
-                    key={domain.id}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{domain.domain}</span>
-                      <Badge 
-                        variant="secondary" 
-                        className={cn(
-                          "text-[10px] px-1.5",
-                          domain.status === 'active' && "bg-success/20 text-success",
-                          domain.status === 'verifying' && "bg-primary/20 text-primary",
-                          domain.status === 'failed' && "bg-destructive/20 text-destructive"
-                        )}
-                      >
-                        {domain.status}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => deleteDomain(domain.id)}
+                  <div key={domain.id} className="space-y-2">
+                    <div
+                      className={cn(
+                        "p-2 bg-muted/50 rounded-md cursor-pointer hover:bg-muted/70 transition-colors",
+                        expandedDomainId === domain.id && "bg-muted/70"
+                      )}
+                      onClick={() => setExpandedDomainId(expandedDomainId === domain.id ? null : domain.id)}
                     >
-                      <XCircle className="h-3.5 w-3.5" />
-                    </Button>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{domain.domain}</span>
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "text-[10px] px-1.5",
+                              domain.status === 'active' && "bg-success/20 text-success",
+                              domain.status === 'verifying' && "bg-primary/20 text-primary animate-pulse",
+                              domain.status === 'failed' && "bg-destructive/20 text-destructive",
+                              domain.status === 'pending' && "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {domain.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {domain.status !== 'active' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                verifyDomain(domain.id);
+                              }}
+                              disabled={isVerifyingDomain}
+                              title="Verify DNS"
+                            >
+                              {isVerifyingDomain ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteDomain(domain.id);
+                            }}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* DNS Setup Instructions */}
+                    {expandedDomainId === domain.id && domain.status !== 'active' && (
+                      <div className="p-3 bg-muted/30 rounded-md border border-border space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-medium">
+                          <AlertCircle className="h-3.5 w-3.5 text-primary" />
+                          DNS Configuration Required
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground">
+                          Add these records at your domain registrar:
+                        </p>
+                        
+                        {/* TXT Record */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-medium text-muted-foreground">TXT RECORD</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`lovable_verify=${domain.verificationToken}`);
+                                setCopiedField(`txt-${domain.id}`);
+                                setTimeout(() => setCopiedField(null), 2000);
+                              }}
+                            >
+                              {copiedField === `txt-${domain.id}` ? (
+                                <Check className="h-3 w-3 text-success" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                          <div className="bg-background rounded p-2 font-mono text-xs space-y-1">
+                            <div><span className="text-muted-foreground">Name:</span> _lovable</div>
+                            <div><span className="text-muted-foreground">Value:</span> lovable_verify={domain.verificationToken}</div>
+                          </div>
+                        </div>
+                        
+                        {/* A Record */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-medium text-muted-foreground">A RECORD</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              onClick={() => {
+                                navigator.clipboard.writeText('185.158.133.1');
+                                setCopiedField(`a-${domain.id}`);
+                                setTimeout(() => setCopiedField(null), 2000);
+                              }}
+                            >
+                              {copiedField === `a-${domain.id}` ? (
+                                <Check className="h-3 w-3 text-success" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                          <div className="bg-background rounded p-2 font-mono text-xs space-y-1">
+                            <div><span className="text-muted-foreground">Name:</span> @ (or {domain.domain})</div>
+                            <div><span className="text-muted-foreground">Value:</span> 185.158.133.1</div>
+                          </div>
+                        </div>
+                        
+                        <Button
+                          size="sm"
+                          className="w-full h-7 text-xs"
+                          onClick={() => verifyDomain(domain.id)}
+                          disabled={isVerifyingDomain}
+                        >
+                          {isVerifyingDomain ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Verifying...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="h-3 w-3 mr-1" />
+                              Verify DNS Records
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Active Domain Success State */}
+                    {expandedDomainId === domain.id && domain.status === 'active' && (
+                      <div className="p-3 bg-success/10 rounded-md border border-success/20 space-y-2">
+                        <div className="flex items-center gap-2 text-xs font-medium text-success">
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          Domain Verified & Active
+                        </div>
+                        <a
+                          href={`https://${domain.domain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Visit {domain.domain}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

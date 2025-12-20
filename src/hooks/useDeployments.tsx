@@ -295,6 +295,47 @@ export function useDeployments(projectId: string) {
     },
   });
 
+  // Verify domain mutation
+  const verifyDomainMutation = useMutation({
+    mutationFn: async (domainId: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-domain`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ domainId }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Verification failed');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['custom-domains', projectId] });
+      if (data.verified) {
+        toast.success('Domain verified!', {
+          description: `${data.domain} is now active`,
+        });
+      } else {
+        toast.info('DNS not configured yet', {
+          description: 'Please add the required DNS records and try again',
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error('Verification failed', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    },
+  });
+
   return {
     deployments,
     latestPreview,
@@ -308,5 +349,7 @@ export function useDeployments(projectId: string) {
     isRollingBack: rollbackMutation.isPending,
     addDomain: addDomainMutation.mutateAsync,
     deleteDomain: deleteDomainMutation.mutateAsync,
+    verifyDomain: verifyDomainMutation.mutateAsync,
+    isVerifyingDomain: verifyDomainMutation.isPending,
   };
 }
