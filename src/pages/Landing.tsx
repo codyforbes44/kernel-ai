@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { FeatureCard } from '@/components/ui/feature-card';
+import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
 import { GlowBadge } from '@/components/ui/glow-badge';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
@@ -121,7 +121,7 @@ export default function Landing() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <FeatureCard 
+              <AnimatedFeatureCard 
                 key={feature.title}
                 icon={<feature.icon className="h-6 w-6 text-primary" />}
                 title={feature.title}
@@ -129,6 +129,7 @@ export default function Landing() {
                 animatedBorder={true}
                 borderSpeed={3 + index * 0.5}
                 variant="glow"
+                delay={index * 100}
               />
             ))}
           </div>
