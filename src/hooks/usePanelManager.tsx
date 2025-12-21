@@ -9,6 +9,7 @@ export type PanelType =
   | 'marketplace'
   | 'knowledge-base'
   | 'storage'
+  | 'database'
   | null;
 
 interface PanelConfig {
@@ -27,6 +28,7 @@ const PANEL_CONFIGS: Record<Exclude<PanelType, null>, PanelConfig> = {
   'marketplace': { id: 'marketplace', defaultSize: 30, minSize: 25, maxSize: 50 },
   'knowledge-base': { id: 'knowledge-base', defaultSize: 25, minSize: 20, maxSize: 40 },
   'storage': { id: 'storage', defaultSize: 30, minSize: 25, maxSize: 50 },
+  'database': { id: 'database', defaultSize: 50, minSize: 35, maxSize: 70 },
 };
 
 export interface UsePanelManagerReturn {
