@@ -17,6 +17,7 @@ import { GitHubPanel } from './GitHubPanel';
 import { DesignSystemPanel } from './DesignSystemPanel';
 import { ComponentMarketplace } from './ComponentMarketplace';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
+import { StorageBrowser } from './StorageBrowser';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
@@ -37,7 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock, HardDrive } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -60,6 +61,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showDesignSystem, setShowDesignSystem] = useState(false);
   const [showMarketplace, setShowMarketplace] = useState(false);
   const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
+  const [showStorage, setShowStorage] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   const [previewCSS, setPreviewCSS] = useState<string | null>(null);
@@ -419,6 +421,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowGitHub(false);
                     setShowDesignSystem(false);
                     setShowMarketplace(false);
+                    setShowStorage(false);
                   }
                 }}
               >
@@ -426,6 +429,30 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>Knowledge Base</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('h-8 w-8', showStorage && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowStorage(!showStorage);
+                  if (!showStorage) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                    setShowGitHub(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
+                  }
+                }}
+              >
+                <HardDrive className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>File Storage</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -562,7 +589,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* AI Chat */}
-        {showAIChat && !showHistory && !showDeployments && !showGitHub && !showDesignSystem && !showMarketplace && (
+        {showAIChat && !showHistory && !showDeployments && !showGitHub && !showDesignSystem && !showMarketplace && !showStorage && (
           <>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
@@ -573,6 +600,16 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 onClearErrors={handleClearErrors}
                 projectId={projectId}
               />
+            </ResizablePanel>
+          </>
+        )}
+
+        {/* Storage Browser */}
+        {showStorage && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
+              <StorageBrowser />
             </ResizablePanel>
           </>
         )}
