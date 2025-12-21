@@ -265,7 +265,7 @@ export default function Pricing() {
                         {buttonContent.disabled ? (
                           <span>{buttonContent.text}</span>
                         ) : (
-                          <Link to="/auth?tab=signup">
+                          <Link to="/auth?mode=signup">
                             {buttonContent.text}
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
@@ -359,7 +359,7 @@ export default function Pricing() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
-                <Link to="/auth?tab=signup">
+                <Link to="/auth?mode=signup">
                   Start for free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

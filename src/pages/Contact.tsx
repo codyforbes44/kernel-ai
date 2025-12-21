@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Send, HelpCircle } from "lucide-react";
+import { Send, HelpCircle, Clock, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,8 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { PublicLayout } from "@/components/layout/PublicLayout";
-import { FAQSection } from "@/components/faq/FAQSection";
 import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, getOrganizationSchema } from "@/lib/seo";
 import { contactOptions, subjectOptions } from "@/lib/contact-data";
@@ -133,10 +138,18 @@ export default function Contact() {
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle>Send us a message</CardTitle>
-                  <CardDescription>
-                    Fill out the form below and we'll get back to you as soon as possible.
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Send us a message</CardTitle>
+                      <CardDescription>
+                        Fill out the form below and we'll get back to you as soon as possible.
+                      </CardDescription>
+                    </div>
+                    <Badge variant="outline" className="flex items-center gap-1 shrink-0">
+                      <Clock className="h-3 w-3" />
+                      <span className="text-xs">~24h response</span>
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Form {...form}>
@@ -226,19 +239,32 @@ export default function Contact() {
               </Card>
             </div>
 
-            {/* FAQ Preview */}
+            {/* FAQ Accordion */}
             <div>
               <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-              <div className="space-y-4">
-                {contactFAQs.slice(0, 6).map((faq, index) => (
-                  <Card key={index} className="hover:border-primary/30 transition-colors">
-                    <CardContent className="pt-4 pb-4">
-                      <h3 className="font-medium mb-2">{faq.question}</h3>
-                      <p className="text-sm text-muted-foreground">{faq.answer}</p>
-                    </CardContent>
-                  </Card>
+              <Accordion type="single" collapsible className="space-y-2">
+                {contactFAQs.slice(0, 8).map((faq, index) => (
+                  <AccordionItem 
+                    key={index} 
+                    value={`faq-${index}`}
+                    className="border border-border rounded-lg px-4 data-[state=open]:border-primary/30"
+                  >
+                    <AccordionTrigger className="text-left hover:no-underline py-4">
+                      <span className="font-medium text-sm">{faq.question}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground pb-4">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
+              
+              <p className="text-sm text-muted-foreground mt-6">
+                Can't find what you're looking for?{" "}
+                <a href="mailto:support@kernel.dev" className="text-primary hover:underline">
+                  Email us directly
+                </a>
+              </p>
             </div>
           </div>
         </div>
