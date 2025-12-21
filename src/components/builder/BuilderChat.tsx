@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useBuilderConversation, type BuilderMessage } from '@/hooks/useBuilderConversation';
 import { useSchemaGenerator, isSchemaRequest } from '@/hooks/useSchemaGenerator';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { SchemaPreview, type GeneratedSchema } from './SchemaPreview';
 import type { ProjectFile } from '@/types/builder';
 import type { CapturedError } from './ErrorCapture';
@@ -69,6 +70,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
   } = useBuilderConversation(projectId);
 
   const { isGenerating, generateSchema } = useSchemaGenerator();
+  const { knowledgeBase } = useKnowledgeBase(projectId);
 
   const [localMessages, setLocalMessages] = useState<ExtendedBuilderMessage[]>([]);
   const [input, setInput] = useState('');
@@ -194,6 +196,16 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
         column: e.column,
       })) || [];
 
+      // Prepare knowledge base context for AI
+      const kbContext = {
+        instructions: knowledgeBase.instructions || undefined,
+        techStack: knowledgeBase.techStack.length > 0 ? knowledgeBase.techStack : undefined,
+        conventions: (knowledgeBase.conventions.componentNaming || knowledgeBase.conventions.fileNaming || 
+                     knowledgeBase.conventions.stateManagement || knowledgeBase.conventions.styling ||
+                     knowledgeBase.conventions.customRules.length > 0) ? knowledgeBase.conventions : undefined,
+        contextDocs: knowledgeBase.contextDocs.length > 0 ? knowledgeBase.contextDocs : undefined,
+      };
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/builder-ai-enhanced`,
         {
@@ -213,6 +225,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
             files: fileContext,
             errors: errorPayload,
             conversationId,
+            knowledgeBase: kbContext,
           }),
         }
       );
