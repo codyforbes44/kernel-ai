@@ -39,6 +39,24 @@ export const builderService = {
     return data as BuilderProject[];
   },
 
+  async deleteProject(projectId: string) {
+    // First delete all project files
+    const { error: filesError } = await supabase
+      .from('project_files')
+      .delete()
+      .eq('project_id', projectId);
+    
+    if (filesError) throw filesError;
+
+    // Then delete the project
+    const { error } = await supabase
+      .from('builder_projects')
+      .delete()
+      .eq('id', projectId);
+    
+    if (error) throw error;
+  },
+
   async createProject(params: { 
     userId: string; 
     name: string; 

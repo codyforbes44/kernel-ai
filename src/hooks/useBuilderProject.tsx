@@ -63,6 +63,20 @@ export function useBuilderProject(projectId?: string) {
     },
   });
 
+  // Delete project mutation
+  const deleteProject = useMutation({
+    mutationFn: async (projectIdToDelete: string) => {
+      await builderService.deleteProject(projectIdToDelete);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['builder', 'projects'] });
+      toast.success('Project deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete project: ' + error.message);
+    },
+  });
+
   // Fetch user's projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
     queryKey: ['builder', 'projects', user?.id],
@@ -288,6 +302,8 @@ export function useBuilderProject(projectId?: string) {
     renameFile: renameFile.mutate,
     remixProject: remixProject.mutateAsync,
     isRemixing: remixProject.isPending,
+    deleteProject: deleteProject.mutateAsync,
+    isDeletingProject: deleteProject.isPending,
     openFile,
     closeTab,
     setActiveTabId,

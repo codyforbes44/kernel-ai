@@ -19,6 +19,16 @@ import { ComponentMarketplace } from './ComponentMarketplace';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { StorageBrowser } from './StorageBrowser';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -38,7 +48,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock, HardDrive } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock, HardDrive, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -68,6 +78,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [previewSystemName, setPreviewSystemName] = useState<string | null>(null);
   const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
   const [showRemixDialog, setShowRemixDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const {
     project,
@@ -91,6 +102,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     isRemixing,
     updateProject,
     isUpdatingProject,
+    deleteProject,
+    isDeletingProject,
   } = useBuilderProject(projectId);
 
   const handleTogglePublic = useCallback(async () => {
@@ -115,6 +128,13 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
       navigate(`/builder/${result.project.id}`);
     }
   }, [project, remixProject, navigate]);
+
+  const handleDeleteProject = useCallback(async () => {
+    if (!project) return;
+    await deleteProject(project.id);
+    setShowDeleteDialog(false);
+    navigate('/builder');
+  }, [project, deleteProject, navigate]);
 
   const handleSave = useCallback(() => {
     if (activeTabId) {
@@ -511,6 +531,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 <Copy className="h-4 w-4 mr-2" />
                 Remix Project
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Project
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -701,6 +729,28 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         onRemix={handleRemix}
         isRemixing={isRemixing}
       />
+
+      {/* Delete Project Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{project?.name}"? This will permanently delete the project and all its files. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProject} 
+              disabled={isDeletingProject}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingProject ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
