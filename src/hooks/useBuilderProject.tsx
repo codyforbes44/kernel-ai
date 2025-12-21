@@ -220,6 +220,34 @@ export function useBuilderProject(projectId?: string) {
     queryClient.invalidateQueries({ queryKey: ['builder', 'files', projectId] });
   }, [projectId, files, activeTabId, openTabs, queryClient]);
 
+  // Remix project mutation
+  const remixProject = useMutation({
+    mutationFn: async ({ 
+      sourceProjectId, 
+      newName, 
+      includeKnowledgeBase = true 
+    }: { 
+      sourceProjectId: string; 
+      newName: string; 
+      includeKnowledgeBase?: boolean;
+    }) => {
+      if (!user) throw new Error('Not authenticated');
+      return builderService.remixProject({
+        sourceProjectId,
+        userId: user.id,
+        newName,
+        includeKnowledgeBase,
+      });
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['builder', 'projects'] });
+      toast.success(`Project remixed! ${result.fileCount} files copied.`);
+    },
+    onError: (error) => {
+      toast.error('Failed to remix project: ' + error.message);
+    },
+  });
+
   // Get active file
   const activeFile = files.find(f => f.id === activeTabId);
 
@@ -241,6 +269,8 @@ export function useBuilderProject(projectId?: string) {
     createFile: createFile.mutate,
     deleteFile: deleteFile.mutate,
     renameFile: renameFile.mutate,
+    remixProject: remixProject.mutateAsync,
+    isRemixing: remixProject.isPending,
     openFile,
     closeTab,
     setActiveTabId,

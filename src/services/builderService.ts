@@ -188,4 +188,82 @@ export const builderService = {
       }
     }
   },
+
+  // Remix/Fork a project
+  async remixProject(params: {
+    sourceProjectId: string;
+    userId: string;
+    newName: string;
+    includeKnowledgeBase?: boolean;
+  }) {
+    // Fetch source project
+    const { data: sourceProject, error: projectError } = await supabase
+      .from('builder_projects')
+      .select('*')
+      .eq('id', params.sourceProjectId)
+      .single();
+
+    if (projectError) throw projectError;
+
+    // Verify user can access (owns it or it's public)
+    if (sourceProject.user_id !== params.userId && !sourceProject.is_public) {
+      throw new Error('Cannot remix this project - not accessible');
+    }
+
+    // Create new project with cloned settings
+    const settings = params.includeKnowledgeBase 
+      ? sourceProject.settings 
+      : { ...(sourceProject.settings as Record<string, unknown> || {}), knowledgeBase: undefined };
+
+    const { data: newProject, error: createError } = await supabase
+      .from('builder_projects')
+      .insert({
+        user_id: params.userId,
+        name: params.newName,
+        description: sourceProject.description 
+          ? `Remixed from: ${sourceProject.name}` 
+          : `Remixed from: ${sourceProject.name}`,
+        template: sourceProject.template,
+        framework: sourceProject.framework,
+        settings,
+        is_public: false,
+      })
+      .select()
+      .single();
+
+    if (createError) throw createError;
+
+    // Fetch source project files
+    const { data: sourceFiles, error: filesError } = await supabase
+      .from('project_files')
+      .select('*')
+      .eq('project_id', params.sourceProjectId);
+
+    if (filesError) throw filesError;
+
+    // Clone files to new project
+    if (sourceFiles && sourceFiles.length > 0) {
+      const filesToInsert = sourceFiles.map(file => ({
+        project_id: newProject.id,
+        path: file.path,
+        name: file.name,
+        type: file.type,
+        content: file.content,
+        language: file.language,
+        is_entry_point: file.is_entry_point,
+        metadata: file.metadata,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('project_files')
+        .insert(filesToInsert);
+
+      if (insertError) throw insertError;
+    }
+
+    return {
+      project: newProject as BuilderProject,
+      fileCount: sourceFiles?.length || 0,
+    };
+  },
 };
