@@ -11,17 +11,8 @@ import {
 import { StorageFile } from '@/services/storageService';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { HardDrive } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { HardDrive, FolderOpen } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 
 export function StorageBrowser() {
   const uploadZoneRef = useRef<HTMLDivElement>(null);
@@ -29,43 +20,22 @@ export function StorageBrowser() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ path: string; name: string } | null>(null);
   
   const {
-    currentBucket,
-    currentPath,
-    pathParts,
-    selectedFiles,
-    searchQuery,
-    viewMode,
-    buckets,
-    files,
-    isLoadingBuckets,
-    isLoadingFiles,
-    isUploading,
-    isDeleting,
-    setSearchQuery,
-    setViewMode,
-    changeBucket,
-    navigateToFolder,
-    navigateToPath,
-    toggleFileSelection,
-    clearSelection,
-    getFileUrl,
-    copyFileUrl,
-    downloadFile,
-    refetchFiles,
-    uploadFiles,
-    deleteSelectedFiles,
-    deleteFile,
-    createFolder,
+    state,
+    selection,
+    navigation,
+    queries,
+    mutations,
+    actions,
   } = useStorageBrowser();
 
   const handleDeleteFile = async (path: string) => {
-    const file = files.find(f => f.path === path);
+    const file = queries.files.find(f => f.path === path);
     setDeleteConfirm({ path, name: file?.name || path });
   };
 
   const confirmDelete = async () => {
     if (deleteConfirm) {
-      await deleteFile(deleteConfirm.path);
+      await mutations.deleteFile(deleteConfirm.path);
       setDeleteConfirm(null);
     }
   };
@@ -73,6 +43,8 @@ export function StorageBrowser() {
   const scrollToUpload = () => {
     uploadZoneRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const hasFiles = queries.files.length > 0;
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -85,40 +57,40 @@ export function StorageBrowser() {
         
         <div className="flex items-center gap-3">
           <StorageBucketSelector
-            buckets={buckets}
-            currentBucket={currentBucket}
-            onChange={changeBucket}
-            isLoading={isLoadingBuckets}
+            buckets={queries.buckets}
+            currentBucket={state.currentBucket}
+            onChange={navigation.changeBucket}
+            isLoading={queries.isLoadingBuckets}
           />
         </div>
 
         <StorageToolbar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          selectedCount={selectedFiles.size}
+          searchQuery={state.searchQuery}
+          onSearchChange={actions.setSearchQuery}
+          viewMode={state.viewMode}
+          onViewModeChange={actions.setViewMode}
+          selectedCount={selection.count}
           onUploadClick={scrollToUpload}
-          onDeleteSelected={deleteSelectedFiles}
-          onRefresh={refetchFiles}
-          onCreateFolder={createFolder}
-          isDeleting={isDeleting}
+          onDeleteSelected={mutations.deleteSelected}
+          onRefresh={queries.refetch}
+          onCreateFolder={mutations.createFolder}
+          isDeleting={mutations.isDeleting}
         />
       </div>
 
       {/* Breadcrumbs */}
       <div className="px-3 border-b border-border">
         <StorageBreadcrumbs
-          currentBucket={currentBucket}
-          pathParts={pathParts}
-          onNavigateToPath={navigateToPath}
+          currentBucket={state.currentBucket}
+          pathParts={navigation.pathParts}
+          onNavigateToPath={navigation.navigateToPath}
         />
       </div>
 
       {/* Content */}
       <ScrollArea className="flex-1">
         <div className="p-3 space-y-4">
-          {isLoadingFiles ? (
+          {queries.isLoadingFiles ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 p-3">
@@ -127,26 +99,35 @@ export function StorageBrowser() {
                 </div>
               ))}
             </div>
+          ) : !hasFiles && !state.currentPath ? (
+            /* Empty bucket state */
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FolderOpen className="h-16 w-16 text-muted-foreground/30 mb-4" />
+              <h3 className="font-medium text-foreground mb-1">No files yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Upload files to get started with this bucket
+              </p>
+            </div>
           ) : (
             <StorageFileGrid
-              files={files}
-              viewMode={viewMode}
-              selectedFiles={selectedFiles}
-              onToggleSelect={toggleFileSelection}
-              onNavigateToFolder={navigateToFolder}
+              files={queries.files}
+              viewMode={state.viewMode}
+              selectedFiles={selection.selectedFiles}
+              onToggleSelect={selection.toggle}
+              onNavigateToFolder={navigation.navigateToFolder}
               onPreview={setPreviewFile}
-              onCopyUrl={copyFileUrl}
-              onDownload={downloadFile}
+              onCopyUrl={actions.copyFileUrl}
+              onDownload={actions.downloadFile}
               onDelete={handleDeleteFile}
-              getFileUrl={getFileUrl}
+              getFileUrl={actions.getFileUrl}
             />
           )}
 
           {/* Upload Zone */}
           <div ref={uploadZoneRef}>
             <StorageUploadZone
-              onUpload={uploadFiles}
-              isUploading={isUploading}
+              onUpload={mutations.upload}
+              isUploading={mutations.isUploading}
             />
           </div>
         </div>
@@ -157,29 +138,21 @@ export function StorageBrowser() {
         file={previewFile}
         open={!!previewFile}
         onOpenChange={(open) => !open && setPreviewFile(null)}
-        getFileUrl={getFileUrl}
-        onCopyUrl={copyFileUrl}
-        onDownload={downloadFile}
+        getFileUrl={actions.getFileUrl}
+        onCopyUrl={actions.copyFileUrl}
+        onDownload={actions.downloadFile}
         onDelete={handleDeleteFile}
       />
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete file?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deleteConfirm?.name}"? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Confirmation - Using reusable component */}
+      <DeleteConfirmDialog
+        open={!!deleteConfirm}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
+        title="Delete file?"
+        description={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+        isLoading={mutations.isDeleting}
+      />
     </div>
   );
 }

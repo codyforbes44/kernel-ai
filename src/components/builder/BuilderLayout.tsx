@@ -19,17 +19,9 @@ import { ComponentMarketplace } from './ComponentMarketplace';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { StorageBrowser } from './StorageBrowser';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
+import { usePanelManager, PanelType } from '@/hooks/usePanelManager';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -48,7 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock, HardDrive, Trash2 } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -59,19 +51,39 @@ interface BuilderLayoutProps {
   projectId: string;
 }
 
+// Panel toolbar button configuration
+const PANEL_BUTTONS: Array<{
+  panel: PanelType;
+  icon: typeof Sparkles;
+  label: string;
+  requiresActiveFile?: boolean;
+}> = [
+  { panel: 'design-system', icon: Palette, label: 'Design System' },
+  { panel: 'marketplace', icon: Package, label: 'Component Marketplace' },
+  { panel: 'github', icon: Github, label: 'GitHub' },
+  { panel: 'deployments', icon: Rocket, label: 'Deployments' },
+  { panel: 'history', icon: History, label: 'Version History', requiresActiveFile: true },
+  { panel: 'knowledge-base', icon: BookMarked, label: 'Knowledge Base' },
+  { panel: 'storage', icon: HardDrive, label: 'File Storage' },
+  { panel: 'ai-chat', icon: Sparkles, label: 'AI Assistant' },
+];
+
 export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [showPreview, setShowPreview] = useState(true);
-  const [showExplorer, setShowExplorer] = useState(true);
-  const [showAIChat, setShowAIChat] = useState(true);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showDeployments, setShowDeployments] = useState(false);
-  const [showGitHub, setShowGitHub] = useState(false);
-  const [showDesignSystem, setShowDesignSystem] = useState(false);
-  const [showMarketplace, setShowMarketplace] = useState(false);
-  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
-  const [showStorage, setShowStorage] = useState(false);
+  
+  // Use panel manager for simplified state
+  const {
+    activePanel,
+    showExplorer,
+    showPreview,
+    togglePanel,
+    toggleExplorer,
+    togglePreview,
+    isPanelActive,
+    getPanelConfig,
+  } = usePanelManager('ai-chat');
+
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   const [previewCSS, setPreviewCSS] = useState<string | null>(null);
@@ -105,6 +117,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     deleteProject,
     isDeletingProject,
   } = useBuilderProject(projectId);
+
+  // Clear design preview when design system panel closes
+  useEffect(() => {
+    if (activePanel !== 'design-system') {
+      setPreviewCSS(null);
+      setPreviewSystemName(null);
+      setPreviewFontsUrl(null);
+    }
+  }, [activePanel]);
 
   const handleTogglePublic = useCallback(async () => {
     if (!project) return;
@@ -142,27 +163,21 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     }
   }, [activeTabId, saveFile]);
 
-  // Restore a version
   const handleRestoreVersion = useCallback(async (content: string) => {
     if (!activeTabId || !activeFile) return;
     
-    // Save current content as a version before restoring
     const currentContent = getFileContent(activeTabId);
     if (currentContent) {
       await createFileVersion(activeTabId, currentContent, 'Before restore');
     }
     
-    // Update local content with restored version
     updateLocalContent(activeTabId, content);
-    // Auto-save the restored content
     await saveFile(activeTabId);
     toast.success('Version restored');
   }, [activeTabId, activeFile, getFileContent, updateLocalContent, saveFile]);
 
-  // Handle "Try to Fix" from error capture
   const handleTryToFix = useCallback((errors: CapturedError[]) => {
     setIsFixingErrors(true);
-    // Trigger AI chat fix via window function
     const fixHandler = (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors;
     if (fixHandler) {
       fixHandler(errors);
@@ -174,7 +189,6 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     setCapturedErrors([]);
   }, []);
 
-  // Handle visual editor changes save
   const handleSaveVisualChanges = useCallback(async (changes: Array<{ fileId: string; content: string }>) => {
     for (const { fileId, content } of changes) {
       updateLocalContent(fileId, content);
@@ -183,14 +197,13 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     toast.success(`Saved ${changes.length} visual change${changes.length > 1 ? 's' : ''} to source code`);
   }, [updateLocalContent, saveFile]);
 
-  // Handle design system preview change
   const handlePreviewChange = useCallback((css: string | null, systemName?: string, fontsUrl?: string | null) => {
     setPreviewCSS(css);
     setPreviewSystemName(systemName || null);
     setPreviewFontsUrl(fontsUrl || null);
   }, []);
 
-  // Keyboard shortcuts - Ctrl/Cmd+S to save
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -217,7 +230,6 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   if (isMobile) {
     return (
       <div className="h-screen flex flex-col bg-background">
-        {/* Mobile Header */}
         <div className="h-12 flex items-center justify-between px-3 border-b border-border bg-card">
           <Link to="/builder" className="flex items-center gap-2">
             <ArrowLeft className="h-5 w-5" />
@@ -228,7 +240,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               variant="ghost"
               size="icon"
               className={cn('h-8 w-8', !showPreview && 'bg-primary text-primary-foreground')}
-              onClick={() => setShowPreview(false)}
+              onClick={togglePreview}
             >
               <Code2 className="h-4 w-4" />
             </Button>
@@ -236,14 +248,13 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               variant="ghost"
               size="icon"
               className={cn('h-8 w-8', showPreview && 'bg-primary text-primary-foreground')}
-              onClick={() => setShowPreview(true)}
+              onClick={togglePreview}
             >
               <Eye className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Content */}
         {showPreview ? (
           <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} previewFontsUrl={previewFontsUrl} />
         ) : (
@@ -272,6 +283,73 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
       </div>
     );
   }
+
+  // Render panel based on active panel
+  const renderActivePanel = () => {
+    if (!activePanel) return null;
+
+    const config = getPanelConfig(activePanel);
+
+    const panelContent = {
+      'ai-chat': (
+        <BuilderChat
+          files={files}
+          onApplyOperations={applyAIOperations}
+          errors={capturedErrors}
+          onClearErrors={handleClearErrors}
+          projectId={projectId}
+        />
+      ),
+      'history': (
+        <FileVersionHistory
+          fileId={activeTabId}
+          fileName={activeFile?.name || null}
+          currentContent={activeTabId ? getFileContent(activeTabId) : ''}
+          onRestore={handleRestoreVersion}
+          onClose={() => togglePanel('history')}
+        />
+      ),
+      'deployments': (
+        <DeploymentPanel
+          projectId={projectId}
+          onClose={() => togglePanel('deployments')}
+        />
+      ),
+      'github': (
+        <GitHubPanel
+          projectId={projectId}
+          projectName={project?.name}
+        />
+      ),
+      'design-system': (
+        <DesignSystemPanel projectId={projectId} onPreviewChange={handlePreviewChange} />
+      ),
+      'marketplace': (
+        <ComponentMarketplace 
+          projectId={projectId}
+          onInstallComponent={(code) => {
+            toast.success('Component installed! Code copied to clipboard.');
+            navigator.clipboard.writeText(code);
+          }}
+        />
+      ),
+      'knowledge-base': (
+        <KnowledgeBasePanel projectId={projectId} />
+      ),
+      'storage': (
+        <StorageBrowser />
+      ),
+    };
+
+    return (
+      <>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={config.defaultSize} minSize={config.minSize} maxSize={config.maxSize}>
+          {panelContent[activePanel]}
+        </ResizablePanel>
+      </>
+    );
+  };
 
   // Desktop layout
   return (
@@ -303,200 +381,24 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex items-center gap-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showDesignSystem && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  const newState = !showDesignSystem;
-                  setShowDesignSystem(newState);
-                  // Clear preview when closing design system panel
-                  if (!newState) {
-                    setPreviewCSS(null);
-                    setPreviewSystemName(null);
-                    setPreviewFontsUrl(null);
-                  }
-                  if (newState) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <Palette className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Design System</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showMarketplace && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowMarketplace(!showMarketplace);
-                  if (!showMarketplace) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <Package className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Component Marketplace</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showGitHub && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowGitHub(!showGitHub);
-                  if (!showGitHub) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <Github className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>GitHub</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showDeployments && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowDeployments(!showDeployments);
-                  if (!showDeployments) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <Rocket className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Deployments</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-            <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showHistory && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowHistory(!showHistory);
-                  if (!showHistory) {
-                    setShowAIChat(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-                disabled={!activeTabId}
-              >
-                <History className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Version History</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showKnowledgeBase && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowKnowledgeBase(!showKnowledgeBase);
-                  if (!showKnowledgeBase) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowStorage(false);
-                  }
-                }}
-              >
-                <BookMarked className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Knowledge Base</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showStorage && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowStorage(!showStorage);
-                  if (!showStorage) {
-                    setShowAIChat(false);
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <HardDrive className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>File Storage</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-            <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8', showAIChat && 'bg-primary/10 text-primary')}
-                onClick={() => {
-                  setShowAIChat(!showAIChat);
-                  if (!showAIChat) {
-                    setShowHistory(false);
-                    setShowDeployments(false);
-                    setShowGitHub(false);
-                    setShowDesignSystem(false);
-                    setShowMarketplace(false);
-                    setShowKnowledgeBase(false);
-                  }
-                }}
-              >
-                <Sparkles className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>AI Assistant</TooltipContent>
-          </Tooltip>
+          {/* Panel toggle buttons */}
+          {PANEL_BUTTONS.map(({ panel, icon: Icon, label, requiresActiveFile }) => (
+            <Tooltip key={panel}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn('h-8 w-8', isPanelActive(panel) && 'bg-primary/10 text-primary')}
+                  onClick={() => togglePanel(panel)}
+                  disabled={requiresActiveFile && !activeTabId}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{label}</TooltipContent>
+            </Tooltip>
+          ))}
+          
           <Button
             variant="ghost"
             size="sm"
@@ -506,6 +408,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             <Save className="h-4 w-4" />
             Save
           </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -566,7 +469,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* Editor */}
-        <ResizablePanel defaultSize={showPreview && showAIChat ? 35 : showPreview || showAIChat ? 50 : 85}>
+        <ResizablePanel defaultSize={showPreview && activePanel ? 35 : showPreview || activePanel ? 50 : 85}>
           <div className="h-full flex flex-col">
             <EditorTabs
               tabs={openTabs}
@@ -597,7 +500,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         {showPreview && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={(showAIChat || showHistory) ? 25 : 40} minSize={20}>
+            <ResizablePanel defaultSize={activePanel ? 25 : 40} minSize={20}>
               <div className="h-full flex flex-col">
                 <SandpackPreview 
                   files={files} 
@@ -616,108 +519,8 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </>
         )}
 
-        {/* AI Chat */}
-        {showAIChat && !showHistory && !showDeployments && !showGitHub && !showDesignSystem && !showMarketplace && !showStorage && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <BuilderChat
-                files={files}
-                onApplyOperations={applyAIOperations}
-                errors={capturedErrors}
-                onClearErrors={handleClearErrors}
-                projectId={projectId}
-              />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* Storage Browser */}
-        {showStorage && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
-              <StorageBrowser />
-            </ResizablePanel>
-          </>
-        )}
-
-        {showDesignSystem && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <DesignSystemPanel projectId={projectId} onPreviewChange={handlePreviewChange} />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* Knowledge Base Panel */}
-        {showKnowledgeBase && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <KnowledgeBasePanel projectId={projectId} />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* Component Marketplace Panel */}
-        {showMarketplace && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={30} minSize={25} maxSize={50}>
-              <ComponentMarketplace 
-                projectId={projectId}
-                onInstallComponent={(code) => {
-                  toast.success('Component installed! Code copied to clipboard.');
-                  navigator.clipboard.writeText(code);
-                }}
-              />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* Deployments Panel */}
-        {showDeployments && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <DeploymentPanel
-                projectId={projectId}
-                onClose={() => setShowDeployments(false)}
-              />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* GitHub Panel */}
-        {showGitHub && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <GitHubPanel
-                projectId={projectId}
-                projectName={project?.name}
-              />
-            </ResizablePanel>
-          </>
-        )}
-
-        {/* Version History */}
-        {showHistory && (
-          <>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
-              <FileVersionHistory
-                fileId={activeTabId}
-                fileName={activeFile?.name || null}
-                currentContent={activeTabId ? getFileContent(activeTabId) : ''}
-                onRestore={handleRestoreVersion}
-                onClose={() => setShowHistory(false)}
-              />
-            </ResizablePanel>
-          </>
-        )}
+        {/* Active Panel */}
+        {renderActivePanel()}
       </ResizablePanelGroup>
 
       {/* Remix Project Dialog */}
@@ -730,27 +533,20 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         isRemixing={isRemixing}
       />
 
-      {/* Delete Project Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete project?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{project?.name}"? This will permanently delete the project and all its files. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteProject} 
-              disabled={isDeletingProject}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeletingProject ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Delete Project Dialog - Using reusable component */}
+      <DeleteConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete project?"
+        description={`Are you sure you want to delete "${project?.name}"? This will permanently delete the project and all its files. This action cannot be undone.`}
+        onConfirm={handleDeleteProject}
+        isLoading={isDeletingProject}
+        impactItems={[
+          `${files.length} files will be deleted`,
+          'All version history will be lost',
+          'Deployments will be removed',
+        ]}
+      />
     </div>
   );
 }
