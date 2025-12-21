@@ -25,6 +25,19 @@ interface ErrorContext {
   column?: number;
 }
 
+interface KnowledgeBaseContext {
+  instructions?: string;
+  techStack?: Array<{ name: string; version?: string; notes?: string }>;
+  conventions?: {
+    componentNaming?: string;
+    fileNaming?: string;
+    stateManagement?: string;
+    styling?: string;
+    customRules?: string[];
+  };
+  contextDocs?: Array<{ title: string; content: string; type: string }>;
+}
+
 interface ProjectAnalysis {
   dependencyGraph: Record<string, string[]>;
   componentMap: Record<string, { exports: string[]; props?: string[] }>;
@@ -102,14 +115,67 @@ function analyzeProject(files: FileContext[]): ProjectAnalysis {
   return analysis;
 }
 
+// Format knowledge base for prompt
+function formatKnowledgeBase(kb?: KnowledgeBaseContext): string {
+  if (!kb) return '';
+  
+  const sections: string[] = [];
+  
+  if (kb.instructions?.trim()) {
+    sections.push(`CUSTOM INSTRUCTIONS:\n${kb.instructions}`);
+  }
+  
+  if (kb.techStack && kb.techStack.length > 0) {
+    const techList = kb.techStack
+      .map(t => `- ${t.name}${t.version ? ` v${t.version}` : ''}${t.notes ? ` (${t.notes})` : ''}`)
+      .join('\n');
+    sections.push(`TECH STACK:\n${techList}`);
+  }
+  
+  if (kb.conventions) {
+    const conventions: string[] = [];
+    if (kb.conventions.componentNaming) conventions.push(`- Components: ${kb.conventions.componentNaming}`);
+    if (kb.conventions.fileNaming) conventions.push(`- Files: ${kb.conventions.fileNaming}`);
+    if (kb.conventions.stateManagement) conventions.push(`- State: ${kb.conventions.stateManagement}`);
+    if (kb.conventions.styling) conventions.push(`- Styling: ${kb.conventions.styling}`);
+    if (kb.conventions.customRules) {
+      kb.conventions.customRules.forEach(rule => conventions.push(`- ${rule}`));
+    }
+    if (conventions.length > 0) {
+      sections.push(`CODE CONVENTIONS:\n${conventions.join('\n')}`);
+    }
+  }
+  
+  if (kb.contextDocs && kb.contextDocs.length > 0) {
+    const docs = kb.contextDocs
+      .map(d => `[${d.type.toUpperCase()}: ${d.title}]\n${d.content}`)
+      .join('\n\n');
+    sections.push(`REFERENCE DOCUMENTS:\n${docs}`);
+  }
+  
+  if (sections.length === 0) return '';
+  
+  return `
+=== PROJECT-SPECIFIC CONTEXT ===
+
+${sections.join('\n\n')}
+
+=== END PROJECT CONTEXT ===
+`;
+}
+
 // Build context-aware prompt from project analysis
 function buildEnhancedPrompt(
   analysis: ProjectAnalysis, 
   files: FileContext[], 
   errors: ErrorContext[],
-  conversationHistory: Message[]
+  conversationHistory: Message[],
+  knowledgeBase?: KnowledgeBaseContext
 ): string {
-  let contextSummary = `
+  // Add knowledge base first
+  let contextSummary = formatKnowledgeBase(knowledgeBase);
+  
+  contextSummary += `
 PROJECT STRUCTURE ANALYSIS:
 - Entry Points: ${analysis.entryPoints.join(', ') || 'None detected'}
 - CSS Files: ${analysis.cssFiles.join(', ') || 'None'}

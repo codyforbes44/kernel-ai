@@ -15,6 +15,7 @@ import { DeploymentPanel } from './DeploymentPanel';
 import { GitHubPanel } from './GitHubPanel';
 import { DesignSystemPanel } from './DesignSystemPanel';
 import { ComponentMarketplace } from './ComponentMarketplace';
+import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,6 +49,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [showGitHub, setShowGitHub] = useState(false);
   const [showDesignSystem, setShowDesignSystem] = useState(false);
   const [showMarketplace, setShowMarketplace] = useState(false);
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
   const [capturedErrors, setCapturedErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
   const [previewCSS, setPreviewCSS] = useState<string | null>(null);
@@ -254,6 +256,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowDeployments(false);
                     setShowGitHub(false);
                     setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
               >
@@ -276,6 +279,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowDeployments(false);
                     setShowGitHub(false);
                     setShowDesignSystem(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
               >
@@ -298,6 +302,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowDeployments(false);
                     setShowDesignSystem(false);
                     setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
               >
@@ -320,6 +325,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowGitHub(false);
                     setShowDesignSystem(false);
                     setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
               >
@@ -342,6 +348,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowGitHub(false);
                     setShowDesignSystem(false);
                     setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
                 disabled={!activeTabId}
@@ -350,6 +357,29 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>Version History</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('h-8 w-8', showKnowledgeBase && 'bg-primary/10 text-primary')}
+                onClick={() => {
+                  setShowKnowledgeBase(!showKnowledgeBase);
+                  if (!showKnowledgeBase) {
+                    setShowAIChat(false);
+                    setShowHistory(false);
+                    setShowDeployments(false);
+                    setShowGitHub(false);
+                    setShowDesignSystem(false);
+                    setShowMarketplace(false);
+                  }
+                }}
+              >
+                <BookMarked className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Knowledge Base</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -365,6 +395,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     setShowGitHub(false);
                     setShowDesignSystem(false);
                     setShowMarketplace(false);
+                    setShowKnowledgeBase(false);
                   }
                 }}
               >
@@ -481,6 +512,17 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             </ResizablePanel>
           </>
         )}
+
+        {/* Knowledge Base Panel */}
+        {showKnowledgeBase && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={40}>
+              <KnowledgeBasePanel projectId={projectId} />
+            </ResizablePanel>
+          </>
+        )}
+
         {/* Component Marketplace Panel */}
         {showMarketplace && (
           <>
