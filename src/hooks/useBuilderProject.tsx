@@ -48,6 +48,21 @@ export function useBuilderProject(projectId?: string) {
     },
   });
 
+  // Update project mutation
+  const updateProject = useMutation({
+    mutationFn: async (updates: { name?: string; description?: string; is_public?: boolean }) => {
+      if (!projectId) throw new Error('No project selected');
+      return builderService.updateProject(projectId, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['builder', 'project', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['builder', 'projects'] });
+    },
+    onError: (error) => {
+      toast.error('Failed to update project: ' + error.message);
+    },
+  });
+
   // Fetch user's projects
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
     queryKey: ['builder', 'projects', user?.id],
@@ -266,6 +281,8 @@ export function useBuilderProject(projectId?: string) {
     
     // Actions
     createProject: createProject.mutate,
+    updateProject: updateProject.mutateAsync,
+    isUpdatingProject: updateProject.isPending,
     createFile: createFile.mutate,
     deleteFile: deleteFile.mutate,
     renameFile: renameFile.mutate,

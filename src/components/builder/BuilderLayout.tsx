@@ -37,7 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings, Globe, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -87,7 +87,16 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     applyAIOperations,
     remixProject,
     isRemixing,
+    updateProject,
+    isUpdatingProject,
   } = useBuilderProject(projectId);
+
+  const handleTogglePublic = useCallback(async () => {
+    if (!project) return;
+    const newIsPublic = !project.is_public;
+    await updateProject({ is_public: newIsPublic });
+    toast.success(newIsPublic ? 'Project is now public' : 'Project is now private');
+  }, [project, updateProject]);
 
   const handleRemix = useCallback(async (newName: string, includeKnowledgeBase: boolean) => {
     if (!project) return;
@@ -259,7 +268,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="font-medium">{project?.name}</BreadcrumbPage>
+              <BreadcrumbPage className="font-medium flex items-center gap-2">
+                {project?.name}
+                {project?.is_public && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
+                    <Globe className="h-3 w-3" />
+                    Public
+                  </span>
+                )}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -449,6 +466,20 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleTogglePublic} disabled={isUpdatingProject}>
+                {project?.is_public ? (
+                  <>
+                    <Lock className="h-4 w-4 mr-2" />
+                    Make Private
+                  </>
+                ) : (
+                  <>
+                    <Globe className="h-4 w-4 mr-2" />
+                    Make Public
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setShowRemixDialog(true)}>
                 <Copy className="h-4 w-4 mr-2" />
                 Remix Project
