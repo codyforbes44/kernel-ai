@@ -270,11 +270,12 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, files, errors = [], conversationId } = await req.json() as {
+    const { messages, files, errors = [], conversationId, knowledgeBase } = await req.json() as {
       messages: Message[];
       files: FileContext[];
       errors?: ErrorContext[];
       conversationId?: string;
+      knowledgeBase?: KnowledgeBaseContext;
     };
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -285,8 +286,8 @@ serve(async (req) => {
     // Analyze project structure
     const analysis = analyzeProject(files);
     
-    // Build enhanced context
-    const enhancedContext = buildEnhancedPrompt(analysis, files, errors, messages);
+    // Build enhanced context with knowledge base
+    const enhancedContext = buildEnhancedPrompt(analysis, files, errors, messages, knowledgeBase);
     
     // Build file context (limit to key files + related files)
     const fileContext = files.length > 0 
@@ -297,9 +298,12 @@ serve(async (req) => {
 
     const fullSystemPrompt = SYSTEM_PROMPT + '\n' + enhancedContext + fileContext;
 
+    const hasKnowledgeBase = !!(knowledgeBase?.instructions || knowledgeBase?.techStack?.length || knowledgeBase?.contextDocs?.length);
+    
     console.log(`[builder-ai-enhanced] Processing request:
       - Files: ${files.length}
       - Errors: ${errors.length}
+      - Knowledge Base: ${hasKnowledgeBase ? 'Yes' : 'No'}
       - Conversation ID: ${conversationId || 'none'}
       - Entry points: ${analysis.entryPoints.join(', ')}
       - Components: ${Object.keys(analysis.componentMap).length}
