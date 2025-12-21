@@ -40,7 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2 } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2, Database } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -58,6 +58,7 @@ const PANEL_BUTTONS: Array<{
   label: string;
   requiresActiveFile?: boolean;
 }> = [
+  { panel: 'database', icon: Database, label: 'Database' },
   { panel: 'design-system', icon: Palette, label: 'Design System' },
   { panel: 'marketplace', icon: Package, label: 'Component Marketplace' },
   { panel: 'github', icon: Github, label: 'GitHub' },
