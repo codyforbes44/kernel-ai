@@ -81,8 +81,8 @@ export function useAICredits() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from('ai_usage_logs' as 'profiles')
+      const { data, error } = await (supabase as any)
+        .from('ai_usage_logs')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
@@ -134,20 +134,20 @@ export function useAICredits() {
       const newBalance = (credits?.balance || 0) - creditsToDeduct;
       const newTotalUsed = (credits?.total_used || 0) + creditsToDeduct;
 
-      const { error: updateError } = await supabase
-        .from('ai_credits' as 'profiles')
+      const { error: updateError } = await (supabase as any)
+        .from('ai_credits')
         .update({ 
           balance: newBalance, 
           total_used: newTotalUsed,
           updated_at: new Date().toISOString()
-        } as never)
+        })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 
       // Log usage
-      const { error: logError } = await supabase
-        .from('ai_usage_logs' as 'profiles')
+      const { error: logError } = await (supabase as any)
+        .from('ai_usage_logs')
         .insert({
           user_id: user.id,
           conversation_id: conversationId || null,
@@ -156,7 +156,7 @@ export function useAICredits() {
           tokens_input: tokensInput,
           tokens_output: tokensOutput,
           credits_used: creditsToDeduct,
-        } as never);
+        });
 
       if (logError) console.error('Error logging usage:', logError);
 
@@ -177,13 +177,13 @@ export function useAICredits() {
       const newBalance = (credits?.balance || 0) + creditsToAdd;
       const newTotalPurchased = (credits?.total_purchased || 0) + creditsToAdd;
 
-      const { error } = await supabase
-        .from('ai_credits' as 'profiles')
+      const { error } = await (supabase as any)
+        .from('ai_credits')
         .update({ 
           balance: newBalance, 
           total_purchased: newTotalPurchased,
           updated_at: new Date().toISOString()
-        } as never)
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
