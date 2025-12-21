@@ -13,8 +13,15 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles } from 'lucide-react';
+import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
@@ -22,14 +29,20 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
+import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
+import type { BuilderProject } from '@/types/builder';
 
 export default function Builder() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useProtectedPage();
-  const { projects, createProject, isLoading } = useBuilderProject();
+  const { projects, createProject, remixProject, isRemixing, isLoading } = useBuilderProject();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate>(PROJECT_TEMPLATES[0]);
+  
+  // Remix state
+  const [remixDialogOpen, setRemixDialogOpen] = useState(false);
+  const [projectToRemix, setProjectToRemix] = useState<BuilderProject | null>(null);
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
@@ -46,6 +59,30 @@ export default function Builder() {
     setNewProjectName('');
     setSelectedTemplate(PROJECT_TEMPLATES[0]);
     setShowCreateDialog(true);
+  };
+
+  const handleOpenRemixDialog = (project: BuilderProject, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProjectToRemix(project);
+    setRemixDialogOpen(true);
+  };
+
+  const handleRemix = async (newName: string, includeKnowledgeBase: boolean) => {
+    if (!projectToRemix) return;
+    
+    const result = await remixProject({
+      sourceProjectId: projectToRemix.id,
+      newName,
+      includeKnowledgeBase,
+    });
+    
+    setRemixDialogOpen(false);
+    setProjectToRemix(null);
+    
+    // Navigate to the new project
+    if (result?.project) {
+      navigate(`/builder/${result.project.id}`);
+    }
   };
 
   if (authLoading) {
@@ -124,7 +161,7 @@ export default function Builder() {
               return (
                 <Card
                   key={project.id}
-                  className="group cursor-pointer hover:border-primary/50 transition-colors"
+                  className="group cursor-pointer hover:border-primary/50 transition-colors relative"
                   onClick={() => navigate(`/builder/${project.id}`)}
                 >
                   <CardHeader className="pb-3">
@@ -137,7 +174,27 @@ export default function Builder() {
                       >
                         {template?.icon || <Folder className="h-5 w-5 text-primary" />}
                       </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={() => navigate(`/builder/${project.id}`)}>
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Open Project
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => handleOpenRemixDialog(project, e)}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Remix Project
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <CardTitle className="text-base mt-3">{project.name}</CardTitle>
                     <CardDescription className="line-clamp-2">
@@ -212,6 +269,16 @@ export default function Builder() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Remix Dialog */}
+      <RemixProjectDialog
+        open={remixDialogOpen}
+        onOpenChange={setRemixDialogOpen}
+        sourceProject={projectToRemix}
+        fileCount={0}
+        onRemix={handleRemix}
+        isRemixing={isRemixing}
+      />
     </div>
   );
 }

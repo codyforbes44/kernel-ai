@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -16,6 +17,7 @@ import { GitHubPanel } from './GitHubPanel';
 import { DesignSystemPanel } from './DesignSystemPanel';
 import { ComponentMarketplace } from './ComponentMarketplace';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
+import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
@@ -28,7 +30,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -40,6 +49,7 @@ interface BuilderLayoutProps {
 }
 
 export function BuilderLayout({ projectId }: BuilderLayoutProps) {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [showPreview, setShowPreview] = useState(true);
   const [showExplorer, setShowExplorer] = useState(true);
@@ -55,6 +65,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [previewCSS, setPreviewCSS] = useState<string | null>(null);
   const [previewSystemName, setPreviewSystemName] = useState<string | null>(null);
   const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
+  const [showRemixDialog, setShowRemixDialog] = useState(false);
   
   const {
     project,
@@ -74,7 +85,25 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     updateLocalContent,
     saveFile,
     applyAIOperations,
+    remixProject,
+    isRemixing,
   } = useBuilderProject(projectId);
+
+  const handleRemix = useCallback(async (newName: string, includeKnowledgeBase: boolean) => {
+    if (!project) return;
+    
+    const result = await remixProject({
+      sourceProjectId: project.id,
+      newName,
+      includeKnowledgeBase,
+    });
+    
+    setShowRemixDialog(false);
+    
+    if (result?.project) {
+      navigate(`/builder/${result.project.id}`);
+    }
+  }, [project, remixProject, navigate]);
 
   const handleSave = useCallback(() => {
     if (activeTabId) {
@@ -413,6 +442,19 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             <Save className="h-4 w-4" />
             Save
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowRemixDialog(true)}>
+                <Copy className="h-4 w-4 mr-2" />
+                Remix Project
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -581,6 +623,16 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </>
         )}
       </ResizablePanelGroup>
+
+      {/* Remix Project Dialog */}
+      <RemixProjectDialog
+        open={showRemixDialog}
+        onOpenChange={setShowRemixDialog}
+        sourceProject={project || null}
+        fileCount={files.length}
+        onRemix={handleRemix}
+        isRemixing={isRemixing}
+      />
     </div>
   );
 }
