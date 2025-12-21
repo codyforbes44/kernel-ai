@@ -34,7 +34,7 @@ export const plans: Plan[] = [
       { text: "5 AI conversations/day", included: true },
       { text: "Basic code generation", included: true },
       { text: "Community support", included: true },
-      { text: "1 project", included: true },
+      { text: "3 projects", included: true },
       { text: "Priority support", included: false },
       { text: "Custom domains", included: false },
     ],
