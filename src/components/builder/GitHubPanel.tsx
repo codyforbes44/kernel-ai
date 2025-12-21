@@ -394,6 +394,11 @@ export function GitHubPanel({ projectId, projectName }: GitHubPanelProps) {
             <span>Last sync: {formatDate(lastSyncedAt.toISOString())}</span>
           )}
         </div>
+        {/* Auto-sync toggle - feature placeholder */}
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+          <span className="text-xs text-muted-foreground">Auto-sync on push</span>
+          <Badge variant="outline" className="text-xs">Coming soon</Badge>
+        </div>
       </div>
 
       {/* Sync Controls */}

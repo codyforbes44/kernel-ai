@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.database-introspect]
 verify_jwt = false
+
+[functions.github-webhook]
+verify_jwt = false
+
+[functions.create-credit-purchase]
+verify_jwt = false

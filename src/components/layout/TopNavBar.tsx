@@ -2,7 +2,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useAICredits } from "@/hooks/useAICredits";
 import { KernelLogo } from "@/components/ui/kernel-logo";
+import { CreditsBadge } from "@/components/ui/credits-badge";
 import {
   MessageSquare,
   Code2,
@@ -28,6 +30,7 @@ const navItems = [
 export function TopNavBar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { balance, isLowBalance } = useAICredits();
   const location = useLocation();
 
   if (!user) return null;
@@ -77,18 +80,21 @@ export function TopNavBar() {
         )}
       </nav>
 
-      {/* User Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2 h-8">
-            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <span className="hidden md:inline text-sm truncate max-w-[120px]">
-              {user.email}
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
+      {/* Credits & User Menu */}
+      <div className="flex items-center gap-2">
+        <CreditsBadge balance={balance} isLowBalance={isLowBalance} />
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2 h-8">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <span className="hidden md:inline text-sm truncate max-w-[120px]">
+                {user.email}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem asChild>
             <Link to="/settings" className="flex items-center gap-2">
@@ -102,7 +108,8 @@ export function TopNavBar() {
             Sign Out
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }
