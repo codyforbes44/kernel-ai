@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { AlertTriangle, Trash2, Info } from 'lucide-react';
+import { Trash2, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DeleteConfirmDialogProps {
@@ -31,6 +31,8 @@ interface DeleteConfirmDialogProps {
   confirmText?: string;
   /** Custom cancel button text */
   cancelText?: string;
+  /** Loading state */
+  isLoading?: boolean;
 }
 
 export function DeleteConfirmDialog({
@@ -45,12 +47,15 @@ export function DeleteConfirmDialog({
   onDontAskAgainChange,
   confirmText = "Delete",
   cancelText = "Cancel",
+  isLoading: externalLoading,
 }: DeleteConfirmDialogProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
   const [dontAskAgain, setDontAskAgain] = useState(false);
 
+  const isLoading = externalLoading ?? internalLoading;
+
   const handleConfirm = async () => {
-    setIsLoading(true);
+    setInternalLoading(true);
     try {
       if (dontAskAgain && onDontAskAgainChange) {
         onDontAskAgainChange(true);
@@ -58,7 +63,7 @@ export function DeleteConfirmDialog({
       await onConfirm();
       onOpenChange(false);
     } finally {
-      setIsLoading(false);
+      setInternalLoading(false);
     }
   };
 
@@ -166,7 +171,7 @@ interface UndoBannerProps {
 export function UndoBanner({ message, onUndo, duration = 5000, onExpire }: UndoBannerProps) {
   const [progress, setProgress] = useState(100);
 
-  useState(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         const next = prev - (100 / (duration / 100));
@@ -180,7 +185,7 @@ export function UndoBanner({ message, onUndo, duration = 5000, onExpire }: UndoB
     }, 100);
 
     return () => clearInterval(interval);
-  });
+  }, [duration, onExpire]);
 
   return (
     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-slide-up">

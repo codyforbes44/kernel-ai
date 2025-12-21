@@ -1,9 +1,67 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storageService, StorageFile, StorageBucket } from '@/services/storageService';
 import { toast } from 'sonner';
 
-export function useStorageBrowser() {
+export interface StorageState {
+  currentBucket: string;
+  currentPath: string;
+  searchQuery: string;
+  viewMode: 'grid' | 'list';
+}
+
+export interface StorageSelection {
+  selectedFiles: Set<string>;
+  toggle: (fileId: string) => void;
+  selectAll: () => void;
+  clear: () => void;
+  hasSelection: boolean;
+  count: number;
+}
+
+export interface StorageNavigation {
+  pathParts: string[];
+  navigateToFolder: (folderName: string) => void;
+  navigateUp: () => void;
+  navigateToPath: (path: string) => void;
+  changeBucket: (bucketId: string) => void;
+}
+
+export interface StorageQueries {
+  buckets: StorageBucket[];
+  files: StorageFile[];
+  isLoadingBuckets: boolean;
+  isLoadingFiles: boolean;
+  refetch: () => void;
+}
+
+export interface StorageMutations {
+  upload: (files: File[]) => Promise<StorageFile[]>;
+  deleteSelected: () => Promise<void>;
+  deleteFile: (path: string) => Promise<void>;
+  createFolder: (name: string) => Promise<void>;
+  isUploading: boolean;
+  isDeleting: boolean;
+}
+
+export interface StorageActions {
+  setSearchQuery: (query: string) => void;
+  setViewMode: (mode: 'grid' | 'list') => void;
+  getFileUrl: (path: string) => string;
+  copyFileUrl: (path: string) => Promise<void>;
+  downloadFile: (file: StorageFile) => Promise<void>;
+}
+
+export interface UseStorageBrowserReturn {
+  state: StorageState;
+  selection: StorageSelection;
+  navigation: StorageNavigation;
+  queries: StorageQueries;
+  mutations: StorageMutations;
+  actions: StorageActions;
+}
+
+export function useStorageBrowser(): UseStorageBrowserReturn {
   const queryClient = useQueryClient();
   const [currentBucket, setCurrentBucket] = useState<string>('chat-attachments');
   const [currentPath, setCurrentPath] = useState<string>('');
@@ -24,8 +82,10 @@ export function useStorageBrowser() {
   });
 
   // Filter files by search
-  const filteredFiles = files.filter(file =>
-    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFiles = useMemo(() => 
+    files.filter(file =>
+      file.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [files, searchQuery]
   );
 
   // Upload mutation
@@ -154,52 +214,83 @@ export function useStorageBrowser() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       toast.error('Download failed');
     }
   }, [currentBucket]);
 
   // Get path parts for breadcrumbs
-  const pathParts = currentPath ? currentPath.split('/') : [];
+  const pathParts = useMemo(() => currentPath ? currentPath.split('/') : [], [currentPath]);
 
-  return {
-    // State
+  // Grouped return object
+  return useMemo(() => ({
+    state: {
+      currentBucket,
+      currentPath,
+      searchQuery,
+      viewMode,
+    },
+    selection: {
+      selectedFiles,
+      toggle: toggleFileSelection,
+      selectAll: selectAllFiles,
+      clear: clearSelection,
+      hasSelection: selectedFiles.size > 0,
+      count: selectedFiles.size,
+    },
+    navigation: {
+      pathParts,
+      navigateToFolder,
+      navigateUp,
+      navigateToPath,
+      changeBucket,
+    },
+    queries: {
+      buckets,
+      files: filteredFiles,
+      isLoadingBuckets,
+      isLoadingFiles,
+      refetch: refetchFiles,
+    },
+    mutations: {
+      upload: (files: File[]) => uploadMutation.mutateAsync({ files }),
+      deleteSelected: () => deleteMutation.mutateAsync(Array.from(selectedFiles)),
+      deleteFile: (path: string) => deleteMutation.mutateAsync([path]),
+      createFolder: (name: string) => createFolderMutation.mutateAsync(name),
+      isUploading: uploadMutation.isPending,
+      isDeleting: deleteMutation.isPending,
+    },
+    actions: {
+      setSearchQuery,
+      setViewMode,
+      getFileUrl,
+      copyFileUrl,
+      downloadFile,
+    },
+  }), [
     currentBucket,
     currentPath,
-    pathParts,
-    selectedFiles,
     searchQuery,
     viewMode,
-    
-    // Data
-    buckets,
-    files: filteredFiles,
-    
-    // Loading states
-    isLoadingBuckets,
-    isLoadingFiles,
-    isUploading: uploadMutation.isPending,
-    isDeleting: deleteMutation.isPending,
-    
-    // Actions
-    setSearchQuery,
-    setViewMode,
-    changeBucket,
-    navigateToFolder,
-    navigateUp,
-    navigateToPath,
+    selectedFiles,
     toggleFileSelection,
     selectAllFiles,
     clearSelection,
+    pathParts,
+    navigateToFolder,
+    navigateUp,
+    navigateToPath,
+    changeBucket,
+    buckets,
+    filteredFiles,
+    isLoadingBuckets,
+    isLoadingFiles,
+    refetchFiles,
+    uploadMutation,
+    deleteMutation,
+    createFolderMutation,
     getFileUrl,
     copyFileUrl,
     downloadFile,
-    refetchFiles,
-    
-    // Mutations
-    uploadFiles: (files: File[]) => uploadMutation.mutateAsync({ files }),
-    deleteSelectedFiles: () => deleteMutation.mutateAsync(Array.from(selectedFiles)),
-    deleteFile: (path: string) => deleteMutation.mutateAsync([path]),
-    createFolder: (name: string) => createFolderMutation.mutateAsync(name),
-  };
+  ]);
 }
