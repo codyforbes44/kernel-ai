@@ -1,28 +1,21 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEditorPresence } from '@/hooks/useEditorPresence';
 import { cn } from '@/lib/utils';
 
-interface Collaborator {
-  id: string;
-  userId: string;
-  displayName: string;
-  avatarUrl?: string;
-  currentFile?: string;
-  color: string;
-  lastActive: string;
-}
-
 interface CollaboratorAvatarsProps {
-  collaborators: Collaborator[];
+  projectId: string;
   maxVisible?: number;
   size?: 'sm' | 'md' | 'lg';
 }
 
 export function CollaboratorAvatars({ 
-  collaborators, 
+  projectId,
   maxVisible = 5,
   size = 'sm' 
 }: CollaboratorAvatarsProps) {
+  const { collaborators } = useEditorPresence({ projectId });
+  
   const visibleCollaborators = collaborators.slice(0, maxVisible);
   const hiddenCount = collaborators.length - maxVisible;
 

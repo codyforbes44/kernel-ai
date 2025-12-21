@@ -18,6 +18,8 @@ import { DesignSystemPanel } from './DesignSystemPanel';
 import { ComponentMarketplace } from './ComponentMarketplace';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { StorageBrowser } from './StorageBrowser';
+import { DatabasePanel } from './DatabasePanel';
+import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
@@ -340,6 +342,9 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
       'storage': (
         <StorageBrowser />
       ),
+      'database': (
+        <DatabasePanel />
+      ),
     };
 
     return (
@@ -382,6 +387,9 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex items-center gap-2">
+          {/* Collaborator Avatars */}
+          <CollaboratorAvatars projectId={projectId} />
+          
           {/* Panel toggle buttons */}
           {PANEL_BUTTONS.map(({ panel, icon: Icon, label, requiresActiveFile }) => (
             <Tooltip key={panel}>
