@@ -159,6 +159,10 @@
     --accent-foreground: 0 0% 100%;
     --border: 0 0% 0%;
     --input: 0 0% 0%;
+    
+    /* Gold accent for premium elements */
+    --gold: 45 100% 40%;
+    --gold-foreground: 0 0% 0%;
   }
 
   .high-contrast.dark {
@@ -178,6 +182,10 @@
     --accent-foreground: 0 0% 0%;
     --border: 0 0% 100%;
     --input: 0 0% 100%;
+    
+    /* Gold accent for premium elements */
+    --gold: 45 100% 55%;
+    --gold-foreground: 0 0% 0%;
   }
 
   /* OLED Mode - Pure black for OLED displays with cyan accents */
@@ -211,6 +219,10 @@
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
+    
+    /* Gold accent for premium elements */
+    --gold: 45 100% 55%;
+    --gold-foreground: 0 0% 0%;
 
     --border: 0 0% 12%;
     --input: 0 0% 12%;
