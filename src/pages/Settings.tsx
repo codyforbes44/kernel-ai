@@ -489,7 +489,7 @@ export default function Settings() {
                     </Button>
                   ) : (
                     <Button
-                      className="gap-2"
+                      className="gap-2 bg-gold hover:bg-gold/90 text-gold-foreground shadow-[0_0_15px_hsl(var(--gold)/0.3)]"
                       onClick={() => navigate('/pricing')}
                     >
                       <Crown className="h-4 w-4" />
