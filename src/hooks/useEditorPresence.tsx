@@ -153,9 +153,9 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
     setCursorPosition(position);
   }, []);
 
-  // Debounced presence update
+  // Reduced debounce for smoother cursor updates (100ms instead of 500ms)
   useEffect(() => {
-    const timeout = setTimeout(updatePresence, 500);
+    const timeout = setTimeout(updatePresence, 100);
     return () => clearTimeout(timeout);
   }, [currentFile, cursorPosition, updatePresence]);
 

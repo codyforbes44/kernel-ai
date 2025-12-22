@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/resizable';
 import { FileExplorer } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
+import { CollaborativeMonacoEditor } from './CollaborativeMonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
@@ -19,6 +20,7 @@ import { BuilderLoadingSkeleton, FileExplorerSkeleton, EditorSkeleton, PreviewSk
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { usePanelManager, PanelType } from '@/hooks/usePanelManager';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
+import { useEditorPresence } from '@/hooks/useEditorPresence';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
 import {
@@ -120,6 +122,21 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     isDeletingProject,
     dirtyFiles,
   } = useBuilderProject(projectId);
+
+  // Real-time presence tracking for collaborative editing
+  const {
+    collaborators,
+    isConnected: isPresenceConnected,
+    trackFileOpen,
+    trackCursor,
+  } = useEditorPresence({ projectId, enabled: true });
+
+  // Track active file for presence
+  useEffect(() => {
+    if (activeFile?.path) {
+      trackFileOpen(activeFile.path);
+    }
+  }, [activeFile?.path, trackFileOpen]);
 
   // Warn user before leaving with unsaved changes
   const hasUnsavedChanges = dirtyFiles.size > 0;
@@ -438,12 +455,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             />
             {activeFile ? (
               <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
-                <MonacoEditor
+                <CollaborativeMonacoEditor
                   value={getFileContent(activeFile.id)}
                   language={activeFile.language || 'plaintext'}
                   onChange={(value) => updateLocalContent(activeFile.id, value)}
                   onSave={handleSave}
                   path={activeFile.path}
+                  collaborators={collaborators}
+                  currentFilePath={activeFile.path}
+                  onCursorChange={trackCursor}
                 />
               </EditorErrorBoundary>
             ) : (

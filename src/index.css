@@ -676,3 +676,36 @@
 .animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
 }
+
+/* Remote cursor styles for collaborative editing */
+.remote-cursor {
+  position: relative;
+  pointer-events: none;
+}
+
+.remote-cursor-label {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  animation: cursor-label-fade-in 0.2s ease-out;
+  box-shadow: 0 2px 8px hsl(0 0% 0% / 0.3);
+}
+
+@keyframes cursor-label-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
