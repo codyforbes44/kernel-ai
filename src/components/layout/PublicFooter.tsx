@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { KernelLogo } from "@/components/ui/kernel-logo";
-import { Github, Twitter, Linkedin, MessageCircle } from "lucide-react";
+import { Twitter } from "lucide-react";
 
 interface FooterLink {
   label: string;
@@ -49,10 +49,7 @@ const footerSections: FooterSection[] = [
 ];
 
 const socialLinks = [
-  { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
-  { icon: Github, href: "https://github.com", label: "GitHub" },
-  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
-  { icon: MessageCircle, href: "https://discord.com", label: "Discord" },
+  { icon: Twitter, href: "https://x.com/kernel_cool", label: "X" },
 ];
 
 export function PublicFooter() {
