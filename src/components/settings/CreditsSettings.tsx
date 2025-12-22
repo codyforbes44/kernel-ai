@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Coins, TrendingUp, Clock, Zap, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Coins, TrendingUp, Clock, Zap, Loader2, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAICredits } from '@/hooks/useAICredits';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,8 +20,9 @@ const CREDIT_PACKS = [
 
 export function CreditsSettings() {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
-  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const {
     balance,
@@ -31,7 +32,26 @@ export function CreditsSettings() {
     usageHistory,
     isLoading,
     isLowBalance,
+    refetchCredits,
   } = useAICredits();
+
+  // Refresh credits when returning from purchase
+  useEffect(() => {
+    const creditsPurchased = searchParams.get('credits_purchased');
+    if (creditsPurchased) {
+      refetchCredits();
+    }
+  }, [searchParams, refetchCredits]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchCredits();
+      toast({ title: 'Credits refreshed' });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handlePurchase = async (packId: string) => {
     setIsPurchasing(packId);
@@ -99,7 +119,18 @@ export function CreditsSettings() {
         <Card className={cn(isLowBalance && 'border-destructive/50')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-            <Coins className={cn('h-4 w-4', isLowBalance ? 'text-destructive' : 'text-muted-foreground')} />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
+              </Button>
+              <Coins className={cn('h-4 w-4', isLowBalance ? 'text-destructive' : 'text-muted-foreground')} />
+            </div>
           </CardHeader>
           <CardContent>
             <div className={cn('text-2xl font-bold', isLowBalance && 'text-destructive')}>

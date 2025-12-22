@@ -66,13 +66,17 @@ serve(async (req) => {
         logStep("Processing checkout.session.completed", { 
           sessionId: session.id,
           customerId: session.customer,
-          customerEmail: session.customer_email 
+          customerEmail: session.customer_email,
+          mode: session.mode
         });
 
         if (session.mode === "subscription" && session.subscription) {
-          // Fetch full subscription details
+          // Handle subscription checkout
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
           await upsertSubscription(supabaseAdmin, subscription, session.customer_email, stripe);
+        } else if (session.mode === "payment") {
+          // Handle one-time payment (credit purchases)
+          await handleCreditPurchase(supabaseAdmin, session, stripe);
         }
         break;
       }
@@ -112,7 +116,6 @@ serve(async (req) => {
           invoiceId: invoice.id,
           subscriptionId: invoice.subscription 
         });
-        // Invoice paid - subscription should already be updated via subscription events
         break;
       }
 
@@ -122,7 +125,6 @@ serve(async (req) => {
           invoiceId: invoice.id,
           subscriptionId: invoice.subscription 
         });
-        // Payment failed - Stripe will update subscription status which triggers subscription.updated
         break;
       }
 
@@ -147,6 +149,109 @@ serve(async (req) => {
     });
   }
 });
+
+// Handle credit pack purchases
+// deno-lint-ignore no-explicit-any
+async function handleCreditPurchase(
+  supabase: any,
+  session: Stripe.Checkout.Session,
+  stripe: Stripe
+) {
+  logStep("Processing credit purchase", { 
+    sessionId: session.id,
+    metadata: session.metadata
+  });
+
+  // Get user_id and credits from metadata
+  const userId = session.metadata?.user_id;
+  const creditsToAdd = parseInt(session.metadata?.credits || '0', 10);
+  const packId = session.metadata?.pack_id;
+
+  if (!userId || !creditsToAdd) {
+    logStep("Missing metadata for credit purchase", { userId, creditsToAdd });
+    return;
+  }
+
+  logStep("Adding credits to user", { userId, creditsToAdd, packId });
+
+  // Get current credit balance
+  const { data: currentCredits, error: fetchError } = await supabase
+    .from('ai_credits')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    logStep("Error fetching current credits", { error: fetchError.message });
+    return;
+  }
+
+  let newBalance: number;
+  let newTotalPurchased: number;
+
+  if (currentCredits) {
+    // Update existing record
+    newBalance = currentCredits.balance + creditsToAdd;
+    newTotalPurchased = currentCredits.total_purchased + creditsToAdd;
+
+    const { error: updateError } = await supabase
+      .from('ai_credits')
+      .update({
+        balance: newBalance,
+        total_purchased: newTotalPurchased,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      logStep("Error updating credits", { error: updateError.message });
+      return;
+    }
+  } else {
+    // Create new record
+    newBalance = 1000 + creditsToAdd; // Default starting balance + purchase
+    newTotalPurchased = creditsToAdd;
+
+    const { error: insertError } = await supabase
+      .from('ai_credits')
+      .insert({
+        user_id: userId,
+        balance: newBalance,
+        total_purchased: newTotalPurchased,
+        total_used: 0
+      });
+
+    if (insertError) {
+      logStep("Error inserting credits", { error: insertError.message });
+      return;
+    }
+  }
+
+  logStep("Credits added successfully", { userId, newBalance, creditsToAdd });
+
+  // Log the transaction
+  const { error: txError } = await supabase
+    .from('ai_credit_transactions')
+    .insert({
+      user_id: userId,
+      type: 'purchase',
+      amount: creditsToAdd,
+      balance_after: newBalance,
+      description: `Purchased ${packId} pack`,
+      stripe_session_id: session.id,
+      metadata: {
+        pack_id: packId,
+        payment_intent: session.payment_intent,
+        customer_email: session.customer_email
+      }
+    });
+
+  if (txError) {
+    logStep("Error logging transaction", { error: txError.message });
+  } else {
+    logStep("Transaction logged successfully");
+  }
+}
 
 // deno-lint-ignore no-explicit-any
 async function upsertSubscription(
