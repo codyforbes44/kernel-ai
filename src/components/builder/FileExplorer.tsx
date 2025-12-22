@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Trash2, Edit2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Plus, Trash2, Edit2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { FileTreeNode, ProjectFile } from '@/types/builder';
 import { getFileIcon } from '@/types/builder';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -41,7 +51,7 @@ interface TreeItemProps {
   onToggleFolder: (path: string) => void;
   onFileClick: (file: ProjectFile) => void;
   onCreateFile: (parentPath: string, type: 'file' | 'folder') => void;
-  onDeleteFile: (fileId: string) => void;
+  onRequestDelete: (node: FileTreeNode) => void;
   onRenameFile: (fileId: string, currentName: string) => void;
 }
 
@@ -54,7 +64,7 @@ function TreeItem({
   onToggleFolder,
   onFileClick,
   onCreateFile,
-  onDeleteFile,
+  onRequestDelete,
   onRenameFile,
 }: TreeItemProps) {
   const isExpanded = expandedFolders.has(node.path);
@@ -123,7 +133,7 @@ function TreeItem({
             Rename
           </ContextMenuItem>
           <ContextMenuItem 
-            onClick={() => onDeleteFile(node.id)}
+            onClick={() => onRequestDelete(node)}
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -145,7 +155,7 @@ function TreeItem({
               onToggleFolder={onToggleFolder}
               onFileClick={onFileClick}
               onCreateFile={onCreateFile}
-              onDeleteFile={onDeleteFile}
+              onRequestDelete={onRequestDelete}
               onRenameFile={onRenameFile}
             />
           ))}
@@ -153,6 +163,18 @@ function TreeItem({
       )}
     </div>
   );
+}
+
+// Helper to count items in a folder
+function countFolderItems(node: FileTreeNode): number {
+  if (node.type === 'file') return 1;
+  let count = 1; // count the folder itself
+  if (node.children) {
+    for (const child of node.children) {
+      count += countFolderItems(child);
+    }
+  }
+  return count;
 }
 
 export function FileExplorer({
@@ -168,6 +190,8 @@ export function FileExplorer({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['/src']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRenameDialog, setShowRenameDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState<FileTreeNode | null>(null);
   const [createType, setCreateType] = useState<'file' | 'folder'>('file');
   const [createParentPath, setCreateParentPath] = useState('/');
   const [newItemName, setNewItemName] = useState('');
@@ -199,6 +223,19 @@ export function FileExplorer({
     setShowRenameDialog(true);
   }, []);
 
+  const handleRequestDelete = useCallback((node: FileTreeNode) => {
+    setNodeToDelete(node);
+    setShowDeleteDialog(true);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (nodeToDelete) {
+      onDeleteFile(nodeToDelete.id);
+      setShowDeleteDialog(false);
+      setNodeToDelete(null);
+    }
+  }, [nodeToDelete, onDeleteFile]);
+
   const confirmCreate = () => {
     if (!newItemName.trim()) return;
     
@@ -222,6 +259,10 @@ export function FileExplorer({
     onRenameFile(renameFileId, renameName, newPath);
     setShowRenameDialog(false);
   };
+
+  // Calculate delete impact
+  const deleteItemCount = nodeToDelete ? countFolderItems(nodeToDelete) : 0;
+  const isFolder = nodeToDelete?.type === 'folder';
 
   return (
     <div className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border">
@@ -263,7 +304,7 @@ export function FileExplorer({
                 onToggleFolder={toggleFolder}
                 onFileClick={onFileSelect}
                 onCreateFile={handleCreateFile}
-                onDeleteFile={onDeleteFile}
+                onRequestDelete={handleRequestDelete}
                 onRenameFile={handleRenameFile}
               />
             ))
@@ -315,6 +356,42 @@ export function FileExplorer({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete {isFolder ? 'Folder' : 'File'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to delete <strong>"{nodeToDelete?.name}"</strong>?
+              </p>
+              {isFolder && deleteItemCount > 1 && (
+                <p className="text-destructive">
+                  This folder contains {deleteItemCount - 1} item{deleteItemCount > 2 ? 's' : ''} that will also be deleted.
+                </p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                This action cannot be undone.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setNodeToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
