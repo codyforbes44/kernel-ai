@@ -6,6 +6,7 @@ import { DeploymentPanel } from './DeploymentPanel';
 import { GitHubPanel } from './GitHubPanel';
 import { DesignSystemPanel } from './DesignSystemPanel';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
+import { SecurityPanel } from './SecurityPanel';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import type { PanelType } from '@/hooks/usePanelManager';
@@ -21,6 +22,9 @@ const StorageBrowser = lazy(() =>
 );
 const DatabasePanel = lazy(() => 
   import('./DatabasePanel').then(m => ({ default: m.DatabasePanel }))
+);
+const SecurityDashboard = lazy(() => 
+  import('./SecurityDashboard').then(m => ({ default: m.SecurityDashboard }))
 );
 
 interface PanelRendererProps {
@@ -174,6 +178,15 @@ export function PanelRenderer({
           <ErrorBoundary fallback={<PanelErrorFallback panelName="Database" />}>
             <Suspense fallback={<PanelLoadingFallback />}>
               <DatabasePanel />
+            </Suspense>
+          </ErrorBoundary>
+        );
+
+      case 'security':
+        return (
+          <ErrorBoundary fallback={<PanelErrorFallback panelName="Security Scanner" />}>
+            <Suspense fallback={<PanelLoadingFallback />}>
+              <SecurityDashboard />
             </Suspense>
           </ErrorBoundary>
         );

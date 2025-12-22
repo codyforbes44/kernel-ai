@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDatabaseExplorer } from '@/hooks/useDatabaseExplorer';
 import { useTableRecords } from '@/hooks/useTableRecords';
+import { useSecurityScan } from '@/hooks/useSecurityScan';
 import {
   TableListSidebar,
   SchemaViewer,
@@ -8,7 +9,13 @@ import {
   RelationshipDiagram,
 } from './database-editor';
 import type { DatabaseEditorTab } from '@/types/database-editor';
-import { Database, Table2, GitFork } from 'lucide-react';
+import { Database, Table2, GitFork, Shield, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+
+type ExtendedTab = DatabaseEditorTab | 'security';
 
 export function DatabasePanel() {
   const {
@@ -55,6 +62,29 @@ export function DatabasePanel() {
     exportCSV,
   } = useTableRecords({ tableName: selectedTable });
 
+  const {
+    scanResult,
+    isScanning,
+    lastScannedAt,
+    runScan,
+    getTableFindings,
+    getSeverityCount,
+  } = useSecurityScan();
+
+  const severityCounts = getSeverityCount();
+  const tableFindings = selectedTable ? getTableFindings(selectedTable) : [];
+  const hasIssues = severityCounts.critical > 0 || severityCounts.high > 0;
+
+  const handleTabChange = (value: string) => {
+    if (value === 'security') {
+      // Keep this tab local
+    } else {
+      setActiveTab(value as DatabaseEditorTab);
+    }
+  };
+
+  const currentTab = activeTab as ExtendedTab;
+
   return (
     <div className="h-full flex">
       {/* Sidebar */}
@@ -74,8 +104,8 @@ export function DatabasePanel() {
       <div className="flex-1 flex flex-col min-w-0">
         {selectedTable ? (
           <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as DatabaseEditorTab)}
+            value={currentTab}
+            onValueChange={handleTabChange}
             className="flex-1 flex flex-col"
           >
             <div className="border-b border-border bg-card px-4">
@@ -91,6 +121,18 @@ export function DatabasePanel() {
                 <TabsTrigger value="relationships" className="gap-1.5">
                   <GitFork className="h-3.5 w-3.5" />
                   Relationships
+                </TabsTrigger>
+                <TabsTrigger value="security" className="gap-1.5">
+                  <Shield className="h-3.5 w-3.5" />
+                  Security
+                  {tableFindings.length > 0 && (
+                    <Badge 
+                      variant={tableFindings.some(f => f.severity === 'critical' || f.severity === 'high') ? 'destructive' : 'secondary'}
+                      className="ml-1 h-5 px-1.5 text-xs"
+                    >
+                      {tableFindings.length}
+                    </Badge>
+                  )}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -139,12 +181,146 @@ export function DatabasePanel() {
                 isLoading={isLoadingRelationships}
               />
             </TabsContent>
+
+            <TabsContent value="security" className="flex-1 m-0">
+              <div className="h-full flex flex-col">
+                {/* Header */}
+                <div className="p-4 border-b border-border flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Security Analysis: {selectedTable}
+                    </h3>
+                    {lastScannedAt && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Last scanned: {new Date(lastScannedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => runScan()}
+                    disabled={isScanning}
+                  >
+                    <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
+                    {isScanning ? 'Scanning...' : 'Run Scan'}
+                  </Button>
+                </div>
+
+                {/* Findings */}
+                <ScrollArea className="flex-1">
+                  <div className="p-4 space-y-4">
+                    {!scanResult ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Shield className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                        <p className="font-medium">No scan results</p>
+                        <p className="text-sm mt-1">Run a security scan to analyze RLS policies</p>
+                      </div>
+                    ) : tableFindings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                        <p className="font-medium text-green-600">No issues found</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          This table has proper RLS policies configured
+                        </p>
+                      </div>
+                    ) : (
+                      tableFindings.map((finding) => (
+                        <div
+                          key={finding.id}
+                          className={cn(
+                            "p-4 rounded-lg border",
+                            finding.severity === 'critical' && "border-red-500/50 bg-red-500/5",
+                            finding.severity === 'high' && "border-orange-500/50 bg-orange-500/5",
+                            finding.severity === 'medium' && "border-yellow-500/50 bg-yellow-500/5",
+                            finding.severity === 'low' && "border-blue-500/50 bg-blue-500/5",
+                            finding.severity === 'info' && "border-border bg-muted/30"
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <AlertTriangle className={cn(
+                              "h-5 w-5 flex-shrink-0 mt-0.5",
+                              finding.severity === 'critical' && "text-red-500",
+                              finding.severity === 'high' && "text-orange-500",
+                              finding.severity === 'medium' && "text-yellow-500",
+                              finding.severity === 'low' && "text-blue-500",
+                              finding.severity === 'info' && "text-muted-foreground"
+                            )} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant={
+                                  finding.severity === 'critical' ? 'destructive' :
+                                  finding.severity === 'high' ? 'destructive' :
+                                  finding.severity === 'medium' ? 'secondary' :
+                                  'outline'
+                                }>
+                                  {finding.severity.toUpperCase()}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {finding.category.replace(/_/g, ' ')}
+                                </span>
+                              </div>
+                              <h4 className="font-medium">{finding.title}</h4>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {finding.description}
+                              </p>
+                              {finding.remediation && (
+                                <div className="mt-3 p-3 bg-muted/50 rounded-md">
+                                  <p className="text-xs font-medium text-muted-foreground mb-2">
+                                    Suggested Fix:
+                                  </p>
+                                  <pre className="text-xs overflow-x-auto">
+                                    <code>{finding.remediation}</code>
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+            </TabsContent>
           </Tabs>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
             <Database className="h-12 w-12 mb-4 opacity-30" />
             <h3 className="text-lg font-medium mb-1">Database Explorer</h3>
             <p className="text-sm">Select a table from the sidebar to view and edit data</p>
+            
+            {/* Quick Security Overview */}
+            {scanResult && hasIssues && (
+              <div className="mt-6 p-4 rounded-lg border border-orange-500/50 bg-orange-500/5 max-w-md">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  <span className="font-medium">Security Issues Detected</span>
+                </div>
+                <div className="flex gap-3 text-sm">
+                  {severityCounts.critical > 0 && (
+                    <span className="text-red-500">{severityCounts.critical} critical</span>
+                  )}
+                  {severityCounts.high > 0 && (
+                    <span className="text-orange-500">{severityCounts.high} high</span>
+                  )}
+                  {severityCounts.medium > 0 && (
+                    <span className="text-yellow-500">{severityCounts.medium} medium</span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onClick={() => runScan()}
+                  disabled={isScanning}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
+                  Re-scan Database
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
