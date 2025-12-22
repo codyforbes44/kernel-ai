@@ -409,16 +409,18 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         {showExplorer && (
           <>
             <ResizablePanel defaultSize={15} minSize={12} maxSize={25}>
-              <FileExplorer
-                files={files}
-                fileTree={fileTree}
-                activeFileId={activeTabId}
-                onFileSelect={openFile}
-                onCreateFile={(path, name, type) => createFile({ path, name, type })}
-                onDeleteFile={(id) => deleteFile(id)}
-                onRenameFile={(id, newName, newPath) => renameFile({ fileId: id, newName, newPath })}
-                projectName={project?.name}
-              />
+              <EditorErrorBoundary fallbackTitle="File Explorer Error" fallbackMessage="Failed to load the file explorer.">
+                <FileExplorer
+                  files={files}
+                  fileTree={fileTree}
+                  activeFileId={activeTabId}
+                  onFileSelect={openFile}
+                  onCreateFile={(path, name, type) => createFile({ path, name, type })}
+                  onDeleteFile={(id) => deleteFile(id)}
+                  onRenameFile={(id, newName, newPath) => renameFile({ fileId: id, newName, newPath })}
+                  projectName={project?.name}
+                />
+              </EditorErrorBoundary>
             </ResizablePanel>
             <ResizableHandle withHandle />
           </>
