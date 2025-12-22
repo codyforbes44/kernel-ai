@@ -83,7 +83,13 @@ export function useBuilderProject(projectId?: string) {
 
   // Update project mutation
   const updateProject = useMutation({
-    mutationFn: async (updates: { name?: string; description?: string; is_public?: boolean }) => {
+    mutationFn: async (updates: { 
+      name?: string; 
+      description?: string; 
+      is_public?: boolean;
+      template?: string;
+      framework?: string;
+    }) => {
       if (!projectId) throw new Error('No project selected');
       return builderService.updateProject(projectId, updates);
     },

@@ -23,8 +23,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { builderService } from '@/services/builderService';
-import { useBuilderProject } from '@/hooks/useBuilderProject';
-import { useAuth } from '@/hooks/useAuth';
+import { useRemixProject } from '@/hooks/useRemixProject';
 import { PROJECT_TEMPLATES } from '@/lib/projectTemplates';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { GlowSkeleton } from '@/components/ui/glow-skeleton';
@@ -35,8 +34,6 @@ const ITEMS_PER_PAGE = 12;
 
 export function PublicProjectsGallery() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { remixProject, isRemixing } = useBuilderProject();
   
   const [projects, setProjects] = useState<BuilderProject[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -44,13 +41,19 @@ export function PublicProjectsGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const [templateFilter, setTemplateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Remix dialog state
-  const [remixDialogOpen, setRemixDialogOpen] = useState(false);
-  const [projectToRemix, setProjectToRemix] = useState<BuilderProject | null>(null);
-  const [remixFileCount, setRemixFileCount] = useState(0);
-  const [isFetchingFileCount, setIsFetchingFileCount] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Use consolidated remix hook
+  const {
+    isDialogOpen: remixDialogOpen,
+    projectToRemix,
+    fileCount: remixFileCount,
+    isLoadingFileCount: isFetchingFileCount,
+    isRemixing,
+    openRemixDialog,
+    closeRemixDialog,
+    handleRemix,
+  } = useRemixProject();
 
   // Debounce search query
   useEffect(() => {
@@ -87,52 +90,6 @@ export function PublicProjectsGallery() {
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, templateFilter]);
-
-  const handleOpenRemixDialog = useCallback(async (project: BuilderProject, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!user) {
-      toast.error('Please sign in to remix projects');
-      navigate('/auth');
-      return;
-    }
-    
-    setProjectToRemix(project);
-    setRemixFileCount(0);
-    setRemixDialogOpen(true);
-    
-    setIsFetchingFileCount(true);
-    try {
-      const files = await builderService.getFiles(project.id);
-      setRemixFileCount(files.length);
-    } catch (error) {
-      console.error('Failed to fetch file count:', error);
-    } finally {
-      setIsFetchingFileCount(false);
-    }
-  }, [user, navigate]);
-
-  const handleRemix = async (newName: string, includeKnowledgeBase: boolean) => {
-    if (!projectToRemix) return;
-    
-    try {
-      const result = await remixProject({
-        sourceProjectId: projectToRemix.id,
-        newName,
-        includeKnowledgeBase,
-      });
-      
-      setRemixDialogOpen(false);
-      setProjectToRemix(null);
-      
-      if (result?.project) {
-        navigate(`/builder/${result.project.id}`);
-      }
-    } catch (error) {
-      console.error('Failed to remix project:', error);
-      toast.error('Failed to remix project');
-    }
-  };
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
@@ -249,7 +206,7 @@ export function PublicProjectsGallery() {
                     <Button 
                       size="sm" 
                       className="w-full gap-2"
-                      onClick={(e) => handleOpenRemixDialog(project, e)}
+                      onClick={(e) => openRemixDialog(project, e)}
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Remix This Project
@@ -290,7 +247,7 @@ export function PublicProjectsGallery() {
       {/* Remix Dialog */}
       <RemixProjectDialog
         open={remixDialogOpen}
-        onOpenChange={setRemixDialogOpen}
+        onOpenChange={(open) => !open && closeRemixDialog()}
         sourceProject={projectToRemix}
         fileCount={remixFileCount}
         isLoadingFileCount={isFetchingFileCount}

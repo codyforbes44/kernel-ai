@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { useProtectedPage } from '@/hooks/useProtectedPage';
-import { builderService } from '@/services/builderService';
+import { useRemixProject } from '@/hooks/useRemixProject';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,11 +18,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2, Users, Upload } from 'lucide-react';
+import { Plus, Folder, Clock, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Users, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { ProjectsGridSkeleton } from '@/components/builder/BuilderSkeletons';
@@ -35,23 +34,28 @@ import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG, BREADCRUMBS } from 
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { ImportProjectDialog } from '@/components/dialogs/ImportProjectDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { BuilderProject } from '@/types/builder';
 
 export default function Builder() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useProtectedPage();
-  const { projects, createProject, createProjectFromFiles, remixProject, isRemixing, isLoading } = useBuilderProject();
+  const { projects, createProject, createProjectFromFiles, isLoading } = useBuilderProject();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate>(PROJECT_TEMPLATES[0]);
   
-  // Remix state
-  const [remixDialogOpen, setRemixDialogOpen] = useState(false);
-  const [projectToRemix, setProjectToRemix] = useState<BuilderProject | null>(null);
-  const [remixFileCount, setRemixFileCount] = useState(0);
-  const [isFetchingFileCount, setIsFetchingFileCount] = useState(false);
+  // Use consolidated remix hook
+  const {
+    isDialogOpen: remixDialogOpen,
+    projectToRemix,
+    fileCount: remixFileCount,
+    isLoadingFileCount: isFetchingFileCount,
+    isRemixing,
+    openRemixDialog,
+    closeRemixDialog,
+    handleRemix,
+  } = useRemixProject();
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
@@ -68,42 +72,6 @@ export default function Builder() {
     setNewProjectName('');
     setSelectedTemplate(PROJECT_TEMPLATES[0]);
     setShowCreateDialog(true);
-  };
-
-  const handleOpenRemixDialog = useCallback(async (project: BuilderProject, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setProjectToRemix(project);
-    setRemixFileCount(0);
-    setRemixDialogOpen(true);
-    
-    // Fetch actual file count in background
-    setIsFetchingFileCount(true);
-    try {
-      const files = await builderService.getFiles(project.id);
-      setRemixFileCount(files.length);
-    } catch (error) {
-      console.error('Failed to fetch file count:', error);
-    } finally {
-      setIsFetchingFileCount(false);
-    }
-  }, []);
-
-  const handleRemix = async (newName: string, includeKnowledgeBase: boolean) => {
-    if (!projectToRemix) return;
-    
-    const result = await remixProject({
-      sourceProjectId: projectToRemix.id,
-      newName,
-      includeKnowledgeBase,
-    });
-    
-    setRemixDialogOpen(false);
-    setProjectToRemix(null);
-    
-    // Navigate to the new project
-    if (result?.project) {
-      navigate(`/builder/${result.project.id}`);
-    }
   };
 
   const handleImport = useCallback(async (
@@ -243,7 +211,7 @@ export default function Builder() {
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 Open Project
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => handleOpenRemixDialog(project, e)}>
+                              <DropdownMenuItem onClick={(e) => openRemixDialog(project, e)}>
                                 <Copy className="h-4 w-4 mr-2" />
                                 Remix Project
                               </DropdownMenuItem>
@@ -333,7 +301,7 @@ export default function Builder() {
       {/* Remix Dialog */}
       <RemixProjectDialog
         open={remixDialogOpen}
-        onOpenChange={setRemixDialogOpen}
+        onOpenChange={(open) => !open && closeRemixDialog()}
         sourceProject={projectToRemix}
         fileCount={remixFileCount}
         isLoadingFileCount={isFetchingFileCount}
