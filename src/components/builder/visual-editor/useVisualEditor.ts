@@ -227,20 +227,145 @@ export function useVisualEditor({
     if (undoStack.length === 0) return;
     
     const lastState = undoStack[undoStack.length - 1];
-    setRedoStack(prev => [...prev, [...pendingChanges]]);
+    const currentChanges = [...pendingChanges];
+    
+    // Get the change to revert (last change that was added)
+    const changeToRevert = currentChanges[currentChanges.length - 1];
+    
+    if (changeToRevert && iframeRef.current?.contentWindow) {
+      // Send message to iframe to revert this specific change
+      iframeRef.current.contentWindow.postMessage({
+        type: 'VISUAL_EDITOR_REVERT_CHANGE',
+        payload: {
+          changeType: changeToRevert.type,
+          property: changeToRevert.property,
+          value: changeToRevert.oldValue,
+          selector: changeToRevert.elementSelector,
+        },
+      }, '*');
+    }
+    
+    setRedoStack(prev => [...prev, currentChanges]);
     setUndoStack(prev => prev.slice(0, -1));
     setPendingChanges(lastState);
-  }, [undoStack, pendingChanges]);
+    
+    toast.info('Undone');
+  }, [undoStack, pendingChanges, iframeRef]);
 
   // Redo last undone change
   const redo = useCallback(() => {
     if (redoStack.length === 0) return;
     
     const nextState = redoStack[redoStack.length - 1];
-    setUndoStack(prev => [...prev, [...pendingChanges]]);
+    const currentChanges = [...pendingChanges];
+    
+    // Get the change to reapply (difference between next state and current)
+    if (nextState.length > currentChanges.length) {
+      const changeToApply = nextState[nextState.length - 1];
+      
+      if (changeToApply) {
+        // Send message to iframe to apply this specific change
+        if (changeToApply.type === 'style' && changeToApply.property) {
+          sendMessage({
+            type: 'VISUAL_EDITOR_UPDATE_STYLE',
+            payload: { property: changeToApply.property, value: changeToApply.newValue },
+          });
+        } else if (changeToApply.type === 'text') {
+          sendMessage({
+            type: 'VISUAL_EDITOR_UPDATE_TEXT',
+            payload: { text: changeToApply.newValue },
+          });
+        } else if (changeToApply.type === 'class') {
+          sendMessage({
+            type: 'VISUAL_EDITOR_UPDATE_CLASS',
+            payload: { classes: changeToApply.newValue },
+          });
+        }
+      }
+    }
+    
+    setUndoStack(prev => [...prev, currentChanges]);
     setRedoStack(prev => prev.slice(0, -1));
     setPendingChanges(nextState);
-  }, [redoStack, pendingChanges]);
+    
+    toast.info('Redone');
+  }, [redoStack, pendingChanges, sendMessage]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    if (!isEnabled) return;
+    
+    function handleKeyDown(e: KeyboardEvent) {
+      // Undo: Ctrl+Z or Cmd+Z
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (undoStack.length > 0) {
+          // Call undo through ref to avoid stale closure
+          const lastState = undoStack[undoStack.length - 1];
+          const currentChanges = [...pendingChanges];
+          const changeToRevert = currentChanges[currentChanges.length - 1];
+          
+          if (changeToRevert && iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage({
+              type: 'VISUAL_EDITOR_REVERT_CHANGE',
+              payload: {
+                type: changeToRevert.type,
+                property: changeToRevert.property,
+                value: changeToRevert.oldValue,
+                selector: changeToRevert.elementSelector,
+              },
+            }, '*');
+          }
+          
+          setRedoStack(prev => [...prev, currentChanges]);
+          setUndoStack(prev => prev.slice(0, -1));
+          setPendingChanges(lastState);
+          toast.info('Undone');
+        }
+      }
+      
+      // Redo: Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y or Cmd+Y
+      if (((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'z') || 
+          ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
+        e.preventDefault();
+        if (redoStack.length > 0) {
+          const nextState = redoStack[redoStack.length - 1];
+          const currentChanges = [...pendingChanges];
+          
+          if (nextState.length > currentChanges.length) {
+            const changeToApply = nextState[nextState.length - 1];
+            
+            if (changeToApply && iframeRef.current?.contentWindow) {
+              if (changeToApply.type === 'style' && changeToApply.property) {
+                iframeRef.current.contentWindow.postMessage({
+                  type: 'VISUAL_EDITOR_UPDATE_STYLE',
+                  payload: { property: changeToApply.property, value: changeToApply.newValue },
+                }, '*');
+              } else if (changeToApply.type === 'text') {
+                iframeRef.current.contentWindow.postMessage({
+                  type: 'VISUAL_EDITOR_UPDATE_TEXT',
+                  payload: { text: changeToApply.newValue },
+                }, '*');
+              } else if (changeToApply.type === 'class') {
+                iframeRef.current.contentWindow.postMessage({
+                  type: 'VISUAL_EDITOR_UPDATE_CLASS',
+                  payload: { classes: changeToApply.newValue },
+                }, '*');
+              }
+            }
+          }
+          
+          setUndoStack(prev => [...prev, currentChanges]);
+          setRedoStack(prev => prev.slice(0, -1));
+          setPendingChanges(nextState);
+          toast.info('Redone');
+        }
+      }
+    }
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEnabled, undoStack, redoStack, pendingChanges, iframeRef]);
 
   // Clear pending changes
   const clearChanges = useCallback(() => {
