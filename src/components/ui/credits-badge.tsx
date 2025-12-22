@@ -24,8 +24,10 @@ export function CreditsBadge({ balance, isLowBalance, onClick, className }: Cred
           <Badge
             variant={isLowBalance ? 'destructive' : 'secondary'}
             className={cn(
-              'gap-1.5 cursor-pointer transition-colors hover:bg-secondary/80',
-              isLowBalance && 'bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/30',
+              'gap-1.5 cursor-pointer transition-all',
+              isLowBalance 
+                ? 'bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/30'
+                : 'bg-gold/10 text-gold hover:bg-gold/20 border-gold/30 shadow-[0_0_8px_hsl(var(--gold)/0.2)]',
               className
             )}
             onClick={onClick}
