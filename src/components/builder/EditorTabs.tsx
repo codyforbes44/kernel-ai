@@ -72,39 +72,75 @@ export function EditorTabs({
     <>
       <div className="h-10 bg-background border-b border-border flex-shrink-0">
         <ScrollArea className="w-full">
-          <div className="flex h-10">
-            {tabs.map(tab => (
+          <div 
+            className="flex h-10" 
+            role="tablist" 
+            aria-label="Open files"
+            onKeyDown={(e) => {
+              const currentIndex = tabs.findIndex(t => t.id === activeTabId);
+              if (e.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
+                e.preventDefault();
+                onTabSelect(tabs[currentIndex + 1].id);
+              } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                e.preventDefault();
+                onTabSelect(tabs[currentIndex - 1].id);
+              } else if (e.key === 'Home') {
+                e.preventDefault();
+                onTabSelect(tabs[0].id);
+              } else if (e.key === 'End') {
+                e.preventDefault();
+                onTabSelect(tabs[tabs.length - 1].id);
+              }
+            }}
+          >
+            {tabs.map((tab, index) => (
               <div
                 key={tab.id}
                 className={cn(
                   'group flex items-center gap-2 px-3 h-10 border-r border-border cursor-pointer',
-                  'hover:bg-muted/50 transition-colors',
+                  'hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
                   activeTabId === tab.id 
                     ? 'bg-background border-b-2 border-b-primary' 
                     : 'bg-muted/30'
                 )}
                 onClick={() => onTabSelect(tab.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onTabSelect(tab.id);
+                  } else if (e.key === 'Delete' || (e.key === 'w' && (e.ctrlKey || e.metaKey))) {
+                    e.preventDefault();
+                    handleCloseClick(e as unknown as React.MouseEvent, tab);
+                  }
+                }}
+                role="tab"
+                tabIndex={activeTabId === tab.id ? 0 : -1}
+                aria-selected={activeTabId === tab.id}
+                aria-controls={`tabpanel-${tab.id}`}
+                id={`tab-${tab.id}`}
               >
-                <span className="text-sm">{getFileIcon(tab.name, 'file')}</span>
+                <span className="text-sm" aria-hidden="true">{getFileIcon(tab.name, 'file')}</span>
                 <span className="text-sm whitespace-nowrap flex items-center gap-1">
                   {tab.name}
                   {tab.isDirty && (
                     <span 
                       className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" 
-                      title="Unsaved changes"
+                      role="status"
+                      aria-label="Unsaved changes"
                     />
                   )}
                 </span>
                 <button
                   className={cn(
                     'ml-1 p-0.5 rounded hover:bg-destructive/20 transition-colors',
-                    'opacity-0 group-hover:opacity-100',
+                    'opacity-0 group-hover:opacity-100 focus:opacity-100',
                     activeTabId === tab.id && 'opacity-100'
                   )}
                   onClick={(e) => handleCloseClick(e, tab)}
-                  title={tab.isDirty ? 'Close (unsaved changes)' : 'Close'}
+                  aria-label={tab.isDirty ? `Close ${tab.name} (unsaved changes)` : `Close ${tab.name}`}
+                  tabIndex={-1}
                 >
-                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" aria-hidden="true" />
                 </button>
               </div>
             ))}
