@@ -167,7 +167,7 @@ const Security = () => {
                     Found a security vulnerability? We appreciate your help in keeping Kernel secure. 
                     Please report security issues responsibly.
                   </p>
-                  <Button variant="outline" asChild>
+                  <Button variant="gold-outline" asChild>
                     <a href="mailto:security@kernel.dev">
                       <Mail className="mr-2 h-4 w-4" />
                       Report a Vulnerability

@@ -48,7 +48,7 @@ const NotFound = () => {
                   Go Home
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="gap-2">
+              <Button asChild variant="gold-outline" className="gap-2">
                 <Link to="/builder">
                   <Code2 className="h-4 w-4" />
                   App Builder

@@ -219,7 +219,7 @@ const Careers = () => {
                 <p className="text-muted-foreground mb-4">
                   We don't have any open positions right now, but we're always looking for talented people.
                 </p>
-                <Button variant="outline">Send Us Your Resume</Button>
+                <Button variant="gold-outline">Send Us Your Resume</Button>
               </CardContent>
             </Card>
           )}
