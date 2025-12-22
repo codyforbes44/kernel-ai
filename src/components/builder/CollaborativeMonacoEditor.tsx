@@ -23,6 +23,7 @@ interface CollaborativeMonacoEditorProps {
   currentFilePath: string;
   onCursorChange?: (position: { line: number; column: number }) => void;
   onSelectionChange?: (selection: SelectionRange | null) => void;
+  onTyping?: () => void;
 }
 
 export function CollaborativeMonacoEditor({
@@ -36,11 +37,13 @@ export function CollaborativeMonacoEditor({
   currentFilePath,
   onCursorChange,
   onSelectionChange,
+  onTyping,
 }: CollaborativeMonacoEditorProps) {
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
   const cursorsManagerRef = useRef<RemoteCursorsManager | null>(null);
   const cursorListenerRef = useRef<{ dispose: () => void } | null>(null);
   const selectionListenerRef = useRef<{ dispose: () => void } | null>(null);
+  const contentListenerRef = useRef<{ dispose: () => void } | null>(null);
 
   // Filter collaborators editing the same file with valid cursor positions
   const relevantCollaborators = collaborators.filter(
@@ -89,7 +92,14 @@ export function CollaborativeMonacoEditor({
         }
       }
     });
-  }, [onCursorChange, onSelectionChange]);
+
+    // Add content change listener for typing detection
+    contentListenerRef.current = editor.onDidChangeModelContent(() => {
+      if (onTyping) {
+        onTyping();
+      }
+    });
+  }, [onCursorChange, onSelectionChange, onTyping]);
 
   // Update remote cursors when collaborators change
   useEffect(() => {
@@ -117,6 +127,10 @@ export function CollaborativeMonacoEditor({
       if (selectionListenerRef.current) {
         selectionListenerRef.current.dispose();
         selectionListenerRef.current = null;
+      }
+      if (contentListenerRef.current) {
+        contentListenerRef.current.dispose();
+        contentListenerRef.current = null;
       }
       if (cursorsManagerRef.current) {
         cursorsManagerRef.current.dispose();
