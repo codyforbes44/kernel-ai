@@ -19,15 +19,15 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "Features", href: "/#features" },
       { label: "Pricing", href: "/pricing" },
-      { label: "Changelog", href: "#", external: false },
+      { label: "Changelog", href: "/changelog" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Documentation", href: "#", external: false },
-      { label: "Blog", href: "#", external: false },
-      { label: "Tutorials", href: "#", external: false },
+      { label: "Documentation", href: "/docs" },
+      { label: "Blog", href: "/blog" },
+      { label: "Tutorials", href: "/tutorials" },
     ],
   },
   {
@@ -35,7 +35,7 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "Careers", href: "#", external: false },
+      { label: "Careers", href: "/careers" },
     ],
   },
   {
@@ -43,7 +43,7 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
-      { label: "Security", href: "#", external: false },
+      { label: "Security", href: "/security" },
     ],
   },
 ];
