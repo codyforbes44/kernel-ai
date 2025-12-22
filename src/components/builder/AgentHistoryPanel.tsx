@@ -12,6 +12,7 @@ import {
   Clock,
   FileCode,
   ArrowRight,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,6 +35,7 @@ import type { AgentSession, AgentStatus } from '@/types/agent';
 interface AgentHistoryPanelProps {
   projectId: string;
   onRestoreSession?: (session: AgentSession) => void;
+  onRerunSession?: (request: string) => void;
   onClose?: () => void;
 }
 
@@ -52,10 +54,12 @@ function SessionCard({
   session,
   onDelete,
   onRestore,
+  onRerun,
 }: {
   session: AgentSession;
   onDelete: () => void;
   onRestore?: () => void;
+  onRerun?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const config = statusConfig[session.status];
@@ -164,6 +168,12 @@ function SessionCard({
               
               {/* Actions */}
               <div className="flex items-center gap-2 pt-2 border-t">
+                {onRerun && (
+                  <Button size="sm" variant="default" onClick={onRerun} className="gap-1">
+                    <RotateCcw className="w-3 h-3" />
+                    Re-run
+                  </Button>
+                )}
                 {onRestore && session.appliedOperations.length > 0 && (
                   <Button size="sm" variant="outline" onClick={onRestore} className="gap-1">
                     <ArrowRight className="w-3 h-3" />
@@ -201,6 +211,7 @@ function SessionCard({
 export function AgentHistoryPanel({
   projectId,
   onRestoreSession,
+  onRerunSession,
   onClose,
 }: AgentHistoryPanelProps) {
   const { sessions, isLoading, deleteSession, clearHistory } = useAgentHistory(projectId);
@@ -265,6 +276,7 @@ export function AgentHistoryPanel({
                   session={session}
                   onDelete={() => deleteSession(session.id)}
                   onRestore={onRestoreSession ? () => onRestoreSession(session) : undefined}
+                  onRerun={onRerunSession ? () => onRerunSession(session.originalRequest) : undefined}
                 />
               ))}
             </AnimatePresence>

@@ -223,6 +223,11 @@ export function AgentChat({
         ) : (
           <AgentHistoryPanel
             projectId={projectId}
+            onRerunSession={(request) => {
+              setMode('agent');
+              // Small delay to ensure mode switch completes
+              setTimeout(() => runAgent(request), 100);
+            }}
           />
         )}
       </div>
