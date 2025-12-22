@@ -26,6 +26,9 @@ const DatabasePanel = lazy(() =>
 const SecurityDashboard = lazy(() => 
   import('./SecurityDashboard').then(m => ({ default: m.SecurityDashboard }))
 );
+const AgentChat = lazy(() => 
+  import('./AgentChat').then(m => ({ default: m.AgentChat }))
+);
 
 interface PanelRendererProps {
   activePanel: PanelType | null;
@@ -102,6 +105,22 @@ export function PanelRenderer({
               projectId={projectId}
               onFixHandlerReady={onFixHandlerReady}
             />
+          </ErrorBoundary>
+        );
+
+      case 'agent':
+        return (
+          <ErrorBoundary fallback={<PanelErrorFallback panelName="AI Agent" />}>
+            <Suspense fallback={<PanelLoadingFallback />}>
+              <AgentChat
+                files={files}
+                projectId={projectId}
+                errors={capturedErrors}
+                onApplyOperations={onApplyOperations}
+                onClearErrors={onClearErrors}
+                onFixHandlerReady={onFixHandlerReady}
+              />
+            </Suspense>
           </ErrorBoundary>
         );
 
