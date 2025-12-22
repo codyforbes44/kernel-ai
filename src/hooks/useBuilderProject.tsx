@@ -63,6 +63,24 @@ export function useBuilderProject(projectId?: string) {
     },
   });
 
+  // Create project from imported files mutation
+  const createProjectFromFiles = useMutation({
+    mutationFn: async ({ name, files }: { 
+      name: string; 
+      files: Array<{ path: string; name: string; content: string; type: 'file' | 'folder' }> 
+    }) => {
+      if (!user) throw new Error('Not authenticated');
+      return builderService.createProjectFromFiles({ userId: user.id, name, files });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['builder', 'projects'] });
+      toast.success('Project imported');
+    },
+    onError: (error) => {
+      toast.error('Failed to import project: ' + error.message);
+    },
+  });
+
   // Update project mutation
   const updateProject = useMutation({
     mutationFn: async (updates: { name?: string; description?: string; is_public?: boolean }) => {
@@ -355,6 +373,8 @@ export function useBuilderProject(projectId?: string) {
     
     // Actions
     createProject: createProject.mutate,
+    createProjectFromFiles: createProjectFromFiles.mutateAsync,
+    isCreatingFromFiles: createProjectFromFiles.isPending,
     updateProject: updateProject.mutateAsync,
     isUpdatingProject: updateProject.isPending,
     createFile: createFile.mutate,
