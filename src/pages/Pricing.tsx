@@ -81,6 +81,18 @@ export default function Pricing() {
   const { user } = useAuth();
   const { plan: currentPlan, subscribed, createCheckoutSession } = useSubscription();
 
+  // Check if user is on free plan (not subscribed or no user)
+  const isFreePlan = !subscribed;
+
+  const handleUpgrade = () => {
+    if (!user) {
+      toast.info('Please sign in to upgrade');
+      return;
+    }
+    const priceId = isYearly ? STRIPE_PRICES.PRO_YEARLY : STRIPE_PRICES.PRO_MONTHLY;
+    createCheckoutSession(priceId);
+  };
+
   // Handle checkout canceled state
   useEffect(() => {
     if (searchParams.get('checkout') === 'canceled') {
@@ -323,6 +335,8 @@ export default function Pricing() {
                 "Context-aware completions",
                 "Multi-file refactoring",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
             <PremiumFeatureCard
               title="Advanced Security"
@@ -333,6 +347,8 @@ export default function Pricing() {
                 "Audit logs",
                 "SSO integration",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
             <PremiumFeatureCard
               title="Analytics Dashboard"
@@ -343,6 +359,8 @@ export default function Pricing() {
                 "Custom reports",
                 "Performance tracking",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
             <PremiumFeatureCard
               title="Custom Themes"
@@ -353,6 +371,8 @@ export default function Pricing() {
                 "Brand kit sync",
                 "Export to Figma",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
             <PremiumFeatureCard
               title="Custom Domains"
@@ -363,6 +383,8 @@ export default function Pricing() {
                 "Auto SSL certificates",
                 "CDN included",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
             <PremiumFeatureCard
               title="Priority Support"
@@ -373,6 +395,8 @@ export default function Pricing() {
                 "1-hour response time",
                 "Dedicated account manager",
               ]}
+              locked={isFreePlan}
+              onUpgrade={handleUpgrade}
             />
           </PremiumFeatureGrid>
         </div>
