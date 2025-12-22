@@ -214,12 +214,12 @@ export default function Pricing() {
                   } ${isCurrentPlan ? "ring-2 ring-primary/50" : ""}`}
                 >
                   {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-gold-foreground border-gold/50 shadow-[0_0_12px_hsl(var(--gold)/0.4)]">
                       Most Popular
                     </Badge>
                   )}
                   {isCurrentPlan && user && (
-                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-primary/20 text-primary">
+                    <Badge variant="secondary" className="absolute -top-3 right-4 bg-gold/20 text-gold border border-gold/30">
                       Your Plan
                     </Badge>
                   )}

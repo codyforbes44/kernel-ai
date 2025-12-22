@@ -4,6 +4,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { usePWA } from "@/hooks/usePWA";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useTemplateInjection } from "@/hooks/useTemplateInjection";
 import { templateService } from "@/services/templateService";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
   const { isInstallable, installApp } = usePWA();
+  const { subscribed, plan } = useSubscription();
   const { currentWorkspace, currentProject, createConversation, isCreatingConversation } = useWorkspace();
   const { setPendingTemplate } = useTemplateInjection();
   const [searchQuery, setSearchQuery] = useState("");
@@ -366,7 +368,13 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 <span className="text-sm font-medium truncate max-w-[140px]">
                   {user?.email?.split("@")[0]}
                 </span>
-                <span className="text-xs text-muted-foreground">Free tier</span>
+                {subscribed ? (
+                  <span className="text-xs text-gold font-medium flex items-center gap-1">
+                    ✦ Pro
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground">Free tier</span>
+                )}
               </div>
             </Button>
           </DropdownMenuTrigger>
