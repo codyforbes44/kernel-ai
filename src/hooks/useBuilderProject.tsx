@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -6,6 +6,9 @@ import type { BuilderProject, ProjectFile, OpenTab } from '@/types/builder';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { buildFileTree } from '@/lib/fileTree';
 import { builderService } from '@/services/builderService';
+
+// Auto-save delay in milliseconds
+const AUTO_SAVE_DELAY = 2000;
 
 export function useBuilderProject(projectId?: string) {
   const { user } = useAuth();
@@ -15,6 +18,18 @@ export function useBuilderProject(projectId?: string) {
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [fileContents, setFileContents] = useState<Record<string, string>>({});
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(new Set());
+  
+  // Auto-save timer refs
+  const autoSaveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const pendingAutoSaves = useRef<Set<string>>(new Set());
+  
+  // Cleanup auto-save timers on unmount
+  useEffect(() => {
+    return () => {
+      autoSaveTimers.current.forEach(timer => clearTimeout(timer));
+      autoSaveTimers.current.clear();
+    };
+  }, []);
 
   // Fetch project
   const { data: project, isLoading: projectLoading } = useQuery({
@@ -189,17 +204,62 @@ export function useBuilderProject(projectId?: string) {
     }
   }, [openTabs, activeTabId]);
 
-  // Update local content (for typing)
+  // Perform auto-save for a file
+  const performAutoSave = useCallback(async (fileId: string) => {
+    const content = fileContents[fileId];
+    if (content === undefined) return;
+    
+    pendingAutoSaves.current.add(fileId);
+    try {
+      await updateFileContent.mutateAsync({ fileId, content });
+      setOpenTabs(prev => 
+        prev.map(t => t.id === fileId ? { ...t, isDirty: false } : t)
+      );
+    } finally {
+      pendingAutoSaves.current.delete(fileId);
+    }
+  }, [fileContents, updateFileContent]);
+
+  // Update local content (for typing) with debounced auto-save
   const updateLocalContent = useCallback((fileId: string, content: string) => {
     setFileContents(prev => ({ ...prev, [fileId]: content }));
     setDirtyFiles(prev => new Set(prev).add(fileId));
     setOpenTabs(prev => 
       prev.map(t => t.id === fileId ? { ...t, isDirty: true } : t)
     );
-  }, []);
+    
+    // Cancel existing auto-save timer for this file
+    const existingTimer = autoSaveTimers.current.get(fileId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+    
+    // Set new debounced auto-save timer
+    const timer = setTimeout(() => {
+      autoSaveTimers.current.delete(fileId);
+      // Get latest content from state
+      setFileContents(prev => {
+        const latestContent = prev[fileId];
+        if (latestContent !== undefined) {
+          // Perform save with latest content
+          performAutoSave(fileId);
+        }
+        return prev;
+      });
+    }, AUTO_SAVE_DELAY);
+    
+    autoSaveTimers.current.set(fileId, timer);
+  }, [performAutoSave]);
 
-  // Save file
+  // Manual save file (immediate)
   const saveFile = useCallback(async (fileId: string) => {
+    // Cancel any pending auto-save
+    const existingTimer = autoSaveTimers.current.get(fileId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      autoSaveTimers.current.delete(fileId);
+    }
+    
     const content = fileContents[fileId];
     if (content !== undefined) {
       await updateFileContent.mutateAsync({ fileId, content });
