@@ -10,6 +10,7 @@ export type PanelType =
   | 'knowledge-base'
   | 'storage'
   | 'database'
+  | 'security'
   | null;
 
 interface PanelConfig {
@@ -29,6 +30,7 @@ const PANEL_CONFIGS: Record<Exclude<PanelType, null>, PanelConfig> = {
   'knowledge-base': { id: 'knowledge-base', defaultSize: 25, minSize: 20, maxSize: 40 },
   'storage': { id: 'storage', defaultSize: 30, minSize: 25, maxSize: 50 },
   'database': { id: 'database', defaultSize: 50, minSize: 35, maxSize: 70 },
+  'security': { id: 'security', defaultSize: 40, minSize: 30, maxSize: 60 },
 };
 
 export interface UsePanelManagerReturn {

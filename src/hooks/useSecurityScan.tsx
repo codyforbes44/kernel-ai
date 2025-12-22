@@ -49,8 +49,23 @@ export function useSecurityScan() {
     },
   });
 
-  // Get severity counts
-  const getSeverityCount = useCallback((severity: SecuritySeverity): number => {
+  // Get all severity counts as an object
+  const getSeverityCount = useCallback(() => {
+    if (!scanResult) {
+      return { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+    }
+    
+    return {
+      critical: scanResult.findings.filter(f => f.severity === 'critical').length,
+      high: scanResult.findings.filter(f => f.severity === 'high').length,
+      medium: scanResult.findings.filter(f => f.severity === 'medium').length,
+      low: scanResult.findings.filter(f => f.severity === 'low').length,
+      info: scanResult.findings.filter(f => f.severity === 'info').length,
+    };
+  }, [scanResult]);
+
+  // Get count for a specific severity
+  const getCountBySeverity = useCallback((severity: SecuritySeverity): number => {
     if (!scanResult) return 0;
     return scanResult.findings.filter(f => f.severity === severity).length;
   }, [scanResult]);
@@ -97,6 +112,7 @@ export function useSecurityScan() {
     lastScannedAt,
     runScan,
     getSeverityCount,
+    getCountBySeverity,
     getTableFindings,
     getTableStatus,
     getSecurityGrade,
