@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Palette, Sparkles, Check, Trash2, Copy, Loader2, Type, Layers, Eye, EyeOff } from 'lucide-react';
+import { Palette, Sparkles, Check, Trash2, Copy, Loader2, Type, Layers, Eye, EyeOff, Download, FileCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,10 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDesignSystem } from '@/hooks/useDesignSystem';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { DesignSystem } from '@/types/marketplace';
+import { exportDesignTokens, downloadTokensFile, type ExportFormat } from '@/lib/designTokensExporter';
 
 interface DesignSystemPanelProps {
   projectId: string;
@@ -86,6 +88,13 @@ export function DesignSystemPanel({ projectId, onPreviewChange }: DesignSystemPa
     const css = generateCSSVariables(system);
     navigator.clipboard.writeText(css);
     toast.success('CSS copied to clipboard');
+  };
+
+  const handleExport = (system: DesignSystem, format: ExportFormat) => {
+    const content = exportDesignTokens(system, { format, includeComments: true });
+    const safeName = system.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    downloadTokensFile(content, `${safeName}-tokens`, format);
+    toast.success(`Exported as ${format.toUpperCase()}`);
   };
 
   const renderColorSwatch = (color: string | { DEFAULT: string; foreground?: string }, name: string) => {
@@ -266,14 +275,40 @@ export function DesignSystemPanel({ projectId, onPreviewChange }: DesignSystemPa
                             <Eye className="h-3 w-3" />
                           )}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCopyCSS(system)}
-                          className="gap-1"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              title="Export design tokens"
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleCopyCSS(system)}>
+                              <Copy className="h-3 w-3 mr-2" />
+                              Copy CSS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(system, 'css')}>
+                              <FileCode className="h-3 w-3 mr-2" />
+                              Download CSS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(system, 'scss')}>
+                              <FileCode className="h-3 w-3 mr-2" />
+                              Download SCSS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(system, 'tailwind')}>
+                              <FileCode className="h-3 w-3 mr-2" />
+                              Download Tailwind Config
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(system, 'json')}>
+                              <FileCode className="h-3 w-3 mr-2" />
+                              Download JSON Tokens
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                           size="sm"
                           variant="ghost"
