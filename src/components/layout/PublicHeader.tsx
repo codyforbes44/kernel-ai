@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Menu, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import {
@@ -79,6 +79,15 @@ export function PublicHeader() {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
+          <a
+            href="https://x.com/kernel_cool"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            aria-label="Follow us on X"
+          >
+            <Twitter className="h-4 w-4" />
+          </a>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/auth">Sign In</Link>
           </Button>
@@ -106,6 +115,15 @@ export function PublicHeader() {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="https://x.com/kernel_cool"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
+              >
+                <Twitter className="h-5 w-5" />
+                Follow on X
+              </a>
               <div className="border-t border-border my-4" />
               <SheetClose asChild>
                 <Button variant="outline" className="w-full" asChild>
