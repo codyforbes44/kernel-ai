@@ -8,7 +8,7 @@ import { DesignSystemPanel } from './DesignSystemPanel';
 import { KnowledgeBasePanel } from './KnowledgeBasePanel';
 import { SecurityPanel } from './SecurityPanel';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 import type { PanelType } from '@/hooks/usePanelManager';
 import type { ProjectFile } from '@/types/builder';
 import type { CapturedError } from './ErrorCapture';
@@ -59,18 +59,6 @@ function PanelLoadingFallback() {
   );
 }
 
-// Error fallback for panel errors
-function PanelErrorFallback({ panelName }: { panelName: string }) {
-  return (
-    <div className="h-full flex items-center justify-center bg-background p-4">
-      <div className="text-center">
-        <p className="text-destructive font-medium mb-2">Failed to load {panelName}</p>
-        <p className="text-sm text-muted-foreground">Try refreshing the page</p>
-      </div>
-    </div>
-  );
-}
-
 export function PanelRenderer({
   activePanel,
   projectId,
@@ -98,7 +86,7 @@ export function PanelRenderer({
     switch (activePanel) {
       case 'ai-chat':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="AI Assistant" />}>
+          <PanelErrorBoundary panelName="AI Assistant">
             <BuilderChat
               files={files}
               onApplyOperations={onApplyOperations}
@@ -107,12 +95,12 @@ export function PanelRenderer({
               projectId={projectId}
               onFixHandlerReady={onFixHandlerReady}
             />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'agent':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="AI Agent" />}>
+          <PanelErrorBoundary panelName="AI Agent">
             <Suspense fallback={<PanelLoadingFallback />}>
               <AgentChat
                 files={files}
@@ -124,12 +112,12 @@ export function PanelRenderer({
                 onRunningChange={onAgentRunningChange}
               />
             </Suspense>
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'history':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Version History" />}>
+          <PanelErrorBoundary panelName="Version History">
             <FileVersionHistory
               fileId={activeTabId}
               fileName={activeFileName}
@@ -137,80 +125,80 @@ export function PanelRenderer({
               onRestore={onRestoreVersion}
               onClose={() => togglePanel('history')}
             />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'deployments':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Deployments" />}>
+          <PanelErrorBoundary panelName="Deployments">
             <DeploymentPanel
               projectId={projectId}
               onClose={() => togglePanel('deployments')}
             />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'github':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="GitHub" />}>
+          <PanelErrorBoundary panelName="GitHub">
             <GitHubPanel
               projectId={projectId}
               projectName={projectName}
             />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'design-system':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Design System" />}>
+          <PanelErrorBoundary panelName="Design System">
             <DesignSystemPanel projectId={projectId} onPreviewChange={onPreviewChange} />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'marketplace':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Component Marketplace" />}>
+          <PanelErrorBoundary panelName="Component Marketplace">
             <Suspense fallback={<PanelLoadingFallback />}>
               <ComponentMarketplace 
                 projectId={projectId}
                 onInstallComponent={onInstallComponent}
               />
             </Suspense>
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'knowledge-base':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Knowledge Base" />}>
+          <PanelErrorBoundary panelName="Knowledge Base">
             <KnowledgeBasePanel projectId={projectId} />
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'storage':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="File Storage" />}>
+          <PanelErrorBoundary panelName="File Storage">
             <Suspense fallback={<PanelLoadingFallback />}>
               <StorageBrowser />
             </Suspense>
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'database':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Database" />}>
+          <PanelErrorBoundary panelName="Database">
             <Suspense fallback={<PanelLoadingFallback />}>
               <DatabasePanel />
             </Suspense>
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       case 'security':
         return (
-          <ErrorBoundary fallback={<PanelErrorFallback panelName="Security Scanner" />}>
+          <PanelErrorBoundary panelName="Security Scanner">
             <Suspense fallback={<PanelLoadingFallback />}>
               <SecurityDashboard />
             </Suspense>
-          </ErrorBoundary>
+          </PanelErrorBoundary>
         );
 
       default:
