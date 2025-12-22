@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useRateLimiting } from "@/hooks/useRateLimiting";
+import { useAccountLockout } from "@/hooks/useAccountLockout";
 import { useLoginGeolocation } from "@/hooks/useLoginGeolocation";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { signInSchema, type SignInFormData } from "@/lib/validations";
@@ -37,7 +37,7 @@ export function SignInForm({
 }: SignInFormProps) {
   const isMobile = useIsMobile();
   const { success, error: hapticError } = useHaptic();
-  const { lockoutStatus, checkLockout, recordAttempt, formatLockoutTime, clearLockoutStatus } = useRateLimiting();
+  const { lockoutStatus, checkLockout, recordAttempt, formatLockoutTime, clearLockoutStatus } = useAccountLockout();
   const { checkLoginLocation } = useLoginGeolocation();
   const { isAvailable: biometricAvailable, savedCredential, authenticate, isLoading: biometricLoading } = useBiometricAuth();
   const [countdown, setCountdown] = useState<number>(0);

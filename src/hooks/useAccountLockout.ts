@@ -9,7 +9,7 @@ interface LockoutStatus {
   remainingAttempts?: number;
 }
 
-export function useRateLimiting() {
+export function useAccountLockout() {
   const [lockoutStatus, setLockoutStatus] = useState<LockoutStatus | null>(null);
   const [checking, setChecking] = useState(false);
 
