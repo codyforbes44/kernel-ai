@@ -2,7 +2,8 @@ import { useRef, useCallback } from 'react';
 import Editor, { OnMount, OnChange, Monaco } from '@monaco-editor/react';
 import { useTheme } from 'next-themes';
 
-type IStandaloneCodeEditor = Parameters<OnMount>[0];
+export type IStandaloneCodeEditor = Parameters<OnMount>[0];
+export type MonacoInstance = Monaco;
 
 interface MonacoEditorProps {
   value: string;
@@ -11,6 +12,7 @@ interface MonacoEditorProps {
   onSave?: () => void;
   readOnly?: boolean;
   path?: string;
+  onMount?: (editor: IStandaloneCodeEditor, monaco: Monaco) => void;
 }
 
 export function MonacoEditor({
@@ -20,6 +22,7 @@ export function MonacoEditor({
   onSave,
   readOnly = false,
   path,
+  onMount: onMountProp,
 }: MonacoEditorProps) {
   const { theme } = useTheme();
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
@@ -59,7 +62,10 @@ export function MonacoEditor({
       bracketPairColorization: { enabled: true },
       automaticLayout: true,
     });
-  }, [onSave]);
+
+    // Call external onMount handler if provided
+    onMountProp?.(editor, monaco);
+  }, [onSave, onMountProp]);
 
   const handleChange: OnChange = useCallback((newValue) => {
     if (newValue !== undefined) {
