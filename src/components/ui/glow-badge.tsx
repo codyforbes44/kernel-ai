@@ -47,6 +47,20 @@ const glowBadgeVariants = cva(
           "text-destructive",
           "shadow-[0_0_12px_hsl(var(--destructive)/0.2)]",
         ],
+        gold: [
+          "bg-gold/15 backdrop-blur-sm",
+          "border-gold/50",
+          "text-gold",
+          "shadow-[0_0_12px_hsl(var(--gold)/0.3)]",
+        ],
+        premium: [
+          "bg-gradient-to-r from-gold/20 to-gold/10 backdrop-blur-sm",
+          "border-gold/60",
+          "text-gold",
+          "shadow-[0_0_15px_hsl(var(--gold)/0.4)]",
+          "hover:shadow-[0_0_20px_hsl(var(--gold)/0.5)]",
+          "hover:border-gold/80",
+        ],
         outline: [
           "bg-transparent",
           "border-primary/30",
@@ -93,6 +107,16 @@ const glowBadgeVariants = cva(
         variant: "destructive",
         className: "animate-[pulse-destructive_2s_ease-in-out_infinite]",
       },
+      {
+        pulse: true,
+        variant: "gold",
+        className: "animate-[pulse-gold_2s_ease-in-out_infinite]",
+      },
+      {
+        pulse: true,
+        variant: "premium",
+        className: "animate-[pulse-gold_2s_ease-in-out_infinite]",
+      },
     ],
     defaultVariants: {
       variant: "default",
@@ -108,7 +132,7 @@ export interface GlowBadgeProps
   /** Show a dot indicator */
   dot?: boolean;
   /** Dot color variant */
-  dotVariant?: "primary" | "success" | "warning" | "destructive";
+  dotVariant?: "primary" | "success" | "warning" | "destructive" | "gold";
   /** Left icon */
   icon?: React.ReactNode;
 }
@@ -123,6 +147,7 @@ const GlowBadge = React.forwardRef<HTMLDivElement, GlowBadgeProps>(
       success: "bg-success shadow-[0_0_8px_hsl(var(--success)/0.6)]",
       warning: "bg-warning shadow-[0_0_8px_hsl(var(--warning)/0.6)]",
       destructive: "bg-destructive shadow-[0_0_8px_hsl(var(--destructive)/0.6)]",
+      gold: "bg-gold shadow-[0_0_8px_hsl(var(--gold)/0.6)]",
     };
 
     return (
@@ -168,6 +193,16 @@ const GlowBadge = React.forwardRef<HTMLDivElement, GlowBadgeProps>(
             }
             50% { 
               box-shadow: 0 0 20px hsl(var(--destructive) / 0.4);
+            }
+          }
+          @keyframes pulse-gold {
+            0%, 100% { 
+              box-shadow: 0 0 12px hsl(var(--gold) / 0.3);
+              border-color: hsl(var(--gold) / 0.5);
+            }
+            50% { 
+              box-shadow: 0 0 20px hsl(var(--gold) / 0.5);
+              border-color: hsl(var(--gold) / 0.8);
             }
           }
         `}</style>
@@ -238,4 +273,53 @@ const TagBadge = React.forwardRef<
 });
 TagBadge.displayName = "TagBadge";
 
-export { GlowBadge, StatusBadge, TagBadge, glowBadgeVariants };
+// Premium badge for Pro users
+const PremiumBadge = React.forwardRef<
+  HTMLDivElement,
+  Omit<GlowBadgeProps, "variant" | "icon"> & {
+    showIcon?: boolean;
+  }
+>(({ showIcon = true, children, ...props }, ref) => {
+  return (
+    <GlowBadge
+      ref={ref}
+      variant="premium"
+      icon={showIcon ? (
+        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+        </svg>
+      ) : undefined}
+      {...props}
+    >
+      {children || "Pro"}
+    </GlowBadge>
+  );
+});
+PremiumBadge.displayName = "PremiumBadge";
+
+// Verified badge for verified elements
+const VerifiedBadge = React.forwardRef<
+  HTMLDivElement,
+  Omit<GlowBadgeProps, "variant" | "icon"> & {
+    showIcon?: boolean;
+  }
+>(({ showIcon = true, children, ...props }, ref) => {
+  return (
+    <GlowBadge
+      ref={ref}
+      variant="gold"
+      icon={showIcon ? (
+        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L14.4 4.4L18 4L17.6 7.6L20 10L17.6 12.4L18 16L14.4 15.6L12 18L9.6 15.6L6 16L6.4 12.4L4 10L6.4 7.6L6 4L9.6 4.4L12 2Z" />
+          <path d="M9 10L11 12L15 8" stroke="hsl(var(--gold-foreground))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </svg>
+      ) : undefined}
+      {...props}
+    >
+      {children || "Verified"}
+    </GlowBadge>
+  );
+});
+VerifiedBadge.displayName = "VerifiedBadge";
+
+export { GlowBadge, StatusBadge, TagBadge, PremiumBadge, VerifiedBadge, glowBadgeVariants };
