@@ -20,6 +20,7 @@ interface UseAgentModeOptions {
   files: ProjectFile[];
   errors: CapturedError[];
   onApplyOperations: (operations: FileOperation[]) => Promise<void>;
+  onSessionComplete?: (session: AgentSession) => void;
   config?: Partial<AgentConfig>;
 }
 
@@ -38,6 +39,7 @@ export function useAgentMode({
   files,
   errors,
   onApplyOperations,
+  onSessionComplete,
   config: userConfig,
 }: UseAgentModeOptions): UseAgentModeReturn {
   const config: AgentConfig = { ...DEFAULT_AGENT_CONFIG, ...userConfig };
@@ -526,23 +528,40 @@ export function useAgentMode({
         }
       }
       
-      // Final status
+      // Final status and save to history
       if (!signal.aborted) {
-        setSession(prev => prev ? {
-          ...prev,
-          status: pendingOps.length > 0 ? 'applying' : 'complete',
-          endTime: new Date(),
-        } : prev);
+        const finalStatus = pendingOps.length > 0 ? 'applying' : 'complete';
+        const endTime = new Date();
+        
+        setSession(prev => {
+          if (!prev) return prev;
+          const completedSession = {
+            ...prev,
+            status: finalStatus as AgentStatus,
+            endTime,
+          };
+          // Save to history
+          onSessionComplete?.(completedSession);
+          return completedSession;
+        });
       }
       
     } catch (error) {
       if (!signal.aborted) {
         console.error('Agent error:', error);
-        setSession(prev => prev ? {
-          ...prev,
-          status: 'error',
-          endTime: new Date(),
-        } : prev);
+        const endTime = new Date();
+        
+        setSession(prev => {
+          if (!prev) return prev;
+          const errorSession = {
+            ...prev,
+            status: 'error' as AgentStatus,
+            endTime,
+          };
+          // Save error sessions to history too
+          onSessionComplete?.(errorSession);
+          return errorSession;
+        });
         addStep('fix_error', error instanceof Error ? error.message : 'Unknown error', 'error');
       }
     } finally {
@@ -559,6 +578,7 @@ export function useAgentMode({
     updateStatus, 
     executeTool,
     onApplyOperations,
+    onSessionComplete,
   ]);
 
   const cancelAgent = useCallback(() => {

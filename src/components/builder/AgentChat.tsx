@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Sparkles,
   MessageSquare,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,8 +16,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { AgentPanel } from './AgentPanel';
+import { AgentHistoryPanel } from './AgentHistoryPanel';
 import { BuilderChat } from './BuilderChat';
 import { useAgentMode } from '@/hooks/useAgentMode';
+import { useAgentHistory } from '@/hooks/useAgentHistory';
 import type { ProjectFile } from '@/types/builder';
 import type { CapturedError } from './ErrorCapture';
 import type { AgentMessage } from '@/types/agent';
@@ -134,8 +137,10 @@ export function AgentChat({
   onFixHandlerReady,
   onRunningChange,
 }: AgentChatProps) {
-  const [mode, setMode] = useState<'chat' | 'agent'>('chat');
+  const [mode, setMode] = useState<'chat' | 'agent' | 'history'>('chat');
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const { saveSession, sessions } = useAgentHistory(projectId);
   
   const {
     session,
@@ -150,6 +155,7 @@ export function AgentChat({
     files,
     errors,
     onApplyOperations,
+    onSessionComplete: saveSession,
   });
 
   // Notify parent when running state changes
@@ -168,7 +174,7 @@ export function AgentChat({
     <div className="h-full flex flex-col">
       {/* Mode Switcher */}
       <div className="p-2 border-b bg-background/80 backdrop-blur-sm">
-        <Tabs value={mode} onValueChange={(v) => setMode(v as 'chat' | 'agent')}>
+        <Tabs value={mode} onValueChange={(v) => setMode(v as 'chat' | 'agent' | 'history')}>
           <TabsList className="w-full">
             <TabsTrigger value="chat" className="flex-1 gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -179,6 +185,15 @@ export function AgentChat({
               Agent
               {isRunning && (
                 <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex-1 gap-2">
+              <History className="w-4 h-4" />
+              History
+              {sessions.length > 0 && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                  {sessions.length}
+                </Badge>
               )}
             </TabsTrigger>
           </TabsList>
@@ -196,7 +211,7 @@ export function AgentChat({
             projectId={projectId}
             onFixHandlerReady={onFixHandlerReady}
           />
-        ) : (
+        ) : mode === 'agent' ? (
           <AgentPanel
             session={session}
             isRunning={isRunning}
@@ -204,6 +219,10 @@ export function AgentChat({
             onCancel={cancelAgent}
             onApplyChanges={applyPendingOperations}
             onClear={clearSession}
+          />
+        ) : (
+          <AgentHistoryPanel
+            projectId={projectId}
           />
         )}
       </div>
