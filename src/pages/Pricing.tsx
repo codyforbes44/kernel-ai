@@ -16,6 +16,7 @@ import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { PremiumFeatureCard, PremiumFeatureGrid } from "@/components/ui/premium-feature-card";
+import { PremiumUpgradeModal, usePremiumUpgradeModal } from "@/components/ui/premium-upgrade-modal";
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (typeof value === "boolean") {
@@ -83,12 +84,24 @@ export default function Pricing() {
 
   // Check if user is on free plan (not subscribed or no user)
   const isFreePlan = !subscribed;
+  
+  // Premium upgrade modal
+  const { isOpen: isUpgradeModalOpen, featureName, openModal, setIsOpen: setUpgradeModalOpen } = usePremiumUpgradeModal();
 
-  const handleUpgrade = () => {
+  const handleUpgrade = (feature?: string) => {
     if (!user) {
       toast.info('Please sign in to upgrade');
       return;
     }
+    if (isFreePlan && feature) {
+      openModal(feature);
+    } else {
+      const priceId = isYearly ? STRIPE_PRICES.PRO_YEARLY : STRIPE_PRICES.PRO_MONTHLY;
+      createCheckoutSession(priceId);
+    }
+  };
+
+  const handleCheckoutFromModal = () => {
     const priceId = isYearly ? STRIPE_PRICES.PRO_YEARLY : STRIPE_PRICES.PRO_MONTHLY;
     createCheckoutSession(priceId);
   };
@@ -336,7 +349,7 @@ export default function Pricing() {
                 "Multi-file refactoring",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("AI Code Generation")}
             />
             <PremiumFeatureCard
               title="Advanced Security"
@@ -348,7 +361,7 @@ export default function Pricing() {
                 "SSO integration",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("Advanced Security")}
             />
             <PremiumFeatureCard
               title="Analytics Dashboard"
@@ -360,7 +373,7 @@ export default function Pricing() {
                 "Performance tracking",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("Analytics Dashboard")}
             />
             <PremiumFeatureCard
               title="Custom Themes"
@@ -372,7 +385,7 @@ export default function Pricing() {
                 "Export to Figma",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("Custom Themes")}
             />
             <PremiumFeatureCard
               title="Custom Domains"
@@ -384,7 +397,7 @@ export default function Pricing() {
                 "CDN included",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("Custom Domains")}
             />
             <PremiumFeatureCard
               title="Priority Support"
@@ -396,7 +409,7 @@ export default function Pricing() {
                 "Dedicated account manager",
               ]}
               locked={isFreePlan}
-              onUpgrade={handleUpgrade}
+              onUpgrade={() => handleUpgrade("Priority Support")}
             />
           </PremiumFeatureGrid>
         </div>
@@ -472,6 +485,14 @@ export default function Pricing() {
           </div>
         </div>
       </section>
+
+      {/* Premium Upgrade Modal */}
+      <PremiumUpgradeModal
+        open={isUpgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        featureName={featureName}
+        onUpgrade={handleCheckoutFromModal}
+      />
     </PublicLayout>
   );
 }
