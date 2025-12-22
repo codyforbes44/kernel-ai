@@ -129,6 +129,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     isConnected: isPresenceConnected,
     trackFileOpen,
     trackCursor,
+    trackSelection,
   } = useEditorPresence({ projectId, enabled: true });
 
   // Track active file for presence
@@ -464,6 +465,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   collaborators={collaborators}
                   currentFilePath={activeFile.path}
                   onCursorChange={trackCursor}
+                  onSelectionChange={trackSelection}
                 />
               </EditorErrorBoundary>
             ) : (
