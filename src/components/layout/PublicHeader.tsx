@@ -93,7 +93,7 @@ export function PublicHeader() {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/auth">Sign In</Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button variant="gold" size="sm" asChild>
             <Link to="/auth?mode=signup">Get Started</Link>
           </Button>
         </div>
@@ -133,7 +133,7 @@ export function PublicHeader() {
                 </Button>
               </SheetClose>
               <SheetClose asChild>
-                <Button className="w-full" asChild>
+                <Button variant="gold" className="w-full" asChild>
                   <Link to="/auth?mode=signup">Get Started</Link>
                 </Button>
               </SheetClose>

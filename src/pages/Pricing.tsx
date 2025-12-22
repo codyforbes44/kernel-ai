@@ -273,7 +273,7 @@ export default function Pricing() {
                       </Button>
                     ) : (
                       <Button 
-                        variant={buttonContent.variant}
+                        variant={plan.name === "Pro" ? "gold" : buttonContent.variant}
                         className="w-full" 
                         disabled={buttonContent.disabled || isLoading === plan.name}
                         onClick={() => handleSubscribe(plan.name)}
