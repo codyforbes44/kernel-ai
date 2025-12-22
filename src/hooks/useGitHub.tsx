@@ -31,6 +31,20 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
     checkConfig();
   }, []);
 
+  const ALLOWED_ACTIONS = [
+  "list-repos",
+  "create-repo",
+  "link-repo",
+  "unlink-repo",
+  "push",
+  "pull",
+  "get-status",
+  "get-commits",
+  "list-branches",
+  "switch-branch",
+  "create-branch",
+] as const;
+
   // Fetch GitHub connection
   const { data: connection, isLoading: isLoadingConnection } = useQuery({
     queryKey: ['github-connection'],
@@ -410,6 +424,93 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
     },
   });
 
+  // List branches
+  const listBranchesMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/github-sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'list-branches', projectId }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data.branches as Array<{ name: string; isDefault: boolean; isProtected: boolean }>;
+    },
+  });
+
+  // Switch branch
+  const switchBranchMutation = useMutation({
+    mutationFn: async (branchName: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/github-sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'switch-branch', projectId, branchName }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project-repo', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-files', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['github-commits', projectId] });
+      toast({ title: 'Branch switched successfully' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to switch branch',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Create branch
+  const createBranchMutation = useMutation({
+    mutationFn: async ({ branchName, fromBranch }: { branchName: string; fromBranch: string }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/github-sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ action: 'create-branch', projectId, branchName, fromBranch }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (_, { branchName }) => {
+      queryClient.invalidateQueries({ queryKey: ['project-repo', projectId] });
+      toast({ title: 'Branch created', description: `Created branch: ${branchName}` });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to create branch',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     // State
     isConfigured,
@@ -441,6 +542,16 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
     
     pull: pullMutation.mutate,
     isPulling: pullMutation.isPending,
+
+    // Branch operations
+    listBranches: listBranchesMutation.mutateAsync,
+    isListingBranches: listBranchesMutation.isPending,
+    
+    switchBranch: switchBranchMutation.mutateAsync,
+    isSwitchingBranch: switchBranchMutation.isPending,
+    
+    createBranch: createBranchMutation.mutateAsync,
+    isCreatingBranch: createBranchMutation.isPending,
     
     // Computed
     isSyncing: pushMutation.isPending || pullMutation.isPending,

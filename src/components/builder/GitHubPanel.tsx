@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useGitHub } from '@/hooks/useGitHub';
+import { BranchSelector } from './BranchSelector';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo } from '@/types/github';
 
@@ -28,6 +29,7 @@ export function GitHubPanel({ projectId, projectName }: GitHubPanelProps) {
   const [newRepoPrivate, setNewRepoPrivate] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [branches, setBranches] = useState<Array<{ name: string; isDefault: boolean; isProtected: boolean }>>([]);
   
   const {
     isConfigured,
@@ -54,6 +56,12 @@ export function GitHubPanel({ projectId, projectName }: GitHubPanelProps) {
     isSyncing,
     syncStatus,
     lastSyncedAt,
+    listBranches,
+    isListingBranches,
+    switchBranch,
+    isSwitchingBranch,
+    createBranch,
+    isCreatingBranch,
   } = useGitHub({ projectId });
 
   // Handle OAuth callback
@@ -389,15 +397,28 @@ export function GitHubPanel({ projectId, projectName }: GitHubPanelProps) {
           </Button>
         </div>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span>Branch: {repo.default_branch}</span>
+          <BranchSelector
+            currentBranch={repo.default_branch}
+            branches={branches}
+            isLoading={isListingBranches}
+            isSwitching={isSwitchingBranch}
+            isCreating={isCreatingBranch}
+            onLoadBranches={async () => {
+              const fetchedBranches = await listBranches();
+              setBranches(fetchedBranches);
+            }}
+            onSwitchBranch={async (branchName) => {
+              await switchBranch(branchName);
+            }}
+            onCreateBranch={async (branchName, fromBranch) => {
+              await createBranch({ branchName, fromBranch });
+              const fetchedBranches = await listBranches();
+              setBranches(fetchedBranches);
+            }}
+          />
           {lastSyncedAt && (
             <span>Last sync: {formatDate(lastSyncedAt.toISOString())}</span>
           )}
-        </div>
-        {/* Auto-sync toggle - feature placeholder */}
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-          <span className="text-xs text-muted-foreground">Auto-sync on push</span>
-          <Badge variant="outline" className="text-xs">Coming soon</Badge>
         </div>
       </div>
 

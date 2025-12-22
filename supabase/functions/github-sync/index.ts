@@ -41,6 +41,9 @@ const ALLOWED_ACTIONS = [
   "pull",
   "get-status",
   "get-commits",
+  "list-branches",
+  "switch-branch",
+  "create-branch",
 ] as const;
 
 type GitHubAction = typeof ALLOWED_ACTIONS[number];
@@ -54,6 +57,8 @@ interface SyncRequest {
   isPrivate?: boolean;
   description?: string;
   commitMessage?: string;
+  branchName?: string;
+  fromBranch?: string;
 }
 
 function validateSyncRequest(body: unknown): { valid: true; data: SyncRequest } | { valid: false; error: string } {
@@ -120,6 +125,28 @@ function validateSyncRequest(body: unknown): { valid: true; data: SyncRequest } 
     }
   }
 
+  // Validate branchName (optional, max 100 chars, valid branch name)
+  const branchName = (body as Record<string, unknown>).branchName;
+  if (branchName !== undefined && branchName !== null) {
+    if (typeof branchName !== "string" || branchName.length > 100) {
+      return { valid: false, error: "branchName must be a string with max 100 characters" };
+    }
+    if (!/^[a-zA-Z0-9/_-]+$/.test(branchName)) {
+      return { valid: false, error: "branchName contains invalid characters" };
+    }
+  }
+
+  // Validate fromBranch (optional, max 100 chars, valid branch name)
+  const fromBranch = (body as Record<string, unknown>).fromBranch;
+  if (fromBranch !== undefined && fromBranch !== null) {
+    if (typeof fromBranch !== "string" || fromBranch.length > 100) {
+      return { valid: false, error: "fromBranch must be a string with max 100 characters" };
+    }
+    if (!/^[a-zA-Z0-9/_-]+$/.test(fromBranch)) {
+      return { valid: false, error: "fromBranch contains invalid characters" };
+    }
+  }
+
   return {
     valid: true,
     data: {
@@ -131,6 +158,8 @@ function validateSyncRequest(body: unknown): { valid: true; data: SyncRequest } 
       isPrivate: typeof isPrivate === "boolean" ? isPrivate : undefined,
       description: typeof description === "string" ? sanitizeString(description, 500) : undefined,
       commitMessage: typeof commitMessage === "string" ? sanitizeString(commitMessage, 500) : undefined,
+      branchName: typeof branchName === "string" ? branchName : undefined,
+      fromBranch: typeof fromBranch === "string" ? fromBranch : undefined,
     },
   };
 }
@@ -194,7 +223,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { action, projectId, repoName, repoOwner, defaultBranch, isPrivate, description, commitMessage } = validation.data;
+    const { action, projectId, repoName, repoOwner, defaultBranch, isPrivate, description, commitMessage, branchName, fromBranch } = validation.data;
     console.log("GitHub sync action:", action, "projectId:", projectId);
 
     // List user's repositories
@@ -824,6 +853,279 @@ Deno.serve(async (req) => {
 
       return new Response(
         JSON.stringify({ commits: commits || [] }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // List branches
+    if (action === "list-branches") {
+      if (!projectId) {
+        return new Response(
+          JSON.stringify({ error: "projectId is required for list-branches action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: projectRepo } = await serviceClient
+        .from("project_repos")
+        .select("*")
+        .eq("project_id", projectId)
+        .single();
+
+      if (!projectRepo) {
+        return new Response(
+          JSON.stringify({ error: "No repository linked to this project" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Fetching branches for", projectRepo.repo_owner + "/" + projectRepo.repo_name);
+
+      const branchesResponse = await fetch(
+        `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/branches`,
+        {
+          headers: {
+            Authorization: `Bearer ${connection.access_token}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        }
+      );
+
+      if (!branchesResponse.ok) {
+        console.error("Failed to fetch branches:", branchesResponse.status);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch branches" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const branchesData = await branchesResponse.json();
+      const branches = branchesData.map((b: { name: string; protected: boolean }) => ({
+        name: b.name,
+        isDefault: b.name === projectRepo.default_branch,
+        isProtected: b.protected,
+      }));
+
+      console.log("Found", branches.length, "branches");
+
+      return new Response(
+        JSON.stringify({ branches }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Switch branch
+    if (action === "switch-branch") {
+      if (!projectId || !branchName) {
+        return new Response(
+          JSON.stringify({ error: "projectId and branchName are required for switch-branch action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: projectRepo, error: repoError } = await serviceClient
+        .from("project_repos")
+        .select("*")
+        .eq("project_id", projectId)
+        .single();
+
+      if (repoError || !projectRepo) {
+        return new Response(
+          JSON.stringify({ error: "No repository linked to this project" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Switching to branch:", branchName);
+
+      // Update the default branch in project_repos
+      const { error: updateError } = await serviceClient
+        .from("project_repos")
+        .update({ 
+          default_branch: branchName,
+          sync_status: "syncing",
+        })
+        .eq("id", projectRepo.id);
+
+      if (updateError) {
+        console.error("Failed to update branch:", updateError);
+        return new Response(
+          JSON.stringify({ error: "Failed to update branch" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Pull files from the new branch
+      try {
+        const treeResponse = await fetch(
+          `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/git/trees/${branchName}?recursive=1`,
+          {
+            headers: {
+              Authorization: `Bearer ${connection.access_token}`,
+              Accept: "application/vnd.github.v3+json",
+            },
+          }
+        );
+
+        if (!treeResponse.ok) {
+          throw new Error("Failed to fetch branch tree");
+        }
+
+        const treeData = await treeResponse.json();
+        
+        // Get content for each file
+        const filePromises = [];
+        for (const item of treeData.tree || []) {
+          if (item.type !== "blob") continue;
+          if (item.size > 1000000) continue;
+
+          filePromises.push(
+            fetch(
+              `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/contents/${item.path}?ref=${branchName}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${connection.access_token}`,
+                  Accept: "application/vnd.github.v3.raw",
+                },
+              }
+            ).then(async (res) => {
+              if (!res.ok) return null;
+              try {
+                const content = await res.text();
+                return { path: item.path, content, type: "file" };
+              } catch {
+                return null;
+              }
+            })
+          );
+        }
+
+        const files = (await Promise.all(filePromises)).filter(Boolean);
+
+        // Clear existing files and insert new ones
+        await serviceClient
+          .from("project_files")
+          .delete()
+          .eq("project_id", projectId);
+
+        if (files.length > 0) {
+          await serviceClient
+            .from("project_files")
+            .insert(
+              files.map((f) => ({
+                project_id: projectId,
+                path: f!.path,
+                content: f!.content,
+                type: f!.type,
+                name: f!.path.split("/").pop() || f!.path,
+              }))
+            );
+        }
+
+        // Update sync status
+        await serviceClient
+          .from("project_repos")
+          .update({ sync_status: "idle" })
+          .eq("id", projectRepo.id);
+
+        console.log("Branch switched to", branchName, "- imported", files.length, "files");
+
+        return new Response(
+          JSON.stringify({ success: true, branch: branchName, filesUpdated: files.length }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+
+      } catch (error) {
+        console.error("Branch switch failed:", error);
+        await serviceClient
+          .from("project_repos")
+          .update({ sync_status: "error" })
+          .eq("id", projectRepo.id);
+
+        return new Response(
+          JSON.stringify({ error: error instanceof Error ? error.message : "Branch switch failed" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Create branch
+    if (action === "create-branch") {
+      if (!projectId || !branchName) {
+        return new Response(
+          JSON.stringify({ error: "projectId and branchName are required for create-branch action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: projectRepo, error: repoError } = await serviceClient
+        .from("project_repos")
+        .select("*")
+        .eq("project_id", projectId)
+        .single();
+
+      if (repoError || !projectRepo) {
+        return new Response(
+          JSON.stringify({ error: "No repository linked to this project" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const sourceBranch = fromBranch || projectRepo.default_branch;
+      console.log("Creating branch", branchName, "from", sourceBranch);
+
+      // Get the SHA of the source branch
+      const refResponse = await fetch(
+        `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/git/refs/heads/${sourceBranch}`,
+        {
+          headers: {
+            Authorization: `Bearer ${connection.access_token}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        }
+      );
+
+      if (!refResponse.ok) {
+        console.error("Failed to get source branch ref:", refResponse.status);
+        return new Response(
+          JSON.stringify({ error: "Failed to get source branch" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const refData = await refResponse.json();
+      const sha = refData.object.sha;
+
+      // Create the new branch
+      const createRefResponse = await fetch(
+        `https://api.github.com/repos/${projectRepo.repo_owner}/${projectRepo.repo_name}/git/refs`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${connection.access_token}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ref: `refs/heads/${branchName}`,
+            sha: sha,
+          }),
+        }
+      );
+
+      if (!createRefResponse.ok) {
+        const error = await createRefResponse.json();
+        console.error("Failed to create branch:", error);
+        return new Response(
+          JSON.stringify({ error: error.message || "Failed to create branch" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Branch created:", branchName);
+
+      return new Response(
+        JSON.stringify({ success: true, branch: branchName }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

@@ -19,6 +19,7 @@ interface PresenceState {
   selection?: SelectionRange;
   color: string;
   lastActive: string;
+  isTyping?: boolean;
 }
 
 interface UseEditorPresenceOptions {
@@ -46,6 +47,8 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number } | null>(null);
   const [selection, setSelection] = useState<SelectionRange | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize presence channel
   useEffect(() => {
@@ -82,7 +85,7 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
           Object.entries(state).forEach(([key, value]) => {
             if (Array.isArray(value) && value.length > 0) {
               const rawPresence = value[0] as Record<string, unknown>;
-              if (rawPresence.userId && rawPresence.userId !== user.id) {
+                if (rawPresence.userId && rawPresence.userId !== user.id) {
                 users.push({
                   id: String(rawPresence.id || ''),
                   userId: String(rawPresence.userId),
@@ -93,6 +96,7 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
                   selection: rawPresence.selection as SelectionRange | undefined,
                   color: String(rawPresence.color || '#3b82f6'),
                   lastActive: String(rawPresence.lastActive || new Date().toISOString()),
+                  isTyping: Boolean(rawPresence.isTyping),
                 });
               }
             }
@@ -151,8 +155,9 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
       selection: selection || undefined,
       color: userColorRef.current,
       lastActive: new Date().toISOString(),
+      isTyping,
     });
-  }, [currentFile, cursorPosition, selection]);
+  }, [currentFile, cursorPosition, selection, isTyping]);
 
   // Update presence when file changes
   const trackFileOpen = useCallback((filePath: string) => {
@@ -169,15 +174,44 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
     setSelection(range);
   }, []);
 
+  // Track typing state with auto-reset after 2 seconds of inactivity
+  const trackTyping = useCallback(() => {
+    setIsTyping(true);
+    
+    // Clear any existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set timeout to clear typing state after 2 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+    }, 2000);
+  }, []);
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Reduced debounce for smoother cursor updates (100ms instead of 500ms)
   useEffect(() => {
     const timeout = setTimeout(updatePresence, 100);
     return () => clearTimeout(timeout);
-  }, [currentFile, cursorPosition, selection, updatePresence]);
+  }, [currentFile, cursorPosition, selection, isTyping, updatePresence]);
 
   // Get collaborators editing the same file
   const getCollaboratorsInFile = useCallback((filePath: string) => {
     return collaborators.filter(c => c.currentFile === filePath);
+  }, [collaborators]);
+
+  // Get collaborators who are currently typing
+  const getTypingCollaborators = useCallback(() => {
+    return collaborators.filter(c => c.isTyping);
   }, [collaborators]);
 
   return {
@@ -187,7 +221,9 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
     trackFileOpen,
     trackCursor,
     trackSelection,
+    trackTyping,
     getCollaboratorsInFile,
+    getTypingCollaborators,
     currentFile,
   };
 }

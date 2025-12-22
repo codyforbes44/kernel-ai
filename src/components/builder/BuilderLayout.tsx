@@ -14,6 +14,7 @@ import { ErrorCapture, type CapturedError } from './ErrorCapture';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { PanelRenderer } from './PanelRenderer';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
+import { TypingIndicator } from './TypingIndicator';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { ProjectSettingsDialog } from '@/components/dialogs/ProjectSettingsDialog';
@@ -132,7 +133,12 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     trackFileOpen,
     trackCursor,
     trackSelection,
+    trackTyping,
+    getTypingCollaborators,
   } = useEditorPresence({ projectId, enabled: true });
+
+  // Get typing collaborators for the indicator
+  const typingCollaborators = getTypingCollaborators();
 
   // Track active file for presence
   useEffect(() => {
@@ -451,7 +457,20 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                   currentFilePath={activeFile.path}
                   onCursorChange={trackCursor}
                   onSelectionChange={trackSelection}
+                  onTyping={trackTyping}
                 />
+                {/* Typing Indicator */}
+                {typingCollaborators.length > 0 && (
+                  <div className="absolute bottom-4 left-4 z-10">
+                    <TypingIndicator
+                      typingUsers={typingCollaborators.map(c => ({
+                        id: c.userId,
+                        displayName: c.displayName,
+                        color: c.color,
+                      }))}
+                    />
+                  </div>
+                )}
               </EditorErrorBoundary>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground bg-[hsl(var(--code-background))]">
