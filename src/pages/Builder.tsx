@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { useProtectedPage } from '@/hooks/useProtectedPage';
+import { builderService } from '@/services/builderService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,6 +45,8 @@ export default function Builder() {
   // Remix state
   const [remixDialogOpen, setRemixDialogOpen] = useState(false);
   const [projectToRemix, setProjectToRemix] = useState<BuilderProject | null>(null);
+  const [remixFileCount, setRemixFileCount] = useState(0);
+  const [isFetchingFileCount, setIsFetchingFileCount] = useState(false);
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) return;
@@ -62,11 +65,23 @@ export default function Builder() {
     setShowCreateDialog(true);
   };
 
-  const handleOpenRemixDialog = (project: BuilderProject, e: React.MouseEvent) => {
+  const handleOpenRemixDialog = useCallback(async (project: BuilderProject, e: React.MouseEvent) => {
     e.stopPropagation();
     setProjectToRemix(project);
+    setRemixFileCount(0);
     setRemixDialogOpen(true);
-  };
+    
+    // Fetch actual file count in background
+    setIsFetchingFileCount(true);
+    try {
+      const files = await builderService.getFiles(project.id);
+      setRemixFileCount(files.length);
+    } catch (error) {
+      console.error('Failed to fetch file count:', error);
+    } finally {
+      setIsFetchingFileCount(false);
+    }
+  }, []);
 
   const handleRemix = async (newName: string, includeKnowledgeBase: boolean) => {
     if (!projectToRemix) return;
@@ -274,7 +289,8 @@ export default function Builder() {
         open={remixDialogOpen}
         onOpenChange={setRemixDialogOpen}
         sourceProject={projectToRemix}
-        fileCount={0}
+        fileCount={remixFileCount}
+        isLoadingFileCount={isFetchingFileCount}
         onRemix={handleRemix}
         isRemixing={isRemixing}
       />
