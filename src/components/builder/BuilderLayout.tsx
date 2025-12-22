@@ -10,6 +10,7 @@ import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
+import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { PanelRenderer } from './PanelRenderer';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
@@ -264,7 +265,9 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         </div>
 
         {showPreview ? (
-          <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} previewFontsUrl={previewFontsUrl} />
+          <EditorErrorBoundary fallbackTitle="Preview Error" fallbackMessage="Failed to load the preview. Try refreshing.">
+            <SandpackPreview files={files} previewCSS={previewCSS} previewSystemName={previewSystemName} previewFontsUrl={previewFontsUrl} />
+          </EditorErrorBoundary>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
             <EditorTabs
@@ -274,13 +277,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               onTabClose={closeTab}
             />
             {activeFile ? (
-              <MonacoEditor
-                value={getFileContent(activeFile.id)}
-                language={activeFile.language || 'plaintext'}
-                onChange={(value) => updateLocalContent(activeFile.id, value)}
-                onSave={handleSave}
-                path={activeFile.path}
-              />
+              <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
+                <MonacoEditor
+                  value={getFileContent(activeFile.id)}
+                  language={activeFile.language || 'plaintext'}
+                  onChange={(value) => updateLocalContent(activeFile.id, value)}
+                  onSave={handleSave}
+                  path={activeFile.path}
+                />
+              </EditorErrorBoundary>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 Select a file to edit
@@ -431,13 +436,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               onTabClose={closeTab}
             />
             {activeFile ? (
-              <MonacoEditor
-                value={getFileContent(activeFile.id)}
-                language={activeFile.language || 'plaintext'}
-                onChange={(value) => updateLocalContent(activeFile.id, value)}
-                onSave={handleSave}
-                path={activeFile.path}
-              />
+              <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
+                <MonacoEditor
+                  value={getFileContent(activeFile.id)}
+                  language={activeFile.language || 'plaintext'}
+                  onChange={(value) => updateLocalContent(activeFile.id, value)}
+                  onSave={handleSave}
+                  path={activeFile.path}
+                />
+              </EditorErrorBoundary>
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground bg-[hsl(var(--code-background))]">
                 <div className="text-center">
@@ -455,13 +462,15 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={activePanel ? 25 : 40} minSize={20}>
               <div className="h-full flex flex-col">
-                <SandpackPreview 
-                  files={files} 
-                  onSaveVisualChanges={handleSaveVisualChanges}
-                  previewCSS={previewCSS}
-                  previewSystemName={previewSystemName}
-                  previewFontsUrl={previewFontsUrl}
-                />
+                <EditorErrorBoundary fallbackTitle="Preview Error" fallbackMessage="Failed to load the preview. Try refreshing.">
+                  <SandpackPreview 
+                    files={files} 
+                    onSaveVisualChanges={handleSaveVisualChanges}
+                    previewCSS={previewCSS}
+                    previewSystemName={previewSystemName}
+                    previewFontsUrl={previewFontsUrl}
+                  />
+                </EditorErrorBoundary>
                 <ErrorCapture
                   onErrorsChange={setCapturedErrors}
                   onTryToFix={handleTryToFix}
