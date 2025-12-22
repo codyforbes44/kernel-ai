@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Search, Filter } from 'lucide-react';
+import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Search, Filter, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Message } from '@/types/database';
@@ -19,6 +19,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
 import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
+import { ContactSubmissionsPanel } from '@/components/admin/ContactSubmissionsPanel';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -122,6 +123,10 @@ export default function Admin() {
             <TabsTrigger value="conversations" className="gap-2">
               <MessageSquare className="h-4 w-4" />
               Conversations
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="gap-2">
+              <Mail className="h-4 w-4" />
+              Contact
             </TabsTrigger>
           </TabsList>
 
@@ -267,6 +272,10 @@ export default function Admin() {
                 </ScrollArea>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="contact">
+            <ContactSubmissionsPanel />
           </TabsContent>
         </Tabs>
       </main>
