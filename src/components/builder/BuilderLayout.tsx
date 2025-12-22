@@ -17,6 +17,7 @@ import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { usePanelManager, PanelType } from '@/hooks/usePanelManager';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -117,9 +118,12 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     isUpdatingProject,
     deleteProject,
     isDeletingProject,
+    dirtyFiles,
   } = useBuilderProject(projectId);
 
-  // Clear design preview when design system panel closes
+  // Warn user before leaving with unsaved changes
+  const hasUnsavedChanges = dirtyFiles.size > 0;
+  useUnsavedChangesWarning(hasUnsavedChanges);
   useEffect(() => {
     if (activePanel !== 'design-system') {
       setPreviewCSS(null);
@@ -275,6 +279,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               activeTabId={activeTabId}
               onTabSelect={setActiveTabId}
               onTabClose={closeTab}
+              onSaveFile={saveFile}
             />
             {activeFile ? (
               <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
@@ -434,6 +439,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               activeTabId={activeTabId}
               onTabSelect={setActiveTabId}
               onTabClose={closeTab}
+              onSaveFile={saveFile}
             />
             {activeFile ? (
               <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
