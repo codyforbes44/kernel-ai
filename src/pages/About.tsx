@@ -285,7 +285,7 @@ export default function About() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="gold-outline" asChild>
                 <Link to="/contact">Contact Us</Link>
               </Button>
             </div>
