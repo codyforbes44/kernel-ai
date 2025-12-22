@@ -12,8 +12,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { AlertTriangle, Globe, Lock, Trash2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PROJECT_TEMPLATES } from '@/lib/projectTemplates';
+
+// Framework options
+const FRAMEWORKS = [
+  { id: 'react', name: 'React', icon: '⚛️' },
+  { id: 'react-ts', name: 'React + TypeScript', icon: '⚛️' },
+  { id: 'vanilla', name: 'Vanilla JS', icon: '📜' },
+  { id: 'vue', name: 'Vue', icon: '💚' },
+];
 
 interface ProjectSettingsDialogProps {
   open: boolean;
@@ -23,8 +39,10 @@ interface ProjectSettingsDialogProps {
     name: string;
     description?: string | null;
     is_public?: boolean | null;
+    template?: string | null;
+    framework?: string | null;
   } | null;
-  onSave: (updates: { name?: string; description?: string; is_public?: boolean }) => Promise<void>;
+  onSave: (updates: { name?: string; description?: string; is_public?: boolean; template?: string; framework?: string }) => Promise<void>;
   onDelete: () => void;
   isSaving?: boolean;
 }
@@ -40,6 +58,8 @@ export function ProjectSettingsDialog({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [template, setTemplate] = useState('blank');
+  const [framework, setFramework] = useState('react');
   const [hasChanges, setHasChanges] = useState(false);
   const [isLocalSaving, setIsLocalSaving] = useState(false);
 
@@ -49,6 +69,8 @@ export function ProjectSettingsDialog({
       setName(project.name || '');
       setDescription(project.description || '');
       setIsPublic(project.is_public || false);
+      setTemplate(project.template || 'blank');
+      setFramework(project.framework || 'react');
       setHasChanges(false);
     }
   }, [project, open]);
@@ -59,27 +81,31 @@ export function ProjectSettingsDialog({
     const changed =
       name !== (project.name || '') ||
       description !== (project.description || '') ||
-      isPublic !== (project.is_public || false);
+      isPublic !== (project.is_public || false) ||
+      template !== (project.template || 'blank') ||
+      framework !== (project.framework || 'react');
     setHasChanges(changed);
-  }, [name, description, isPublic, project]);
+  }, [name, description, isPublic, template, framework, project]);
 
   const handleSave = useCallback(async () => {
     if (!project || !hasChanges) return;
     
     setIsLocalSaving(true);
     try {
-      const updates: { name?: string; description?: string; is_public?: boolean } = {};
+      const updates: { name?: string; description?: string; is_public?: boolean; template?: string; framework?: string } = {};
       
       if (name !== project.name) updates.name = name;
       if (description !== (project.description || '')) updates.description = description;
       if (isPublic !== (project.is_public || false)) updates.is_public = isPublic;
+      if (template !== (project.template || 'blank')) updates.template = template;
+      if (framework !== (project.framework || 'react')) updates.framework = framework;
       
       await onSave(updates);
       setHasChanges(false);
     } finally {
       setIsLocalSaving(false);
     }
-  }, [project, name, description, isPublic, hasChanges, onSave]);
+  }, [project, name, description, isPublic, template, framework, hasChanges, onSave]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && hasChanges && !isLocalSaving) {
@@ -125,6 +151,46 @@ export function ProjectSettingsDialog({
               disabled={saving}
               className="resize-none"
             />
+          </div>
+
+          {/* Template & Framework */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="project-template">Template</Label>
+              <Select value={template} onValueChange={setTemplate} disabled={saving}>
+                <SelectTrigger id="project-template">
+                  <SelectValue placeholder="Select template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_TEMPLATES.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{t.icon}</span>
+                        <span>{t.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-framework">Framework</Label>
+              <Select value={framework} onValueChange={setFramework} disabled={saving}>
+                <SelectTrigger id="project-framework">
+                  <SelectValue placeholder="Select framework" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FRAMEWORKS.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{f.icon}</span>
+                        <span>{f.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Visibility Toggle */}
