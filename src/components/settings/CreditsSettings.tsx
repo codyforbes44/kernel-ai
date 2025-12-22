@@ -153,8 +153,15 @@ export function CreditsSettings() {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className={cn(isLowBalance && 'border-destructive/50')}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className={cn(
+          'relative overflow-hidden',
+          isLowBalance ? 'border-destructive/50' : 'border-gold/30'
+        )}>
+          {/* Gold gradient overlay for premium feel */}
+          {!isLowBalance && (
+            <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-gold/10 pointer-events-none" />
+          )}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
             <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
             <div className="flex items-center gap-2">
               <Button
@@ -166,15 +173,20 @@ export function CreditsSettings() {
               >
                 <RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
               </Button>
-              <Coins className={cn('h-4 w-4', isLowBalance ? 'text-destructive' : 'text-muted-foreground')} />
+              <Coins className={cn('h-4 w-4', isLowBalance ? 'text-destructive' : 'text-gold')} />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className={cn('text-2xl font-bold', isLowBalance && 'text-destructive')}>
+          <CardContent className="relative">
+            <div className={cn(
+              'text-2xl font-bold',
+              isLowBalance ? 'text-destructive' : 'text-gold'
+            )}>
               {balance.toLocaleString()}
             </div>
-            {isLowBalance && (
+            {isLowBalance ? (
               <p className="text-xs text-destructive mt-1">Low balance - purchase more credits</p>
+            ) : (
+              <p className="text-xs text-gold/70 mt-1">Available credits</p>
             )}
           </CardContent>
         </Card>
@@ -193,11 +205,11 @@ export function CreditsSettings() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Purchased</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
+            <Zap className="h-4 w-4 text-gold" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPurchased.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">+ 1,000 free credits</p>
+            <p className="text-xs text-gold/70 mt-1">+ 1,000 free credits</p>
           </CardContent>
         </Card>
       </div>
@@ -309,8 +321,8 @@ export function CreditsSettings() {
                       >
                         <div className="flex items-center gap-3">
                           {tx.type === 'purchase' ? (
-                            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                              <ArrowUpRight className="h-4 w-4 text-green-500" />
+                            <div className="h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
+                              <ArrowUpRight className="h-4 w-4 text-gold" />
                             </div>
                           ) : (
                             <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center">
@@ -329,7 +341,7 @@ export function CreditsSettings() {
                         <div className="text-right">
                           <p className={cn(
                             'text-sm font-semibold',
-                            tx.amount > 0 ? 'text-green-500' : 'text-orange-500'
+                            tx.amount > 0 ? 'text-gold' : 'text-orange-500'
                           )}>
                             {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} credits
                           </p>
