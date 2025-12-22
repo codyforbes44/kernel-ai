@@ -463,6 +463,12 @@ export function useVisualEditor({
     ? generateChangesSummary(pendingChanges) 
     : '';
 
+  // Get the preview for undo (current pending changes that would be reverted)
+  const undoPreview = pendingChanges;
+  
+  // Get the preview for redo (next state that would be restored)
+  const redoPreview = redoStack.length > 0 ? redoStack[redoStack.length - 1] : [];
+
   return {
     isEnabled,
     isReady,
@@ -476,6 +482,8 @@ export function useVisualEditor({
     recentColors,
     canUndo: undoStack.length > 0,
     canRedo: redoStack.length > 0,
+    undoPreview,
+    redoPreview,
     enable,
     disable,
     toggle,

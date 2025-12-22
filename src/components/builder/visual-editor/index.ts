@@ -6,4 +6,5 @@ export { InlineTextEditor } from './InlineTextEditor';
 export { BoxModelEditor } from './BoxModelEditor';
 export { ColorPickerPopover } from './ColorPickerPopover';
 export { VisualEditsButton } from './VisualEditsButton';
+export { DiffPreview } from './DiffPreview';
 export { getVisualEditorInjectionScript } from './useVisualEditorInjection';
