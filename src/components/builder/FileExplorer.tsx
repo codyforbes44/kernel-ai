@@ -79,36 +79,55 @@ function TreeItem({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    } else if (e.key === 'ArrowRight' && node.type === 'folder' && !isExpanded) {
+      e.preventDefault();
+      onToggleFolder(node.path);
+    } else if (e.key === 'ArrowLeft' && node.type === 'folder' && isExpanded) {
+      e.preventDefault();
+      onToggleFolder(node.path);
+    }
+  };
+
   return (
-    <div>
+    <div role="treeitem" aria-expanded={node.type === 'folder' ? isExpanded : undefined}>
       <ContextMenu>
         <ContextMenuTrigger>
           <div
             className={cn(
               'flex items-center gap-1 px-2 py-1.5 cursor-pointer text-sm rounded-md transition-colors',
-              'hover:bg-sidebar-accent',
+              'hover:bg-sidebar-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
               isActive && 'bg-sidebar-accent text-sidebar-accent-foreground'
             )}
             style={{ paddingLeft: `${level * 12 + 8}px` }}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            role="button"
+            aria-label={node.type === 'folder' 
+              ? `${node.name} folder, ${isExpanded ? 'expanded' : 'collapsed'}` 
+              : `${node.name} file`}
           >
             {node.type === 'folder' ? (
               <>
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 )}
                 {isExpanded ? (
-                  <FolderOpen className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <FolderOpen className="h-4 w-4 shrink-0 text-yellow-500" aria-hidden="true" />
                 ) : (
-                  <Folder className="h-4 w-4 shrink-0 text-yellow-500" />
+                  <Folder className="h-4 w-4 shrink-0 text-yellow-500" aria-hidden="true" />
                 )}
               </>
             ) : (
               <>
-                <span className="w-4" />
-                <span className="text-sm">{getFileIcon(node.name, 'file')}</span>
+                <span className="w-4" aria-hidden="true" />
+                <span className="text-sm" aria-hidden="true">{getFileIcon(node.name, 'file')}</span>
               </>
             )}
             <span className="truncate text-sidebar-foreground">{node.name}</span>
@@ -265,20 +284,28 @@ export function FileExplorer({
   const isFolder = nodeToDelete?.type === 'folder';
 
   return (
-    <div className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border">
+    <div 
+      className="h-full flex flex-col bg-sidebar-background border-r border-sidebar-border"
+      role="tree"
+      aria-label={`${projectName} file explorer`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-sidebar-border">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <span 
+          className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          id="file-explorer-label"
+        >
           {projectName}
         </span>
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="toolbar" aria-label="File explorer actions">
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6"
             onClick={() => handleCreateFile('/', 'file')}
+            aria-label="Create new file"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </Button>
         </div>
       </div>
