@@ -17,13 +17,24 @@ import {
   Brain,
   Sparkles,
   Clock,
+  BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useTemplates } from '@/hooks/useTemplates';
+import { templateService } from '@/services/templateService';
 import type { AgentSession, AgentStep, AgentStatus } from '@/types/agent';
 
 interface AgentPanelProps {
@@ -129,6 +140,7 @@ export function AgentPanel({
 }: AgentPanelProps) {
   const [request, setRequest] = useState('');
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  const { templates, loading: templatesLoading, incrementUsage } = useTemplates();
   
   const status = session?.status || 'idle';
   const config = statusConfig[status];
@@ -144,6 +156,18 @@ export function AgentPanel({
       onStart(request.trim());
       setRequest('');
     }
+  };
+
+  const handleSelectTemplate = async (template: typeof templates[0]) => {
+    // Check if template has variables
+    const variables = templateService.extractVariables(template.content);
+    if (variables.length > 0) {
+      // For now, just use the raw template content with placeholders
+      setRequest(template.content);
+    } else {
+      setRequest(template.content);
+    }
+    await incrementUsage(template.id);
   };
 
   const toggleStep = (stepId: string) => {
@@ -289,24 +313,74 @@ export function AgentPanel({
       
       {/* Input */}
       <div className="p-4 border-t">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            value={request}
-            onChange={(e) => setRequest(e.target.value)}
-            placeholder="Describe a complex task for the agent..."
-            disabled={isRunning}
-            className="flex-1"
-          />
-          {isRunning ? (
-            <Button type="button" variant="destructive" onClick={onCancel}>
-              <Square className="w-4 h-4 mr-1" />
-              Stop
-            </Button>
-          ) : (
-            <Button type="submit" disabled={!request.trim()}>
-              <Play className="w-4 h-4 mr-1" />
-              Start
-            </Button>
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              value={request}
+              onChange={(e) => setRequest(e.target.value)}
+              placeholder="Describe a complex task for the agent..."
+              disabled={isRunning}
+              className="flex-1"
+            />
+            {isRunning ? (
+              <Button type="button" variant="destructive" onClick={onCancel}>
+                <Square className="w-4 h-4 mr-1" />
+                Stop
+              </Button>
+            ) : (
+              <Button type="submit" disabled={!request.trim()}>
+                <Play className="w-4 h-4 mr-1" />
+                Start
+              </Button>
+            )}
+          </div>
+          
+          {/* Template Picker */}
+          {!isRunning && (
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={templatesLoading}>
+                    <BookOpen className="w-3 h-3 mr-1" />
+                    Use Template
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  {templates.length === 0 ? (
+                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                      No templates saved yet.
+                      <br />
+                      <span className="text-xs">Save templates from Agent History.</span>
+                    </div>
+                  ) : (
+                    <>
+                      <DropdownMenuLabel>Saved Templates</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <ScrollArea className="max-h-64">
+                        {templates.map((template) => (
+                          <DropdownMenuItem
+                            key={template.id}
+                            onClick={() => handleSelectTemplate(template)}
+                            className="flex flex-col items-start gap-1 cursor-pointer"
+                          >
+                            <span className="font-medium truncate w-full">{template.name}</span>
+                            {template.description && (
+                              <span className="text-xs text-muted-foreground line-clamp-1">
+                                {template.description}
+                              </span>
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                      </ScrollArea>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <span className="text-xs text-muted-foreground">
+                or type a custom request above
+              </span>
+            </div>
           )}
         </form>
       </div>
