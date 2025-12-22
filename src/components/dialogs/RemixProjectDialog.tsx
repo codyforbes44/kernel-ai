@@ -19,6 +19,7 @@ interface RemixProjectDialogProps {
   onOpenChange: (open: boolean) => void;
   sourceProject: BuilderProject | null;
   fileCount?: number;
+  isLoadingFileCount?: boolean;
   onRemix: (newName: string, includeKnowledgeBase: boolean) => Promise<void>;
   isRemixing?: boolean;
 }
@@ -28,6 +29,7 @@ export function RemixProjectDialog({
   onOpenChange,
   sourceProject,
   fileCount = 0,
+  isLoadingFileCount = false,
   onRemix,
   isRemixing = false,
 }: RemixProjectDialogProps) {
@@ -87,7 +89,14 @@ export function RemixProjectDialog({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <FileCode className="h-4 w-4" />
-                  {fileCount} files
+                  {isLoadingFileCount ? (
+                    <span className="flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Loading...
+                    </span>
+                  ) : (
+                    `${fileCount} files`
+                  )}
                 </div>
               </div>
             </div>
