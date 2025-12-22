@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
+interface SelectionRange {
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+}
+
 interface PresenceState {
   id: string;
   userId: string;
@@ -9,6 +16,7 @@ interface PresenceState {
   avatarUrl?: string;
   currentFile?: string;
   cursorPosition?: { line: number; column: number };
+  selection?: SelectionRange;
   color: string;
   lastActive: string;
 }
@@ -37,6 +45,7 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
   // Track current file being edited
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number } | null>(null);
+  const [selection, setSelection] = useState<SelectionRange | null>(null);
 
   // Initialize presence channel
   useEffect(() => {
@@ -81,6 +90,7 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
                   avatarUrl: rawPresence.avatarUrl as string | undefined,
                   currentFile: rawPresence.currentFile as string | undefined,
                   cursorPosition: rawPresence.cursorPosition as { line: number; column: number } | undefined,
+                  selection: rawPresence.selection as SelectionRange | undefined,
                   color: String(rawPresence.color || '#3b82f6'),
                   lastActive: String(rawPresence.lastActive || new Date().toISOString()),
                 });
@@ -138,10 +148,11 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
       avatarUrl: currentUserRef.current.avatarUrl,
       currentFile: currentFile || undefined,
       cursorPosition: cursorPosition || undefined,
+      selection: selection || undefined,
       color: userColorRef.current,
       lastActive: new Date().toISOString(),
     });
-  }, [currentFile, cursorPosition]);
+  }, [currentFile, cursorPosition, selection]);
 
   // Update presence when file changes
   const trackFileOpen = useCallback((filePath: string) => {
@@ -153,11 +164,16 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
     setCursorPosition(position);
   }, []);
 
+  // Update selection range
+  const trackSelection = useCallback((range: SelectionRange | null) => {
+    setSelection(range);
+  }, []);
+
   // Reduced debounce for smoother cursor updates (100ms instead of 500ms)
   useEffect(() => {
     const timeout = setTimeout(updatePresence, 100);
     return () => clearTimeout(timeout);
-  }, [currentFile, cursorPosition, updatePresence]);
+  }, [currentFile, cursorPosition, selection, updatePresence]);
 
   // Get collaborators editing the same file
   const getCollaboratorsInFile = useCallback((filePath: string) => {
@@ -170,7 +186,10 @@ export function useEditorPresence({ projectId, enabled = true }: UseEditorPresen
     userColor: userColorRef.current,
     trackFileOpen,
     trackCursor,
+    trackSelection,
     getCollaboratorsInFile,
     currentFile,
   };
 }
+
+export type { PresenceState, SelectionRange };

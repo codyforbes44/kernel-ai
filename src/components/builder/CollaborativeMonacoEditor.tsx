@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { MonacoEditor, IStandaloneCodeEditor, MonacoInstance } from './MonacoEditor';
-import { RemoteCursorsManager, RemoteCursor } from './editor/RemoteCursorsManager';
+import { RemoteCursorsManager, RemoteCursor, SelectionRange } from './editor/RemoteCursorsManager';
 
 interface Collaborator {
   id: string;
@@ -9,6 +9,7 @@ interface Collaborator {
   color: string;
   currentFile?: string;
   cursorPosition?: { line: number; column: number };
+  selection?: SelectionRange;
 }
 
 interface CollaborativeMonacoEditorProps {
@@ -21,6 +22,7 @@ interface CollaborativeMonacoEditorProps {
   collaborators: Collaborator[];
   currentFilePath: string;
   onCursorChange?: (position: { line: number; column: number }) => void;
+  onSelectionChange?: (selection: SelectionRange | null) => void;
 }
 
 export function CollaborativeMonacoEditor({
@@ -33,10 +35,12 @@ export function CollaborativeMonacoEditor({
   collaborators,
   currentFilePath,
   onCursorChange,
+  onSelectionChange,
 }: CollaborativeMonacoEditorProps) {
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
   const cursorsManagerRef = useRef<RemoteCursorsManager | null>(null);
   const cursorListenerRef = useRef<{ dispose: () => void } | null>(null);
+  const selectionListenerRef = useRef<{ dispose: () => void } | null>(null);
 
   // Filter collaborators editing the same file with valid cursor positions
   const relevantCollaborators = collaborators.filter(
@@ -60,7 +64,32 @@ export function CollaborativeMonacoEditor({
         });
       }
     });
-  }, [onCursorChange]);
+
+    // Add selection change listener
+    selectionListenerRef.current = editor.onDidChangeCursorSelection((e: { 
+      selection: { 
+        startLineNumber: number; 
+        startColumn: number; 
+        endLineNumber: number; 
+        endColumn: number;
+      } 
+    }) => {
+      if (onSelectionChange) {
+        const sel = e.selection;
+        // Only track non-collapsed selections
+        if (sel.startLineNumber !== sel.endLineNumber || sel.startColumn !== sel.endColumn) {
+          onSelectionChange({
+            startLine: sel.startLineNumber,
+            startColumn: sel.startColumn,
+            endLine: sel.endLineNumber,
+            endColumn: sel.endColumn,
+          });
+        } else {
+          onSelectionChange(null);
+        }
+      }
+    });
+  }, [onCursorChange, onSelectionChange]);
 
   // Update remote cursors when collaborators change
   useEffect(() => {
@@ -72,6 +101,7 @@ export function CollaborativeMonacoEditor({
       displayName: c.displayName,
       color: c.color,
       position: c.cursorPosition!,
+      selection: c.selection,
     }));
 
     cursorsManagerRef.current.updateCursors(remoteCursors);
@@ -83,6 +113,10 @@ export function CollaborativeMonacoEditor({
       if (cursorListenerRef.current) {
         cursorListenerRef.current.dispose();
         cursorListenerRef.current = null;
+      }
+      if (selectionListenerRef.current) {
+        selectionListenerRef.current.dispose();
+        selectionListenerRef.current = null;
       }
       if (cursorsManagerRef.current) {
         cursorsManagerRef.current.dispose();

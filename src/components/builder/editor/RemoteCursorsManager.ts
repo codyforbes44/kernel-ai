@@ -19,12 +19,20 @@ interface ContentWidgetInstance {
   } | null;
 }
 
+export interface SelectionRange {
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+}
+
 export interface RemoteCursor {
   id: string;
   userId: string;
   displayName: string;
   color: string;
   position: { line: number; column: number };
+  selection?: SelectionRange;
 }
 
 interface CursorWidget extends ContentWidgetInstance {
@@ -33,7 +41,8 @@ interface CursorWidget extends ContentWidgetInstance {
 
 export class RemoteCursorsManager {
   private editor: EditorInstance;
-  private decorationIds: string[] = [];
+  private cursorDecorationIds: string[] = [];
+  private selectionDecorationIds: string[] = [];
   private widgets: Map<string, CursorWidget> = new Map();
   private styleElement: HTMLStyleElement | null = null;
 
@@ -51,23 +60,38 @@ export class RemoteCursorsManager {
   private updateDynamicStyles(cursors: RemoteCursor[]): void {
     if (!this.styleElement) return;
 
-    const styles = cursors.map(cursor => `
-      .remote-cursor-${cursor.userId.replace(/-/g, '')} {
-        border-left: 2px solid ${cursor.color} !important;
-        margin-left: -1px;
-      }
-      .remote-cursor-${cursor.userId.replace(/-/g, '')}::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -1px;
-        width: 6px;
-        height: 6px;
-        background-color: ${cursor.color};
-        border-radius: 50%;
-        transform: translateX(-2px) translateY(-2px);
-      }
-    `).join('\n');
+    const styles = cursors.map(cursor => {
+      const safeId = cursor.userId.replace(/-/g, '');
+      // Convert hex to rgba for transparent selection
+      const hexToRgba = (hex: string, alpha: number) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+      
+      return `
+        .remote-cursor-${safeId} {
+          border-left: 2px solid ${cursor.color} !important;
+          margin-left: -1px;
+        }
+        .remote-cursor-${safeId}::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -1px;
+          width: 6px;
+          height: 6px;
+          background-color: ${cursor.color};
+          border-radius: 50%;
+          transform: translateX(-2px) translateY(-2px);
+        }
+        .remote-selection-${safeId} {
+          background-color: ${hexToRgba(cursor.color, 0.25)} !important;
+          border-radius: 2px;
+        }
+      `;
+    }).join('\n');
 
     this.styleElement.textContent = styles;
   }
@@ -92,11 +116,11 @@ export class RemoteCursorsManager {
   }
 
   updateCursors(cursors: RemoteCursor[]): void {
-    // Update dynamic styles for cursor colors
+    // Update dynamic styles for cursor and selection colors
     this.updateDynamicStyles(cursors);
 
     // Update decorations for cursor lines
-    const decorations = cursors.map(cursor => ({
+    const cursorDecorations = cursors.map(cursor => ({
       range: {
         startLineNumber: cursor.position.line,
         startColumn: cursor.position.column,
@@ -110,7 +134,26 @@ export class RemoteCursorsManager {
       }
     }));
 
-    this.decorationIds = this.editor.deltaDecorations(this.decorationIds, decorations);
+    this.cursorDecorationIds = this.editor.deltaDecorations(this.cursorDecorationIds, cursorDecorations);
+
+    // Update decorations for selections
+    const selectionDecorations = cursors
+      .filter(cursor => cursor.selection && this.isValidSelection(cursor.selection))
+      .map(cursor => ({
+        range: {
+          startLineNumber: cursor.selection!.startLine,
+          startColumn: cursor.selection!.startColumn,
+          endLineNumber: cursor.selection!.endLine,
+          endColumn: cursor.selection!.endColumn,
+        },
+        options: {
+          className: `remote-selection remote-selection-${cursor.userId.replace(/-/g, '')}`,
+          stickiness: 1,
+          zIndex: 50,
+        }
+      }));
+
+    this.selectionDecorationIds = this.editor.deltaDecorations(this.selectionDecorationIds, selectionDecorations);
 
     // Update content widgets for name labels
     const currentUserIds = new Set(cursors.map(c => c.userId));
@@ -152,9 +195,18 @@ export class RemoteCursorsManager {
     }
   }
 
+  // Check if selection is valid (not collapsed)
+  private isValidSelection(selection: SelectionRange): boolean {
+    return !(
+      selection.startLine === selection.endLine && 
+      selection.startColumn === selection.endColumn
+    );
+  }
+
   dispose(): void {
     // Clear decorations
-    this.decorationIds = this.editor.deltaDecorations(this.decorationIds, []);
+    this.cursorDecorationIds = this.editor.deltaDecorations(this.cursorDecorationIds, []);
+    this.selectionDecorationIds = this.editor.deltaDecorations(this.selectionDecorationIds, []);
 
     // Remove all widgets
     for (const widget of this.widgets.values()) {
