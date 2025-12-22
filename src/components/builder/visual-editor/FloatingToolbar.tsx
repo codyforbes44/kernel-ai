@@ -135,7 +135,10 @@ export function FloatingToolbar({
               <Undo2 className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Undo</TooltipContent>
+          <TooltipContent side="bottom">
+            <span>Undo</span>
+            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘Z</kbd>
+          </TooltipContent>
         </Tooltip>
       )}
 
@@ -153,7 +156,10 @@ export function FloatingToolbar({
               <Redo2 className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Redo</TooltipContent>
+          <TooltipContent side="bottom">
+            <span>Redo</span>
+            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘⇧Z</kbd>
+          </TooltipContent>
         </Tooltip>
       )}
     </div>
