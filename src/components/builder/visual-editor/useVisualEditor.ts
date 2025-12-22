@@ -34,9 +34,10 @@ export function useVisualEditor({
   const [pendingChanges, setPendingChanges] = useState<VisualChange[]>([]);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   
-  // Undo/Redo state
-  const [undoStack, setUndoStack] = useState<VisualChange[][]>([]);
-  const [redoStack, setRedoStack] = useState<VisualChange[][]>([]);
+  // Undo/Redo state with timestamps for history
+  const [undoStack, setUndoStack] = useState<{ changes: VisualChange[]; timestamp: Date }[]>([]);
+  const [redoStack, setRedoStack] = useState<{ changes: VisualChange[]; timestamp: Date }[]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
   
   // Recent colors for color picker
   const [recentColors, setRecentColors] = useState<string[]>([]);
@@ -123,8 +124,9 @@ export function useVisualEditor({
 
   // Save state for undo
   const pushToUndoStack = useCallback(() => {
-    setUndoStack(prev => [...prev, [...pendingChanges]]);
+    setUndoStack(prev => [...prev, { changes: [...pendingChanges], timestamp: new Date() }]);
     setRedoStack([]); // Clear redo on new action
+    setCurrentHistoryIndex(prev => prev + 1);
   }, [pendingChanges]);
 
   // Update style on selected element
@@ -245,9 +247,10 @@ export function useVisualEditor({
       }, '*');
     }
     
-    setRedoStack(prev => [...prev, currentChanges]);
+    setRedoStack(prev => [...prev, { changes: currentChanges, timestamp: new Date() }]);
     setUndoStack(prev => prev.slice(0, -1));
-    setPendingChanges(lastState);
+    setPendingChanges(lastState.changes);
+    setCurrentHistoryIndex(prev => prev - 1);
     
     toast.info('Undone');
   }, [undoStack, pendingChanges, iframeRef]);
@@ -260,8 +263,8 @@ export function useVisualEditor({
     const currentChanges = [...pendingChanges];
     
     // Get the change to reapply (difference between next state and current)
-    if (nextState.length > currentChanges.length) {
-      const changeToApply = nextState[nextState.length - 1];
+    if (nextState.changes.length > currentChanges.length) {
+      const changeToApply = nextState.changes[nextState.changes.length - 1];
       
       if (changeToApply) {
         // Send message to iframe to apply this specific change
@@ -284,9 +287,10 @@ export function useVisualEditor({
       }
     }
     
-    setUndoStack(prev => [...prev, currentChanges]);
+    setUndoStack(prev => [...prev, { changes: currentChanges, timestamp: new Date() }]);
     setRedoStack(prev => prev.slice(0, -1));
-    setPendingChanges(nextState);
+    setPendingChanges(nextState.changes);
+    setCurrentHistoryIndex(prev => prev + 1);
     
     toast.info('Redone');
   }, [redoStack, pendingChanges, sendMessage]);
@@ -317,9 +321,10 @@ export function useVisualEditor({
             }, '*');
           }
           
-          setRedoStack(prev => [...prev, currentChanges]);
+          setRedoStack(prev => [...prev, { changes: currentChanges, timestamp: new Date() }]);
           setUndoStack(prev => prev.slice(0, -1));
-          setPendingChanges(lastState);
+          setPendingChanges(lastState.changes);
+          setCurrentHistoryIndex(prev => prev - 1);
           toast.info('Undone');
         }
       }
@@ -332,8 +337,8 @@ export function useVisualEditor({
           const nextState = redoStack[redoStack.length - 1];
           const currentChanges = [...pendingChanges];
           
-          if (nextState.length > currentChanges.length) {
-            const changeToApply = nextState[nextState.length - 1];
+          if (nextState.changes.length > currentChanges.length) {
+            const changeToApply = nextState.changes[nextState.changes.length - 1];
             
             if (changeToApply && iframeRef.current?.contentWindow) {
               if (changeToApply.type === 'style' && changeToApply.property) {
@@ -355,9 +360,10 @@ export function useVisualEditor({
             }
           }
           
-          setUndoStack(prev => [...prev, currentChanges]);
+          setUndoStack(prev => [...prev, { changes: currentChanges, timestamp: new Date() }]);
           setRedoStack(prev => prev.slice(0, -1));
-          setPendingChanges(nextState);
+          setPendingChanges(nextState.changes);
+          setCurrentHistoryIndex(prev => prev + 1);
           toast.info('Redone');
         }
       }
@@ -372,7 +378,63 @@ export function useVisualEditor({
     setPendingChanges([]);
     setUndoStack([]);
     setRedoStack([]);
+    setCurrentHistoryIndex(-1);
   }, []);
+
+  // Jump to a specific point in history
+  const jumpToHistoryPoint = useCallback((targetIndex: number) => {
+    // targetIndex: -1 means initial state (no changes)
+    // 0+ means that state in the undo stack
+    
+    if (targetIndex === currentHistoryIndex) return;
+    
+    // Apply all changes up to targetIndex from the beginning
+    const targetChanges = targetIndex >= 0 && targetIndex < undoStack.length 
+      ? undoStack[targetIndex].changes 
+      : [];
+    
+    // Clear all visual changes in iframe and reapply
+    if (iframeRef.current?.contentWindow) {
+      // First, revert all current changes
+      for (let i = pendingChanges.length - 1; i >= 0; i--) {
+        const change = pendingChanges[i];
+        iframeRef.current.contentWindow.postMessage({
+          type: 'VISUAL_EDITOR_REVERT_CHANGE',
+          payload: {
+            type: change.type,
+            property: change.property,
+            value: change.oldValue,
+            selector: change.elementSelector,
+          },
+        }, '*');
+      }
+      
+      // Then apply changes up to target
+      for (const change of targetChanges) {
+        if (change.type === 'style' && change.property) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'VISUAL_EDITOR_UPDATE_STYLE',
+            payload: { property: change.property, value: change.newValue },
+          }, '*');
+        } else if (change.type === 'text') {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'VISUAL_EDITOR_UPDATE_TEXT',
+            payload: { text: change.newValue },
+          }, '*');
+        } else if (change.type === 'class') {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'VISUAL_EDITOR_UPDATE_CLASS',
+            payload: { classes: change.newValue },
+          }, '*');
+        }
+      }
+    }
+    
+    setPendingChanges(targetChanges);
+    setCurrentHistoryIndex(targetIndex);
+    
+    toast.info(targetIndex === -1 ? 'Restored to initial state' : `Jumped to step ${targetIndex + 1}`);
+  }, [currentHistoryIndex, undoStack, pendingChanges, iframeRef]);
 
   // Deselect element
   const deselect = useCallback(() => {
@@ -467,7 +529,14 @@ export function useVisualEditor({
   const undoPreview = pendingChanges;
   
   // Get the preview for redo (next state that would be restored)
-  const redoPreview = redoStack.length > 0 ? redoStack[redoStack.length - 1] : [];
+  const redoPreview = redoStack.length > 0 ? redoStack[redoStack.length - 1].changes : [];
+
+  // Build history entries for the timeline panel
+  const historyEntries = undoStack.map((entry, index) => ({
+    index,
+    changes: entry.changes,
+    timestamp: entry.timestamp,
+  }));
 
   return {
     isEnabled,
@@ -484,6 +553,8 @@ export function useVisualEditor({
     canRedo: redoStack.length > 0,
     undoPreview,
     redoPreview,
+    historyEntries,
+    currentHistoryIndex,
     enable,
     disable,
     toggle,
@@ -496,6 +567,7 @@ export function useVisualEditor({
     navigateToSource,
     undo,
     redo,
+    jumpToHistoryPoint,
     startInlineEdit,
     endInlineEdit,
     addRecentColor,

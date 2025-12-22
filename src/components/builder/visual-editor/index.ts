@@ -7,4 +7,5 @@ export { BoxModelEditor } from './BoxModelEditor';
 export { ColorPickerPopover } from './ColorPickerPopover';
 export { VisualEditsButton } from './VisualEditsButton';
 export { DiffPreview } from './DiffPreview';
+export { ChangeHistoryPanel } from './ChangeHistoryPanel';
 export { getVisualEditorInjectionScript } from './useVisualEditorInjection';

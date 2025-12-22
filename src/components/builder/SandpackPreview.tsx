@@ -5,7 +5,7 @@ import {
   SandpackLayout,
   useSandpack,
 } from '@codesandbox/sandpack-react';
-import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet, MousePointer2 } from 'lucide-react';
+import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet, MousePointer2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ProjectFile } from '@/types/builder';
@@ -17,6 +17,7 @@ import {
   FloatingToolbar,
   InlineTextEditor,
   VisualEditsButton,
+  ChangeHistoryPanel,
 } from './visual-editor';
 import { injectSourceMapping } from '@/lib/jsxSourceMapper';
 import { toast } from 'sonner';
@@ -199,6 +200,7 @@ function SandpackPreviewInner({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [showInlineEditor, setShowInlineEditor] = useState(false);
   const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -223,9 +225,14 @@ function SandpackPreviewInner({
     navigateToSource,
     undo,
     redo,
+    historyEntries,
+    currentHistoryIndex,
+    jumpToHistoryPoint,
     startInlineEdit,
     endInlineEdit,
     addRecentColor,
+    undoPreview,
+    redoPreview,
   } = useVisualEditor({
     iframeRef,
     files,
@@ -336,6 +343,8 @@ function SandpackPreviewInner({
           onRedo={redo}
           canUndo={canUndo}
           canRedo={canRedo}
+          undoPreview={undoPreview}
+          redoPreview={redoPreview}
         />
       )}
 
@@ -372,12 +381,34 @@ function SandpackPreviewInner({
         </div>
       )}
 
+      {/* Change History Panel */}
+      {isEnabled && showHistoryPanel && (
+        <div className="absolute left-4 top-12 z-20">
+          <ChangeHistoryPanel
+            history={historyEntries}
+            currentIndex={currentHistoryIndex}
+            onJumpTo={jumpToHistoryPoint}
+            onClose={() => setShowHistoryPanel(false)}
+            className="w-72"
+          />
+        </div>
+      )}
+
       {/* Changes indicator with save button */}
       {pendingChanges.length > 0 && (
         <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
           <div className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg">
             {pendingChanges.length} unsaved change{pendingChanges.length > 1 ? 's' : ''}
           </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 w-7 p-0 shadow-lg bg-background"
+            onClick={() => setShowHistoryPanel(!showHistoryPanel)}
+            title="View change history"
+          >
+            <History className="h-3.5 w-3.5" />
+          </Button>
           <Button
             size="sm"
             variant="default"
