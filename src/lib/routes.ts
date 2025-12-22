@@ -47,6 +47,16 @@ export const routes: RouteConfig[] = [
     robots: 'allow',
   },
   {
+    path: '/about',
+    title: 'About',
+    description: 'Learn about our mission, team, and company story',
+    changefreq: 'monthly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
+  {
     path: '/auth',
     title: 'Sign In',
     description: 'Sign in or create an account',
