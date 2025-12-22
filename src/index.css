@@ -42,6 +42,10 @@
     --warning: 38 92% 50%;
     --warning-foreground: 220 30% 5%;
 
+    --gold: 45 85% 55%;
+    --gold-foreground: 220 30% 5%;
+    --glow-gold: 45 85% 55%;
+
     --border: 220 25% 18%;
     --input: 220 25% 18%;
     --ring: 185 100% 50%;
@@ -113,6 +117,9 @@
 
     --warning: 38 92% 50%;
     --warning-foreground: 220 25% 10%;
+
+    --gold: 45 80% 45%;
+    --gold-foreground: 0 0% 100%;
 
     --border: 200 20% 88%;
     --input: 200 20% 88%;
