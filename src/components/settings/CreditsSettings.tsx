@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Coins, TrendingUp, Clock, Zap, Loader2, RefreshCw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Coins, TrendingUp, Clock, Zap, Loader2, RefreshCw, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAICredits } from '@/hooks/useAICredits';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+
+interface CreditTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  balance_after: number;
+  stripe_session_id: string | null;
+  created_at: string;
+}
 
 const CREDIT_PACKS = [
   { id: 'starter', credits: 1000, price: 5, name: 'Starter', popular: false },
@@ -35,18 +48,42 @@ export function CreditsSettings() {
     refetchCredits,
   } = useAICredits();
 
+  // Fetch transaction history
+  const { data: transactions = [], refetch: refetchTransactions, isLoading: isLoadingTransactions } = useQuery({
+    queryKey: ['credit-transactions'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await (supabase as any)
+        .from('ai_credit_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return [];
+      }
+
+      return (data || []) as CreditTransaction[];
+    },
+  });
+
   // Refresh credits when returning from purchase
   useEffect(() => {
     const creditsPurchased = searchParams.get('credits_purchased');
     if (creditsPurchased) {
       refetchCredits();
+      refetchTransactions();
     }
-  }, [searchParams, refetchCredits]);
+  }, [searchParams, refetchCredits, refetchTransactions]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await refetchCredits();
+      await Promise.all([refetchCredits(), refetchTransactions()]);
       toast({ title: 'Credits refreshed' });
     } finally {
       setIsRefreshing(false);
@@ -234,47 +271,119 @@ export function CreditsSettings() {
         </Card>
       )}
 
-      {/* Recent Usage */}
+      {/* Transaction & Usage History */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Usage</CardTitle>
-          <CardDescription>Your latest AI credit usage</CardDescription>
+          <CardTitle>History</CardTitle>
+          <CardDescription>Your payment transactions and AI usage</CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[300px]">
-            {usageHistory.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No usage history yet
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {usageHistory.slice(0, 20).map((log) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium capitalize">
-                          {log.function_name.replace(/-/g, ' ')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {log.model} • {log.tokens_input + log.tokens_output} tokens
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">-{log.credits_used}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(log.created_at)}
-                      </p>
-                    </div>
+          <Tabs defaultValue="transactions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="transactions" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Transactions
+              </TabsTrigger>
+              <TabsTrigger value="usage" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Usage
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="transactions">
+              <ScrollArea className="h-[300px]">
+                {isLoadingTransactions ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
+                ) : transactions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No transactions yet
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {transactions.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="flex items-center justify-between p-3 rounded-md hover:bg-muted/50 border"
+                      >
+                        <div className="flex items-center gap-3">
+                          {tx.type === 'purchase' ? (
+                            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                              <ArrowUpRight className="h-4 w-4 text-green-500" />
+                            </div>
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                              <ArrowDownRight className="h-4 w-4 text-orange-500" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium capitalize">
+                              {tx.type === 'purchase' ? 'Credit Purchase' : tx.type.replace(/_/g, ' ')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {tx.description || 'No description'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={cn(
+                            'text-sm font-semibold',
+                            tx.amount > 0 ? 'text-green-500' : 'text-orange-500'
+                          )}>
+                            {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()} credits
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(tx.created_at)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Balance: {tx.balance_after.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="usage">
+              <ScrollArea className="h-[300px]">
+                {usageHistory.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No usage history yet
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {usageHistory.slice(0, 20).map((log) => (
+                      <div
+                        key={log.id}
+                        className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium capitalize">
+                              {log.function_name.replace(/-/g, ' ')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {log.model} • {log.tokens_input + log.tokens_output} tokens
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">-{log.credits_used}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(log.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
