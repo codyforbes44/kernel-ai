@@ -22,16 +22,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { ProjectsGridSkeleton } from '@/components/builder/BuilderSkeletons';
+import { PublicProjectsGallery } from '@/components/builder/PublicProjectsGallery';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { BuilderProject } from '@/types/builder';
 
 export default function Builder() {
@@ -146,99 +148,118 @@ export default function Builder() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {isLoading ? (
-          <ProjectsGridSkeleton count={6} />
-        ) : projects.length === 0 ? (
-          /* Empty State */
-          <Card className="border-dashed">
-            <CardContent className="py-12">
-              <div className="text-center">
-                <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Create your first project</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Build web applications with a visual editor, live preview, and AI-powered code generation.
-                </p>
-                <Button onClick={handleOpenDialog} size="lg" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Project
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          /* Projects Grid */
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => {
-              const template = PROJECT_TEMPLATES.find(t => t.id === project.template);
-              return (
-                <Card
-                  key={project.id}
-                  className="group cursor-pointer hover:border-primary/50 transition-colors relative"
-                  onClick={() => navigate(`/builder/${project.id}`)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div 
-                        className="h-10 w-10 rounded-lg flex items-center justify-center text-lg"
-                        style={{ 
-                          backgroundColor: template ? `${template.color}20` : 'hsl(var(--primary) / 0.1)'
-                        }}
-                      >
-                        {template?.icon || <Folder className="h-5 w-5 text-primary" />}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onClick={() => navigate(`/builder/${project.id}`)}>
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Open Project
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => handleOpenRemixDialog(project, e)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Remix Project
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+        <Tabs defaultValue="my-projects" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="my-projects" className="gap-2">
+              <Folder className="h-4 w-4" />
+              My Projects
+            </TabsTrigger>
+            <TabsTrigger value="community" className="gap-2">
+              <Users className="h-4 w-4" />
+              Community
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="my-projects">
+            {isLoading ? (
+              <ProjectsGridSkeleton count={6} />
+            ) : projects.length === 0 ? (
+              /* Empty State */
+              <Card className="border-dashed">
+                <CardContent className="py-12">
+                  <div className="text-center">
+                    <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                      <Sparkles className="h-8 w-8 text-primary" />
                     </div>
-                    <CardTitle className="text-base mt-3">{project.name}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {project.description || template?.name || 'No description'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}
+                    <h3 className="text-lg font-semibold mb-2">Create your first project</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Build web applications with a visual editor, live preview, and AI-powered code generation.
+                    </p>
+                    <Button onClick={handleOpenDialog} size="lg" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Create Project
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              /* Projects Grid */
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {projects.map((project) => {
+                  const template = PROJECT_TEMPLATES.find(t => t.id === project.template);
+                  return (
+                    <Card
+                      key={project.id}
+                      className="group cursor-pointer hover:border-primary/50 transition-colors relative"
+                      onClick={() => navigate(`/builder/${project.id}`)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div 
+                            className="h-10 w-10 rounded-lg flex items-center justify-center text-lg"
+                            style={{ 
+                              backgroundColor: template ? `${template.color}20` : 'hsl(var(--primary) / 0.1)'
+                            }}
+                          >
+                            {template?.icon || <Folder className="h-5 w-5 text-primary" />}
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => navigate(`/builder/${project.id}`)}>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Open Project
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => handleOpenRemixDialog(project, e)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Remix Project
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <CardTitle className="text-base mt-3">{project.name}</CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          {project.description || template?.name || 'No description'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
+                {/* Create New Card */}
+                <Card
+                  className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                  onClick={handleOpenDialog}
+                >
+                  <CardContent className="h-full flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <Plus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">New Project</p>
                     </div>
                   </CardContent>
                 </Card>
-              );
-            })}
+              </div>
+            )}
+          </TabsContent>
 
-            {/* Create New Card */}
-            <Card
-              className="border-dashed cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
-              onClick={handleOpenDialog}
-            >
-              <CardContent className="h-full flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Plus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">New Project</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+          <TabsContent value="community">
+            <PublicProjectsGallery />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Create Dialog */}
