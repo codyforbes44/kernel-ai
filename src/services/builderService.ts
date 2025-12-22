@@ -16,7 +16,10 @@ export const builderService = {
     return data as BuilderProject;
   },
 
-  async updateProject(projectId: string, updates: Partial<Pick<BuilderProject, 'name' | 'description' | 'is_public'>>) {
+  async updateProject(
+    projectId: string, 
+    updates: Partial<Pick<BuilderProject, 'name' | 'description' | 'is_public' | 'template' | 'framework'>>
+  ): Promise<BuilderProject> {
     const { data, error } = await supabase
       .from('builder_projects')
       .update(updates)
