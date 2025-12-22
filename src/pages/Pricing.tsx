@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, X, ArrowRight, Loader2 } from "lucide-react";
+import { Check, X, ArrowRight, Loader2, Zap, Shield, BarChart3, Palette, Globe, Headphones } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { pricingFAQs } from "@/lib/faq-data";
 import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { PremiumFeatureCard, PremiumFeatureGrid } from "@/components/ui/premium-feature-card";
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (typeof value === "boolean") {
@@ -299,7 +300,83 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Feature Comparison Table */}
+      {/* Pro Features Showcase */}
+      <section className="pb-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-gold/10 text-gold border-gold/30">Pro Features</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Unlock your full potential
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Pro members get access to advanced features that supercharge their development workflow.
+            </p>
+          </div>
+
+          <PremiumFeatureGrid>
+            <PremiumFeatureCard
+              title="AI Code Generation"
+              description="Advanced AI models for smarter code"
+              icon={<Zap className="h-5 w-5" />}
+              features={[
+                "GPT-4 & Claude 3 access",
+                "Context-aware completions",
+                "Multi-file refactoring",
+              ]}
+            />
+            <PremiumFeatureCard
+              title="Advanced Security"
+              description="Enterprise-grade protection"
+              icon={<Shield className="h-5 w-5" />}
+              features={[
+                "SOC 2 compliance",
+                "Audit logs",
+                "SSO integration",
+              ]}
+            />
+            <PremiumFeatureCard
+              title="Analytics Dashboard"
+              description="Deep insights into your apps"
+              icon={<BarChart3 className="h-5 w-5" />}
+              features={[
+                "Real-time metrics",
+                "Custom reports",
+                "Performance tracking",
+              ]}
+            />
+            <PremiumFeatureCard
+              title="Custom Themes"
+              description="Full design system control"
+              icon={<Palette className="h-5 w-5" />}
+              features={[
+                "Unlimited themes",
+                "Brand kit sync",
+                "Export to Figma",
+              ]}
+            />
+            <PremiumFeatureCard
+              title="Custom Domains"
+              description="Your brand, your domain"
+              icon={<Globe className="h-5 w-5" />}
+              features={[
+                "Unlimited domains",
+                "Auto SSL certificates",
+                "CDN included",
+              ]}
+            />
+            <PremiumFeatureCard
+              title="Priority Support"
+              description="Get help when you need it"
+              icon={<Headphones className="h-5 w-5" />}
+              features={[
+                "24/7 chat support",
+                "1-hour response time",
+                "Dedicated account manager",
+              ]}
+            />
+          </PremiumFeatureGrid>
+        </div>
+      </section>
       <section className="pb-20 px-4">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
