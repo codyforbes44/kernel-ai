@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 export type PanelType =
   | 'ai-chat'
+  | 'agent'
   | 'history'
   | 'deployments'
   | 'github'
@@ -22,6 +23,7 @@ interface PanelConfig {
 
 const PANEL_CONFIGS: Record<Exclude<PanelType, null>, PanelConfig> = {
   'ai-chat': { id: 'ai-chat', defaultSize: 25, minSize: 20, maxSize: 40 },
+  'agent': { id: 'agent', defaultSize: 30, minSize: 25, maxSize: 50 },
   'history': { id: 'history', defaultSize: 25, minSize: 20, maxSize: 40 },
   'deployments': { id: 'deployments', defaultSize: 25, minSize: 20, maxSize: 40 },
   'github': { id: 'github', defaultSize: 25, minSize: 20, maxSize: 40 },
