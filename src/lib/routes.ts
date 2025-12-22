@@ -127,6 +127,17 @@ export const routes: RouteConfig[] = [
     robots: 'allow',
   },
   {
+    path: '/blog/:slug',
+    title: 'Blog Post',
+    description: 'Read our latest articles and insights',
+    changefreq: 'weekly',
+    priority: 0.6,
+    includeInSitemap: false,
+    requiresAuth: false,
+    isDynamic: true,
+    robots: 'allow',
+  },
+  {
     path: '/tutorials',
     title: 'Tutorials',
     description: 'Step-by-step guides to build with Kernel',
