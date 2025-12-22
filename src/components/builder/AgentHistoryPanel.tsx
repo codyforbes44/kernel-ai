@@ -13,10 +13,12 @@ import {
   FileCode,
   ArrowRight,
   RotateCcw,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +30,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useAgentHistory } from '@/hooks/useAgentHistory';
 import type { AgentSession, AgentStatus } from '@/types/agent';
@@ -59,9 +69,11 @@ function SessionCard({
   session: AgentSession;
   onDelete: () => void;
   onRestore?: () => void;
-  onRerun?: () => void;
+  onRerun?: (request: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [rerunDialogOpen, setRerunDialogOpen] = useState(false);
+  const [editedRequest, setEditedRequest] = useState(session.originalRequest);
   const config = statusConfig[session.status];
   const StatusIcon = config.icon;
   
@@ -169,10 +181,29 @@ function SessionCard({
               {/* Actions */}
               <div className="flex items-center gap-2 pt-2 border-t">
                 {onRerun && (
-                  <Button size="sm" variant="default" onClick={onRerun} className="gap-1">
-                    <RotateCcw className="w-3 h-3" />
-                    Re-run
-                  </Button>
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="default" 
+                      onClick={() => onRerun(session.originalRequest)} 
+                      className="gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Re-run
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setEditedRequest(session.originalRequest);
+                        setRerunDialogOpen(true);
+                      }} 
+                      className="gap-1"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      Edit & Run
+                    </Button>
+                  </>
                 )}
                 {onRestore && session.appliedOperations.length > 0 && (
                   <Button size="sm" variant="outline" onClick={onRestore} className="gap-1">
@@ -204,6 +235,48 @@ function SessionCard({
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Edit & Re-run Dialog */}
+      <Dialog open={rerunDialogOpen} onOpenChange={setRerunDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Request</DialogTitle>
+            <DialogDescription>
+              Modify the request before re-running the agent.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              value={editedRequest}
+              onChange={(e) => setEditedRequest(e.target.value)}
+              placeholder="Enter your request..."
+              className="min-h-[120px] resize-none"
+              maxLength={2000}
+            />
+            <p className="text-xs text-muted-foreground mt-2 text-right">
+              {editedRequest.length}/2000
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRerunDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editedRequest.trim() && onRerun) {
+                  onRerun(editedRequest.trim());
+                  setRerunDialogOpen(false);
+                }
+              }}
+              disabled={!editedRequest.trim()}
+              className="gap-1"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Run Agent
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
@@ -276,7 +349,7 @@ export function AgentHistoryPanel({
                   session={session}
                   onDelete={() => deleteSession(session.id)}
                   onRestore={onRestoreSession ? () => onRestoreSession(session) : undefined}
-                  onRerun={onRerunSession ? () => onRerunSession(session.originalRequest) : undefined}
+                  onRerun={onRerunSession}
                 />
               ))}
             </AnimatePresence>
