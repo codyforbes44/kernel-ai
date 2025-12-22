@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Type, Palette, Trash2, Copy, Undo2, Redo2, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { cn } from '@/lib/utils';
-import type { SelectedElement } from '@/types/visual-editor';
+import type { SelectedElement, VisualChange } from '@/types/visual-editor';
+import { DiffPreview } from './DiffPreview';
 
 interface FloatingToolbarProps {
   element: SelectedElement;
@@ -16,6 +18,8 @@ interface FloatingToolbarProps {
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
+  undoPreview?: VisualChange[];
+  redoPreview?: VisualChange[];
 }
 
 export function FloatingToolbar({
@@ -29,6 +33,8 @@ export function FloatingToolbar({
   onRedo,
   canUndo = false,
   canRedo = false,
+  undoPreview = [],
+  redoPreview = [],
 }: FloatingToolbarProps) {
   const hasTextContent = element.textContent && element.textContent.trim().length > 0;
   
@@ -123,44 +129,66 @@ export function FloatingToolbar({
 
       {/* Undo */}
       {onUndo && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={onUndo}
-              disabled={!canUndo}
-            >
-              <Undo2 className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <span>Undo</span>
-            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘Z</kbd>
-          </TooltipContent>
-        </Tooltip>
+        <HoverCard openDelay={300} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                  >
+                    <Undo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <span>Undo</span>
+                  <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘Z</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </HoverCardTrigger>
+          {canUndo && undoPreview.length > 0 && (
+            <HoverCardContent side="bottom" align="center" className="p-0 w-auto">
+              <DiffPreview changes={undoPreview} type="undo" />
+            </HoverCardContent>
+          )}
+        </HoverCard>
       )}
 
       {/* Redo */}
       {onRedo && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={onRedo}
-              disabled={!canRedo}
-            >
-              <Redo2 className="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <span>Redo</span>
-            <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘⇧Z</kbd>
-          </TooltipContent>
-        </Tooltip>
+        <HoverCard openDelay={300} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                  >
+                    <Redo2 className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <span>Redo</span>
+                  <kbd className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded">⌘⇧Z</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </HoverCardTrigger>
+          {canRedo && redoPreview.length > 0 && (
+            <HoverCardContent side="bottom" align="center" className="p-0 w-auto">
+              <DiffPreview changes={redoPreview} type="redo" />
+            </HoverCardContent>
+          )}
+        </HoverCard>
       )}
     </div>
   );
