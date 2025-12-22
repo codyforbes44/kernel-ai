@@ -35,6 +35,8 @@ interface BuilderChatProps {
   projectId: string;
   errors?: CapturedError[];
   onClearErrors?: () => void;
+  /** Callback that receives the fix errors handler for parent to invoke */
+  onFixHandlerReady?: (handler: (errors: CapturedError[]) => void) => void;
 }
 
 // Parse the streamed JSON response
@@ -58,7 +60,7 @@ function parseStreamedResponse(content: string): AIResponse | null {
   }
 }
 
-export function BuilderChat({ files, onApplyOperations, projectId, errors = [], onClearErrors }: BuilderChatProps) {
+export function BuilderChat({ files, onApplyOperations, projectId, errors = [], onClearErrors, onFixHandlerReady }: BuilderChatProps) {
   const {
     conversationId,
     messages: persistedMessages,
@@ -172,10 +174,6 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
         setIsLoading(false);
         return;
       }
-      if (localMessages.length === 0) {
-        await updateTitle(messageContent.slice(0, 50));
-      }
-
       // Prepare file context (limit to key files to avoid token limits)
       const fileContext = files
         .filter(f => f.type === 'file' && f.content)
@@ -377,16 +375,17 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
     sendMessage(prompt, errorsToFix);
   }, [sendMessage]);
 
-  // Expose handleFixErrors to parent
+  // Store the fix handler for parent access via ref callback
+  const fixHandlerRef = useRef<(errors: CapturedError[]) => void>(handleFixErrors);
+  fixHandlerRef.current = handleFixErrors;
+  
+  // Expose handler to parent through a stable callback
   useEffect(() => {
-    if (errors.length > 0) {
-      // Store the handler for parent access
-      (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors = handleFixErrors;
+    if (onFixHandlerReady) {
+      // Pass a function that can be called later by the parent
+      onFixHandlerReady(fixHandlerRef.current);
     }
-    return () => {
-      delete (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors;
-    };
-  }, [handleFixErrors, errors.length]);
+  }, [onFixHandlerReady]);
 
   const applyOperations = async (messageId: string, operations: FileOperation[]) => {
     setApplyingId(messageId);

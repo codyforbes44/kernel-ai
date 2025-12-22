@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ResizableHandle,
@@ -9,16 +9,8 @@ import { FileExplorer } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
-import { BuilderChat } from './BuilderChat';
-import { FileVersionHistory } from './FileVersionHistory';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
-import { DeploymentPanel } from './DeploymentPanel';
-import { GitHubPanel } from './GitHubPanel';
-import { DesignSystemPanel } from './DesignSystemPanel';
-import { ComponentMarketplace } from './ComponentMarketplace';
-import { KnowledgeBasePanel } from './KnowledgeBasePanel';
-import { StorageBrowser } from './StorageBrowser';
-import { DatabasePanel } from './DatabasePanel';
+import { PanelRenderer } from './PanelRenderer';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
@@ -81,7 +73,6 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     showExplorer,
     showPreview,
     togglePanel,
-    toggleExplorer,
     togglePreview,
     isPanelActive,
     getPanelConfig,
@@ -94,6 +85,9 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
   const [showRemixDialog, setShowRemixDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  // Store the fix handler from BuilderChat
+  const fixHandlerRef = useRef<((errors: CapturedError[]) => void) | null>(null);
   
   const {
     project,
@@ -179,11 +173,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     toast.success('Version restored');
   }, [activeTabId, activeFile, getFileContent, updateLocalContent, saveFile]);
 
+  const handleFixHandlerReady = useCallback((handler: (errors: CapturedError[]) => void) => {
+    fixHandlerRef.current = handler;
+  }, []);
+
   const handleTryToFix = useCallback((errors: CapturedError[]) => {
     setIsFixingErrors(true);
-    const fixHandler = (window as unknown as { __builderChatFixErrors?: (errors: CapturedError[]) => void }).__builderChatFixErrors;
-    if (fixHandler) {
-      fixHandler(errors);
+    if (fixHandlerRef.current) {
+      fixHandlerRef.current(errors);
     }
     setTimeout(() => setIsFixingErrors(false), 1000);
   }, []);
@@ -204,6 +201,11 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     setPreviewCSS(css);
     setPreviewSystemName(systemName || null);
     setPreviewFontsUrl(fontsUrl || null);
+  }, []);
+
+  const handleInstallComponent = useCallback((code: string) => {
+    toast.success('Component installed! Code copied to clipboard.');
+    navigator.clipboard.writeText(code);
   }, []);
 
   // Keyboard shortcuts
@@ -286,76 +288,6 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
       </div>
     );
   }
-
-  // Render panel based on active panel
-  const renderActivePanel = () => {
-    if (!activePanel) return null;
-
-    const config = getPanelConfig(activePanel);
-
-    const panelContent = {
-      'ai-chat': (
-        <BuilderChat
-          files={files}
-          onApplyOperations={applyAIOperations}
-          errors={capturedErrors}
-          onClearErrors={handleClearErrors}
-          projectId={projectId}
-        />
-      ),
-      'history': (
-        <FileVersionHistory
-          fileId={activeTabId}
-          fileName={activeFile?.name || null}
-          currentContent={activeTabId ? getFileContent(activeTabId) : ''}
-          onRestore={handleRestoreVersion}
-          onClose={() => togglePanel('history')}
-        />
-      ),
-      'deployments': (
-        <DeploymentPanel
-          projectId={projectId}
-          onClose={() => togglePanel('deployments')}
-        />
-      ),
-      'github': (
-        <GitHubPanel
-          projectId={projectId}
-          projectName={project?.name}
-        />
-      ),
-      'design-system': (
-        <DesignSystemPanel projectId={projectId} onPreviewChange={handlePreviewChange} />
-      ),
-      'marketplace': (
-        <ComponentMarketplace 
-          projectId={projectId}
-          onInstallComponent={(code) => {
-            toast.success('Component installed! Code copied to clipboard.');
-            navigator.clipboard.writeText(code);
-          }}
-        />
-      ),
-      'knowledge-base': (
-        <KnowledgeBasePanel projectId={projectId} />
-      ),
-      'storage': (
-        <StorageBrowser />
-      ),
-      'database': (
-        <DatabasePanel />
-      ),
-    };
-
-    return (
-      <>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={config.defaultSize} minSize={config.minSize} maxSize={config.maxSize}>
-          {panelContent[activePanel]}
-        </ResizablePanel>
-      </>
-    );
-  };
 
   // Desktop layout
   return (
@@ -529,7 +461,24 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         )}
 
         {/* Active Panel */}
-        {renderActivePanel()}
+        <PanelRenderer
+          activePanel={activePanel}
+          projectId={projectId}
+          projectName={project?.name}
+          activeTabId={activeTabId}
+          activeFileName={activeFile?.name || null}
+          files={files}
+          capturedErrors={capturedErrors}
+          getFileContent={getFileContent}
+          onApplyOperations={applyAIOperations}
+          onClearErrors={handleClearErrors}
+          onRestoreVersion={handleRestoreVersion}
+          onPreviewChange={handlePreviewChange}
+          onInstallComponent={handleInstallComponent}
+          togglePanel={togglePanel}
+          getPanelConfig={getPanelConfig}
+          onFixHandlerReady={handleFixHandlerReady}
+        />
       </ResizablePanelGroup>
 
       {/* Remix Project Dialog */}
@@ -542,7 +491,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         isRemixing={isRemixing}
       />
 
-      {/* Delete Project Dialog - Using reusable component */}
+      {/* Delete Project Dialog */}
       <DeleteConfirmDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
