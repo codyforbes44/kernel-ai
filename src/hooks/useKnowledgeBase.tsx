@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useDebounce } from './useDebounce';
 import type { KnowledgeBase, TechStackItem, ContextDocument } from '@/types/knowledge-base';
 import { defaultKnowledgeBase } from '@/types/knowledge-base';
-import type { Json } from '@/integrations/supabase/types';
 
 export function useKnowledgeBase(projectId: string) {
   const [knowledgeBase, setKnowledgeBase] = useState<KnowledgeBase>(defaultKnowledgeBase);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingKbRef = useRef<KnowledgeBase | null>(null);
 
   // Fetch knowledge base from project settings
   useEffect(() => {
@@ -39,50 +39,57 @@ export function useKnowledgeBase(projectId: string) {
     }
   }, [projectId]);
 
-  // Auto-save with debounce
-  const saveKnowledgeBase = useCallback(async (kb: KnowledgeBase) => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+  // The actual save function
+  const performSave = useCallback(async () => {
+    const kb = pendingKbRef.current;
+    if (!kb) return;
+    
+    setIsSaving(true);
+    try {
+      // First fetch current settings to merge
+      const { data: current, error: fetchError } = await supabase
+        .from('builder_projects')
+        .select('settings')
+        .eq('id', projectId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentSettings = (current?.settings as Record<string, unknown>) || {};
+      const updatedKb = {
+        ...kb,
+        lastUpdated: new Date().toISOString(),
+      };
+      
+      // Convert to JSON-safe format
+      const updatedSettings = JSON.parse(JSON.stringify({
+        ...currentSettings,
+        knowledge_base: updatedKb,
+      }));
+
+      const { error } = await supabase
+        .from('builder_projects')
+        .update({ settings: updatedSettings })
+        .eq('id', projectId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Failed to save knowledge base:', error);
+      toast.error('Failed to save knowledge base');
+    } finally {
+      setIsSaving(false);
+      pendingKbRef.current = null;
     }
-
-    saveTimeoutRef.current = setTimeout(async () => {
-      setIsSaving(true);
-      try {
-        // First fetch current settings to merge
-        const { data: current, error: fetchError } = await supabase
-          .from('builder_projects')
-          .select('settings')
-          .eq('id', projectId)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        const currentSettings = (current?.settings as Record<string, unknown>) || {};
-        const updatedKb = {
-          ...kb,
-          lastUpdated: new Date().toISOString(),
-        };
-        
-        // Convert to JSON-safe format
-        const updatedSettings = JSON.parse(JSON.stringify({
-          ...currentSettings,
-          knowledge_base: updatedKb,
-        }));
-
-        const { error } = await supabase
-          .from('builder_projects')
-          .update({ settings: updatedSettings })
-          .eq('id', projectId);
-
-        if (error) throw error;
-      } catch (error) {
-        console.error('Failed to save knowledge base:', error);
-        toast.error('Failed to save knowledge base');
-      } finally {
-        setIsSaving(false);
-      }
-    }, 1000);
   }, [projectId]);
+
+  // Debounced save using the consolidated utility
+  const debouncedSave = useDebounce(performSave, 1000);
+
+  // Auto-save with debounce
+  const saveKnowledgeBase = useCallback((kb: KnowledgeBase) => {
+    pendingKbRef.current = kb;
+    debouncedSave();
+  }, [debouncedSave]);
 
   // Update instructions
   const updateInstructions = useCallback((instructions: string) => {
@@ -213,15 +220,6 @@ export function useKnowledgeBase(projectId: string) {
     };
     reader.readAsText(file);
   }, [saveKnowledgeBase]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return {
     knowledgeBase,

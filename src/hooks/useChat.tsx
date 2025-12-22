@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useUserPreferences } from './useUserPreferences';
+import { useRateLimiter } from './useDebounce';
 import { format } from 'date-fns';
 import { AI_MODELS, MAX_CONTEXT_MESSAGES } from '@/lib/constants';
 import type { AIModel } from '@/lib/constants';
@@ -49,7 +50,7 @@ export function useChat() {
   const [error, setError] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<AIModel>('google/gemini-2.5-flash');
   const abortControllerRef = useRef<AbortController | null>(null);
-  const lastSendTimeRef = useRef<number>(0);
+  const rateLimiter = useRateLimiter(1, 1000); // 1 message per 1000ms
 
   // Sync with user preferences when they load
   useEffect(() => {
@@ -66,13 +67,12 @@ export function useChat() {
   ) => {
     if (!user) return null;
 
-    // Debounce: prevent sending within 1 second of last send
-    const now = Date.now();
-    if (now - lastSendTimeRef.current < 1000) {
+    // Rate limit: prevent sending more than 1 message per second
+    if (!rateLimiter.canProceed()) {
       setError('Please wait a moment before sending another message');
       return null;
     }
-    lastSendTimeRef.current = now;
+    rateLimiter.record();
     
     setIsStreaming(true);
     setStreamingMessage('');
