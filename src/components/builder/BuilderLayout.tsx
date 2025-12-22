@@ -16,6 +16,7 @@ import { PanelRenderer } from './PanelRenderer';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { ProjectSettingsDialog } from '@/components/dialogs/ProjectSettingsDialog';
 import { BuilderLoadingSkeleton, FileExplorerSkeleton, EditorSkeleton, PreviewSkeleton, PanelSkeleton } from './BuilderSkeletons';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { usePanelManager, PanelType } from '@/hooks/usePanelManager';
@@ -38,7 +39,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2, Database, Bot, Shield } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2, Database, Bot, Shield, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -91,6 +92,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
   const [showRemixDialog, setShowRemixDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [isAgentRunning, setIsAgentRunning] = useState(false);
   
   // Store the fix handler from BuilderChat
@@ -390,31 +392,14 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleTogglePublic} disabled={isUpdatingProject}>
-                {project?.is_public ? (
-                  <>
-                    <Lock className="h-4 w-4 mr-2" />
-                    Make Private
-                  </>
-                ) : (
-                  <>
-                    <Globe className="h-4 w-4 mr-2" />
-                    Make Public
-                  </>
-                )}
+              <DropdownMenuItem onClick={() => setShowSettingsDialog(true)}>
+                <Settings className="h-4 w-4 mr-2" />
+                Project Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setShowRemixDialog(true)}>
                 <Copy className="h-4 w-4 mr-2" />
                 Remix Project
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => setShowDeleteDialog(true)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Project
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -525,6 +510,19 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           onAgentRunningChange={setIsAgentRunning}
         />
       </ResizablePanelGroup>
+
+      {/* Project Settings Dialog */}
+      <ProjectSettingsDialog
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
+        project={project}
+        onSave={async (updates) => { await updateProject(updates); }}
+        onDelete={() => {
+          setShowSettingsDialog(false);
+          setShowDeleteDialog(true);
+        }}
+        isSaving={isUpdatingProject}
+      />
 
       {/* Remix Project Dialog */}
       <RemixProjectDialog
