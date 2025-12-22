@@ -1,8 +1,8 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface KernelLogoProps {
+interface KernelLogoProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: "sm" | "md" | "lg" | "xl";
-  className?: string;
   glow?: boolean;
 }
 
@@ -13,17 +13,23 @@ const sizeClasses = {
   xl: "text-xl w-12 h-12",
 };
 
-export function KernelLogo({ size = "md", className, glow = true }: KernelLogoProps) {
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-lg bg-primary/15 font-mono font-bold text-primary border border-primary/30 transition-all duration-300",
-        glow && "shadow-[0_0_15px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)]",
-        sizeClasses[size],
-        className
-      )}
-    >
-      {">_"}
-    </div>
-  );
-}
+export const KernelLogo = forwardRef<HTMLDivElement, KernelLogoProps>(
+  ({ size = "md", className, glow = true, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "flex items-center justify-center rounded-lg bg-primary/15 font-mono font-bold text-primary border border-primary/30 transition-all duration-300",
+          glow && "shadow-[0_0_15px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)]",
+          sizeClasses[size],
+          className
+        )}
+        {...props}
+      >
+        {">_"}
+      </div>
+    );
+  }
+);
+
+KernelLogo.displayName = "KernelLogo";
