@@ -28,6 +28,7 @@ interface AgentChatProps {
   onApplyOperations: (operations: Array<{ type: 'create' | 'update' | 'delete'; path: string; content?: string }>) => Promise<void>;
   onClearErrors: () => void;
   onFixHandlerReady: (handler: (errors: CapturedError[]) => void) => void;
+  onRunningChange?: (isRunning: boolean) => void;
 }
 
 function MessageBubble({ message }: { message: AgentMessage }) {
@@ -131,6 +132,7 @@ export function AgentChat({
   onApplyOperations,
   onClearErrors,
   onFixHandlerReady,
+  onRunningChange,
 }: AgentChatProps) {
   const [mode, setMode] = useState<'chat' | 'agent'>('chat');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -149,6 +151,11 @@ export function AgentChat({
     errors,
     onApplyOperations,
   });
+
+  // Notify parent when running state changes
+  useEffect(() => {
+    onRunningChange?.(isRunning);
+  }, [isRunning, onRunningChange]);
 
   // Auto-scroll on new messages
   useEffect(() => {
