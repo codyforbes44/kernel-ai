@@ -516,6 +516,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         open={showSettingsDialog}
         onOpenChange={setShowSettingsDialog}
         project={project}
+        files={files}
         onSave={async (updates) => { await updateProject(updates); }}
         onDelete={() => {
           setShowSettingsDialog(false);
