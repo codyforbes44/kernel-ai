@@ -39,6 +39,40 @@ export const builderService = {
     return data as BuilderProject[];
   },
 
+  async getPublicProjects(params?: {
+    search?: string;
+    template?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    let query = supabase
+      .from('builder_projects')
+      .select('*', { count: 'exact' })
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false });
+
+    if (params?.search) {
+      query = query.or(`name.ilike.%${params.search}%,description.ilike.%${params.search}%`);
+    }
+
+    if (params?.template && params.template !== 'all') {
+      query = query.eq('template', params.template);
+    }
+
+    if (params?.limit) {
+      query = query.limit(params.limit);
+    }
+
+    if (params?.offset) {
+      query = query.range(params.offset, params.offset + (params.limit || 12) - 1);
+    }
+
+    const { data, error, count } = await query;
+    
+    if (error) throw error;
+    return { projects: data as BuilderProject[], totalCount: count || 0 };
+  },
+
   async deleteProject(projectId: string) {
     // First delete all project files
     const { error: filesError } = await supabase
