@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { WorkspaceProvider } from "@/hooks/useWorkspace";
 import { TemplateInjectionProvider } from "@/hooks/useTemplateInjection";
+import { FeatureGatingProvider } from "@/hooks/useFeatureGating";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -74,6 +75,7 @@ const App = () => (
           <ReducedMotionLoader />
           <OLEDSuggestionLoader />
           <WorkspaceProvider>
+            <FeatureGatingProvider>
             <TemplateInjectionProvider>
               <TooltipProvider>
                 <Toaster />
@@ -162,6 +164,7 @@ const App = () => (
                 </BrowserRouter>
               </TooltipProvider>
             </TemplateInjectionProvider>
+            </FeatureGatingProvider>
           </WorkspaceProvider>
         </AuthProvider>
       </ThemeProvider>
