@@ -182,7 +182,7 @@ export default function Landing() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="h-12 px-8 text-base" asChild>
+            <Button size="lg" variant="gold-outline" className="h-12 px-8 text-base" asChild>
               <Link to="/pricing">
                 View Pricing
               </Link>
