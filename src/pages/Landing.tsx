@@ -176,7 +176,7 @@ export default function Landing() {
             Join thousands of developers building with AI. Create your free account and start building today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="h-12 px-8 text-base" asChild>
+            <Button variant="gold" size="lg" className="h-12 px-8 text-base" asChild>
               <Link to="/auth?mode=signup">
                 Create Free Account
                 <ArrowRight className="ml-2 h-4 w-4" />

@@ -245,7 +245,7 @@ export function CreditsSettings() {
                 </p>
                 <Button
                   className="w-full mt-4"
-                  variant={pack.popular ? 'default' : 'outline'}
+                  variant={pack.popular ? 'gold' : 'outline'}
                   onClick={() => handlePurchase(pack.id)}
                   disabled={isPurchasing !== null}
                 >
