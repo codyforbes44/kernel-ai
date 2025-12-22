@@ -87,6 +87,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const [previewFontsUrl, setPreviewFontsUrl] = useState<string | null>(null);
   const [showRemixDialog, setShowRemixDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isAgentRunning, setIsAgentRunning] = useState(false);
   
   // Store the fix handler from BuilderChat
   const fixHandlerRef = useRef<((errors: CapturedError[]) => void) | null>(null);
@@ -331,14 +332,23 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn('h-8 w-8', isPanelActive(panel) && 'bg-primary/10 text-primary')}
+                  className={cn('h-8 w-8 relative', isPanelActive(panel) && 'bg-primary/10 text-primary')}
                   onClick={() => togglePanel(panel)}
                   disabled={requiresActiveFile && !activeTabId}
                 >
                   <Icon className="h-4 w-4" />
+                  {/* Agent running indicator */}
+                  {panel === 'agent' && isAgentRunning && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+                    </span>
+                  )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{label}</TooltipContent>
+              <TooltipContent>
+                {panel === 'agent' && isAgentRunning ? `${label} (Running...)` : label}
+              </TooltipContent>
             </Tooltip>
           ))}
           
@@ -480,6 +490,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           togglePanel={togglePanel}
           getPanelConfig={getPanelConfig}
           onFixHandlerReady={handleFixHandlerReady}
+          onAgentRunningChange={setIsAgentRunning}
         />
       </ResizablePanelGroup>
 

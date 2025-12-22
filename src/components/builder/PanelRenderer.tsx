@@ -47,6 +47,7 @@ interface PanelRendererProps {
   togglePanel: (panel: PanelType) => void;
   getPanelConfig: (panel: PanelType) => { defaultSize: number; minSize: number; maxSize: number };
   onFixHandlerReady: (handler: (errors: CapturedError[]) => void) => void;
+  onAgentRunningChange?: (isRunning: boolean) => void;
 }
 
 // Loading fallback for lazy-loaded panels
@@ -87,6 +88,7 @@ export function PanelRenderer({
   togglePanel,
   getPanelConfig,
   onFixHandlerReady,
+  onAgentRunningChange,
 }: PanelRendererProps) {
   if (!activePanel) return null;
 
@@ -119,6 +121,7 @@ export function PanelRenderer({
                 onApplyOperations={onApplyOperations}
                 onClearErrors={onClearErrors}
                 onFixHandlerReady={onFixHandlerReady}
+                onRunningChange={onAgentRunningChange}
               />
             </Suspense>
           </ErrorBoundary>
