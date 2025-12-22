@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { X, Type, Palette, BoxSelect, AlignLeft, RotateCcw, Copy, Check } from 'lucide-react';
+import { X, Type, Palette, BoxSelect, AlignLeft, RotateCcw, Copy, Check, Code2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,7 @@ interface PropertyEditorPanelProps {
   onUpdateClasses: (classes: string) => void;
   onDeselect: () => void;
   onClose: () => void;
+  onNavigateToSource?: () => void;
 }
 
 export function PropertyEditorPanel({
@@ -34,6 +35,7 @@ export function PropertyEditorPanel({
   onUpdateClasses,
   onDeselect,
   onClose,
+  onNavigateToSource,
 }: PropertyEditorPanelProps) {
   const [editingText, setEditingText] = useState('');
   const [editingClasses, setEditingClasses] = useState('');
@@ -112,11 +114,16 @@ export function PropertyEditorPanel({
         {/* Source location */}
         {selectedElement.sourceMapping && (
           <div className="px-3 pb-2">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1">
-              <span className="font-mono truncate">
+            <button
+              onClick={onNavigateToSource}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-muted rounded px-2 py-1 w-full transition-colors group"
+              title="Go to source code"
+            >
+              <Code2 className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="font-mono truncate flex-1 text-left">
                 {selectedElement.sourceMapping.filePath}:{selectedElement.sourceMapping.lineNumber}
               </span>
-            </div>
+            </button>
           </div>
         )}
       </div>

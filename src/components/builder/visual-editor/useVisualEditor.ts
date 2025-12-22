@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { SelectedElement, VisualChange, VisualEditorMessage } from '@/types/visual-editor';
 import type { ProjectFile } from '@/types/builder';
-import { applyVisualChangesToSource, generateChangesSummary } from '@/lib/visualEditorPersistence';
+import { applyVisualChangesToSource, generateChangesSummary, validateChanges } from '@/lib/visualEditorPersistence';
+import { formatSourceLocation } from '@/lib/jsxSourceMapper';
+import { toast } from 'sonner';
 
 interface UseVisualEditorOptions {
   iframeRef: React.RefObject<HTMLIFrameElement>;
@@ -10,6 +12,7 @@ interface UseVisualEditorOptions {
   onChangeApplied?: (change: VisualChange) => void;
   onSaveChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
   onDoubleClick?: (element: SelectedElement) => void;
+  onNavigateToSource?: (filePath: string, lineNumber: number) => void;
   files?: ProjectFile[];
 }
 
@@ -20,6 +23,7 @@ export function useVisualEditor({
   onChangeApplied,
   onSaveChanges,
   onDoubleClick,
+  onNavigateToSource,
   files = [],
 }: UseVisualEditorOptions) {
   const [isEnabled, setIsEnabled] = useState(false);
@@ -279,6 +283,13 @@ export function useVisualEditor({
   const saveChanges = useCallback(async () => {
     if (pendingChanges.length === 0 || !onSaveChanges) return;
     
+    // Validate changes first
+    const validation = validateChanges(pendingChanges, files);
+    if (!validation.valid) {
+      console.warn('Some changes may not apply correctly:', validation.errors);
+      toast.warning(`Some changes may not persist: ${validation.errors.length} element(s) without source mapping`);
+    }
+    
     setIsSaving(true);
     try {
       // Apply changes to source files
@@ -292,14 +303,35 @@ export function useVisualEditor({
         }));
         
         await onSaveChanges(fileUpdates);
+        toast.success(`Saved ${results.length} file(s) with visual changes`);
         setPendingChanges([]);
         setUndoStack([]);
         setRedoStack([]);
+      } else {
+        toast.info('No changes could be applied to source files');
       }
+    } catch (error) {
+      console.error('Failed to save visual changes:', error);
+      toast.error('Failed to save changes to source code');
     } finally {
       setIsSaving(false);
     }
   }, [pendingChanges, files, onSaveChanges]);
+
+  // Navigate to element source
+  const navigateToSource = useCallback(() => {
+    if (selectedElement?.sourceMapping && onNavigateToSource) {
+      onNavigateToSource(
+        selectedElement.sourceMapping.filePath,
+        selectedElement.sourceMapping.lineNumber
+      );
+    }
+  }, [selectedElement, onNavigateToSource]);
+
+  // Get source location display string
+  const sourceLocation = selectedElement?.sourceMapping 
+    ? formatSourceLocation(selectedElement.sourceMapping)
+    : null;
 
   // Get changes summary
   const changesSummary = pendingChanges.length > 0 
@@ -314,6 +346,7 @@ export function useVisualEditor({
     hoveredElement,
     pendingChanges,
     changesSummary,
+    sourceLocation,
     isInlineEditing,
     recentColors,
     canUndo: undoStack.length > 0,
@@ -327,6 +360,7 @@ export function useVisualEditor({
     clearChanges,
     deselect,
     saveChanges,
+    navigateToSource,
     undo,
     redo,
     startInlineEdit,

@@ -30,6 +30,7 @@ interface SandpackPreviewProps {
   previewSystemName?: string | null;
   previewFontsUrl?: string | null;
   onVisualEditorToggle?: (enabled: boolean) => void;
+  onNavigateToSource?: (filePath: string, lineNumber: number) => void;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -186,11 +187,13 @@ function SandpackPreviewInner({
   onVisualChange,
   onSaveVisualChanges,
   onVisualEditorToggle,
+  onNavigateToSource,
 }: {
   files: ProjectFile[];
   onVisualChange?: (change: VisualChange) => void;
   onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
   onVisualEditorToggle?: (enabled: boolean) => void;
+  onNavigateToSource?: (filePath: string, lineNumber: number) => void;
 }) {
   const { sandpack } = useSandpack();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -217,6 +220,7 @@ function SandpackPreviewInner({
     pendingChanges,
     saveChanges,
     clearChanges,
+    navigateToSource,
     undo,
     redo,
     startInlineEdit,
@@ -225,6 +229,7 @@ function SandpackPreviewInner({
   } = useVisualEditor({
     iframeRef,
     files,
+    onNavigateToSource,
     onElementSelected: (element) => {
       setShowFloatingToolbar(true);
     },
@@ -362,6 +367,7 @@ function SandpackPreviewInner({
             onUpdateClasses={updateClasses}
             onDeselect={deselect}
             onClose={handleCloseEditor}
+            onNavigateToSource={navigateToSource}
           />
         </div>
       )}
@@ -405,6 +411,7 @@ export function SandpackPreview({
   previewSystemName,
   previewFontsUrl,
   onVisualEditorToggle,
+  onNavigateToSource,
 }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -518,6 +525,7 @@ export function SandpackPreview({
                 onVisualChange={onVisualChange} 
                 onSaveVisualChanges={onSaveVisualChanges}
                 onVisualEditorToggle={onVisualEditorToggle}
+                onNavigateToSource={onNavigateToSource}
               />
             </div>
           </SandpackProvider>
