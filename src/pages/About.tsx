@@ -218,7 +218,8 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team Section */}
+      {/* Team Section - Hidden pending updates */}
+      {/* TODO: Uncomment when team content is ready
       <section className="pb-20 px-4">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
@@ -264,6 +265,7 @@ export default function About() {
           </div>
         </div>
       </section>
+      */}
 
       {/* CTA Section */}
       <section className="pb-20 px-4">
