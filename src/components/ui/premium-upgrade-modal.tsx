@@ -9,10 +9,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { DialogProps } from "@radix-ui/react-dialog";
 
-interface PremiumUpgradeModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface PremiumUpgradeModalProps extends Omit<DialogProps, 'children'> {
   featureName?: string;
   onUpgrade?: () => void;
 }
@@ -26,15 +25,13 @@ const benefits = [
   "Multi-file refactoring tools",
 ];
 
-export function PremiumUpgradeModal({
-  open,
-  onOpenChange,
-  featureName,
-  onUpgrade,
-}: PremiumUpgradeModalProps) {
+export const PremiumUpgradeModal = React.forwardRef<
+  HTMLDivElement,
+  PremiumUpgradeModalProps
+>(function PremiumUpgradeModal({ featureName, onUpgrade, ...dialogProps }, ref) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md overflow-hidden border-gold/30 bg-gradient-to-br from-background via-background to-gold/5">
+    <Dialog {...dialogProps}>
+      <DialogContent ref={ref} className="sm:max-w-md overflow-hidden border-gold/30 bg-gradient-to-br from-background via-background to-gold/5">
         {/* Gold accent line at top */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gold to-transparent" />
         
@@ -110,7 +107,7 @@ export function PremiumUpgradeModal({
               className="w-full shadow-[0_0_20px_hsl(var(--gold)/0.3)]"
               onClick={() => {
                 onUpgrade?.();
-                onOpenChange(false);
+                dialogProps.onOpenChange?.(false);
               }}
             >
               <Crown className="mr-2 h-4 w-4" />
@@ -122,7 +119,7 @@ export function PremiumUpgradeModal({
               variant="ghost" 
               size="sm"
               className="text-muted-foreground"
-              onClick={() => onOpenChange(false)}
+              onClick={() => dialogProps.onOpenChange?.(false)}
             >
               Maybe later
             </Button>
@@ -131,7 +128,9 @@ export function PremiumUpgradeModal({
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+PremiumUpgradeModal.displayName = "PremiumUpgradeModal";
 
 // Hook for easy modal management
 export function usePremiumUpgradeModal() {

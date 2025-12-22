@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
@@ -20,7 +20,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -140,6 +140,7 @@ export function AgentPanel({
 }: AgentPanelProps) {
   const [request, setRequest] = useState('');
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { templates, loading: templatesLoading, incrementUsage } = useTemplates();
   
   const status = session?.status || 'idle';
@@ -150,11 +151,29 @@ export function AgentPanel({
     ? (session.iterationCount / session.maxIterations) * 100 
     : 0;
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [request]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (request.trim() && !isRunning) {
       onStart(request.trim());
       setRequest('');
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (request.trim() && !isRunning) {
+        onStart(request.trim());
+        setRequest('');
+      }
     }
   };
 
@@ -314,13 +333,16 @@ export function AgentPanel({
       {/* Input */}
       <div className="p-4 border-t">
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="flex gap-2">
-            <Input
+          <div className="flex gap-2 items-end">
+            <Textarea
+              ref={textareaRef}
               value={request}
               onChange={(e) => setRequest(e.target.value)}
-              placeholder="Describe a complex task for the agent..."
+              onKeyDown={handleKeyDown}
+              placeholder="Describe a complex task for the agent... (Shift+Enter for new line)"
               disabled={isRunning}
-              className="flex-1"
+              className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+              rows={1}
             />
             {isRunning ? (
               <Button type="button" variant="destructive" onClick={onCancel}>
