@@ -40,6 +40,20 @@ const viewportConfig: Record<ViewportSize, { width: string; icon: React.ReactNod
   mobile: { width: '375px', icon: <Smartphone className="h-4 w-4" />, label: 'Mobile' },
 };
 
+// Memoized file conversion cache to avoid reprocessing unchanged files
+const fileContentCache = new Map<string, { hash: string; processed: string }>();
+
+function hashContent(content: string): string {
+  // Simple fast hash for cache invalidation
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(36);
+}
+
 // Convert project files to Sandpack format with visual editor injection
 function convertToSandpackFiles(
   files: ProjectFile[], 
@@ -52,15 +66,32 @@ function convertToSandpackFiles(
   for (const file of files) {
     if (file.content && file.type === 'file') {
       const path = file.path.startsWith('/') ? file.path : `/${file.path}`;
+      const contentHash = hashContent(file.content);
+      const cacheKey = `${path}:${injectVisualEditor}:${contentHash}`;
       
-      // Inject source mapping into JSX/TSX files for visual editor
+      // Check cache for processed content
+      const cached = fileContentCache.get(cacheKey);
+      if (cached && cached.hash === contentHash) {
+        sandpackFiles[path] = cached.processed;
+        continue;
+      }
+      
+      // Process file
       let content = file.content;
       if (injectVisualEditor && path.match(/\.(jsx|tsx)$/)) {
         content = injectSourceMapping(content, path);
       }
       
+      // Cache the processed content
+      fileContentCache.set(cacheKey, { hash: contentHash, processed: content });
       sandpackFiles[path] = content;
     }
+  }
+  
+  // Limit cache size to prevent memory leaks
+  if (fileContentCache.size > 200) {
+    const keysToDelete = Array.from(fileContentCache.keys()).slice(0, 50);
+    keysToDelete.forEach(key => fileContentCache.delete(key));
   }
   
   // Ensure we have required files for React template
