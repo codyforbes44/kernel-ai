@@ -14,11 +14,14 @@ import {
   ArrowRight,
   RotateCcw,
   Pencil,
+  BookmarkPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +41,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useAgentHistory } from '@/hooks/useAgentHistory';
+import { useTemplates } from '@/hooks/useTemplates';
+import { useToast } from '@/hooks/use-toast';
 import type { AgentSession, AgentStatus } from '@/types/agent';
+import type { TemplateCategory } from '@/types/database';
 
 interface AgentHistoryPanelProps {
   projectId: string;
@@ -65,11 +78,13 @@ function SessionCard({
   onDelete,
   onRestore,
   onRerun,
+  onSaveAsTemplate,
 }: {
   session: AgentSession;
   onDelete: () => void;
   onRestore?: () => void;
   onRerun?: (request: string) => void;
+  onSaveAsTemplate?: (session: AgentSession) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [rerunDialogOpen, setRerunDialogOpen] = useState(false);
@@ -211,6 +226,17 @@ function SessionCard({
                     View Changes
                   </Button>
                 )}
+                {onSaveAsTemplate && (
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => onSaveAsTemplate(session)} 
+                    className="gap-1"
+                  >
+                    <BookmarkPlus className="w-3 h-3" />
+                    Save Template
+                  </Button>
+                )}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
@@ -281,6 +307,17 @@ function SessionCard({
   );
 }
 
+const TEMPLATE_CATEGORIES: { value: TemplateCategory; label: string }[] = [
+  { value: 'custom', label: 'Custom' },
+  { value: 'component', label: 'Component' },
+  { value: 'refactor', label: 'Refactor' },
+  { value: 'debug', label: 'Debug' },
+  { value: 'database', label: 'Database' },
+  { value: 'edge_function', label: 'Edge Function' },
+  { value: 'ui_ux', label: 'UI/UX' },
+  { value: 'performance', label: 'Performance' },
+];
+
 export function AgentHistoryPanel({
   projectId,
   onRestoreSession,
@@ -288,6 +325,56 @@ export function AgentHistoryPanel({
   onClose,
 }: AgentHistoryPanelProps) {
   const { sessions, isLoading, deleteSession, clearHistory } = useAgentHistory(projectId);
+  const { createTemplate } = useTemplates();
+  const { toast } = useToast();
+  
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  const [templateSession, setTemplateSession] = useState<AgentSession | null>(null);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [templateCategory, setTemplateCategory] = useState<TemplateCategory>('custom');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveAsTemplate = (session: AgentSession) => {
+    setTemplateSession(session);
+    setTemplateName(session.originalRequest.slice(0, 50) + (session.originalRequest.length > 50 ? '...' : ''));
+    setTemplateDescription(`Agent task with ${session.appliedOperations.length} file changes`);
+    setTemplateCategory('custom');
+    setTemplateDialogOpen(true);
+  };
+
+  const handleCreateTemplate = async () => {
+    if (!templateSession || !templateName.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      const result = await createTemplate({
+        name: templateName.trim(),
+        description: templateDescription.trim() || undefined,
+        content: templateSession.originalRequest,
+        category: templateCategory,
+      });
+      
+      if (result) {
+        toast({
+          title: 'Template saved',
+          description: 'Your agent task has been saved as a template.',
+        });
+        setTemplateDialogOpen(false);
+        setTemplateSession(null);
+        setTemplateName('');
+        setTemplateDescription('');
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to save template. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -350,12 +437,85 @@ export function AgentHistoryPanel({
                   onDelete={() => deleteSession(session.id)}
                   onRestore={onRestoreSession ? () => onRestoreSession(session) : undefined}
                   onRerun={onRerunSession}
+                  onSaveAsTemplate={handleSaveAsTemplate}
                 />
               ))}
             </AnimatePresence>
           )}
         </div>
       </ScrollArea>
+      
+      {/* Save as Template Dialog */}
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Save as Template</DialogTitle>
+            <DialogDescription>
+              Save this agent task as a reusable template for similar tasks.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Name</Label>
+              <Input
+                id="template-name"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Template name..."
+                maxLength={100}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-description">Description (optional)</Label>
+              <Input
+                id="template-description"
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="Brief description..."
+                maxLength={200}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-category">Category</Label>
+              <Select value={templateCategory} onValueChange={(v) => setTemplateCategory(v as TemplateCategory)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEMPLATE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Request Content</Label>
+              <div className="p-3 bg-muted rounded-md text-sm max-h-32 overflow-y-auto">
+                {templateSession?.originalRequest}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateTemplate}
+              disabled={!templateName.trim() || isSaving}
+              className="gap-1"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <BookmarkPlus className="w-4 h-4" />
+              )}
+              Save Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
