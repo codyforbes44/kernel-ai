@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_sessions: {
+        Row: {
+          applied_operations: Json
+          completed_at: string | null
+          created_at: string
+          id: string
+          iteration_count: number
+          max_iterations: number
+          original_request: string
+          pending_operations: Json
+          project_id: string
+          started_at: string
+          status: string
+          steps: Json
+          thinking: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_operations?: Json
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          iteration_count?: number
+          max_iterations?: number
+          original_request: string
+          pending_operations?: Json
+          project_id: string
+          started_at?: string
+          status?: string
+          steps?: Json
+          thinking?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_operations?: Json
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          iteration_count?: number
+          max_iterations?: number
+          original_request?: string
+          pending_operations?: Json
+          project_id?: string
+          started_at?: string
+          status?: string
+          steps?: Json
+          thinking?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_credit_transactions: {
         Row: {
           amount: number
