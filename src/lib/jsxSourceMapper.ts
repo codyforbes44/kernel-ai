@@ -5,11 +5,21 @@
  * This enables the visual editor to precisely locate elements in source code.
  */
 
-interface SourceMapping {
+export interface SourceMapping {
   filePath: string;
   lineNumber: number;
   columnNumber: number;
   elementId: string;
+}
+
+// Track elements per file for consistent IDs across hot reloads
+const elementCounters = new Map<string, number>();
+
+/**
+ * Reset element counters (call when files change significantly)
+ */
+export function resetSourceMappingCounters(): void {
+  elementCounters.clear();
 }
 
 /**
@@ -22,21 +32,49 @@ export function injectSourceMapping(content: string, filePath: string): string {
     return content;
   }
 
-  let elementCounter = 0;
+  // Reset counter for this file
+  elementCounters.set(filePath, 0);
+
   const lines = content.split('\n');
   const result: string[] = [];
+  let inJSXReturn = false;
+  let braceDepth = 0;
+  let parenDepth = 0;
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     let line = lines[lineIndex];
     const lineNumber = lineIndex + 1;
     
+    // Track if we're in a return statement or JSX expression
+    if (line.includes('return (') || line.includes('return(')) {
+      inJSXReturn = true;
+      parenDepth = 1;
+    }
+    
+    // Track brace and paren depth
+    for (const char of line) {
+      if (char === '{') braceDepth++;
+      if (char === '}') braceDepth--;
+      if (char === '(') parenDepth++;
+      if (char === ')') parenDepth--;
+    }
+    
     // Find JSX opening tags and inject data attributes
     line = processLine(line, filePath, lineNumber, () => {
-      elementCounter++;
-      return `${filePath.replace(/^\//, '')}-${lineNumber}-${elementCounter}`;
+      const count = (elementCounters.get(filePath) || 0) + 1;
+      elementCounters.set(filePath, count);
+      
+      // Create a stable ID based on file path, line, and element count
+      const cleanPath = filePath.replace(/^\//, '').replace(/[^a-zA-Z0-9]/g, '_');
+      return `${cleanPath}_L${lineNumber}_E${count}`;
     });
     
     result.push(line);
+    
+    // Reset JSX tracking at end of return
+    if (inJSXReturn && parenDepth === 0) {
+      inJSXReturn = false;
+    }
   }
 
   return result.join('\n');
@@ -51,48 +89,82 @@ function processLine(
   lineNumber: number,
   generateId: () => string
 ): string {
-  // Match JSX opening tags (but not self-closing fragments or components without attributes)
+  // Don't process import statements, comments, or type definitions
+  if (line.trim().startsWith('import ') || 
+      line.trim().startsWith('//') || 
+      line.trim().startsWith('/*') ||
+      line.trim().startsWith('*') ||
+      line.trim().startsWith('type ') ||
+      line.trim().startsWith('interface ') ||
+      line.trim().startsWith('export type ') ||
+      line.trim().startsWith('export interface ')) {
+    return line;
+  }
+
+  // Match JSX opening tags
   // This regex matches: <tagName or <TagName followed by space, > or attributes
-  const jsxTagRegex = /(<[a-zA-Z][a-zA-Z0-9]*)([\s>])/g;
+  // But not: < inside a string, </ closing tags, or fragment <>
+  const jsxTagRegex = /<([a-zA-Z][a-zA-Z0-9.]*)(?=[\s/>])/g;
   
   let match;
   let result = line;
   let offset = 0;
   
-  // Find all JSX tags in the line
-  const matches: Array<{ index: number; tag: string; suffix: string }> = [];
+  // Collect all matches first
+  const matches: Array<{ index: number; fullMatch: string; tagName: string }> = [];
+  
   while ((match = jsxTagRegex.exec(line)) !== null) {
-    const tag = match[1];
-    const suffix = match[2];
+    const fullMatch = match[0];
+    const tagName = match[1];
     
-    // Skip certain tags
-    if (shouldSkipTag(tag)) {
+    // Skip certain tags and patterns
+    if (shouldSkipTag(tagName)) {
+      continue;
+    }
+    
+    // Skip if this appears to be inside a string
+    const beforeMatch = line.substring(0, match.index);
+    if (isInsideString(beforeMatch)) {
+      continue;
+    }
+    
+    // Skip if already has data-lovable-id
+    const afterMatch = line.substring(match.index + fullMatch.length);
+    if (afterMatch.trimStart().startsWith('data-lovable-id')) {
       continue;
     }
     
     matches.push({
       index: match.index,
-      tag,
-      suffix,
+      fullMatch,
+      tagName,
     });
   }
   
   // Process matches in reverse order to maintain correct indices
   for (let i = matches.length - 1; i >= 0; i--) {
-    const { index, tag, suffix } = matches[i];
+    const { index, fullMatch, tagName } = matches[i];
     const elementId = generateId();
     const columnNumber = index + 1;
     
     // Create data attributes
     const dataAttrs = createDataAttributes(filePath, lineNumber, columnNumber, elementId);
     
-    // Inject attributes
-    if (suffix === '>') {
-      // Tag closes immediately: <div> -> <div data-attrs>
-      result = result.slice(0, index + tag.length) + ' ' + dataAttrs + result.slice(index + tag.length);
+    // Find where to inject (after tag name, before space/> or first attribute)
+    const insertPosition = index + fullMatch.length;
+    
+    // Check what follows the tag name
+    const nextChar = line[insertPosition];
+    
+    if (nextChar === '>' || nextChar === '/') {
+      // Self-closing or immediate close: <div> or <div/>
+      result = result.slice(0, insertPosition) + ' ' + dataAttrs + result.slice(insertPosition);
+    } else if (nextChar === ' ' || nextChar === '\n' || nextChar === '\t') {
+      // Has attributes or whitespace: <div className...
+      result = result.slice(0, insertPosition) + ' ' + dataAttrs + result.slice(insertPosition);
     } else {
-      // Tag has space/attributes: <div className -> <div data-attrs className
-      result = result.slice(0, index + tag.length) + ' ' + dataAttrs + result.slice(index + tag.length);
+      // Fallback - insert with space
+      result = result.slice(0, insertPosition) + ' ' + dataAttrs + ' ' + result.slice(insertPosition);
     }
   }
   
@@ -100,25 +172,59 @@ function processLine(
 }
 
 /**
+ * Check if position is inside a string
+ */
+function isInsideString(text: string): boolean {
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let inTemplateLiteral = false;
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const prevChar = i > 0 ? text[i - 1] : '';
+    
+    if (char === "'" && prevChar !== '\\' && !inDoubleQuote && !inTemplateLiteral) {
+      inSingleQuote = !inSingleQuote;
+    } else if (char === '"' && prevChar !== '\\' && !inSingleQuote && !inTemplateLiteral) {
+      inDoubleQuote = !inDoubleQuote;
+    } else if (char === '`' && prevChar !== '\\') {
+      inTemplateLiteral = !inTemplateLiteral;
+    }
+  }
+  
+  return inSingleQuote || inDoubleQuote || inTemplateLiteral;
+}
+
+/**
  * Check if a tag should be skipped for source mapping
  */
-function shouldSkipTag(tag: string): boolean {
+function shouldSkipTag(tagName: string): boolean {
   const skipTags = [
-    '<React',
-    '<Fragment',
-    '<Suspense',
-    '<StrictMode',
-    '<Provider',
-    '<Router',
-    '<Route',
-    '<Switch',
-    '<Link',
-    '<NavLink',
-    '<Outlet',
-    '<ErrorBoundary',
+    'React',
+    'Fragment',
+    'Suspense',
+    'StrictMode',
+    'Provider',
+    'Router',
+    'BrowserRouter',
+    'HashRouter',
+    'MemoryRouter',
+    'Route',
+    'Routes',
+    'Switch',
+    'Link',
+    'NavLink',
+    'Outlet',
+    'ErrorBoundary',
+    'QueryClientProvider',
+    'ThemeProvider',
+    'Toaster',
+    'TooltipProvider',
+    'HelmetProvider',
+    'Helmet',
   ];
   
-  return skipTags.some(skip => tag.startsWith(skip));
+  return skipTags.includes(tagName);
 }
 
 /**
@@ -170,4 +276,39 @@ export function parseSourceMapping(element: HTMLElement): SourceMapping | null {
  */
 export function formatSourceLocation(mapping: SourceMapping): string {
   return `${mapping.filePath}:${mapping.lineNumber}:${mapping.columnNumber}`;
+}
+
+/**
+ * Find an element in source code by its source mapping
+ */
+export function findElementInSource(
+  content: string, 
+  mapping: SourceMapping
+): { line: string; lineNumber: number; startColumn: number; endColumn: number } | null {
+  const lines = content.split('\n');
+  const lineIndex = mapping.lineNumber - 1;
+  
+  if (lineIndex < 0 || lineIndex >= lines.length) {
+    return null;
+  }
+  
+  const line = lines[lineIndex];
+  
+  // Try to find the JSX tag at approximately the right column
+  const tagMatch = line.match(/<[a-zA-Z][a-zA-Z0-9.]*/);
+  if (tagMatch && tagMatch.index !== undefined) {
+    return {
+      line,
+      lineNumber: mapping.lineNumber,
+      startColumn: tagMatch.index + 1,
+      endColumn: tagMatch.index + tagMatch[0].length,
+    };
+  }
+  
+  return {
+    line,
+    lineNumber: mapping.lineNumber,
+    startColumn: mapping.columnNumber,
+    endColumn: line.length,
+  };
 }
