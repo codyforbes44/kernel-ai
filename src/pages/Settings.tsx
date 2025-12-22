@@ -93,6 +93,18 @@ export default function Settings() {
       toast.success('Welcome to Pro! Your subscription is now active.');
       checkSubscription();
     }
+    // Handle credit purchase success
+    const creditsPurchased = searchParams.get('credits_purchased');
+    if (creditsPurchased) {
+      toast.success(`Successfully purchased ${parseInt(creditsPurchased).toLocaleString()} credits!`);
+      // Clear the URL param
+      window.history.replaceState({}, '', '/settings');
+    }
+    // Handle credit purchase cancellation
+    if (searchParams.get('credits_cancelled') === 'true') {
+      toast.info('Credit purchase was cancelled.');
+      window.history.replaceState({}, '', '/settings');
+    }
   }, [searchParams, checkSubscription]);
 
   // Load profile data on mount
