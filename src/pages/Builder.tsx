@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2, Users } from 'lucide-react';
+import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2, Users, Upload } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
 import { ProjectsGridSkeleton } from '@/components/builder/BuilderSkeletons';
@@ -33,14 +33,17 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getSoftwareApplicationSchema, SEO_CONFIG, BREADCRUMBS } from '@/lib/seo';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
+import { ImportProjectDialog } from '@/components/dialogs/ImportProjectDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { BuilderProject } from '@/types/builder';
 
 export default function Builder() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useProtectedPage();
-  const { projects, createProject, remixProject, isRemixing, isLoading } = useBuilderProject();
+  const { projects, createProject, createProjectFromFiles, remixProject, isRemixing, isLoading } = useBuilderProject();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate>(PROJECT_TEMPLATES[0]);
   
@@ -103,6 +106,22 @@ export default function Builder() {
     }
   };
 
+  const handleImport = useCallback(async (
+    name: string, 
+    files: Array<{ path: string; name: string; content: string; type: 'file' | 'folder' }>
+  ) => {
+    setIsImporting(true);
+    try {
+      const result = await createProjectFromFiles({ name, files });
+      setShowImportDialog(false);
+      if (result) {
+        navigate(`/builder/${result.id}`);
+      }
+    } finally {
+      setIsImporting(false);
+    }
+  }, [createProjectFromFiles, navigate]);
+
   if (authLoading) {
     return <LoadingSpinner fullScreen />;
   }
@@ -138,10 +157,16 @@ export default function Builder() {
                 <Code2 className="h-5 w-5 text-primary-foreground" />
               </div>
             </div>
-            <Button onClick={handleOpenDialog} className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Project
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setShowImportDialog(true)} className="gap-2">
+                <Upload className="h-4 w-4" />
+                Import
+              </Button>
+              <Button onClick={handleOpenDialog} className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Project
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -314,6 +339,14 @@ export default function Builder() {
         isLoadingFileCount={isFetchingFileCount}
         onRemix={handleRemix}
         isRemixing={isRemixing}
+      />
+
+      {/* Import Dialog */}
+      <ImportProjectDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onImport={handleImport}
+        isImporting={isImporting}
       />
     </div>
   );

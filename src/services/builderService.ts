@@ -130,6 +130,53 @@ export const builderService = {
     return newProject as BuilderProject;
   },
 
+  async createProjectFromFiles(params: {
+    userId: string;
+    name: string;
+    files: Array<{
+      path: string;
+      name: string;
+      content: string;
+      type: 'file' | 'folder';
+    }>;
+  }) {
+    const { data: newProject, error: projectError } = await supabase
+      .from('builder_projects')
+      .insert({
+        user_id: params.userId,
+        name: params.name,
+        template: 'imported',
+      })
+      .select()
+      .single();
+
+    if (projectError) throw projectError;
+
+    // Create imported files
+    const filesToInsert = params.files.map((file) => ({
+      project_id: newProject.id,
+      path: file.path,
+      name: file.name,
+      type: file.type,
+      language: file.type === 'file' ? getLanguageFromPath(file.path) : null,
+      is_entry_point: file.name === 'App.tsx' || file.name === 'main.tsx',
+      content: file.content,
+    }));
+
+    // Insert files in batches to avoid hitting limits
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < filesToInsert.length; i += BATCH_SIZE) {
+      const batch = filesToInsert.slice(i, i + BATCH_SIZE);
+      const { error: filesError } = await supabase
+        .from('project_files')
+        .insert(batch);
+
+      if (filesError) throw filesError;
+    }
+
+    return newProject as BuilderProject;
+  },
+
   // Files
   async getFiles(projectId: string) {
     const { data, error } = await supabase
