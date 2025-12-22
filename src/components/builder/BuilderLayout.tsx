@@ -15,12 +15,12 @@ import { PanelRenderer } from './PanelRenderer';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
+import { BuilderLoadingSkeleton, FileExplorerSkeleton, EditorSkeleton, PreviewSkeleton, PanelSkeleton } from './BuilderSkeletons';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { usePanelManager, PanelType } from '@/hooks/usePanelManager';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { createFileVersion } from '@/hooks/useFileVersions';
 import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -229,14 +229,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   }, [handleSave]);
 
   if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <LoadingSpinner size="lg" />
-          <p className="text-sm text-muted-foreground">Loading project...</p>
-        </div>
-      </div>
-    );
+    return <BuilderLoadingSkeleton />;
   }
 
   // Mobile layout

@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Plus, Folder, Clock, ArrowRight, Code2, Sparkles, MoreHorizontal, Copy, ExternalLink, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { TemplatePicker } from '@/components/builder/TemplatePicker';
+import { ProjectsGridSkeleton } from '@/components/builder/BuilderSkeletons';
 import { PROJECT_TEMPLATES, ProjectTemplate } from '@/lib/projectTemplates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -131,9 +132,7 @@ export default function Builder() {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <LoadingSpinner />
-          </div>
+          <ProjectsGridSkeleton count={6} />
         ) : projects.length === 0 ? (
           /* Empty State */
           <Card className="border-dashed">
