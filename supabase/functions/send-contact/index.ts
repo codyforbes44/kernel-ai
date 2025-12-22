@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +32,27 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Processing contact form submission:", { name, email, subject });
+
+    // Always store submission in database
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { error: dbError } = await supabase
+      .from("contact_submissions")
+      .insert({
+        name,
+        email,
+        subject,
+        message,
+        status: "pending",
+      });
+
+    if (dbError) {
+      console.error("Failed to store submission in database:", dbError);
+    } else {
+      console.log("Submission stored in database");
+    }
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
@@ -73,12 +95,11 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     } else {
-      // Fallback: Log and return success when Resend is not configured
-      console.log("RESEND_API_KEY not configured, logging submission");
-      console.log("Contact form submission:", { name, email, subject, message: message.substring(0, 100) });
+      // Fallback: Stored in database only
+      console.log("RESEND_API_KEY not configured, submission stored in database only");
 
       return new Response(
-        JSON.stringify({ success: true, method: "logged", note: "Email sending not configured - submission logged" }),
+        JSON.stringify({ success: true, method: "stored", note: "Submission saved - email notification not configured" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }

@@ -305,6 +305,42 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_read: boolean
+          message: string
+          name: string
+          responded_at: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_read?: boolean
+          message: string
+          name: string
+          responded_at?: string | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          name?: string
+          responded_at?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           branch_point_message_id: string | null
