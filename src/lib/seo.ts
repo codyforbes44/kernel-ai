@@ -222,12 +222,8 @@ export const getProductSchema = (siteUrl: string) => ({
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
     "priceValidUntil": "2025-12-31"
-  },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "reviewCount": "150"
   }
+  // Note: aggregateRating removed - will be added when real reviews are collected
 });
 
 // Web Page Schema

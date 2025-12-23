@@ -59,36 +59,7 @@ const milestones = [
   },
 ];
 
-const team = [
-  {
-    name: "Alex Chen",
-    role: "Founder & CEO",
-    bio: "Former Google engineer passionate about developer experience.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
-    x: "https://x.com/kernel_cool",
-  },
-  {
-    name: "Sarah Martinez",
-    role: "CTO",
-    bio: "AI researcher turned builder. Making AI accessible to all developers.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
-    x: "https://x.com/kernel_cool",
-  },
-  {
-    name: "Marcus Johnson",
-    role: "Head of Product",
-    bio: "Obsessed with creating delightful user experiences.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=marcus",
-    x: "https://x.com/kernel_cool",
-  },
-  {
-    name: "Emily Wong",
-    role: "Lead Engineer",
-    bio: "Full-stack wizard who loves solving complex problems.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=emily",
-    x: "https://x.com/kernel_cool",
-  },
-];
+// Team section data removed - will be populated with real team data when available
 
 export default function About() {
   return (
