@@ -1,43 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-
-export type PanelType =
-  | 'ai-chat'
-  | 'ai-assets'
-  | 'agent'
-  | 'history'
-  | 'deployments'
-  | 'github'
-  | 'design-system'
-  | 'marketplace'
-  | 'knowledge-base'
-  | 'storage'
-  | 'database'
-  | 'security'
-  | 'x-automation'
-  | null;
-
-interface PanelConfig {
-  id: PanelType;
-  defaultSize: number;
-  minSize: number;
-  maxSize: number;
-}
-
-const PANEL_CONFIGS: Record<Exclude<PanelType, null>, PanelConfig> = {
-  'ai-chat': { id: 'ai-chat', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'ai-assets': { id: 'ai-assets', defaultSize: 30, minSize: 25, maxSize: 45 },
-  'agent': { id: 'agent', defaultSize: 30, minSize: 25, maxSize: 50 },
-  'history': { id: 'history', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'deployments': { id: 'deployments', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'github': { id: 'github', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'design-system': { id: 'design-system', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'marketplace': { id: 'marketplace', defaultSize: 30, minSize: 25, maxSize: 50 },
-  'knowledge-base': { id: 'knowledge-base', defaultSize: 25, minSize: 20, maxSize: 40 },
-  'storage': { id: 'storage', defaultSize: 30, minSize: 25, maxSize: 50 },
-  'database': { id: 'database', defaultSize: 50, minSize: 35, maxSize: 70 },
-  'security': { id: 'security', defaultSize: 40, minSize: 30, maxSize: 60 },
-  'x-automation': { id: 'x-automation', defaultSize: 30, minSize: 25, maxSize: 50 },
-};
+import { panelRegistry, type PanelId, type PanelType, type PanelSizeConfig } from '@/registry/panelRegistry';
 
 export interface UsePanelManagerReturn {
   activePanel: PanelType;
@@ -50,7 +12,10 @@ export interface UsePanelManagerReturn {
   togglePreview: () => void;
   
   isPanelActive: (panel: PanelType) => boolean;
-  getPanelConfig: (panel: Exclude<PanelType, null>) => PanelConfig;
+  getPanelConfig: (panel: PanelId) => PanelSizeConfig;
+  
+  /** Get all available panel IDs */
+  availablePanels: PanelId[];
 }
 
 export function usePanelManager(initialPanel: PanelType = 'ai-chat'): UsePanelManagerReturn {
@@ -78,9 +43,11 @@ export function usePanelManager(initialPanel: PanelType = 'ai-chat'): UsePanelMa
     return activePanel === panel;
   }, [activePanel]);
 
-  const getPanelConfig = useCallback((panel: Exclude<PanelType, null>) => {
-    return PANEL_CONFIGS[panel];
+  const getPanelConfig = useCallback((panel: PanelId): PanelSizeConfig => {
+    return panelRegistry.getSizeConfig(panel);
   }, []);
+
+  const availablePanels = useMemo(() => panelRegistry.getAllIds(), []);
 
   return useMemo(() => ({
     activePanel,
@@ -92,5 +59,9 @@ export function usePanelManager(initialPanel: PanelType = 'ai-chat'): UsePanelMa
     togglePreview,
     isPanelActive,
     getPanelConfig,
-  }), [activePanel, showExplorer, showPreview, togglePanel, setActivePanel, toggleExplorer, togglePreview, isPanelActive, getPanelConfig]);
+    availablePanels,
+  }), [activePanel, showExplorer, showPreview, togglePanel, setActivePanel, toggleExplorer, togglePreview, isPanelActive, getPanelConfig, availablePanels]);
 }
+
+// Re-export types for convenience
+export type { PanelId, PanelType, PanelSizeConfig };
