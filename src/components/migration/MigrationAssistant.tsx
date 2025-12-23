@@ -66,6 +66,8 @@ export function MigrationAssistant() {
             onFilesChange={setFiles}
             onPastedCodeChange={setPastedCode}
             onImportUrlChange={setImportUrl}
+            detectionResult={state.detectionResult}
+            isAnalyzing={state.isAnalyzing}
           />
         );
       case 'features':
