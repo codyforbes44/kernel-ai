@@ -13,20 +13,23 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
+// Core pages - keep static for fast initial load
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
-import Pricing from "./pages/Pricing";
-import Contact from "./pages/Contact";
-import About from "./pages/About";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Changelog from "./pages/Changelog";
-import Documentation from "./pages/Documentation";
-import Tutorials from "./pages/Tutorials";
-import Security from "./pages/Security";
-import Compare from "./pages/Compare";
+
+// Lazy load all other pages for better FCP
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Contact = lazy(() => import("./pages/Contact"));
+const About = lazy(() => import("./pages/About"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Changelog = lazy(() => import("./pages/Changelog"));
+const Documentation = lazy(() => import("./pages/Documentation"));
+const Tutorials = lazy(() => import("./pages/Tutorials"));
+const Security = lazy(() => import("./pages/Security"));
+const Compare = lazy(() => import("./pages/Compare"));
 
 // Lazy load heavy pages
 const Admin = lazy(() => import("./pages/Admin"));
@@ -83,20 +86,20 @@ const App = () => (
                 <CommandPalette />
                 <Routes>
                   <Route path="/" element={<Landing />} />
-                  <Route path="/pricing" element={<Pricing />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/changelog" element={<Changelog />} />
-                  <Route path="/docs" element={<Documentation />} />
-                  <Route path="/tutorials" element={<Tutorials />} />
-                  <Route path="/security" element={<Security />} />
-                  <Route path="/compare" element={<Compare />} />
-                  <Route path="/assistant" element={<Index />} />
+                  <Route path="/pricing" element={<Suspense fallback={<LoadingFallback />}><Pricing /></Suspense>} />
+                  <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><Contact /></Suspense>} />
+                  <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><About /></Suspense>} />
+                  <Route path="/privacy" element={<Suspense fallback={<LoadingFallback />}><Privacy /></Suspense>} />
+                  <Route path="/terms" element={<Suspense fallback={<LoadingFallback />}><Terms /></Suspense>} />
+                  <Route path="/changelog" element={<Suspense fallback={<LoadingFallback />}><Changelog /></Suspense>} />
+                  <Route path="/docs" element={<Suspense fallback={<LoadingFallback />}><Documentation /></Suspense>} />
+                  <Route path="/tutorials" element={<Suspense fallback={<LoadingFallback />}><Tutorials /></Suspense>} />
+                  <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><Security /></Suspense>} />
+                  <Route path="/compare" element={<Suspense fallback={<LoadingFallback />}><Compare /></Suspense>} />
+                  <Route path="/assistant" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
                   {/* Legacy redirect for backwards compatibility */}
-                  <Route path="/dashboard" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/dashboard" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
+                  <Route path="/auth" element={<Suspense fallback={<LoadingFallback />}><Auth /></Suspense>} />
                   <Route
                     path="/onboarding"
                     element={
