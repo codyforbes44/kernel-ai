@@ -29,6 +29,8 @@ const Changelog = lazy(() => import("./pages/Changelog"));
 const Documentation = lazy(() => import("./pages/Documentation"));
 const Tutorials = lazy(() => import("./pages/Tutorials"));
 const TutorialDetail = lazy(() => import("./pages/TutorialDetail"));
+const DocCategory = lazy(() => import("./pages/DocCategory"));
+const DocDetail = lazy(() => import("./pages/DocDetail"));
 const Security = lazy(() => import("./pages/Security"));
 const Compare = lazy(() => import("./pages/Compare"));
 
@@ -94,7 +96,10 @@ const App = () => (
                   <Route path="/terms" element={<Suspense fallback={<LoadingFallback />}><Terms /></Suspense>} />
                   <Route path="/changelog" element={<Suspense fallback={<LoadingFallback />}><Changelog /></Suspense>} />
                   <Route path="/docs" element={<Suspense fallback={<LoadingFallback />}><Documentation /></Suspense>} />
+                  <Route path="/docs/:categorySlug" element={<Suspense fallback={<LoadingFallback />}><DocCategory /></Suspense>} />
+                  <Route path="/docs/:categorySlug/:slug" element={<Suspense fallback={<LoadingFallback />}><DocDetail /></Suspense>} />
                   <Route path="/tutorials" element={<Suspense fallback={<LoadingFallback />}><Tutorials /></Suspense>} />
+                  <Route path="/tutorials/:slug" element={<Suspense fallback={<LoadingFallback />}><TutorialDetail /></Suspense>} />
                   <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><Security /></Suspense>} />
                   <Route path="/compare" element={<Suspense fallback={<LoadingFallback />}><Compare /></Suspense>} />
                   <Route path="/assistant" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />

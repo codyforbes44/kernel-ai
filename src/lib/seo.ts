@@ -507,3 +507,47 @@ export const toISODate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toISOString();
 };
+
+// Documentation article SEO helper
+export interface DocArticleSEO {
+  title: string;
+  description: string;
+  category: string;
+  categorySlug: string;
+  slug: string;
+  readTime: string;
+  lastUpdated: string;
+}
+
+export const getDocumentationSEO = (doc: DocArticleSEO) => ({
+  title: `${doc.title} | Kernel Documentation`,
+  description: doc.description,
+  ogImage: '/og-images/docs.png',
+  keywords: [doc.category.toLowerCase(), 'documentation', 'guide', 'kernel', doc.title.toLowerCase()],
+  canonical: `/docs/${doc.categorySlug}/${doc.slug}`,
+});
+
+export const getDocCategorySEO = (category: { title: string; slug: string; description: string }) => ({
+  title: `${category.title} Documentation | Kernel`,
+  description: category.description,
+  ogImage: '/og-images/docs.png',
+  keywords: [category.title.toLowerCase(), 'documentation', 'guide', 'kernel'],
+  canonical: `/docs/${category.slug}`,
+});
+
+// Tutorial SEO helper
+export interface TutorialSEO {
+  title: string;
+  description: string;
+  slug: string;
+  difficulty: string;
+  duration: string;
+}
+
+export const getTutorialSEO = (tutorial: TutorialSEO) => ({
+  title: `${tutorial.title} | Kernel Tutorials`,
+  description: tutorial.description,
+  ogImage: '/og-images/tutorials.png',
+  keywords: ['tutorial', tutorial.difficulty.toLowerCase(), 'guide', 'kernel', tutorial.title.toLowerCase()],
+  canonical: `/tutorials/${tutorial.slug}`,
+});
