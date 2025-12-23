@@ -1,7 +1,7 @@
 // Migration data for competitor platforms
 import { Zap, Palette, Code2, Terminal, Github, FileCode2, LucideIcon } from 'lucide-react';
 
-export type ImportMethod = 'zip' | 'github' | 'paste' | 'url';
+export type ImportMethod = 'zip' | 'github' | 'paste' | 'url' | 'shareCode';
 
 export interface MigrationPlatform {
   id: string;
@@ -93,7 +93,7 @@ export const migrationPlatforms: MigrationPlatform[] = [
     icon: Code2,
     color: 'hsl(280, 100%, 60%)',
     gradient: 'from-purple-500 to-pink-500',
-    importMethods: ['github', 'zip'],
+    importMethods: ['shareCode', 'github', 'zip'],
     featuresGained: [
       'Enhanced AI with multi-model support',
       'Larger context window for complex projects',
@@ -102,11 +102,13 @@ export const migrationPlatforms: MigrationPlatform[] = [
       'Priority support and faster responses',
     ],
     migrationTips: [
+      'Use a Lovable project URL or share code',
       'Connect your GitHub repo directly',
       'Your Supabase connection carries over',
       'All shadcn components are compatible',
     ],
     filePatterns: [],
+    urlPattern: /lovable\.dev\/projects\/[a-zA-Z0-9-]+/,
   },
   {
     id: 'cursor',
@@ -264,6 +266,10 @@ export const importMethodLabels: Record<ImportMethod, { label: string; descripti
   url: {
     label: 'Import from URL',
     description: 'Enter a project or share URL',
+  },
+  shareCode: {
+    label: 'Share Code / URL',
+    description: 'Enter a Lovable project URL or share code',
   },
 };
 

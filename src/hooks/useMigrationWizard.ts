@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult } from '@/lib/migration-data';
+import { isValidLovableUrl, extractProjectId } from '@/lib/lovable-url';
+import { templateSharingService, SharedTemplate } from '@/services/templateSharingService';
 
 export type MigrationStep = 
   | 'platform'
@@ -18,6 +20,13 @@ const STEP_ORDER: MigrationStep[] = [
   'success',
 ];
 
+export interface ShareCodeData {
+  type: 'project' | 'template';
+  projectId?: string;
+  projectUrl?: string;
+  template?: SharedTemplate;
+}
+
 export interface MigrationState {
   currentStep: MigrationStep;
   selectedPlatform: MigrationPlatform | null;
@@ -25,6 +34,10 @@ export interface MigrationState {
   files: File[];
   pastedCode: string;
   importUrl: string;
+  shareCode: string;
+  shareCodeData: ShareCodeData | null;
+  shareCodeError: string | null;
+  isLookingUpShareCode: boolean;
   projectName: string;
   projectDescription: string;
   workspaceId: string | null;
@@ -45,6 +58,10 @@ const initialState: MigrationState = {
   files: [],
   pastedCode: '',
   importUrl: '',
+  shareCode: '',
+  shareCodeData: null,
+  shareCodeError: null,
+  isLookingUpShareCode: false,
   projectName: '',
   projectDescription: '',
   workspaceId: null,
@@ -115,6 +132,72 @@ export function useMigrationWizard() {
     setState(prev => ({ ...prev, importUrl: url }));
   }, []);
 
+  const setShareCode = useCallback((code: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      shareCode: code,
+      shareCodeError: null,
+      shareCodeData: null,
+    }));
+  }, []);
+
+  const lookupShareCode = useCallback(async (input: string) => {
+    if (!input.trim()) return;
+    
+    setState(prev => ({ ...prev, isLookingUpShareCode: true, shareCodeError: null }));
+    
+    try {
+      // Check if it's a Lovable URL
+      if (isValidLovableUrl(input)) {
+        const projectId = extractProjectId(input);
+        if (projectId) {
+          setState(prev => ({
+            ...prev,
+            isLookingUpShareCode: false,
+            shareCodeData: {
+              type: 'project',
+              projectId,
+              projectUrl: input,
+            },
+            projectName: `Imported Project`,
+          }));
+          return;
+        }
+      }
+      
+      // Otherwise treat as a template share code
+      const { template, error } = await templateSharingService.getByShareCode(input.trim());
+      
+      if (error || !template) {
+        setState(prev => ({
+          ...prev,
+          isLookingUpShareCode: false,
+          shareCodeError: 'Invalid or expired share code',
+          shareCodeData: null,
+        }));
+        return;
+      }
+      
+      setState(prev => ({
+        ...prev,
+        isLookingUpShareCode: false,
+        shareCodeData: {
+          type: 'template',
+          template,
+        },
+        projectName: template.template_name,
+        projectDescription: template.template_description || '',
+      }));
+    } catch {
+      setState(prev => ({
+        ...prev,
+        isLookingUpShareCode: false,
+        shareCodeError: 'Failed to lookup share code',
+        shareCodeData: null,
+      }));
+    }
+  }, []);
+
   const setProjectDetails = useCallback((details: Partial<Pick<MigrationState, 'projectName' | 'projectDescription' | 'workspaceId' | 'createConversation' | 'enableKnowledgeBase'>>) => {
     setState(prev => ({ ...prev, ...details }));
   }, []);
@@ -156,6 +239,7 @@ export function useMigrationWizard() {
         if (state.selectedMethod === 'paste') return state.pastedCode.trim().length > 0;
         if (state.selectedMethod === 'url') return state.importUrl.trim().length > 0;
         if (state.selectedMethod === 'github') return true;
+        if (state.selectedMethod === 'shareCode') return state.shareCodeData !== null;
         return false;
       case 'features':
         return true;
@@ -181,6 +265,8 @@ export function useMigrationWizard() {
     setFiles,
     setPastedCode,
     setImportUrl,
+    setShareCode,
+    lookupShareCode,
     setProjectDetails,
     setProcessing,
     setCreatedProject,
