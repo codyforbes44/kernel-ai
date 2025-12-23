@@ -11,7 +11,6 @@ import { BackToTopButton } from '@/components/ui/back-to-top-button';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
-import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
 import { 
   MessageSquare, 
@@ -165,9 +164,6 @@ export default function Landing() {
       {/* Product Showcase */}
       <ProductShowcase />
 
-      {/* Testimonials Section */}
-      <TestimonialsSection />
-
       {/* Platform Comparison Section */}
       <section id="comparison" className="py-20 px-4 bg-muted/30 scroll-mt-16">
         <div className="container mx-auto max-w-6xl">
@@ -204,7 +200,7 @@ export default function Landing() {
             Ready to Get Started?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-            Join thousands of developers building with AI. Create your free account and start building today.
+            Create your free account and start building with AI assistance today.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="gold" size="lg" className="h-12 px-8 text-base" asChild>
