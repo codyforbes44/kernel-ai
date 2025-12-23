@@ -62,3 +62,9 @@ verify_jwt = false
 
 [functions.agent-ai]
 verify_jwt = false
+
+[functions.generate-image]
+verify_jwt = false
+
+[functions.screenshot-to-code]
+verify_jwt = false
