@@ -21,6 +21,8 @@ interface EditorTabsProps {
   onTabSelect: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
   onSaveFile?: (tabId: string) => Promise<void>;
+  /** Enable mobile-optimized styling */
+  isMobile?: boolean;
 }
 
 export function EditorTabs({
@@ -29,6 +31,7 @@ export function EditorTabs({
   onTabSelect,
   onTabClose,
   onSaveFile,
+  isMobile = false,
 }: EditorTabsProps) {
   const [tabToClose, setTabToClose] = useState<OpenTab | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -70,10 +73,13 @@ export function EditorTabs({
 
   return (
     <>
-      <div className="h-10 bg-background border-b border-border flex-shrink-0">
+      <div className={cn(
+        "bg-background border-b border-border flex-shrink-0",
+        isMobile ? "h-12" : "h-10"
+      )}>
         <ScrollArea className="w-full">
           <div 
-            className="flex h-10" 
+            className={cn("flex", isMobile ? "h-12" : "h-10")}
             role="tablist" 
             aria-label="Open files"
             onKeyDown={(e) => {
@@ -97,8 +103,11 @@ export function EditorTabs({
               <div
                 key={tab.id}
                 className={cn(
-                  'group flex items-center gap-2 px-3 h-10 border-r border-border cursor-pointer',
+                  'group flex items-center gap-2 border-r border-border cursor-pointer',
                   'hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
+                  isMobile 
+                    ? 'px-4 h-12 min-w-[100px] touch-manipulation active:bg-muted' 
+                    : 'px-3 h-10',
                   activeTabId === tab.id 
                     ? 'bg-background border-b-2 border-b-primary' 
                     : 'bg-muted/30'
@@ -119,12 +128,20 @@ export function EditorTabs({
                 aria-controls={`tabpanel-${tab.id}`}
                 id={`tab-${tab.id}`}
               >
-                <span className="text-sm" aria-hidden="true">{getFileIcon(tab.name, 'file')}</span>
-                <span className="text-sm whitespace-nowrap flex items-center gap-1">
+                <span className={cn("text-sm", isMobile && "text-base")} aria-hidden="true">
+                  {getFileIcon(tab.name, 'file')}
+                </span>
+                <span className={cn(
+                  "whitespace-nowrap flex items-center gap-1",
+                  isMobile ? "text-sm font-medium" : "text-sm"
+                )}>
                   {tab.name}
                   {tab.isDirty && (
                     <span 
-                      className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" 
+                      className={cn(
+                        "inline-block rounded-full bg-primary animate-pulse",
+                        isMobile ? "w-2.5 h-2.5" : "w-2 h-2"
+                      )}
                       role="status"
                       aria-label="Unsaved changes"
                     />
@@ -132,15 +149,20 @@ export function EditorTabs({
                 </span>
                 <button
                   className={cn(
-                    'ml-1 p-0.5 rounded hover:bg-destructive/20 transition-colors',
-                    'opacity-0 group-hover:opacity-100 focus:opacity-100',
-                    activeTabId === tab.id && 'opacity-100'
+                    'rounded hover:bg-destructive/20 transition-colors',
+                    isMobile 
+                      ? 'ml-2 p-1.5 opacity-100' // Always visible on mobile with larger touch target
+                      : 'ml-1 p-0.5 opacity-0 group-hover:opacity-100 focus:opacity-100',
+                    activeTabId === tab.id && !isMobile && 'opacity-100'
                   )}
                   onClick={(e) => handleCloseClick(e, tab)}
                   aria-label={tab.isDirty ? `Close ${tab.name} (unsaved changes)` : `Close ${tab.name}`}
                   tabIndex={-1}
                 >
-                  <X className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" aria-hidden="true" />
+                  <X className={cn(
+                    "text-muted-foreground hover:text-destructive",
+                    isMobile ? "h-4 w-4" : "h-3.5 w-3.5"
+                  )} aria-hidden="true" />
                 </button>
               </div>
             ))}
