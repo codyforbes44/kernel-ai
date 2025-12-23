@@ -20,6 +20,7 @@ const footerSections: FooterSection[] = [
       { label: "Features", href: "/#features" },
       { label: "Pricing", href: "/pricing" },
       { label: "Changelog", href: "/changelog" },
+      { label: "Install App", href: "/install" },
     ],
   },
   {

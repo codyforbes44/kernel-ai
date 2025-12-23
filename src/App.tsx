@@ -35,6 +35,7 @@ const DocCategory = lazy(() => import("./pages/DocCategory"));
 const DocDetail = lazy(() => import("./pages/DocDetail"));
 const Security = lazy(() => import("./pages/Security"));
 const Compare = lazy(() => import("./pages/Compare"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Lazy load heavy pages
 const Admin = lazy(() => import("./pages/Admin"));
@@ -106,6 +107,7 @@ const App = () => (
                   <Route path="/tutorials/:slug" element={<Suspense fallback={<LoadingFallback />}><TutorialDetail /></Suspense>} />
                   <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><Security /></Suspense>} />
                   <Route path="/compare" element={<Suspense fallback={<LoadingFallback />}><Compare /></Suspense>} />
+                  <Route path="/install" element={<Suspense fallback={<LoadingFallback />}><Install /></Suspense>} />
                   <Route path="/assistant" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
                   {/* Legacy redirect for backwards compatibility */}
                   <Route path="/dashboard" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
