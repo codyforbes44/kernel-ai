@@ -222,7 +222,8 @@ ${transformed}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${safeProjectName}</title>
-  <meta name="description" content="${safeProjectName} - Built with AI">
+  <meta name="description" content="${safeProjectName} - Built with React, TypeScript, Tailwind, Vite & Supabase">
+  <meta name="generator" content="Lovable AI Builder">
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
