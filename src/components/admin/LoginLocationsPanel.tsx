@@ -24,6 +24,7 @@ interface LoginLocation {
 interface LoginLocationsPanelProps {
   locations: LoginLocation[];
   loading?: boolean;
+  onRefresh?: () => void;
 }
 
 const COLORS = [
@@ -35,7 +36,7 @@ const COLORS = [
   'hsl(var(--chart-5))',
 ];
 
-export function LoginLocationsPanel({ locations, loading }: LoginLocationsPanelProps) {
+export function LoginLocationsPanel({ locations, loading, onRefresh }: LoginLocationsPanelProps) {
   const countryBreakdown = useMemo(() => {
     const breakdown: Record<string, number> = {};
     locations.forEach(loc => {
