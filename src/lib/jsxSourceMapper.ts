@@ -101,6 +101,12 @@ function processLine(
     return line;
   }
 
+  // Skip lines that are clearly type annotations (const x: Type = ...)
+  // Look for patterns like `: React.FC<`, `: FunctionComponent<`, etc.
+  if (isTypeAnnotationLine(line)) {
+    return line;
+  }
+
   // Match JSX opening tags
   // This regex matches: <tagName or <TagName followed by space, > or attributes
   // But not: < inside a string, </ closing tags, or fragment <>
@@ -108,7 +114,6 @@ function processLine(
   
   let match;
   let result = line;
-  let offset = 0;
   
   // Collect all matches first
   const matches: Array<{ index: number; fullMatch: string; tagName: string }> = [];
@@ -122,11 +127,15 @@ function processLine(
       continue;
     }
     
-    // Skip if this is a TypeScript generic context (e.g., useState<boolean>, useRef<string>)
-    // Check if the character before '<' is alphanumeric or underscore
+    // Skip if this is inside a TypeScript generic context
+    if (isInsideGenericContext(line, match.index)) {
+      continue;
+    }
+    
+    // Skip if the character before '<' is alphanumeric (part of a generic like FC<)
     if (match.index > 0) {
       const charBeforeAngle = line[match.index - 1];
-      if (/[a-zA-Z0-9_]/.test(charBeforeAngle)) {
+      if (/[a-zA-Z0-9_.]/.test(charBeforeAngle)) {
         continue; // This is a generic type parameter, not JSX
       }
     }
@@ -152,7 +161,7 @@ function processLine(
   
   // Process matches in reverse order to maintain correct indices
   for (let i = matches.length - 1; i >= 0; i--) {
-    const { index, fullMatch, tagName } = matches[i];
+    const { index, fullMatch } = matches[i];
     const elementId = generateId();
     const columnNumber = index + 1;
     
@@ -178,6 +187,56 @@ function processLine(
   }
   
   return result;
+}
+
+/**
+ * Check if the line is primarily a type annotation line
+ * This catches patterns like: const Component: React.FC<Props> = ...
+ */
+function isTypeAnnotationLine(line: string): boolean {
+  // Match patterns like: `: React.FC<`, `: FC<`, `: FunctionComponent<`, etc.
+  const typeAnnotationPatterns = [
+    /:\s*(React\.)?FC\s*</,
+    /:\s*(React\.)?FunctionComponent\s*</,
+    /:\s*(React\.)?VFC\s*</,
+    /:\s*(React\.)?ComponentType\s*</,
+    /:\s*(React\.)?ComponentProps\s*</,
+    /:\s*(React\.)?PropsWithChildren\s*</,
+    /:\s*(React\.)?ForwardRefRenderFunction\s*</,
+    /:\s*(React\.)?MemoExoticComponent\s*</,
+    /:\s*(React\.)?LazyExoticComponent\s*</,
+    /:\s*(React\.)?ExoticComponent\s*</,
+    // Generic function type with generics
+    /:\s*<[A-Z][a-zA-Z0-9]*>/,
+  ];
+  
+  return typeAnnotationPatterns.some(pattern => pattern.test(line));
+}
+
+/**
+ * Check if the position is inside a TypeScript generic context (between < and >)
+ */
+function isInsideGenericContext(line: string, position: number): boolean {
+  let depth = 0;
+  
+  for (let i = 0; i < position; i++) {
+    const char = line[i];
+    const prevChar = i > 0 ? line[i - 1] : '';
+    
+    // Skip if inside string
+    if (isInsideString(line.substring(0, i + 1))) {
+      continue;
+    }
+    
+    // Check for generic opening with alphanumeric before it (like FC<, useState<)
+    if (char === '<' && /[a-zA-Z0-9_]/.test(prevChar)) {
+      depth++;
+    } else if (char === '>' && depth > 0) {
+      depth--;
+    }
+  }
+  
+  return depth > 0;
 }
 
 /**
@@ -208,6 +267,17 @@ function isInsideString(text: string): boolean {
  * Check if a tag should be skipped for source mapping
  */
 function shouldSkipTag(tagName: string): boolean {
+  // Skip if the name matches common type naming patterns
+  if (/Props$/.test(tagName) ||
+      /Type$/.test(tagName) ||
+      /State$/.test(tagName) ||
+      /Config$/.test(tagName) ||
+      /Options$/.test(tagName) ||
+      /Context$/.test(tagName) ||
+      /Interface$/.test(tagName)) {
+    return true;
+  }
+
   const skipTags = [
     // React internals
     'React',
@@ -232,7 +302,27 @@ function shouldSkipTag(tagName: string): boolean {
     'TooltipProvider',
     'HelmetProvider',
     'Helmet',
-    // TypeScript primitive types (in case generic detection misses them)
+    // React type utilities (commonly used in type annotations)
+    'FC',
+    'FunctionComponent',
+    'VFC',
+    'ComponentType',
+    'ComponentProps',
+    'PropsWithChildren',
+    'PropsWithRef',
+    'ForwardRefRenderFunction',
+    'MemoExoticComponent',
+    'LazyExoticComponent',
+    'ExoticComponent',
+    'RefObject',
+    'MutableRefObject',
+    'Ref',
+    'ForwardedRef',
+    'ReactNode',
+    'ReactElement',
+    'JSX',
+    'Element',
+    // TypeScript primitive types
     'boolean',
     'string',
     'number',
@@ -262,13 +352,26 @@ function shouldSkipTag(tagName: string): boolean {
     'Parameters',
     'NonNullable',
     'Awaited',
-    // Generic type parameters
+    'InstanceType',
+    'ConstructorParameters',
+    'ThisType',
+    'Uppercase',
+    'Lowercase',
+    'Capitalize',
+    'Uncapitalize',
+    // Generic type parameters (single letters commonly used)
     'T',
     'K',
     'V',
     'U',
     'P',
     'R',
+    'E',
+    'S',
+    'A',
+    'B',
+    'C',
+    'D',
   ];
   
   return skipTags.includes(tagName);
