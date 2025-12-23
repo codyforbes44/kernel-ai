@@ -14,10 +14,11 @@ import {
 interface AIAssetsPanelProps {
   projectId?: string;
   onInsertCode?: (code: string) => void;
+  initialTab?: 'generate' | 'screenshot' | 'library';
 }
 
-export function AIAssetsPanel({ projectId, onInsertCode }: AIAssetsPanelProps) {
-  const [activeTab, setActiveTab] = useState<'generate' | 'screenshot' | 'library'>('generate');
+export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate' }: AIAssetsPanelProps) {
+  const [activeTab, setActiveTab] = useState<'generate' | 'screenshot' | 'library'>(initialTab);
   const [selectedAsset, setSelectedAsset] = useState<GeneratedAsset | null>(null);
 
   const {

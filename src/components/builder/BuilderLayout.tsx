@@ -82,6 +82,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     showExplorer,
     showPreview,
     togglePanel,
+    setActivePanel,
     togglePreview,
     isPanelActive,
     getPanelConfig,
@@ -525,6 +526,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           onPreviewChange={handlePreviewChange}
           onInstallComponent={handleInstallComponent}
           togglePanel={togglePanel}
+          setActivePanel={setActivePanel}
           getPanelConfig={getPanelConfig}
           onFixHandlerReady={handleFixHandlerReady}
           onAgentRunningChange={setIsAgentRunning}
