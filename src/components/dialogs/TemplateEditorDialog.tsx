@@ -1,13 +1,4 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { FileEdit, FilePlus } from 'lucide-react';
 import { templateService } from '@/services/templateService';
+import { BaseDialog, DialogActions } from './BaseDialog';
 import type { PromptTemplate, TemplateCategory } from '@/types/database';
 
 interface TemplateEditorDialogProps {
@@ -55,6 +48,7 @@ export function TemplateEditorDialog({
   const [isLoading, setIsLoading] = useState(false);
 
   const variables = templateService.extractVariables(content);
+  const isEditing = !!template;
 
   useEffect(() => {
     if (open && template) {
@@ -70,8 +64,7 @@ export function TemplateEditorDialog({
     }
   }, [open, template]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!name.trim() || !content.trim()) return;
 
     setIsLoading(true);
@@ -90,86 +83,83 @@ export function TemplateEditorDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>
-              {template ? 'Edit Template' : 'Create Template'}
-            </DialogTitle>
-            <DialogDescription>
-              Use {'{{variable}}'} syntax to create placeholders.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Template name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={(v) => setCategory(v as TemplateCategory)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief description"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter your template content..."
-                className="min-h-[200px] font-mono text-sm"
-              />
-            </div>
-            {variables.length > 0 && (
-              <div className="space-y-2">
-                <Label>Detected Variables</Label>
-                <div className="flex flex-wrap gap-2">
-                  {variables.map((v) => (
-                    <Badge key={v} variant="secondary">
-                      {v}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+    <BaseDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? 'Edit Template' : 'Create Template'}
+      description="Use {{variable}} syntax to create placeholders."
+      icon={isEditing ? FileEdit : FilePlus}
+      size="lg"
+      footer={
+        <DialogActions
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          confirmText="Save"
+          loadingText="Saving..."
+          isLoading={isLoading}
+          confirmDisabled={!name.trim() || !content.trim()}
+        />
+      }
+    >
+      <div className="grid gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Template name"
+            />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !name.trim() || !content.trim()}>
-              {isLoading ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={(v) => setCategory(v as TemplateCategory)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Input
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Brief description"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="content">Content</Label>
+          <Textarea
+            id="content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Enter your template content..."
+            className="min-h-[200px] font-mono text-sm"
+          />
+        </div>
+        {variables.length > 0 && (
+          <div className="space-y-2">
+            <Label>Detected Variables</Label>
+            <div className="flex flex-wrap gap-2">
+              {variables.map((v) => (
+                <Badge key={v} variant="secondary">
+                  {v}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </BaseDialog>
   );
 }

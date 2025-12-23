@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Pencil } from 'lucide-react';
+import { BaseDialog, DialogActions } from './BaseDialog';
 
 interface RenameDialogProps {
   open: boolean;
@@ -37,8 +30,7 @@ export function RenameDialog({
     }
   }, [open, currentName]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!name.trim() || name === currentName) return;
 
     setIsLoading(true);
@@ -50,42 +42,43 @@ export function RenameDialog({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && name.trim() && name !== currentName && !isLoading) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
-              Enter a new name for this {type}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={`Enter ${type} name`}
-                autoFocus
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !name.trim()}>
-              {isLoading ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <BaseDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={`Enter a new name for this ${type}.`}
+      icon={Pencil}
+      size="sm"
+      footer={
+        <DialogActions
+          onCancel={() => onOpenChange(false)}
+          onConfirm={handleSubmit}
+          confirmText="Save"
+          loadingText="Saving..."
+          isLoading={isLoading}
+          confirmDisabled={!name.trim()}
+        />
+      }
+    >
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={`Enter ${type} name`}
+          autoFocus
+        />
+      </div>
+    </BaseDialog>
   );
 }
