@@ -1,16 +1,20 @@
 export type MessageRole = 'user' | 'assistant' | 'system';
 export type TemplateCategory = 'debug' | 'component' | 'database' | 'edge_function' | 'rls' | 'performance' | 'ui_ux' | 'refactor' | 'docs' | 'custom';
 
+export interface ProfilePreferences {
+  theme?: 'dark' | 'light';
+  keyboard_sounds?: boolean;
+  reduced_motion?: boolean;
+  [key: string]: unknown;
+}
+
 export interface Profile {
   id: string;
   display_name: string | null;
   avatar_url: string | null;
-  preferences: {
-    theme: 'dark' | 'light';
-    keyboard_sounds: boolean;
-    reduced_motion: boolean;
-  };
+  preferences: ProfilePreferences | null;
   onboarding_completed: boolean;
+  is_suspended?: boolean;
   created_at: string;
   updated_at: string;
 }

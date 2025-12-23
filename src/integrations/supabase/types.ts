@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       agent_sessions: {
         Row: {
           applied_operations: Json
@@ -1138,12 +1171,55 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          path: string
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          path: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          path?: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           display_name: string | null
           id: string
+          is_suspended: boolean | null
           onboarding_completed: boolean | null
           preferences: Json | null
           updated_at: string
@@ -1153,6 +1229,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_suspended?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
           updated_at?: string
@@ -1162,6 +1239,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_suspended?: boolean | null
           onboarding_completed?: boolean | null
           preferences?: Json | null
           updated_at?: string
