@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,7 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 // Core pages - keep static for fast initial load
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
@@ -85,6 +86,7 @@ const App = () => (
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
+                <UpdateNotification />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <CommandPalette />
                 <Routes>
