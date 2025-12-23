@@ -24,10 +24,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Changelog from "./pages/Changelog";
 import Documentation from "./pages/Documentation";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
 import Tutorials from "./pages/Tutorials";
-import Careers from "./pages/Careers";
 import Security from "./pages/Security";
 
 // Lazy load heavy pages
@@ -92,10 +89,7 @@ const App = () => (
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/changelog" element={<Changelog />} />
                   <Route path="/docs" element={<Documentation />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/tutorials" element={<Tutorials />} />
-                  <Route path="/careers" element={<Careers />} />
                   <Route path="/security" element={<Security />} />
                   <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />

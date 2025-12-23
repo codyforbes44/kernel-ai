@@ -88,17 +88,6 @@ export const PAGE_SEO = {
     ogImage: '/og-images/about.png',
     keywords: ['about kernel', 'team', 'mission', 'company', 'AI development company'],
   },
-  blog: {
-    title: 'Blog - Insights & Tutorials',
-    description: 'Insights, tutorials, and updates from the Kernel team. Learn about AI development, web building, and modern software practices.',
-    ogImage: '/og-images/blog.png',
-    keywords: ['blog', 'tutorials', 'AI development', 'web development', 'tech insights'],
-  },
-  blogPost: {
-    titleTemplate: (title: string) => title,
-    descriptionTemplate: (excerpt: string) => excerpt,
-    ogImage: '/og-images/blog.png',
-  },
   documentation: {
     title: 'Documentation - Developer Guides',
     description: 'Comprehensive documentation for Kernel. Get started guides, API references, and tutorials to help you build faster.',
@@ -110,12 +99,6 @@ export const PAGE_SEO = {
     description: 'Step-by-step tutorials to help you master Kernel. From beginner to advanced, learn to build with AI assistance.',
     ogImage: '/og-images/tutorials.png',
     keywords: ['tutorials', 'learning', 'how-to', 'guides', 'AI development tutorials'],
-  },
-  careers: {
-    title: 'Careers - Join Our Team',
-    description: 'Join the Kernel team and help shape the future of AI-powered development. Explore open positions and company benefits.',
-    ogImage: '/og-images/careers.png',
-    keywords: ['careers', 'jobs', 'hiring', 'work at kernel', 'tech jobs', 'remote work'],
   },
   security: {
     title: 'Security - Enterprise Protection',
@@ -256,97 +239,6 @@ export const getWebPageSchema = (title: string, description: string, url: string
   "inLanguage": "en-US"
 });
 
-// Article Schema for blog posts
-export interface ArticleSchemaInput {
-  title: string;
-  description: string;
-  url: string;
-  datePublished: string;
-  dateModified?: string;
-  author: { name: string; url?: string };
-  image?: string;
-  tags?: string[];
-}
-
-export const getArticleSchema = (article: ArticleSchemaInput) => ({
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": article.title,
-  "description": article.description,
-  "url": article.url,
-  "datePublished": article.datePublished,
-  "dateModified": article.dateModified || article.datePublished,
-  "author": {
-    "@type": "Person",
-    "name": article.author.name,
-    ...(article.author.url && { "url": article.author.url })
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": SEO_CONFIG.siteName,
-    "logo": {
-      "@type": "ImageObject",
-      "url": `${SEO_CONFIG.siteUrl}/pwa-512x512.png`
-    }
-  },
-  "image": article.image || `${SEO_CONFIG.siteUrl}/og-images/blog.png`,
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": article.url
-  },
-  ...(article.tags && { "keywords": article.tags.join(', ') })
-});
-
-// Job Posting Schema for careers page
-export interface JobPostingSchemaInput {
-  title: string;
-  description: string;
-  department?: string;
-  location?: string;
-  employmentType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'TEMPORARY' | 'INTERN';
-  remote?: boolean;
-  datePosted: string;
-  validThrough?: string;
-  salaryRange?: { min: number; max: number; currency: string };
-}
-
-export const getJobPostingSchema = (job: JobPostingSchemaInput, siteUrl: string) => ({
-  "@context": "https://schema.org",
-  "@type": "JobPosting",
-  "title": job.title,
-  "description": job.description,
-  "datePosted": job.datePosted,
-  ...(job.validThrough && { "validThrough": job.validThrough }),
-  "employmentType": job.employmentType,
-  "hiringOrganization": {
-    "@type": "Organization",
-    "name": SEO_CONFIG.siteName,
-    "sameAs": siteUrl,
-    "logo": `${siteUrl}/pwa-512x512.png`
-  },
-  "jobLocation": {
-    "@type": "Place",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": job.location || "Remote",
-      "addressCountry": "US"
-    }
-  },
-  ...(job.remote && { "jobLocationType": "TELECOMMUTE" }),
-  ...(job.salaryRange && {
-    "baseSalary": {
-      "@type": "MonetaryAmount",
-      "currency": job.salaryRange.currency,
-      "value": {
-        "@type": "QuantitativeValue",
-        "minValue": job.salaryRange.min,
-        "maxValue": job.salaryRange.max,
-        "unitText": "YEAR"
-      }
-    }
-  })
-});
-
 // HowTo Schema for tutorials
 export interface HowToStep {
   name: string;
@@ -427,13 +319,13 @@ export const getContactPointSchema = (siteUrl: string) => ({
       {
         "@type": "ContactPoint",
         "contactType": "customer support",
-        "email": "support@kernel.app",
+        "email": "support@kernel.cool",
         "availableLanguage": "English"
       },
       {
         "@type": "ContactPoint",
         "contactType": "sales",
-        "email": "sales@kernel.app",
+        "email": "sales@kernel.cool",
         "availableLanguage": "English"
       }
     ]
@@ -488,7 +380,7 @@ export const COMMON_FAQS = {
   pricing: [
     {
       question: "What's included in the free plan?",
-      answer: "The free plan includes AI chat assistance, visual builder, basic templates, and deployment to a kernel.app subdomain."
+      answer: "The free plan includes AI chat assistance, visual builder, basic templates, and deployment to a kernel.cool subdomain."
     },
     {
       question: "Can I upgrade or downgrade my plan?",
@@ -563,15 +455,6 @@ export const BREADCRUMBS = {
     { name: 'Home', url: siteUrl },
     { name: 'About', url: `${siteUrl}/about` }
   ]),
-  blog: (siteUrl: string) => getBreadcrumbSchema([
-    { name: 'Home', url: siteUrl },
-    { name: 'Blog', url: `${siteUrl}/blog` }
-  ]),
-  blogPost: (siteUrl: string, postTitle: string, postSlug: string) => getBreadcrumbSchema([
-    { name: 'Home', url: siteUrl },
-    { name: 'Blog', url: `${siteUrl}/blog` },
-    { name: postTitle, url: `${siteUrl}/blog/${postSlug}` }
-  ]),
   documentation: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Documentation', url: `${siteUrl}/documentation` }
@@ -579,10 +462,6 @@ export const BREADCRUMBS = {
   tutorials: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Tutorials', url: `${siteUrl}/tutorials` }
-  ]),
-  careers: (siteUrl: string) => getBreadcrumbSchema([
-    { name: 'Home', url: siteUrl },
-    { name: 'Careers', url: `${siteUrl}/careers` }
   ]),
   security: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },

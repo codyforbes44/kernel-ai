@@ -155,8 +155,8 @@ export default function Privacy() {
               <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have any questions about this Privacy Policy, please contact us at{" "}
-                <a href="mailto:privacy@kernel.app" className="text-primary hover:underline">
-                  privacy@kernel.app
+                <a href="mailto:privacy@kernel.cool" className="text-primary hover:underline">
+                  privacy@kernel.cool
                 </a>
                 .
               </p>

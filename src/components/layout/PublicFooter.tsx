@@ -26,7 +26,6 @@ const footerSections: FooterSection[] = [
     title: "Resources",
     links: [
       { label: "Documentation", href: "/docs" },
-      { label: "Blog", href: "/blog" },
       { label: "Tutorials", href: "/tutorials" },
     ],
   },
@@ -35,7 +34,6 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
-      { label: "Careers", href: "/careers" },
     ],
   },
   {
