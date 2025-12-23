@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { FAQItem } from "@/lib/faq-data";
+import { FAQItem } from "@/hooks/useStaticData";
 
 interface FAQSectionProps {
   faqs: FAQItem[];

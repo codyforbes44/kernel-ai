@@ -1,0 +1,32 @@
+[
+  {
+    "category": "Account",
+    "question": "How do I reset my password?",
+    "answer": "Click 'Forgot Password' on the login page. We'll send you a secure link to create a new password."
+  },
+  {
+    "category": "Account",
+    "question": "Can I change my email address?",
+    "answer": "Yes, go to Settings > Account and update your email. You'll need to verify the new address."
+  },
+  {
+    "category": "Billing",
+    "question": "When will I be charged?",
+    "answer": "Billing occurs at the start of each billing cycle. You can view your next billing date in Settings > Billing."
+  },
+  {
+    "category": "Billing",
+    "question": "How do I get a refund?",
+    "answer": "Contact our support team within 14 days of purchase. We offer full refunds for eligible requests."
+  },
+  {
+    "category": "Features",
+    "question": "What's included in the Pro plan?",
+    "answer": "Pro includes unlimited projects, priority support, advanced analytics, and all premium features."
+  },
+  {
+    "category": "Features",
+    "question": "Can I collaborate with my team?",
+    "answer": "Yes! Pro and Enterprise plans support team collaboration with role-based permissions."
+  }
+]

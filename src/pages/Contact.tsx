@@ -33,7 +33,7 @@ import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getContactPointSchema, getFAQSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
 import { contactOptions, subjectOptions } from "@/lib/contact-data";
-import { contactFAQs } from "@/lib/faq-data";
+import { useContactFAQs } from "@/hooks/useStaticData";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,6 +48,7 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: contactFAQs = [] } = useContactFAQs();
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),

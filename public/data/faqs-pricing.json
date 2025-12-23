@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Can I change plans anytime?",
+    "answer": "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any billing differences."
+  },
+  {
+    "question": "Is there a free trial?",
+    "answer": "Yes! Our Free plan lets you explore all basic features with no time limit. When you're ready for more, upgrading is seamless."
+  },
+  {
+    "question": "What payment methods do you accept?",
+    "answer": "We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. Enterprise customers can also pay via invoice."
+  },
+  {
+    "question": "Can I cancel my subscription?",
+    "answer": "Absolutely. You can cancel anytime from your account settings. You'll continue to have access until the end of your billing period."
+  }
+]
