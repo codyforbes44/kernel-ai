@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, getOrganizationSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
 import { XLogo } from "@/components/ui/x-logo";
 
 const values = [
@@ -91,17 +91,18 @@ const team = [
 ];
 
 export default function About() {
-  const aboutSeo = {
-    title: "About Us - Kernel",
-    description: "Learn about Kernel's mission to empower developers with AI-powered tools. Meet our team and discover our story.",
-    keywords: ["about", "team", "mission", "company", "AI development"],
-  };
-
   return (
     <PublicLayout>
       <SEO 
-        {...aboutSeo}
-        structuredData={[getOrganizationSchema(SEO_CONFIG.siteUrl)]}
+        title={PAGE_SEO.about.title}
+        description={PAGE_SEO.about.description}
+        ogImage={PAGE_SEO.about.ogImage}
+        keywords={PAGE_SEO.about.keywords as unknown as string[]}
+        canonical="/about"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.about(SEO_CONFIG.siteUrl),
+        ]}
       />
 
       {/* Hero - Mission Statement */}

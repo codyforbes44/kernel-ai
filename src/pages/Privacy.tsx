@@ -1,6 +1,6 @@
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, getOrganizationSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
 
 export default function Privacy() {
   const lastUpdated = "December 20, 2025";
@@ -8,9 +8,15 @@ export default function Privacy() {
   return (
     <PublicLayout>
       <SEO
-        title="Privacy Policy - Kernel"
-        description="Learn how Kernel collects, uses, and protects your personal information."
-        structuredData={[getOrganizationSchema(SEO_CONFIG.siteUrl)]}
+        title={PAGE_SEO.privacy.title}
+        description={PAGE_SEO.privacy.description}
+        ogImage={PAGE_SEO.privacy.ogImage}
+        keywords={PAGE_SEO.privacy.keywords as unknown as string[]}
+        canonical="/privacy"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.privacy(SEO_CONFIG.siteUrl),
+        ]}
       />
 
       <article className="py-16 px-4">

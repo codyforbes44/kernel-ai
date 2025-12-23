@@ -1,4 +1,5 @@
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,9 +83,15 @@ const Changelog = () => {
   return (
     <PublicLayout>
       <SEO
-        title="Changelog"
-        description="See what's new in Kernel. Track our latest features, improvements, and bug fixes."
-        noIndex={false}
+        title={PAGE_SEO.changelog.title}
+        description={PAGE_SEO.changelog.description}
+        ogImage={PAGE_SEO.changelog.ogImage}
+        keywords={PAGE_SEO.changelog.keywords as unknown as string[]}
+        canonical="/changelog"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.changelog(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-4xl">

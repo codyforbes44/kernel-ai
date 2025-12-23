@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getArticleSchema, getBreadcrumbSchema } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +46,28 @@ const BlogPost = () => {
       <SEO
         title={post.title}
         description={post.excerpt}
-        noIndex={false}
+        ogImage={PAGE_SEO.blogPost.ogImage}
+        ogType="article"
+        author={post.author.name}
+        publishedTime={post.date}
+        keywords={post.tags}
+        canonical={`/blog/${post.slug}`}
+        structuredData={[
+          getArticleSchema({
+            title: post.title,
+            description: post.excerpt,
+            url: `${SEO_CONFIG.siteUrl}/blog/${post.slug}`,
+            datePublished: post.date,
+            author: { name: post.author.name },
+            image: `${SEO_CONFIG.siteUrl}/og-images/blog.png`,
+            tags: post.tags,
+          }),
+          getBreadcrumbSchema([
+            { name: 'Home', url: SEO_CONFIG.siteUrl },
+            { name: 'Blog', url: `${SEO_CONFIG.siteUrl}/blog` },
+            { name: post.title, url: `${SEO_CONFIG.siteUrl}/blog/${post.slug}` },
+          ]),
+        ]}
       />
       
       <article className="container mx-auto px-4 py-16 max-w-4xl">
