@@ -791,6 +791,80 @@ export type Database = {
           },
         ]
       }
+      generated_assets: {
+        Row: {
+          aspect_ratio: string | null
+          asset_type: string
+          created_at: string
+          file_size: number | null
+          height: number | null
+          id: string
+          is_favorite: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          project_id: string | null
+          prompt: string
+          storage_path: string
+          storage_url: string
+          style: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          asset_type?: string
+          created_at?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          project_id?: string | null
+          prompt: string
+          storage_path: string
+          storage_url: string
+          style?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          asset_type?: string
+          created_at?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          project_id?: string | null
+          prompt?: string
+          storage_path?: string
+          storage_url?: string
+          style?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "builder_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       github_commits: {
         Row: {
           author_email: string | null
