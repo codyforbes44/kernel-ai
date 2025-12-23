@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ImportMethod, MigrationPlatform, DetectionResult } from '@/lib/migration-data';
+import { ShareCodeData } from '@/hooks/useMigrationWizard';
 import { cn } from '@/lib/utils';
-import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2, Sparkles, Files, Settings, Palette } from 'lucide-react';
+import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2, Sparkles, Files, Settings, Palette, Share2, ExternalLink, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +22,12 @@ interface FileUploadStepProps {
   onImportUrlChange: (url: string) => void;
   detectionResult?: DetectionResult | null;
   isAnalyzing?: boolean;
+  shareCode?: string;
+  onShareCodeChange?: (code: string) => void;
+  shareCodeData?: ShareCodeData | null;
+  shareCodeError?: string | null;
+  isLookingUpShareCode?: boolean;
+  onLookupShareCode?: (code: string) => void;
 }
 
 export function FileUploadStep({
@@ -36,6 +43,12 @@ export function FileUploadStep({
   onImportUrlChange,
   detectionResult,
   isAnalyzing,
+  shareCode = '',
+  onShareCodeChange,
+  shareCodeData,
+  shareCodeError,
+  isLookingUpShareCode,
+  onLookupShareCode,
 }: FileUploadStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isConnectingGitHub, setIsConnectingGitHub] = useState(false);
@@ -334,6 +347,122 @@ export function FileUploadStep({
               </div>
             </div>
           )}
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (method === 'shareCode') {
+    return (
+      <div className="space-y-8">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold">Enter Share Code or URL</h2>
+          <p className="text-muted-foreground">
+            Paste a Lovable project URL or template share code
+          </p>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-xl mx-auto space-y-4"
+        >
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Share2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                value={shareCode}
+                onChange={(e) => onShareCodeChange?.(e.target.value)}
+                placeholder="https://lovable.dev/projects/... or share code"
+                className="pl-10"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && shareCode.trim()) {
+                    onLookupShareCode?.(shareCode);
+                  }
+                }}
+              />
+            </div>
+            <Button 
+              onClick={() => onLookupShareCode?.(shareCode)}
+              disabled={!shareCode.trim() || isLookingUpShareCode}
+            >
+              {isLookingUpShareCode ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Look up'
+              )}
+            </Button>
+          </div>
+
+          {shareCodeError && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-2 text-sm text-destructive"
+            >
+              <AlertCircle className="w-4 h-4" />
+              {shareCodeError}
+            </motion.div>
+          )}
+
+          {shareCodeData && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-lg border border-primary/50 bg-primary/5"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  {shareCodeData.type === 'project' ? (
+                    <ExternalLink className="w-6 h-6 text-primary" />
+                  ) : (
+                    <FileText className="w-6 h-6 text-primary" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="default" className="text-xs">
+                      {shareCodeData.type === 'project' ? 'Project' : 'Template'}
+                    </Badge>
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  {shareCodeData.type === 'project' ? (
+                    <>
+                      <h4 className="font-medium truncate">Lovable Project</h4>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {shareCodeData.projectUrl}
+                      </p>
+                    </>
+                  ) : shareCodeData.template && (
+                    <>
+                      <h4 className="font-medium truncate">{shareCodeData.template.template_name}</h4>
+                      {shareCodeData.template.template_description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {shareCodeData.template.template_description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {shareCodeData.template.template_category}
+                        </Badge>
+                        {shareCodeData.template.template_variables && shareCodeData.template.template_variables.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            {shareCodeData.template.template_variables.length} variables
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Examples:</p>
+            <p className="font-mono text-xs mt-1">https://lovable.dev/projects/abc123</p>
+            <p className="font-mono text-xs">xK9mP2nQ</p>
+          </div>
         </motion.div>
       </div>
     );

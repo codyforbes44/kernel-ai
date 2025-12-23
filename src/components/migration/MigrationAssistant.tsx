@@ -21,6 +21,8 @@ export function MigrationAssistant() {
     setFiles,
     setPastedCode,
     setImportUrl,
+    setShareCode,
+    lookupShareCode,
     setProjectDetails,
     nextStep,
     prevStep,
@@ -68,6 +70,12 @@ export function MigrationAssistant() {
             onImportUrlChange={setImportUrl}
             detectionResult={state.detectionResult}
             isAnalyzing={state.isAnalyzing}
+            shareCode={state.shareCode}
+            onShareCodeChange={setShareCode}
+            shareCodeData={state.shareCodeData}
+            shareCodeError={state.shareCodeError}
+            isLookingUpShareCode={state.isLookingUpShareCode}
+            onLookupShareCode={lookupShareCode}
           />
         );
       case 'features':

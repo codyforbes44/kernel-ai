@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { MigrationPlatform, ImportMethod, importMethodLabels } from '@/lib/migration-data';
 import { cn } from '@/lib/utils';
-import { Upload, Github, Code, Link, Check } from 'lucide-react';
+import { Upload, Github, Code, Link, Check, Share2 } from 'lucide-react';
 
 interface ImportMethodStepProps {
   platform: MigrationPlatform;
@@ -14,6 +14,7 @@ const methodIcons: Record<ImportMethod, React.ElementType> = {
   github: Github,
   paste: Code,
   url: Link,
+  shareCode: Share2,
 };
 
 export function ImportMethodStep({ platform, selectedMethod, onSelect }: ImportMethodStepProps) {
