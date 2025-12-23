@@ -40,7 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2, Database, Bot, Shield, Settings } from 'lucide-react';
+import { Save, Code2, Eye, Sparkles, History, ArrowLeft, Rocket, Github, Palette, Package, BookMarked, Copy, MoreVertical, Globe, Lock, HardDrive, Trash2, Database, Bot, Shield, Settings, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -67,6 +67,7 @@ const PANEL_BUTTONS: Array<{
   { panel: 'history', icon: History, label: 'Version History', requiresActiveFile: true },
   { panel: 'knowledge-base', icon: BookMarked, label: 'Knowledge Base' },
   { panel: 'storage', icon: HardDrive, label: 'File Storage' },
+  { panel: 'ai-assets', icon: Wand2, label: 'AI Studio' },
   { panel: 'agent', icon: Bot, label: 'AI Agent (Autonomous)' },
   { panel: 'ai-chat', icon: Sparkles, label: 'AI Assistant' },
 ];

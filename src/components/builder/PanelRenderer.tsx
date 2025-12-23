@@ -29,6 +29,9 @@ const SecurityDashboard = lazy(() =>
 const AgentChat = lazy(() => 
   import('./AgentChat').then(m => ({ default: m.AgentChat }))
 );
+const AIAssetsPanel = lazy(() => 
+  import('./AIAssetsPanel').then(m => ({ default: m.AIAssetsPanel }))
+);
 
 interface PanelRendererProps {
   activePanel: PanelType | null;
@@ -44,6 +47,7 @@ interface PanelRendererProps {
   onRestoreVersion: (content: string) => Promise<void>;
   onPreviewChange: (css: string | null, systemName?: string, fontsUrl?: string | null) => void;
   onInstallComponent: (code: string) => void;
+  onInsertCode?: (code: string) => void;
   togglePanel: (panel: PanelType) => void;
   getPanelConfig: (panel: PanelType) => { defaultSize: number; minSize: number; maxSize: number };
   onFixHandlerReady: (handler: (errors: CapturedError[]) => void) => void;
@@ -73,6 +77,7 @@ export function PanelRenderer({
   onRestoreVersion,
   onPreviewChange,
   onInstallComponent,
+  onInsertCode,
   togglePanel,
   getPanelConfig,
   onFixHandlerReady,
@@ -197,6 +202,18 @@ export function PanelRenderer({
           <PanelErrorBoundary panelName="Security Scanner">
             <Suspense fallback={<PanelLoadingFallback />}>
               <SecurityDashboard />
+            </Suspense>
+          </PanelErrorBoundary>
+        );
+
+      case 'ai-assets':
+        return (
+          <PanelErrorBoundary panelName="AI Studio">
+            <Suspense fallback={<PanelLoadingFallback />}>
+              <AIAssetsPanel 
+                projectId={projectId}
+                onInsertCode={onInsertCode}
+              />
             </Suspense>
           </PanelErrorBoundary>
         );
