@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
 import { GlowBadge } from '@/components/ui/glow-badge';
+import { Badge } from '@/components/ui/badge';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
@@ -11,6 +12,7 @@ import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
 import { 
   MessageSquare, 
   Code2, 
@@ -165,6 +167,35 @@ export default function Landing() {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
+
+      {/* Platform Comparison Section */}
+      <section id="comparison" className="py-20 px-4 bg-muted/30 scroll-mt-16">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4">
+              Why Choose Kernel
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How We Stack Up
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              See why developers choose Kernel over other AI platforms. 
+              We offer the most complete solution for modern development.
+            </p>
+          </div>
+
+          <PlatformComparisonCondensed />
+
+          <div className="text-center mt-8">
+            <Button variant="outline" asChild>
+              <Link to="/pricing">
+                See Full Comparison
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section id="cta" className="py-20 px-4 scroll-mt-16">
