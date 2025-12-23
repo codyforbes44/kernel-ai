@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/dom';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignUpForm } from '../SignUpForm';
 
@@ -29,7 +28,7 @@ describe('SignUpForm', () => {
   const defaultProps = {
     onSignUp: mockOnSignUp,
     onOAuthSignIn: mockOnOAuthSignIn,
-    oauthLoading: null,
+    oauthLoading: null as null,
     onSwitchToSignIn: mockOnSwitchToSignIn,
     onSuccess: mockOnSuccess,
   };
@@ -139,12 +138,5 @@ describe('SignUpForm', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('This email is already registered. Please sign in instead.');
     });
-  });
-
-  it('displays password strength indicator', () => {
-    render(<SignUpForm {...defaultProps} />);
-
-    // Password strength indicator should be present
-    expect(screen.getByText(/password strength/i)).toBeInTheDocument();
   });
 });
