@@ -130,6 +130,12 @@ export const PAGE_SEO = {
     ogImage: '/og-images/default.png',
     keywords: ['terms of service', 'terms and conditions', 'legal', 'user agreement'],
   },
+  compare: {
+    title: 'Kernel vs Competition - AI Platform Comparison',
+    description: 'Compare Kernel to Lovable, Bolt, v0, Replit, and Cursor. See why Kernel is the most complete AI-powered development platform with 23+ features.',
+    ogImage: '/og-images/compare.png',
+    keywords: ['platform comparison', 'AI development', 'Kernel vs Lovable', 'Kernel vs Bolt', 'Kernel vs v0', 'best AI IDE', 'AI code editor comparison'],
+  },
 } as const;
 
 // Organization Schema
