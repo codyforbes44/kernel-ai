@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { setUserContext, clearUserContext, addBreadcrumb } from '@/lib/sentry';
 import type { Profile } from '@/types/database';
 
 type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
@@ -30,6 +31,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Update Sentry user context
+      if (session?.user) {
+        setUserContext({ id: session.user.id, email: session.user.email });
+        addBreadcrumb('User authenticated', 'auth', 'info', { event });
+      } else {
+        clearUserContext();
+        addBreadcrumb('User signed out', 'auth', 'info', { event });
+      }
       
       // Defer profile fetch with setTimeout to avoid deadlock
       if (session?.user) {

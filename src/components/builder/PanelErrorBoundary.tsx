@@ -2,6 +2,7 @@ import { Component, ReactNode, ErrorInfo } from 'react';
 import { AlertTriangle, RefreshCw, Bug, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { captureError, addBreadcrumb } from '@/lib/sentry';
 
 interface PanelErrorBoundaryProps {
   children: ReactNode;
@@ -136,6 +137,17 @@ export class PanelErrorBoundary extends Component<PanelErrorBoundaryProps, Panel
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(`[${this.props.panelName}] Panel Error:`, error, errorInfo);
     this.setState({ errorInfo });
+    
+    // Add breadcrumb and capture to Sentry
+    addBreadcrumb(`Error in ${this.props.panelName} panel`, 'panel-error', 'error', {
+      componentStack: errorInfo.componentStack,
+    });
+    
+    captureError(error, {
+      boundary: 'PanelErrorBoundary',
+      panelName: this.props.panelName,
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReset = () => {
