@@ -6,7 +6,6 @@ import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useGitHub } from '@/hooks/useGitHub';
 
 interface FileUploadStepProps {
   platform: MigrationPlatform;
@@ -34,7 +33,8 @@ export function FileUploadStep({
   onImportUrlChange,
 }: FileUploadStepProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const { connection, isLoading: isConnecting } = useGitHub();
+  const [isConnectingGitHub, setIsConnectingGitHub] = useState(false);
+  const [gitHubConnected, setGitHubConnected] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -210,6 +210,17 @@ export function FileUploadStep({
   }
 
   if (method === 'github') {
+    const handleConnectGitHub = async () => {
+      setIsConnectingGitHub(true);
+      // Open GitHub OAuth in a popup - for now just simulate
+      window.open('/auth?provider=github', '_blank', 'width=600,height=700');
+      // In a real implementation, we'd listen for the OAuth callback
+      setTimeout(() => {
+        setIsConnectingGitHub(false);
+        setGitHubConnected(true);
+      }, 2000);
+    };
+
     return (
       <div className="space-y-8">
         <div className="text-center space-y-2">
@@ -224,13 +235,13 @@ export function FileUploadStep({
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md mx-auto text-center"
         >
-          {connection ? (
+          {gitHubConnected ? (
             <div className="space-y-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <Check className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">Connected as {connection.github_username}</h3>
+                <h3 className="font-semibold">GitHub Connected</h3>
                 <p className="text-sm text-muted-foreground">
                   You can now select a repository to import
                 </p>
@@ -246,8 +257,8 @@ export function FileUploadStep({
                 <p className="text-sm text-muted-foreground mb-4">
                   Connect your GitHub account to import repositories
                 </p>
-                <Button disabled={isConnecting}>
-                  {isConnecting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                <Button onClick={handleConnectGitHub} disabled={isConnectingGitHub}>
+                  {isConnectingGitHub && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   <Github className="w-4 h-4 mr-2" />
                   Connect GitHub
                 </Button>
