@@ -11,6 +11,7 @@ import { FAQSection } from "@/components/faq/FAQSection";
 import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getServiceSchema, BREADCRUMBS } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
+import { PlatformComparisonChart } from "@/components/pricing/PlatformComparisonChart";
 import { pricingFAQs } from "@/lib/faq-data";
 import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
@@ -463,6 +464,26 @@ export default function Pricing() {
               </TableBody>
             </Table>
           </div>
+        </div>
+      </section>
+
+      {/* Platform Comparison Section */}
+      <section className="pb-20 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4">
+              See how we compare
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Kernel vs. The Competition
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              See how Kernel stacks up against other AI development platforms. 
+              We're building the most complete solution for modern developers.
+            </p>
+          </div>
+
+          <PlatformComparisonChart />
         </div>
       </section>
 
