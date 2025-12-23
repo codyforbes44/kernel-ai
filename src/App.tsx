@@ -47,6 +47,7 @@ const BuilderProject = lazy(() => import("./pages/BuilderProject"));
 const SEODashboard = lazy(() => import("./pages/SEODashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Performance = lazy(() => import("./pages/Performance"));
+const Migrate = lazy(() => import("./pages/Migrate"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -118,6 +119,7 @@ const App = () => (
                   <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><Security /></Suspense>} />
                   <Route path="/compare" element={<Suspense fallback={<LoadingFallback />}><Compare /></Suspense>} />
                   <Route path="/install" element={<Suspense fallback={<LoadingFallback />}><Install /></Suspense>} />
+                  <Route path="/migrate" element={<Suspense fallback={<LoadingFallback />}><Migrate /></Suspense>} />
                   <Route path="/assistant" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
                   {/* Legacy redirect for backwards compatibility */}
                   <Route path="/dashboard" element={<Suspense fallback={<LoadingFallback />}><Index /></Suspense>} />
