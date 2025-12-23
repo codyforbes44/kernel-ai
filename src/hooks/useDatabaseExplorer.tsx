@@ -1,9 +1,14 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { databaseService } from '@/services/databaseService';
+import { databaseService, ExternalConnectionParams } from '@/services/databaseService';
 import type { TableInfo, Relationship, DatabaseEditorTab } from '@/types/database-editor';
 
-export function useDatabaseExplorer() {
+interface UseDatabaseExplorerOptions {
+  externalConnection?: ExternalConnectionParams | null;
+}
+
+export function useDatabaseExplorer(options: UseDatabaseExplorerOptions = {}) {
+  const { externalConnection } = options;
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DatabaseEditorTab>('data');
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,8 +20,8 @@ export function useDatabaseExplorer() {
     error: tablesError,
     refetch: refetchTables,
   } = useQuery<TableInfo[]>({
-    queryKey: ['database-tables'],
-    queryFn: () => databaseService.listTables(),
+    queryKey: ['database-tables', externalConnection?.url],
+    queryFn: () => databaseService.listTables(externalConnection || undefined),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -25,8 +30,8 @@ export function useDatabaseExplorer() {
     data: relationships = [],
     isLoading: isLoadingRelationships,
   } = useQuery<Relationship[]>({
-    queryKey: ['database-relationships'],
-    queryFn: () => databaseService.getRelationships(),
+    queryKey: ['database-relationships', externalConnection?.url],
+    queryFn: () => databaseService.getRelationships(externalConnection || undefined),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
@@ -35,8 +40,17 @@ export function useDatabaseExplorer() {
     table.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Group tables by category
-  const groupedTables = {
+  // Group tables by category (only for internal database)
+  const groupedTables = externalConnection ? {
+    all: filteredTables,
+    user: [],
+    builder: [],
+    marketplace: [],
+    github: [],
+    billing: [],
+    auth: [],
+    other: [],
+  } : {
     user: filteredTables.filter(t => 
       ['profiles', 'workspaces', 'projects', 'conversations', 'messages', 'prompt_templates'].includes(t.name)
     ),
@@ -92,6 +106,7 @@ export function useDatabaseExplorer() {
     isLoadingTables,
     isLoadingRelationships,
     tablesError,
+    isExternal: !!externalConnection,
     setSearchQuery,
     selectTable,
     setActiveTab,
