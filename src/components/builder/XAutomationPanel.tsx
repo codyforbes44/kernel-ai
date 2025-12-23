@@ -22,10 +22,14 @@ import {
   BarChart3,
   Lightbulb,
   Trash2,
-  FileText
+  FileText,
+  Settings,
+  Calendar
 } from 'lucide-react';
 import { useXAutomation } from '@/hooks/useXAutomation';
 import { cn } from '@/lib/utils';
+import { DraftsList, ScheduledList, ScheduleTweetDialog } from './x-automation';
+import { XTweetDraft, XScheduledTweet } from '@/services/xDatabaseService';
 
 export function XAutomationPanel() {
   const [activeTab, setActiveTab] = useState('generate');
@@ -39,6 +43,11 @@ export function XAutomationPanel() {
   const [threadCount, setThreadCount] = useState(1);
   const [model, setModel] = useState<'grok-3' | 'grok-3-fast'>('grok-3');
 
+  // Schedule dialog state
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [contentToSchedule, setContentToSchedule] = useState('');
+  const [draftToSchedule, setDraftToSchedule] = useState<XTweetDraft | null>(null);
+
   const {
     generateTweet,
     isGeneratingTweet,
@@ -50,9 +59,18 @@ export function XAutomationPanel() {
     isGeneratingImage,
     generatedImage,
     drafts,
+    isLoadingDrafts,
+    scheduledTweets,
+    isLoadingScheduled,
     selectedDraft,
     setSelectedDraft,
+    saveDraft,
     deleteDraft,
+    toggleFavorite,
+    scheduleTweet,
+    isSchedulingTweet,
+    cancelScheduledTweet,
+    deleteScheduledTweet,
     copyToClipboard,
   } = useXAutomation();
 
@@ -74,9 +92,41 @@ export function XAutomationPanel() {
     await generateImage({ prompt: imagePrompt });
   };
 
-  const getCharacterCount = (text: string) => {
-    return text.length;
+  const handleOpenScheduleDialog = (content: string, draft?: XTweetDraft) => {
+    setContentToSchedule(content);
+    setDraftToSchedule(draft || null);
+    setScheduleDialogOpen(true);
   };
+
+  const handleSchedule = async (scheduledFor: string, timezone: string) => {
+    await scheduleTweet({
+      content: contentToSchedule,
+      scheduled_for: scheduledFor,
+      timezone,
+      type: draftToSchedule?.type || 'tweet',
+      hashtags: draftToSchedule?.hashtags || [],
+      draft_id: draftToSchedule?.id,
+    });
+    setScheduleDialogOpen(false);
+    setContentToSchedule('');
+    setDraftToSchedule(null);
+  };
+
+  const handleNewDraft = () => {
+    setActiveTab('generate');
+  };
+
+  const handleEditDraft = (draft: XTweetDraft) => {
+    setPrompt(draft.content);
+    setActiveTab('generate');
+  };
+
+  const handleEditScheduled = (tweet: XScheduledTweet) => {
+    setPrompt(tweet.content);
+    setActiveTab('generate');
+  };
+
+  const getCharacterCount = (text: string) => text.length;
 
   const getCharacterColor = (count: number) => {
     if (count > 280) return 'text-destructive';
@@ -99,18 +149,22 @@ export function XAutomationPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="mx-4 mt-4 grid grid-cols-3">
-          <TabsTrigger value="generate" className="gap-2">
+        <TabsList className="mx-4 mt-4 grid grid-cols-4">
+          <TabsTrigger value="generate" className="gap-1.5 text-xs">
             <Send className="h-3 w-3" />
             Generate
           </TabsTrigger>
-          <TabsTrigger value="analyze" className="gap-2">
+          <TabsTrigger value="analyze" className="gap-1.5 text-xs">
             <TrendingUp className="h-3 w-3" />
             Analyze
           </TabsTrigger>
-          <TabsTrigger value="image" className="gap-2">
+          <TabsTrigger value="image" className="gap-1.5 text-xs">
             <ImageIcon className="h-3 w-3" />
             Image
+          </TabsTrigger>
+          <TabsTrigger value="manage" className="gap-1.5 text-xs">
+            <Settings className="h-3 w-3" />
+            Manage
           </TabsTrigger>
         </TabsList>
 
@@ -272,26 +326,45 @@ export function XAutomationPanel() {
                     </div>
                   )}
 
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2"
-                    onClick={() => copyToClipboard(generatedTweet.tweets.join('\n\n'))}
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy All
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => copyToClipboard(generatedTweet.tweets.join('\n\n'))}
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => handleOpenScheduleDialog(generatedTweet.tweets.join('\n\n'))}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Schedule
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Drafts */}
+            {/* Recent Drafts Preview */}
             {drafts.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Recent Drafts</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Recent Drafts</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveTab('manage')}
+                    >
+                      View All
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {drafts.slice(0, 5).map((draft) => (
+                  {drafts.slice(0, 3).map((draft) => (
                     <div 
                       key={draft.id} 
                       className={cn(
@@ -321,7 +394,7 @@ export function XAutomationPanel() {
                           {draft.type}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground">
-                          {draft.createdAt.toLocaleTimeString()}
+                          {new Date(draft.created_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
@@ -577,8 +650,41 @@ export function XAutomationPanel() {
               </Card>
             )}
           </TabsContent>
+
+          {/* Manage Tab */}
+          <TabsContent value="manage" className="mt-0 space-y-6">
+            <DraftsList
+              drafts={drafts}
+              isLoading={isLoadingDrafts}
+              onEdit={handleEditDraft}
+              onDelete={(id) => deleteDraft(id)}
+              onSchedule={(draft) => handleOpenScheduleDialog(draft.content, draft)}
+              onCopy={copyToClipboard}
+              onToggleFavorite={(id) => toggleFavorite(id)}
+              onNewDraft={handleNewDraft}
+            />
+
+            <Separator />
+
+            <ScheduledList
+              scheduledTweets={scheduledTweets}
+              isLoading={isLoadingScheduled}
+              onEdit={handleEditScheduled}
+              onDelete={(id) => deleteScheduledTweet(id)}
+              onCancel={(id) => cancelScheduledTweet(id)}
+              onCopy={copyToClipboard}
+            />
+          </TabsContent>
         </ScrollArea>
       </Tabs>
+
+      <ScheduleTweetDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        content={contentToSchedule}
+        onSchedule={handleSchedule}
+        isLoading={isSchedulingTweet}
+      />
     </div>
   );
 }
