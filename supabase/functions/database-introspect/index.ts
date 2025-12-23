@@ -177,6 +177,23 @@ serve(async (req) => {
   } catch (error) {
     console.error('Database introspect error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Handle rate limiting
+    if (message.includes('rate limit') || message.includes('too many requests')) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Handle credit exhaustion
+    if (message.includes('credits') || message.includes('payment required')) {
+      return new Response(JSON.stringify({ error: 'Insufficient credits. Please add more credits.' }), {
+        status: 402,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

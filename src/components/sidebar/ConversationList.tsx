@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, lazy, Suspense, useRef } from "react";
+import { useState, useCallback, useMemo, lazy, Suspense, useRef, KeyboardEvent } from "react";
 import {
   DndContext,
   closestCenter,
@@ -77,6 +77,7 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
   });
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
 
   // Update custom order when project changes
   useMemo(() => {
@@ -283,6 +284,50 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
     }
   }, [conversations, setCurrentConversation, onSelect]);
 
+  // Get conversation items only (for keyboard navigation)
+  const conversationItems = useMemo(() => {
+    return flatList.filter(item => item.type === 'conversation') as { type: 'conversation'; conversation: Conversation; isDragDisabled: boolean }[];
+  }, [flatList]);
+
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    if (conversationItems.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex(prev => {
+          const next = prev < conversationItems.length - 1 ? prev + 1 : 0;
+          return next;
+        });
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex(prev => {
+          const next = prev > 0 ? prev - 1 : conversationItems.length - 1;
+          return next;
+        });
+        break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < conversationItems.length) {
+          const item = conversationItems[focusedIndex];
+          setCurrentConversation(item.conversation);
+          onSelect?.();
+        }
+        break;
+      case 'Home':
+        e.preventDefault();
+        setFocusedIndex(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        setFocusedIndex(conversationItems.length - 1);
+        break;
+    }
+  }, [conversationItems, focusedIndex, setCurrentConversation, onSelect]);
+
   const activeConversation = activeId 
     ? [...pinnedConversations, ...rootConversations, ...branchConversations].find(c => c.id === activeId)
     : null;
@@ -365,6 +410,11 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
   // Get all conversation IDs for sortable context
   const allSortableIds = [...pinnedConversations, ...rootConversations].map(c => c.id);
 
+  // Get focused conversation ID for styling
+  const focusedConversationId = focusedIndex >= 0 && focusedIndex < conversationItems.length 
+    ? conversationItems[focusedIndex].conversation.id 
+    : null;
+
   return (
     <>
       <DndContext
@@ -378,6 +428,13 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
           items={allSortableIds}
           strategy={verticalListSortingStrategy}
         >
+          <div
+            role="listbox"
+            aria-label="Conversations"
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+          >
           {useVirtual ? (
             // Virtual scrolling for large lists
             <div
@@ -421,6 +478,7 @@ export function ConversationList({ searchQuery, onSelect, isMobile }: Conversati
               ))}
             </div>
           )}
+          </div>
         </SortableContext>
 
         <DragOverlay>
