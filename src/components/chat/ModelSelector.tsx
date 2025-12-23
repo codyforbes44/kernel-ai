@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sparkles, Zap, Rocket, ChevronDown } from "lucide-react";
+import { Sparkles, Zap, Rocket, ChevronDown, Brain, Cpu, Atom, FlaskConical } from "lucide-react";
 import { AI_MODELS, type AIModel } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +19,11 @@ interface ModelSelectorProps {
 const modelIcons: Record<AIModel, React.ReactNode> = {
   'google/gemini-2.5-flash': <Zap className="h-3.5 w-3.5" />,
   'google/gemini-2.5-pro': <Sparkles className="h-3.5 w-3.5" />,
+  'google/gemini-3-pro-preview': <FlaskConical className="h-3.5 w-3.5" />,
   'google/gemini-2.5-flash-lite': <Rocket className="h-3.5 w-3.5" />,
+  'openai/gpt-5': <Brain className="h-3.5 w-3.5" />,
+  'openai/gpt-5-mini': <Cpu className="h-3.5 w-3.5" />,
+  'openai/gpt-5-nano': <Atom className="h-3.5 w-3.5" />,
 };
 
 export function ModelSelector({ selectedModel, onModelChange, disabled, defaultModel }: ModelSelectorProps) {
