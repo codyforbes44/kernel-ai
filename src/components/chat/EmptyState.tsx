@@ -21,7 +21,7 @@ import {
   Rocket,
   FolderKanban,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getTimeOfDayGreeting } from "@/lib/utils";
 import { CreateProjectDialog } from "@/components/dialogs/CreateProjectDialog";
 
 interface EmptyStateProps {
@@ -205,7 +205,7 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
           aria-label="No projects found"
         >
           <EmptyStateIllustration type="welcome" />
-          <h2 className="text-xl font-semibold mb-2 mt-6">Welcome to Kernel!</h2>
+          <h2 className="text-xl font-semibold mb-2 mt-6">{getTimeOfDayGreeting()}! Welcome to Kernel</h2>
           <p className="text-muted-foreground max-w-md mb-6">
             Create your first project to start organizing your conversations and building amazing things.
           </p>
@@ -288,7 +288,7 @@ export function EmptyState({ type, onPromptSelect }: EmptyStateProps) {
     >
       <EmptyStateIllustration type="welcome" />
       
-      <h2 className="text-xl md:text-2xl font-bold mb-2 mt-6 text-center">How can I help you today?</h2>
+      <h2 className="text-xl md:text-2xl font-bold mb-2 mt-6 text-center">{getTimeOfDayGreeting()}, how can I help you?</h2>
       <p className="text-muted-foreground text-center max-w-lg mb-6 md:mb-8 text-sm md:text-base px-4">
         I'm Kernel, your AI-powered development assistant. Ask me anything about building
         apps, debugging issues, or improving your projects.

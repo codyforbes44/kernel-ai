@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, forwardRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronRight, ChevronLeft, Sparkles, MessageSquare, Layers, Command, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, getTimeOfDayGreeting } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -15,10 +15,10 @@ interface TourStep {
   position?: 'center' | 'top' | 'bottom' | 'left' | 'right';
 }
 
-const tourSteps: TourStep[] = [
+const getTourSteps = (): TourStep[] => [
   {
     id: 'welcome',
-    title: 'Welcome to Your AI Workspace',
+    title: `${getTimeOfDayGreeting()}! Welcome to Your AI Workspace`,
     description: 'This is your personal hub for AI-powered conversations, templates, and building apps. Let me show you around!',
     icon: <Sparkles className="h-6 w-6" />,
     position: 'center',
@@ -155,6 +155,7 @@ export const WelcomeTour = forwardRef<HTMLDivElement, WelcomeTourProps>(
 
   if (!hasChecked || !isOpen) return null;
 
+  const tourSteps = getTourSteps();
   const step = tourSteps[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === tourSteps.length - 1;
