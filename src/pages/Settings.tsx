@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useProtectedPage } from '@/hooks/useProtectedPage';
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { useUserPreferences, AI_MODEL_OPTIONS } from '@/hooks/useUserPreferences';
@@ -58,12 +58,12 @@ import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabase
 export default function Settings() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useProtectedPage();
-  const { signOut } = useProtectedPage().user ? { signOut: async () => {
-    const { supabase } = await import('@/integrations/supabase/client');
+  // Auth is handled by ProtectedRoute wrapper
+  const { user, loading: authLoading } = useAuth();
+  const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
-  }} : { signOut: async () => {} };
+  };
   const { theme, setTheme } = useTheme();
   const { clearHistory } = useVariableHistory();
   const { preferences, updatePreference, loading: preferencesLoading } = useUserPreferences();
@@ -344,17 +344,8 @@ export default function Settings() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
-  };
-
   if (authLoading) {
     return <LoadingSpinner fullScreen />;
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (
