@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Users, Search, ShieldCheck, ShieldOff, UserX, UserCheck, 
-  CreditCard, Download, MoreHorizontal, AlertTriangle 
+  CreditCard, MoreHorizontal, AlertTriangle 
 } from 'lucide-react';
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
@@ -17,15 +17,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import type { Profile } from '@/types/database';
-
-interface UserWithStats extends Profile {
-  email?: string;
-  conversation_count?: number;
-  message_count?: number;
-  last_active?: string;
-  is_admin?: boolean;
-}
+import { ExportButton } from './ExportButton';
+import { RefreshButton } from './RefreshButton';
+import { EmptyState } from './EmptyState';
+import { type UserWithStats } from '@/types/admin';
 
 interface UserManagementPanelProps {
   users: UserWithStats[];
@@ -35,6 +30,7 @@ interface UserManagementPanelProps {
   onSuspend: (userId: string, suspend: boolean) => Promise<boolean>;
   onGrantCredits: (userId: string, amount: number) => Promise<boolean>;
   onRefresh: () => void;
+  loading?: boolean;
 }
 
 export function UserManagementPanel({
@@ -45,6 +41,7 @@ export function UserManagementPanel({
   onSuspend,
   onGrantCredits,
   onRefresh,
+  loading,
 }: UserManagementPanelProps) {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -73,6 +70,18 @@ export function UserManagementPanel({
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, search, roleFilter, statusFilter]);
+
+  const exportData = useMemo(() => {
+    return filteredUsers.map(u => ({
+      id: u.id,
+      display_name: u.display_name || 'Unknown',
+      role: u.is_admin ? 'Admin' : 'User',
+      status: u.is_suspended ? 'Suspended' : 'Active',
+      conversations: u.conversation_count || 0,
+      messages: u.message_count || 0,
+      joined: format(new Date(u.created_at), 'yyyy-MM-dd'),
+    }));
+  }, [filteredUsers]);
 
   const handleAction = async (action: string, userId: string) => {
     setActionLoading(userId);
@@ -125,37 +134,11 @@ export function UserManagementPanel({
     onRefresh();
   };
 
-  const exportUsers = () => {
-    const csvContent = [
-      ['ID', 'Display Name', 'Role', 'Status', 'Conversations', 'Messages', 'Joined'],
-      ...filteredUsers.map(u => [
-        u.id,
-        u.display_name || 'Unknown',
-        u.is_admin ? 'Admin' : 'User',
-        u.is_suspended ? 'Suspended' : 'Active',
-        u.conversation_count || 0,
-        u.message_count || 0,
-        format(new Date(u.created_at), 'yyyy-MM-dd'),
-      ]),
-    ]
-      .map(row => row.join(','))
-      .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `users-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Users exported');
-  };
-
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -165,16 +148,16 @@ export function UserManagementPanel({
                 {filteredUsers.length} of {users.length} users
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={exportUsers}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <div className="flex items-center gap-2">
+              <ExportButton data={exportData} filenamePrefix="users" />
+              <RefreshButton onRefresh={onRefresh} loading={loading} />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex gap-3 mb-4">
-            <div className="relative flex-1 max-w-sm">
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name or ID..."
@@ -205,123 +188,131 @@ export function UserManagementPanel({
             </Select>
           </div>
 
-          <ScrollArea className="h-[500px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="w-12">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className={user.is_suspended ? 'opacity-60' : ''}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium">
-                          {user.display_name?.charAt(0).toUpperCase() || '?'}
-                        </div>
-                        <div>
-                          <div className="font-medium">{user.display_name || 'Unknown'}</div>
-                          <div className="text-xs text-muted-foreground font-mono">{user.id.slice(0, 8)}...</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {user.is_admin ? (
-                        <Badge className="bg-primary/20 text-primary border-primary/30 gap-1">
-                          <ShieldCheck className="h-3 w-3" />
-                          Admin
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">User</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.is_suspended ? (
-                        <Badge variant="destructive" className="gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Suspended
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-green-500/20 text-green-600 border-green-500/30 gap-1">
-                          <UserCheck className="h-3 w-3" />
-                          Active
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">{user.conversation_count} convs</Badge>
-                        <Badge variant="outline">{user.message_count} msgs</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {format(new Date(user.created_at), 'MMM d, yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            disabled={actionLoading === user.id}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {user.is_admin ? (
-                            <DropdownMenuItem 
-                              onClick={() => handleAction('demote', user.id)}
-                              disabled={user.id === currentUserId}
-                              className="text-destructive"
-                            >
-                              <ShieldOff className="h-4 w-4 mr-2" />
-                              Remove Admin
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleAction('promote', user.id)}>
-                              <ShieldCheck className="h-4 w-4 mr-2" />
-                              Make Admin
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          {user.is_suspended ? (
-                            <DropdownMenuItem onClick={() => handleAction('unsuspend', user.id)}>
-                              <UserCheck className="h-4 w-4 mr-2" />
-                              Unsuspend
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem 
-                              onClick={() => handleAction('suspend', user.id)}
-                              disabled={user.id === currentUserId}
-                              className="text-destructive"
-                            >
-                              <UserX className="h-4 w-4 mr-2" />
-                              Suspend
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedUser(user);
-                            setCreditDialogOpen(true);
-                          }}>
-                            <CreditCard className="h-4 w-4 mr-2" />
-                            Grant Credits
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+          {filteredUsers.length === 0 ? (
+            <EmptyState 
+              icon={Users} 
+              title="No users found" 
+              description="Try adjusting your search or filters"
+            />
+          ) : (
+            <ScrollArea className="h-[500px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Activity</TableHead>
+                    <TableHead className="hidden sm:table-cell">Joined</TableHead>
+                    <TableHead className="w-12">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user) => (
+                    <TableRow key={user.id} className={user.is_suspended ? 'opacity-60' : ''}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium shrink-0">
+                            {user.display_name?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">{user.display_name || 'Unknown'}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{user.id.slice(0, 8)}...</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.is_admin ? (
+                          <Badge className="bg-primary/20 text-primary border-primary/30 gap-1">
+                            <ShieldCheck className="h-3 w-3" />
+                            Admin
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">User</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.is_suspended ? (
+                          <Badge variant="destructive" className="gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            Suspended
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-500/20 text-green-600 border-green-500/30 gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            Active
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex gap-2">
+                          <Badge variant="secondary">{user.conversation_count} convs</Badge>
+                          <Badge variant="outline">{user.message_count} msgs</Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
+                        {format(new Date(user.created_at), 'MMM d, yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              disabled={actionLoading === user.id}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {user.is_admin ? (
+                              <DropdownMenuItem 
+                                onClick={() => handleAction('demote', user.id)}
+                                disabled={user.id === currentUserId}
+                                className="text-destructive"
+                              >
+                                <ShieldOff className="h-4 w-4 mr-2" />
+                                Remove Admin
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleAction('promote', user.id)}>
+                                <ShieldCheck className="h-4 w-4 mr-2" />
+                                Make Admin
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            {user.is_suspended ? (
+                              <DropdownMenuItem onClick={() => handleAction('unsuspend', user.id)}>
+                                <UserCheck className="h-4 w-4 mr-2" />
+                                Unsuspend
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem 
+                                onClick={() => handleAction('suspend', user.id)}
+                                disabled={user.id === currentUserId}
+                                className="text-destructive"
+                              >
+                                <UserX className="h-4 w-4 mr-2" />
+                                Suspend
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedUser(user);
+                              setCreditDialogOpen(true);
+                            }}>
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Grant Credits
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          )}
         </CardContent>
       </Card>
 

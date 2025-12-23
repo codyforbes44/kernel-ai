@@ -12,18 +12,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
-import { ContactSubmissionsPanel } from '@/components/admin/ContactSubmissionsPanel';
-import { SystemStatsCards } from '@/components/admin/SystemStatsCards';
-import { UserManagementPanel } from '@/components/admin/UserManagementPanel';
-import { AIUsagePanel } from '@/components/admin/AIUsagePanel';
-import { LoginLocationsPanel } from '@/components/admin/LoginLocationsPanel';
-import { VisitorAnalyticsPanel } from '@/components/admin/VisitorAnalyticsPanel';
+import { 
+  ContactSubmissionsPanel, 
+  SystemStatsCards, 
+  UserManagementPanel, 
+  AIUsagePanel, 
+  LoginLocationsPanel, 
+  VisitorAnalyticsPanel,
+  AdminPanelWrapper 
+} from '@/components/admin';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -144,27 +146,36 @@ export default function Admin() {
           </TabsList>
 
           <TabsContent value="users">
-            <UserManagementPanel 
-              users={users}
-              currentUserId={user?.id}
-              onPromote={promoteToAdmin}
-              onDemote={demoteFromAdmin}
-              onSuspend={suspendUser}
-              onGrantCredits={grantCredits}
-              onRefresh={handleRefresh}
-            />
+            <AdminPanelWrapper panelName="User Management" onRetry={handleRefresh}>
+              <UserManagementPanel 
+                users={users}
+                currentUserId={user?.id}
+                onPromote={promoteToAdmin}
+                onDemote={demoteFromAdmin}
+                onSuspend={suspendUser}
+                onGrantCredits={grantCredits}
+                onRefresh={handleRefresh}
+                loading={statsLoading}
+              />
+            </AdminPanelWrapper>
           </TabsContent>
 
           <TabsContent value="visitors">
-            <VisitorAnalyticsPanel pageViews={pageViews} loading={statsLoading} />
+            <AdminPanelWrapper panelName="Visitor Analytics" onRetry={refetch}>
+              <VisitorAnalyticsPanel pageViews={pageViews} loading={statsLoading} onRefresh={refetch} />
+            </AdminPanelWrapper>
           </TabsContent>
 
           <TabsContent value="ai-usage">
-            <AIUsagePanel logs={aiUsageLogs} modelBreakdown={modelUsageBreakdown} loading={statsLoading} />
+            <AdminPanelWrapper panelName="AI Usage" onRetry={refetch}>
+              <AIUsagePanel logs={aiUsageLogs} modelBreakdown={modelUsageBreakdown} loading={statsLoading} onRefresh={refetch} />
+            </AdminPanelWrapper>
           </TabsContent>
 
           <TabsContent value="locations">
-            <LoginLocationsPanel locations={loginLocations} loading={statsLoading} />
+            <AdminPanelWrapper panelName="Login Locations" onRetry={refetch}>
+              <LoginLocationsPanel locations={loginLocations} loading={statsLoading} onRefresh={refetch} />
+            </AdminPanelWrapper>
           </TabsContent>
 
           <TabsContent value="conversations">
@@ -227,7 +238,9 @@ export default function Admin() {
           </TabsContent>
 
           <TabsContent value="contact">
-            <ContactSubmissionsPanel />
+            <AdminPanelWrapper panelName="Contact Submissions">
+              <ContactSubmissionsPanel />
+            </AdminPanelWrapper>
           </TabsContent>
         </Tabs>
       </main>

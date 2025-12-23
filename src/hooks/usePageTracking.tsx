@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { logger } from '@/lib/logger';
 
 function getDeviceType(): string {
   const ua = navigator.userAgent;
@@ -47,7 +48,7 @@ export function usePageTracking() {
         });
       } catch (error) {
         // Silently fail - analytics shouldn't break the app
-        console.debug('Page tracking failed:', error);
+        logger.debug('Page tracking failed:', error);
       }
     };
 
