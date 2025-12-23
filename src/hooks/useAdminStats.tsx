@@ -1,57 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from './useAdmin';
-
-interface SystemStats {
-  totalUsers: number;
-  activeUsersToday: number;
-  activeUsersWeek: number;
-  newUsersToday: number;
-  newUsersWeek: number;
-  totalMessages: number;
-  totalConversations: number;
-  totalTokens: number;
-  totalCreditsUsed: number;
-  totalCreditsPurchased: number;
-  avgCreditsBalance: number;
-  suspendedUsers: number;
-}
-
-interface AIUsageStats {
-  id: string;
-  user_id: string;
-  model: string;
-  function_name: string;
-  tokens_input: number;
-  tokens_output: number;
-  credits_used: number;
-  created_at: string;
-  user_name?: string;
-}
-
-interface LoginLocation {
-  id: string;
-  user_id: string;
-  ip_address: string;
-  country: string | null;
-  city: string | null;
-  region: string | null;
-  login_count: number | null;
-  is_trusted: boolean | null;
-  first_seen_at: string;
-  last_seen_at: string;
-  user_name?: string;
-}
-
-interface PageView {
-  id: string;
-  path: string;
-  user_id: string | null;
-  device_type: string | null;
-  browser: string | null;
-  country: string | null;
-  created_at: string;
-}
+import { logger } from '@/lib/logger';
+import type { SystemStats, AIUsageStats, LoginLocation, PageView } from '@/types/admin';
 
 export function useAdminStats() {
   const { isAdmin } = useAdmin();
@@ -91,17 +42,17 @@ export function useAdminStats() {
           .from('ai_usage_logs')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(200),
+          .limit(500),
         supabase
           .from('user_login_locations')
           .select('*')
           .order('last_seen_at', { ascending: false })
-          .limit(100),
+          .limit(200),
         supabase
           .from('page_views')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(500),
+          .limit(1000),
       ]);
 
       const profiles = profilesResult.data || [];
@@ -162,7 +113,7 @@ export function useAdminStats() {
       setPageViews((pageViewsResult.data || []) as PageView[]);
 
     } catch (error) {
-      console.error('Error fetching admin stats:', error);
+      logger.error('Error fetching admin stats:', error);
     } finally {
       setLoading(false);
     }
@@ -171,6 +122,27 @@ export function useAdminStats() {
   useEffect(() => {
     fetchSystemStats();
   }, [fetchSystemStats]);
+
+  // Setup real-time subscription for page_views
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const channel = supabase
+      .channel('admin-page-views')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'page_views' },
+        (payload) => {
+          const newView = payload.new as PageView;
+          setPageViews(prev => [newView, ...prev].slice(0, 1000));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin]);
 
   const suspendUser = useCallback(async (userId: string, suspend: boolean) => {
     if (!isAdmin) return false;
@@ -181,13 +153,14 @@ export function useAdminStats() {
       .eq('id', userId);
 
     if (error) {
-      console.error('Error updating user suspension:', error);
+      logger.error('Error updating user suspension:', error);
       return false;
     }
 
     // Log the action
+    const user = await supabase.auth.getUser();
     await supabase.from('admin_audit_log').insert({
-      admin_user_id: (await supabase.auth.getUser()).data.user?.id,
+      admin_user_id: user.data.user?.id,
       action: suspend ? 'suspend_user' : 'unsuspend_user',
       target_type: 'user',
       target_id: userId,
@@ -202,28 +175,30 @@ export function useAdminStats() {
     // First get current balance
     const { data: currentCredits } = await supabase
       .from('ai_credits')
-      .select('balance')
+      .select('balance, total_purchased')
       .eq('user_id', userId)
       .single();
 
     const newBalance = (currentCredits?.balance || 0) + amount;
+    const newTotalPurchased = (currentCredits?.total_purchased || 0) + amount;
 
     const { error } = await supabase
       .from('ai_credits')
       .update({ 
         balance: newBalance,
-        total_purchased: supabase.rpc ? undefined : newBalance 
+        total_purchased: newTotalPurchased
       })
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error granting credits:', error);
+      logger.error('Error granting credits:', error);
       return false;
     }
 
     // Log the action
+    const user = await supabase.auth.getUser();
     await supabase.from('admin_audit_log').insert({
-      admin_user_id: (await supabase.auth.getUser()).data.user?.id,
+      admin_user_id: user.data.user?.id,
       action: 'grant_credits',
       target_type: 'user',
       target_id: userId,
