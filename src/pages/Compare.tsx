@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { SocialComparisonCard } from "@/components/marketing/SocialComparisonCard";
 import { CompareOGImage } from "@/components/marketing/CompareOGImage";
+import { PlatformRadarChart } from "@/components/pricing/PlatformRadarChart";
 import { SEO } from "@/components/seo/SEO";
 import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
 import { platformFeatures, platforms } from "@/lib/pricing-data";
@@ -198,6 +199,22 @@ Check the full comparison 👇`;
             <div ref={cardRef} className="flex justify-center mb-16">
               <SocialComparisonCard />
             </div>
+          </div>
+        </section>
+
+        {/* Radar Chart Section */}
+        <section className="py-16 border-t border-border/50">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Feature Coverage at a Glance
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                See how platforms compare across 5 key categories. Kernel achieves 100% coverage 
+                in every category—the only platform to do so.
+              </p>
+            </div>
+            <PlatformRadarChart />
           </div>
         </section>
 
