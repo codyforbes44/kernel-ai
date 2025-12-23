@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import type { 
   TableInfo, 
   TableSchema, 
@@ -117,14 +118,14 @@ export const databaseService = {
       });
       
       if (!response.ok) {
-        console.warn('Failed to fetch tables from edge function, using fallback');
+        logger.warn('Failed to fetch tables from edge function, using fallback');
         return KNOWN_TABLES;
       }
       
       const data = await response.json();
       return data.tables || KNOWN_TABLES;
     } catch (error) {
-      console.error('Error listing tables:', error);
+      logger.error('Error listing tables:', error);
       return KNOWN_TABLES;
     }
   },

@@ -1,11 +1,12 @@
 import * as Sentry from '@sentry/react';
+import { logger } from '@/lib/logger';
 
 // Initialize Sentry - only in production or when DSN is configured
 export function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   
   if (!dsn) {
-    console.log('[Sentry] No DSN configured, skipping initialization');
+    logger.log('[Sentry] No DSN configured, skipping initialization');
     return;
   }
 
@@ -56,12 +57,12 @@ export function initSentry() {
     },
   });
 
-  console.log('[Sentry] Initialized successfully');
+  logger.log('[Sentry] Initialized successfully');
 }
 
 // Capture exception with additional context
 export function captureError(error: Error, context?: Record<string, unknown>) {
-  console.error('[Error]', error);
+  logger.error('[Error]', error);
   
   if (context) {
     Sentry.withScope((scope) => {

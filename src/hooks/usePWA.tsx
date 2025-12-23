@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import { logger } from '@/lib/logger';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -17,7 +18,7 @@ export function usePWA() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(swUrl, r) {
-      console.log('SW registered:', swUrl);
+      logger.log('SW registered:', swUrl);
       // Check for updates every hour
       if (r) {
         setInterval(() => {
@@ -26,7 +27,7 @@ export function usePWA() {
       }
     },
     onRegisterError(error) {
-      console.error('SW registration error:', error);
+      logger.error('SW registration error:', error);
     },
   });
 

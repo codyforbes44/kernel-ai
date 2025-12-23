@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useDeploymentNotifications } from './useDeploymentNotifications';
+import { logger } from '@/lib/logger';
 
 export interface Deployment {
   id: string;
@@ -124,7 +125,7 @@ export function useDeployments(projectId: string) {
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          console.log('[Realtime] Deployment update:', payload);
+          logger.log('[Realtime] Deployment update:', payload);
           queryClient.invalidateQueries({ queryKey: ['deployments', projectId] });
         }
       )

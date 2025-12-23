@@ -6,12 +6,13 @@ import { Home, Code2, ArrowLeft } from "lucide-react";
 import { SEO } from "@/components/seo/SEO";
 import { PAGE_SEO } from "@/lib/seo";
 import { KernelLogo } from "@/components/ui/kernel-logo";
+import { logger } from "@/lib/logger";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+    logger.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
   return (

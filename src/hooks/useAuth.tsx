@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { setUserContext, clearUserContext, addBreadcrumb } from '@/lib/sentry';
+import { logger } from '@/lib/logger';
 import type { Profile } from '@/types/database';
 
 type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       setProfile(data as Profile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }

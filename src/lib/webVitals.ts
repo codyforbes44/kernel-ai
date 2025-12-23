@@ -1,4 +1,5 @@
 import { onCLS, onFID, onFCP, onLCP, onTTFB, onINP, type Metric } from 'web-vitals';
+import { logger } from '@/lib/logger';
 
 export interface VitalMetric {
   name: string;
@@ -69,7 +70,7 @@ function handleMetric(metric: Metric) {
   if (import.meta.env.DEV) {
     const color = vitalMetric.rating === 'good' ? '#22c55e' : 
                   vitalMetric.rating === 'needs-improvement' ? '#f59e0b' : '#ef4444';
-    console.log(
+    logger.log(
       `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(2)}`,
       `color: ${color}; font-weight: bold;`
     );
@@ -97,7 +98,7 @@ export function initWebVitals() {
   onTTFB(handleMetric);
   onINP(handleMetric);
   
-  console.log('[Web Vitals] Tracking initialized');
+  logger.log('[Web Vitals] Tracking initialized');
 }
 
 // Subscribe to vitals updates

@@ -4,6 +4,7 @@ import type { ProjectFile } from '@/types/builder';
 import { applyVisualChangesToSource, generateChangesSummary, validateChanges } from '@/lib/visualEditorPersistence';
 import { formatSourceLocation } from '@/lib/jsxSourceMapper';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface UseVisualEditorOptions {
   iframeRef: React.RefObject<HTMLIFrameElement>;
@@ -473,7 +474,7 @@ export function useVisualEditor({
     // Validate changes first
     const validation = validateChanges(pendingChanges, files);
     if (!validation.valid) {
-      console.warn('Some changes may not apply correctly:', validation.errors);
+      logger.warn('Some changes may not apply correctly:', validation.errors);
       toast.warning(`Some changes may not persist: ${validation.errors.length} element(s) without source mapping`);
     }
     
@@ -498,7 +499,7 @@ export function useVisualEditor({
         toast.info('No changes could be applied to source files');
       }
     } catch (error) {
-      console.error('Failed to save visual changes:', error);
+      logger.error('Failed to save visual changes:', error);
       toast.error('Failed to save changes to source code');
     } finally {
       setIsSaving(false);
