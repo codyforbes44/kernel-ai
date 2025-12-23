@@ -75,6 +75,78 @@ export const PAGE_SEO = {
     ogImage: '/og-images/default.png',
     noIndex: true,
   },
+  // New page SEO configs
+  pricing: {
+    title: 'Pricing - Simple, Transparent Plans',
+    description: 'Choose the perfect Kernel plan for your needs. Free tier available, with Pro and Enterprise options for teams and businesses.',
+    ogImage: '/og-images/pricing.png',
+    keywords: ['pricing', 'plans', 'subscription', 'free tier', 'pro plan', 'enterprise', 'AI development pricing'],
+  },
+  about: {
+    title: 'About Us - Our Mission & Team',
+    description: 'Learn about Kernel\'s mission to empower developers with AI. Meet the team building the future of web development.',
+    ogImage: '/og-images/about.png',
+    keywords: ['about kernel', 'team', 'mission', 'company', 'AI development company'],
+  },
+  blog: {
+    title: 'Blog - Insights & Tutorials',
+    description: 'Insights, tutorials, and updates from the Kernel team. Learn about AI development, web building, and modern software practices.',
+    ogImage: '/og-images/blog.png',
+    keywords: ['blog', 'tutorials', 'AI development', 'web development', 'tech insights'],
+  },
+  blogPost: {
+    titleTemplate: (title: string) => title,
+    descriptionTemplate: (excerpt: string) => excerpt,
+    ogImage: '/og-images/blog.png',
+  },
+  documentation: {
+    title: 'Documentation - Developer Guides',
+    description: 'Comprehensive documentation for Kernel. Get started guides, API references, and tutorials to help you build faster.',
+    ogImage: '/og-images/docs.png',
+    keywords: ['documentation', 'docs', 'API reference', 'developer guide', 'tutorials'],
+  },
+  tutorials: {
+    title: 'Tutorials - Learn & Build',
+    description: 'Step-by-step tutorials to help you master Kernel. From beginner to advanced, learn to build with AI assistance.',
+    ogImage: '/og-images/tutorials.png',
+    keywords: ['tutorials', 'learning', 'how-to', 'guides', 'AI development tutorials'],
+  },
+  careers: {
+    title: 'Careers - Join Our Team',
+    description: 'Join the Kernel team and help shape the future of AI-powered development. Explore open positions and company benefits.',
+    ogImage: '/og-images/careers.png',
+    keywords: ['careers', 'jobs', 'hiring', 'work at kernel', 'tech jobs', 'remote work'],
+  },
+  security: {
+    title: 'Security - Enterprise Protection',
+    description: 'Learn about Kernel\'s security practices, compliance certifications, and data protection measures. Your security is our priority.',
+    ogImage: '/og-images/security.png',
+    keywords: ['security', 'compliance', 'data protection', 'enterprise security', 'GDPR', 'SOC 2'],
+  },
+  contact: {
+    title: 'Contact Us - Get Support',
+    description: 'Get in touch with the Kernel team. We\'re here to help with questions, support, and partnership inquiries.',
+    ogImage: '/og-images/contact.png',
+    keywords: ['contact', 'support', 'help', 'customer service', 'get in touch'],
+  },
+  changelog: {
+    title: 'Changelog - What\'s New',
+    description: 'Stay up to date with the latest Kernel features, improvements, and bug fixes. See what\'s new in each release.',
+    ogImage: '/og-images/changelog.png',
+    keywords: ['changelog', 'updates', 'releases', 'new features', 'version history'],
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    description: 'Kernel\'s privacy policy. Learn how we collect, use, and protect your personal information.',
+    ogImage: '/og-images/default.png',
+    keywords: ['privacy policy', 'data privacy', 'personal data', 'GDPR'],
+  },
+  terms: {
+    title: 'Terms of Service',
+    description: 'Kernel\'s terms of service. Understand the terms and conditions for using our platform.',
+    ogImage: '/og-images/default.png',
+    keywords: ['terms of service', 'terms and conditions', 'legal', 'user agreement'],
+  },
 } as const;
 
 // Organization Schema
@@ -92,7 +164,7 @@ export const getOrganizationSchema = (siteUrl: string) => ({
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "customer support",
-    "url": `${siteUrl}/support`
+    "url": `${siteUrl}/contact`
   }
 });
 
@@ -184,8 +256,192 @@ export const getWebPageSchema = (title: string, description: string, url: string
   "inLanguage": "en-US"
 });
 
+// Article Schema for blog posts
+export interface ArticleSchemaInput {
+  title: string;
+  description: string;
+  url: string;
+  datePublished: string;
+  dateModified?: string;
+  author: { name: string; url?: string };
+  image?: string;
+  tags?: string[];
+}
+
+export const getArticleSchema = (article: ArticleSchemaInput) => ({
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": article.title,
+  "description": article.description,
+  "url": article.url,
+  "datePublished": article.datePublished,
+  "dateModified": article.dateModified || article.datePublished,
+  "author": {
+    "@type": "Person",
+    "name": article.author.name,
+    ...(article.author.url && { "url": article.author.url })
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": SEO_CONFIG.siteName,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${SEO_CONFIG.siteUrl}/pwa-512x512.png`
+    }
+  },
+  "image": article.image || `${SEO_CONFIG.siteUrl}/og-images/blog.png`,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": article.url
+  },
+  ...(article.tags && { "keywords": article.tags.join(', ') })
+});
+
+// Job Posting Schema for careers page
+export interface JobPostingSchemaInput {
+  title: string;
+  description: string;
+  department?: string;
+  location?: string;
+  employmentType: 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'TEMPORARY' | 'INTERN';
+  remote?: boolean;
+  datePosted: string;
+  validThrough?: string;
+  salaryRange?: { min: number; max: number; currency: string };
+}
+
+export const getJobPostingSchema = (job: JobPostingSchemaInput, siteUrl: string) => ({
+  "@context": "https://schema.org",
+  "@type": "JobPosting",
+  "title": job.title,
+  "description": job.description,
+  "datePosted": job.datePosted,
+  ...(job.validThrough && { "validThrough": job.validThrough }),
+  "employmentType": job.employmentType,
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": SEO_CONFIG.siteName,
+    "sameAs": siteUrl,
+    "logo": `${siteUrl}/pwa-512x512.png`
+  },
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": job.location || "Remote",
+      "addressCountry": "US"
+    }
+  },
+  ...(job.remote && { "jobLocationType": "TELECOMMUTE" }),
+  ...(job.salaryRange && {
+    "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": job.salaryRange.currency,
+      "value": {
+        "@type": "QuantitativeValue",
+        "minValue": job.salaryRange.min,
+        "maxValue": job.salaryRange.max,
+        "unitText": "YEAR"
+      }
+    }
+  })
+});
+
+// HowTo Schema for tutorials
+export interface HowToStep {
+  name: string;
+  text: string;
+  image?: string;
+}
+
+export interface HowToSchemaInput {
+  name: string;
+  description: string;
+  totalTime?: string;
+  steps: HowToStep[];
+  image?: string;
+}
+
+export const getHowToSchema = (tutorial: HowToSchemaInput, siteUrl: string) => ({
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": tutorial.name,
+  "description": tutorial.description,
+  ...(tutorial.totalTime && { "totalTime": tutorial.totalTime }),
+  "image": tutorial.image || `${siteUrl}/og-images/tutorials.png`,
+  "step": tutorial.steps.map((step, index) => ({
+    "@type": "HowToStep",
+    "position": index + 1,
+    "name": step.name,
+    "text": step.text,
+    ...(step.image && { "image": step.image })
+  }))
+});
+
+// Service/Pricing Schema
+export interface PricingPlan {
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  billingPeriod: 'month' | 'year';
+  features: string[];
+}
+
+export const getServiceSchema = (plans: PricingPlan[], siteUrl: string) => ({
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Kernel AI Development Platform",
+  "description": PAGE_SEO.pricing.description,
+  "provider": {
+    "@type": "Organization",
+    "name": SEO_CONFIG.siteName,
+    "url": siteUrl
+  },
+  "offers": plans.map(plan => ({
+    "@type": "Offer",
+    "name": plan.name,
+    "description": plan.description,
+    "price": plan.price,
+    "priceCurrency": plan.currency,
+    "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": plan.price,
+      "priceCurrency": plan.currency,
+      "billingDuration": plan.billingPeriod === 'month' ? 'P1M' : 'P1Y'
+    }
+  }))
+});
+
+// ContactPoint Schema
+export const getContactPointSchema = (siteUrl: string) => ({
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact Kernel",
+  "description": PAGE_SEO.contact.description,
+  "url": `${siteUrl}/contact`,
+  "mainEntity": {
+    "@type": "Organization",
+    "name": SEO_CONFIG.siteName,
+    "contactPoint": [
+      {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@kernel.app",
+        "availableLanguage": "English"
+      },
+      {
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "email": "sales@kernel.app",
+        "availableLanguage": "English"
+      }
+    ]
+  }
+});
+
 // FAQ Schema Helper
-interface FAQItem {
+export interface FAQItem {
   question: string;
   answer: string;
 }
@@ -227,6 +483,30 @@ export const COMMON_FAQS = {
     {
       question: "Can I reset my password?",
       answer: "Yes, click 'Forgot Password' on the sign-in page and we'll send you a reset link."
+    }
+  ],
+  pricing: [
+    {
+      question: "What's included in the free plan?",
+      answer: "The free plan includes AI chat assistance, visual builder, basic templates, and deployment to a kernel.app subdomain."
+    },
+    {
+      question: "Can I upgrade or downgrade my plan?",
+      answer: "Yes, you can change your plan at any time. Upgrades take effect immediately, and downgrades apply at the end of your billing period."
+    },
+    {
+      question: "Do you offer refunds?",
+      answer: "We offer a 14-day money-back guarantee for all paid plans. Contact support if you're not satisfied."
+    }
+  ],
+  security: [
+    {
+      question: "Is my data secure?",
+      answer: "Yes, we use industry-standard encryption (TLS 1.3) for all data in transit and AES-256 for data at rest. We're SOC 2 Type II compliant."
+    },
+    {
+      question: "Do you store my code?",
+      answer: "Your code is stored securely in our cloud infrastructure with full encryption. You can export or delete your data at any time."
     }
   ]
 };
@@ -275,6 +555,55 @@ export const BREADCRUMBS = {
     { name: 'Home', url: siteUrl },
     { name: 'Admin Panel', url: `${siteUrl}/admin` }
   ]),
+  pricing: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Pricing', url: `${siteUrl}/pricing` }
+  ]),
+  about: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'About', url: `${siteUrl}/about` }
+  ]),
+  blog: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Blog', url: `${siteUrl}/blog` }
+  ]),
+  blogPost: (siteUrl: string, postTitle: string, postSlug: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Blog', url: `${siteUrl}/blog` },
+    { name: postTitle, url: `${siteUrl}/blog/${postSlug}` }
+  ]),
+  documentation: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Documentation', url: `${siteUrl}/documentation` }
+  ]),
+  tutorials: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Tutorials', url: `${siteUrl}/tutorials` }
+  ]),
+  careers: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Careers', url: `${siteUrl}/careers` }
+  ]),
+  security: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Security', url: `${siteUrl}/security` }
+  ]),
+  contact: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Contact', url: `${siteUrl}/contact` }
+  ]),
+  changelog: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Changelog', url: `${siteUrl}/changelog` }
+  ]),
+  privacy: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Privacy Policy', url: `${siteUrl}/privacy` }
+  ]),
+  terms: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Terms of Service', url: `${siteUrl}/terms` }
+  ]),
 };
 
 // OG Image URL helper with dimensions
@@ -286,4 +615,10 @@ export const getOgImageUrl = (imagePath: string, siteUrl: string = SEO_CONFIG.si
     height: SEO_CONFIG.ogImageDimensions.height,
     alt: `${SEO_CONFIG.siteName} - ${imagePath.split('/').pop()?.replace('.png', '').replace('-', ' ')}`,
   };
+};
+
+// Helper to convert date strings to ISO format
+export const toISODate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toISOString();
 };
