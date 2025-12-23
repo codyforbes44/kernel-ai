@@ -169,6 +169,16 @@ export const routes: RouteConfig[] = [
     requiresAuth: false,
     robots: 'allow',
   },
+  {
+    path: '/migrate',
+    title: 'Migration Assistant',
+    description: 'Import projects from Bolt, v0, Replit, Lovable, Cursor and more',
+    changefreq: 'monthly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
   // Protected routes - not included in sitemap, blocked from crawlers
   {
     path: '/assistant',
