@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { useClipboard } from '@/hooks/useClipboard';
 
 export interface GeneratedTable {
   name: string;
@@ -56,14 +56,11 @@ export function SchemaPreview({
 }: SchemaPreviewProps) {
   const [showSQL, setShowSQL] = useState(false);
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set(schema.tables.map(t => t.name)));
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useClipboard({ successMessage: 'SQL copied to clipboard' });
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(schema.sql);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    await copy(schema.sql);
     onCopy?.();
-    toast.success('SQL copied to clipboard');
   };
 
   const toggleTable = (name: string) => {
