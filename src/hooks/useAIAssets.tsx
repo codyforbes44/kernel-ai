@@ -31,6 +31,8 @@ export interface GenerateImageOptions {
   style?: 'realistic' | 'illustration' | 'icon' | '3d' | 'abstract' | 'minimal';
   aspectRatio?: '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
   projectId?: string;
+  editImageUrl?: string;
+  editMode?: boolean;
 }
 
 export interface ScreenshotToCodeOptions {
@@ -101,6 +103,8 @@ export function useAIAssets(projectId?: string) {
             style: options.style || 'realistic',
             aspectRatio: options.aspectRatio || '1:1',
             projectId: options.projectId || projectId,
+            editImageUrl: options.editImageUrl,
+            editMode: options.editMode || false,
           }),
         }
       );

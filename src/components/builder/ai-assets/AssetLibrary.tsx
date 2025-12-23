@@ -22,6 +22,10 @@ import {
   Code,
   ExternalLink,
   Star,
+  Wand2,
+  CheckSquare,
+  Square,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GeneratedAsset } from '@/hooks/useAIAssets';
@@ -36,6 +40,8 @@ interface AssetLibraryProps {
   onDelete: (assetId: string) => void;
   onToggleFavorite: (assetId: string) => void;
   getCodeSnippet: (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg') => string;
+  onEditAsset?: (asset: GeneratedAsset) => void;
+  onBulkDelete?: (assetIds: string[]) => void;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -50,10 +56,14 @@ export function AssetLibrary({
   onDelete,
   onToggleFavorite,
   getCodeSnippet,
+  onEditAsset,
+  onBulkDelete,
 }: AssetLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredAssets = useMemo(() => {
     let filtered = assets;
@@ -78,6 +88,35 @@ export function AssetLibrary({
   const handleCopyCode = async (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg') => {
     const code = getCodeSnippet(asset, format);
     await navigator.clipboard.writeText(code);
+  };
+
+  const toggleAssetSelection = (assetId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(assetId)) {
+        next.delete(assetId);
+      } else {
+        next.add(assetId);
+      }
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(filteredAssets.map((a) => a.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  };
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await onDelete(id);
+    }
+    clearSelection();
   };
 
   if (isLoading) {
@@ -129,23 +168,74 @@ export function AssetLibrary({
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2">
-        <Button
-          variant={filterMode === 'all' ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => setFilterMode('all')}
-        >
-          All ({assets.length})
-        </Button>
-        <Button
-          variant={filterMode === 'favorites' ? 'secondary' : 'ghost'}
-          size="sm"
-          onClick={() => setFilterMode('favorites')}
-        >
-          <Heart className="h-4 w-4 mr-1" />
-          Favorites ({assets.filter((a) => a.is_favorite).length})
-        </Button>
+      {/* Filter tabs and bulk actions */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex gap-2">
+          <Button
+            variant={filterMode === 'all' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterMode('all')}
+          >
+            All ({assets.length})
+          </Button>
+          <Button
+            variant={filterMode === 'favorites' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterMode('favorites')}
+          >
+            <Heart className="h-4 w-4 mr-1" />
+            Favorites ({assets.filter((a) => a.is_favorite).length})
+          </Button>
+        </div>
+
+        {/* Selection mode toggle */}
+        {filteredAssets.length > 0 && (
+          <div className="flex gap-2">
+            {selectionMode ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={selectAll}
+                  className="text-xs"
+                >
+                  <CheckSquare className="h-4 w-4 mr-1" />
+                  Select All
+                </Button>
+                {selectedIds.size > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    className="text-xs"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete ({selectedIds.size})
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  className="text-xs"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectionMode(true)}
+                className="text-xs"
+              >
+                <CheckSquare className="h-4 w-4 mr-1" />
+                Select
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Assets grid/list */}
@@ -162,12 +252,15 @@ export function AssetLibrary({
             <AssetCard
               key={asset.id}
               asset={asset}
-              onSelect={() => onSelectAsset(asset)}
+              onSelect={() => selectionMode ? toggleAssetSelection(asset.id) : onSelectAsset(asset)}
               onCopyUrl={() => onCopyUrl(asset.storage_url)}
               onDownload={() => onDownload(asset)}
               onDelete={() => onDelete(asset.id)}
               onToggleFavorite={() => onToggleFavorite(asset.id)}
               onCopyCode={(format) => handleCopyCode(asset, format)}
+              onEdit={onEditAsset ? () => onEditAsset(asset) : undefined}
+              selectionMode={selectionMode}
+              isSelected={selectedIds.has(asset.id)}
             />
           ))}
         </div>
@@ -177,12 +270,15 @@ export function AssetLibrary({
             <AssetListItem
               key={asset.id}
               asset={asset}
-              onSelect={() => onSelectAsset(asset)}
+              onSelect={() => selectionMode ? toggleAssetSelection(asset.id) : onSelectAsset(asset)}
               onCopyUrl={() => onCopyUrl(asset.storage_url)}
               onDownload={() => onDownload(asset)}
               onDelete={() => onDelete(asset.id)}
               onToggleFavorite={() => onToggleFavorite(asset.id)}
               onCopyCode={(format) => handleCopyCode(asset, format)}
+              onEdit={onEditAsset ? () => onEditAsset(asset) : undefined}
+              selectionMode={selectionMode}
+              isSelected={selectedIds.has(asset.id)}
             />
           ))}
         </div>
@@ -199,6 +295,9 @@ interface AssetItemProps {
   onDelete: () => void;
   onToggleFavorite: () => void;
   onCopyCode: (format: 'jsx' | 'img' | 'bg') => void;
+  onEdit?: () => void;
+  selectionMode?: boolean;
+  isSelected?: boolean;
 }
 
 function AssetCard({
@@ -209,14 +308,29 @@ function AssetCard({
   onDelete,
   onToggleFavorite,
   onCopyCode,
+  onEdit,
+  selectionMode,
+  isSelected,
 }: AssetItemProps) {
   return (
     <div
       className={cn(
         'group relative rounded-lg overflow-hidden border bg-muted/50',
-        'hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer'
+        'hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer',
+        isSelected && 'ring-2 ring-primary'
       )}
     >
+      {/* Selection checkbox */}
+      {selectionMode && (
+        <div className="absolute top-2 left-2 z-10" onClick={(e) => { e.stopPropagation(); onSelect(); }}>
+          {isSelected ? (
+            <CheckSquare className="h-5 w-5 text-primary fill-primary/20" />
+          ) : (
+            <Square className="h-5 w-5 text-muted-foreground" />
+          )}
+        </div>
+      )}
+
       <div className="aspect-square" onClick={onSelect}>
         <img
           src={asset.storage_url}
@@ -227,30 +341,33 @@ function AssetCard({
       </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
         <div className="absolute bottom-0 left-0 right-0 p-2">
           <p className="text-xs text-white line-clamp-2">{asset.prompt}</p>
         </div>
       </div>
 
       {/* Favorite badge */}
-      {asset.is_favorite && (
+      {asset.is_favorite && !selectionMode && (
         <div className="absolute top-2 left-2">
           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
         </div>
       )}
 
       {/* Actions */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <AssetActions
-          onCopyUrl={onCopyUrl}
-          onDownload={onDownload}
-          onDelete={onDelete}
-          onToggleFavorite={onToggleFavorite}
-          onCopyCode={onCopyCode}
-          isFavorite={asset.is_favorite}
-        />
-      </div>
+      {!selectionMode && (
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <AssetActions
+            onCopyUrl={onCopyUrl}
+            onDownload={onDownload}
+            onDelete={onDelete}
+            onToggleFavorite={onToggleFavorite}
+            onCopyCode={onCopyCode}
+            onEdit={onEdit}
+            isFavorite={asset.is_favorite}
+          />
+        </div>
+      )}
 
       {/* Style badge */}
       <Badge variant="secondary" className="absolute bottom-2 right-2 text-xs">
@@ -268,14 +385,27 @@ function AssetListItem({
   onDelete,
   onToggleFavorite,
   onCopyCode,
+  onEdit,
+  selectionMode,
+  isSelected,
 }: AssetItemProps) {
   return (
     <div
       className={cn(
         'flex items-center gap-3 p-2 rounded-lg border bg-card',
-        'hover:bg-accent transition-colors cursor-pointer'
+        'hover:bg-accent transition-colors cursor-pointer',
+        isSelected && 'ring-2 ring-primary'
       )}
     >
+      {selectionMode && (
+        <div onClick={(e) => { e.stopPropagation(); onSelect(); }}>
+          {isSelected ? (
+            <CheckSquare className="h-5 w-5 text-primary fill-primary/20" />
+          ) : (
+            <Square className="h-5 w-5 text-muted-foreground" />
+          )}
+        </div>
+      )}
       <div className="h-16 w-16 rounded-md overflow-hidden shrink-0" onClick={onSelect}>
         <img
           src={asset.storage_url}
@@ -297,14 +427,17 @@ function AssetListItem({
         </div>
       </div>
 
-      <AssetActions
-        onCopyUrl={onCopyUrl}
-        onDownload={onDownload}
-        onDelete={onDelete}
-        onToggleFavorite={onToggleFavorite}
-        onCopyCode={onCopyCode}
-        isFavorite={asset.is_favorite}
-      />
+      {!selectionMode && (
+        <AssetActions
+          onCopyUrl={onCopyUrl}
+          onDownload={onDownload}
+          onDelete={onDelete}
+          onToggleFavorite={onToggleFavorite}
+          onCopyCode={onCopyCode}
+          onEdit={onEdit}
+          isFavorite={asset.is_favorite}
+        />
+      )}
     </div>
   );
 }
@@ -315,6 +448,7 @@ function AssetActions({
   onDelete,
   onToggleFavorite,
   onCopyCode,
+  onEdit,
   isFavorite,
 }: {
   onCopyUrl: () => void;
@@ -322,6 +456,7 @@ function AssetActions({
   onDelete: () => void;
   onToggleFavorite: () => void;
   onCopyCode: (format: 'jsx' | 'img' | 'bg') => void;
+  onEdit?: () => void;
   isFavorite: boolean;
 }) {
   return (
@@ -332,6 +467,12 @@ function AssetActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {onEdit && (
+          <DropdownMenuItem onClick={onEdit}>
+            <Wand2 className="h-4 w-4 mr-2" />
+            Edit with AI
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={onToggleFavorite}>
           <Heart className={cn('h-4 w-4 mr-2', isFavorite && 'fill-current')} />
           {isFavorite ? 'Unfavorite' : 'Favorite'}
@@ -357,10 +498,6 @@ function AssetActions({
         <DropdownMenuItem onClick={onDownload}>
           <Download className="h-4 w-4 mr-2" />
           Download
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => window.open(onCopyUrl.toString(), '_blank')}>
-          <ExternalLink className="h-4 w-4 mr-2" />
-          Open in new tab
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete} className="text-destructive">
