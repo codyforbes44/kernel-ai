@@ -53,6 +53,7 @@ import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
 import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSettings';
 import { CreditsSettings } from '@/components/settings/CreditsSettings';
+import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabaseSettings';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -510,6 +511,9 @@ export default function Settings() {
 
         {/* Login Locations */}
         <LoginLocationsSettings userId={user.id} />
+
+        {/* External Supabase Connections */}
+        <ExternalSupabaseSettings />
 
         {/* Appearance */}
         <Card>
