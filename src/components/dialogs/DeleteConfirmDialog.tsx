@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Trash2, Info } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Trash2, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DeleteConfirmDialogProps {
@@ -45,8 +45,8 @@ export function DeleteConfirmDialog({
   impactItems,
   showDontAskAgain = false,
   onDontAskAgainChange,
-  confirmText = "Delete",
-  cancelText = "Cancel",
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
   isLoading: externalLoading,
 }: DeleteConfirmDialogProps) {
   const [internalLoading, setInternalLoading] = useState(false);
@@ -138,8 +138,8 @@ export function DeleteConfirmDialog({
             onClick={handleConfirm}
             disabled={isLoading}
             className={cn(
-              "gap-2",
-              destructive && "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              'gap-2',
+              destructive && 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
             )}
           >
             {isLoading ? (
