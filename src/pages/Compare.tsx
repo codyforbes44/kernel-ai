@@ -10,6 +10,7 @@ import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
 import { platformFeatures, platforms } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 const FeatureValue = ({ value }: { value: boolean | string }) => {
   if (value === true) {
@@ -95,7 +96,7 @@ Check the full comparison 👇`;
       
       toast.success("OG Image downloaded!");
     } catch (err) {
-      console.error("Failed to generate image:", err);
+      logger.error("Failed to generate image:", err);
       toast.error("Failed to download image");
     } finally {
       setIsDownloading(false);

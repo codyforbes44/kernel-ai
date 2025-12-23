@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { captureError, addBreadcrumb } from '@/lib/sentry';
+import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Bug, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
@@ -125,7 +126,7 @@ export class SentryErrorBoundary extends Component<Props, State> {
     });
 
     // Log to console in development
-    console.error('[SentryErrorBoundary]', error, errorInfo);
+    logger.error('[SentryErrorBoundary]', error, errorInfo);
   }
 
   handleReset = () => {

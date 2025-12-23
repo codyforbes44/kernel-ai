@@ -5,6 +5,7 @@ import { useAuth } from './useAuth';
 import { workspaceService } from '@/services/workspaceService';
 import { toast } from 'sonner';
 import { getTimeOfDayGreeting } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 export interface CreateProjectOptions {
   autoCreateConversation?: boolean;
@@ -87,7 +88,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       // Defensive: auto-create workspace and project if user has none
       // This handles edge cases where the trigger failed or user data is incomplete
       if (workspacesData.length === 0) {
-        console.warn('No workspace found for user, creating default workspace...');
+        logger.warn('No workspace found for user, creating default workspace...');
         
         // Create default workspace
         const { data: newWorkspace, error: wsError } = await supabase

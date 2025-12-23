@@ -2,6 +2,7 @@ import { Component, ReactNode, ErrorInfo } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { captureError, addBreadcrumb } from '@/lib/sentry';
+import { logger } from '@/lib/logger';
 
 interface EditorErrorBoundaryProps {
   children: ReactNode;
@@ -26,7 +27,7 @@ export class EditorErrorBoundary extends Component<EditorErrorBoundaryProps, Edi
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Editor Error Boundary caught an error:', error, errorInfo);
+    logger.error('Editor Error Boundary caught an error:', error, errorInfo);
     
     // Add breadcrumb and capture to Sentry
     addBreadcrumb('Error caught in EditorErrorBoundary', 'error-boundary', 'error', {
