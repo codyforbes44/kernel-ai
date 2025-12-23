@@ -40,6 +40,13 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      if (response.status === 429) {
+        console.error("Rate limit exceeded for title generation");
+      }
+      if (response.status === 402) {
+        console.error("Credits exhausted for title generation");
+      }
+      console.error("Generate title API error:", response.status);
       throw new Error("Failed to generate title");
     }
 
