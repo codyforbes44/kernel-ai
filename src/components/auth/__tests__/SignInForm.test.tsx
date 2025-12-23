@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/dom';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SignInForm } from '../SignInForm';
 
@@ -18,7 +17,7 @@ vi.mock('@/hooks/useAccountLockout', () => ({
     lockoutStatus: null,
     checkLockout: vi.fn().mockResolvedValue({ locked: false, remainingAttempts: 5 }),
     recordAttempt: vi.fn(),
-    formatLockoutTime: vi.fn((s) => `${s}s`),
+    formatLockoutTime: vi.fn((s: number) => `${s}s`),
     clearLockoutStatus: vi.fn(),
   }),
 }));
@@ -55,7 +54,7 @@ describe('SignInForm', () => {
   const defaultProps = {
     onSignIn: mockOnSignIn,
     onOAuthSignIn: mockOnOAuthSignIn,
-    oauthLoading: null,
+    oauthLoading: null as null,
     onForgotPassword: mockOnForgotPassword,
     onSwitchToSignUp: mockOnSwitchToSignUp,
   };

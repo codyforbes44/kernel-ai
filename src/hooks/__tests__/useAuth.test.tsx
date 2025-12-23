@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../useAuth';
 import React from 'react';
 

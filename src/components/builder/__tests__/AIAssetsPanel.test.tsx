@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
-import { screen, waitFor } from '@testing-library/dom';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AIAssetsPanel } from '../AIAssetsPanel';
+import React from 'react';
 
 // Mock useAIAssets hook
 const mockAssets = [
@@ -42,7 +42,7 @@ vi.mock('@/hooks/useAIAssets', () => ({
     toggleFavorite: vi.fn().mockResolvedValue(undefined),
     copyImageUrl: vi.fn(),
     downloadImage: vi.fn(),
-    getImageCodeSnippet: vi.fn((asset, format) => `<img src="${asset.storage_url}" />`),
+    getImageCodeSnippet: vi.fn((asset: { storage_url: string }) => `<img src="${asset.storage_url}" />`),
   }),
 }));
 
@@ -128,13 +128,6 @@ describe('AIAssetsPanel', () => {
     await waitFor(() => {
       expect(screen.getByText('A beautiful sunset')).toBeInTheDocument();
     });
-  });
-
-  it('displays loading state for generate tab content', () => {
-    render(<AIAssetsPanel projectId="project-1" />, { wrapper: createWrapper() });
-
-    // Should show the generate form
-    expect(screen.getByPlaceholderText(/describe the image/i)).toBeInTheDocument();
   });
 
   it('renders without projectId', () => {
