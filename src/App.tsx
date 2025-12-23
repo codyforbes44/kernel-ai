@@ -15,6 +15,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
 import { InstallPromptBanner } from "@/components/pwa/InstallPromptBanner";
+import { FloatingInstallButton } from "@/components/pwa/FloatingInstallButton";
 // Core pages - keep static for fast initial load
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
@@ -90,6 +91,7 @@ const App = () => (
                 <Sonner />
                 <UpdateNotification />
                 <InstallPromptBanner />
+                <FloatingInstallButton />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <CommandPalette />
                 <Routes>
