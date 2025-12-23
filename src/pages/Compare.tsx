@@ -1,9 +1,12 @@
-import { useRef } from "react";
-import { Helmet } from "react-helmet-async";
-import { Check, X, Share2, Download, ExternalLink } from "lucide-react";
+import { useRef, useCallback, useState } from "react";
+import { Check, X, Share2, Download, ExternalLink, Loader2 } from "lucide-react";
+import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { SocialComparisonCard } from "@/components/marketing/SocialComparisonCard";
+import { CompareOGImage } from "@/components/marketing/CompareOGImage";
+import { SEO } from "@/components/seo/SEO";
+import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
 import { platformFeatures, platforms } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -38,6 +41,8 @@ const FeatureValue = ({ value }: { value: boolean | string }) => {
 
 const Compare = () => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const ogImageRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const shareText = `🚀 Just discovered Kernel — the most complete AI development platform
 
@@ -71,6 +76,32 @@ Check the full comparison 👇`;
     }
   };
 
+  const handleDownloadOGImage = useCallback(async () => {
+    if (!ogImageRef.current) return;
+    
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(ogImageRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        width: 1200,
+        height: 630,
+      });
+      
+      const link = document.createElement("a");
+      link.download = "kernel-vs-competition.png";
+      link.href = dataUrl;
+      link.click();
+      
+      toast.success("OG Image downloaded!");
+    } catch (err) {
+      console.error("Failed to generate image:", err);
+      toast.error("Failed to download image");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, []);
+
   const groupedFeatures = platformFeatures.reduce((acc, feature) => {
     if (!acc[feature.category]) {
       acc[feature.category] = [];
@@ -79,18 +110,26 @@ Check the full comparison 👇`;
     return acc;
   }, {} as Record<string, typeof platformFeatures>);
 
+  const siteUrl = SEO_CONFIG.siteUrl;
+  const compareSeo = PAGE_SEO.compare;
+
   return (
     <>
-      <Helmet>
-        <title>Kernel vs Competition - AI Platform Comparison | Kernel</title>
-        <meta 
-          name="description" 
-          content="Compare Kernel to Lovable, Bolt, v0, Replit, and Cursor. See why Kernel is the most complete AI-powered development platform." 
-        />
-        <meta property="og:title" content="Kernel vs Competition - Feature Comparison" />
-        <meta property="og:description" content="See how Kernel stacks up against other AI development platforms." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title={compareSeo.title}
+        description={compareSeo.description}
+        ogImage={compareSeo.ogImage}
+        keywords={[...compareSeo.keywords]}
+        structuredData={getBreadcrumbSchema([
+          { name: 'Home', url: siteUrl },
+          { name: 'Compare', url: `${siteUrl}/compare` }
+        ])}
+      />
+
+      {/* Hidden OG Image for Export */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none">
+        <CompareOGImage ref={ogImageRef} />
+      </div>
 
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
@@ -114,7 +153,7 @@ Check the full comparison 👇`;
             </div>
 
             {/* Share Buttons */}
-            <div className="flex justify-center gap-3 mb-12">
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
               <Button onClick={handleShareTwitter} className="gap-2">
                 <ExternalLink className="w-4 h-4" />
                 Share on X
@@ -123,6 +162,35 @@ Check the full comparison 👇`;
                 <Share2 className="w-4 h-4" />
                 Copy Link
               </Button>
+              <Button 
+                variant="secondary" 
+                onClick={handleDownloadOGImage} 
+                disabled={isDownloading}
+                className="gap-2"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                Download OG Image
+              </Button>
+            </div>
+
+            {/* OG Image Preview */}
+            <div className="mb-8">
+              <p className="text-center text-sm text-muted-foreground mb-4">
+                Preview: X/Twitter OG Image (1200×630)
+              </p>
+              <div className="flex justify-center">
+                <div className="max-w-4xl w-full rounded-xl overflow-hidden border border-border/50 shadow-2xl">
+                  <div className="aspect-[1200/630] w-full">
+                    <div className="w-full h-full scale-[0.333] origin-top-left" style={{ width: '300%', height: '300%' }}>
+                      <CompareOGImage />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Social Card Preview */}
