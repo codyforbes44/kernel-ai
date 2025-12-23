@@ -11,6 +11,7 @@ import { TemplateInjectionProvider } from "@/hooks/useTemplateInjection";
 import { FeatureGatingProvider } from "@/hooks/useFeatureGating";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
+import { usePageTracking } from "@/hooks/usePageTracking";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
@@ -76,6 +77,12 @@ function OLEDSuggestionLoader() {
   return null;
 }
 
+function PageTracker() {
+  // This hook tracks page views for analytics
+  usePageTracking();
+  return null;
+}
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -93,6 +100,7 @@ const App = () => (
                 <InstallPromptBanner />
                 <FloatingInstallButton />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <PageTracker />
                 <CommandPalette />
                 <Routes>
                   <Route path="/" element={<Landing />} />
