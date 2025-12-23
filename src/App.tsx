@@ -91,6 +91,8 @@ const App = () => (
                   <Route path="/docs" element={<Documentation />} />
                   <Route path="/tutorials" element={<Tutorials />} />
                   <Route path="/security" element={<Security />} />
+                  <Route path="/assistant" element={<Index />} />
+                  {/* Legacy redirect for backwards compatibility */}
                   <Route path="/dashboard" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route

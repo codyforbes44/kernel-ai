@@ -78,7 +78,7 @@ const Auth = () => {
       if (profile && !profile.onboarding_completed) {
         navigate("/onboarding");
       } else if (profile) {
-        navigate("/dashboard");
+        navigate("/assistant");
       }
     }
   }, [user, profile, loading, navigate, mode]);

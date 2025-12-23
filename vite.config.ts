@@ -19,7 +19,8 @@ function seoFilesPlugin(): Plugin {
     { path: '/privacy', changefreq: 'monthly', priority: 0.5, includeInSitemap: true, robots: 'allow' },
     { path: '/terms', changefreq: 'monthly', priority: 0.5, includeInSitemap: true, robots: 'allow' },
     // Protected routes
-    { path: '/dashboard', includeInSitemap: false, robots: 'disallow' },
+    { path: '/assistant', includeInSitemap: false, robots: 'disallow' },
+    { path: '/dashboard', includeInSitemap: false, robots: 'disallow' }, // Legacy redirect
     { path: '/admin', includeInSitemap: false, robots: 'disallow' },
     { path: '/settings', includeInSitemap: false, robots: 'disallow' },
     { path: '/builder/', includeInSitemap: false, robots: 'disallow' }, // Dynamic project routes

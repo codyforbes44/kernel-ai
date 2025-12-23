@@ -27,7 +27,7 @@ const routes: RouteConfig[] = [
   { path: '/builder', changefreq: 'weekly', priority: 0.9, includeInSitemap: true },
   { path: '/privacy', changefreq: 'monthly', priority: 0.5, includeInSitemap: true },
   { path: '/terms', changefreq: 'monthly', priority: 0.5, includeInSitemap: true },
-  { path: '/dashboard', changefreq: 'daily', priority: 0.7, includeInSitemap: false },
+  { path: '/assistant', changefreq: 'daily', priority: 0.7, includeInSitemap: false },
   { path: '/admin', changefreq: 'weekly', priority: 0.3, includeInSitemap: false },
   { path: '/settings', changefreq: 'weekly', priority: 0.5, includeInSitemap: false },
   { path: '/builder/:projectId', changefreq: 'daily', priority: 0.6, includeInSitemap: false, isDynamic: true },

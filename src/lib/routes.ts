@@ -138,8 +138,9 @@ export const routes: RouteConfig[] = [
   },
   // Protected routes - not included in sitemap, blocked from crawlers
   {
-    path: '/dashboard',
-    title: 'Dashboard',
+    path: '/assistant',
+    title: 'Assistant',
+    description: 'AI-powered chat assistant for building web applications',
     changefreq: 'daily',
     priority: 0.7,
     includeInSitemap: false,
