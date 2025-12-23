@@ -1,12 +1,23 @@
 import { useState } from "react";
-import { Check, X, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Check, X, ChevronDown, ChevronUp, Sparkles, Heart, Zap, Triangle, Code2, MousePointer2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { platforms, platformFeatures, type PlatformFeature } from "@/lib/pricing-data";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 
 type Category = PlatformFeature["category"];
+
+// Platform icons mapping
+const platformIcons: Record<string, React.ReactNode> = {
+  kernel: <KernelLogo className="h-5 w-5" />,
+  lovable: <Heart className="h-4 w-4" />,
+  bolt: <Zap className="h-4 w-4" />,
+  v0: <Triangle className="h-4 w-4" />,
+  replit: <Code2 className="h-4 w-4" />,
+  cursor: <MousePointer2 className="h-4 w-4" />,
+};
 
 const categories: Category[] = [
   "Core",
@@ -169,12 +180,22 @@ export function PlatformComparisonChart() {
                   Us
                 </Badge>
               )}
-              <span className={cn(
-                "font-semibold text-sm block",
-                platform.isHighlighted ? "text-primary" : "text-foreground"
-              )}>
-                {platform.name}
-              </span>
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  platform.isHighlighted 
+                    ? "bg-primary/20 text-primary" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {platformIcons[platform.id]}
+                </div>
+                <span className={cn(
+                  "font-semibold text-sm",
+                  platform.isHighlighted ? "text-primary" : "text-foreground"
+                )}>
+                  {platform.name}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -248,12 +269,22 @@ export function PlatformComparisonCondensed() {
                   Us
                 </Badge>
               )}
-              <span className={cn(
-                "font-semibold text-sm",
-                platform.isHighlighted ? "text-primary" : "text-foreground"
-              )}>
-                {platform.name}
-              </span>
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  platform.isHighlighted 
+                    ? "bg-primary/20 text-primary" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {platformIcons[platform.id]}
+                </div>
+                <span className={cn(
+                  "font-semibold text-sm",
+                  platform.isHighlighted ? "text-primary" : "text-foreground"
+                )}>
+                  {platform.name}
+                </span>
+              </div>
             </div>
           ))}
         </div>
