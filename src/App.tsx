@@ -47,7 +47,6 @@ const BuilderProject = lazy(() => import("./pages/BuilderProject"));
 const SEODashboard = lazy(() => import("./pages/SEODashboard"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Performance = lazy(() => import("./pages/Performance"));
-const SourceMapperTest = lazy(() => import("./components/SourceMapperTest"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -189,16 +188,6 @@ const App = () => (
                       <ErrorBoundary>
                         <Suspense fallback={<LoadingFallback />}>
                           <Performance />
-                        </Suspense>
-                      </ErrorBoundary>
-                    }
-                  />
-                  <Route
-                    path="/test-source-mapper"
-                    element={
-                      <ErrorBoundary>
-                        <Suspense fallback={<LoadingFallback />}>
-                          <SourceMapperTest />
                         </Suspense>
                       </ErrorBoundary>
                     }
