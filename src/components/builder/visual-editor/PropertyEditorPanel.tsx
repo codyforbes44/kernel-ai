@@ -7,15 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { ColorGrid } from './ColorGrid';
 import type { SelectedElement } from '@/types/visual-editor';
 import {
   TAILWIND_COLORS,
-  TAILWIND_SHADES,
   TAILWIND_FONT_SIZES,
   TAILWIND_FONT_WEIGHTS,
-  TAILWIND_SPACING,
 } from '@/types/visual-editor';
 
 interface PropertyEditorPanelProps {
@@ -232,95 +230,37 @@ export function PropertyEditorPanel({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs">Text Color</Label>
-                <div className="grid grid-cols-6 gap-1">
-                  {TAILWIND_COLORS.slice(0, 12).map((color) => (
-                    <button
-                      key={color}
-                      className={cn(
-                        'w-7 h-7 rounded border border-border transition-transform hover:scale-110',
-                        `bg-${color}-500`,
-                        selectedElement.tailwindClasses.some(c => c.startsWith(`text-${color}`)) && 'ring-2 ring-primary ring-offset-1'
-                      )}
-                      style={{ backgroundColor: `var(--color-${color}-500, #888)` }}
-                      title={color}
-                      onClick={() => {
-                        const newClasses = selectedElement.tailwindClasses
-                          .filter(c => !c.startsWith('text-') || TAILWIND_FONT_SIZES.some(s => c === `text-${s}`))
-                          .concat(`text-${color}-600`)
-                          .join(' ');
-                        onUpdateClasses(newClasses);
-                      }}
-                    />
-                  ))}
-                </div>
+                <ColorGrid
+                  colors={TAILWIND_COLORS.slice(0, 12)}
+                  selectedClasses={selectedElement.tailwindClasses}
+                  classPrefix="text"
+                  onSelectColor={(colorClass) => {
+                    const newClasses = selectedElement.tailwindClasses
+                      .filter(c => !c.startsWith('text-') || TAILWIND_FONT_SIZES.some(s => c === `text-${s}`))
+                      .concat(colorClass.replace('-500', '-600'))
+                      .join(' ');
+                    onUpdateClasses(newClasses);
+                  }}
+                />
               </div>
 
               <Separator />
 
               <div className="space-y-2">
                 <Label className="text-xs">Background Color</Label>
-                <div className="grid grid-cols-6 gap-1">
-                  <button
-                    className={cn(
-                      'w-7 h-7 rounded border-2 border-dashed border-muted-foreground/30',
-                      selectedElement.tailwindClasses.includes('bg-transparent') && 'ring-2 ring-primary ring-offset-1'
-                    )}
-                    title="transparent"
-                    onClick={() => {
-                      const newClasses = selectedElement.tailwindClasses
-                        .filter(c => !c.startsWith('bg-'))
-                        .concat('bg-transparent')
-                        .join(' ');
-                      onUpdateClasses(newClasses);
-                    }}
-                  />
-                  <button
-                    className={cn(
-                      'w-7 h-7 rounded border border-border bg-white',
-                      selectedElement.tailwindClasses.includes('bg-white') && 'ring-2 ring-primary ring-offset-1'
-                    )}
-                    title="white"
-                    onClick={() => {
-                      const newClasses = selectedElement.tailwindClasses
-                        .filter(c => !c.startsWith('bg-'))
-                        .concat('bg-white')
-                        .join(' ');
-                      onUpdateClasses(newClasses);
-                    }}
-                  />
-                  <button
-                    className={cn(
-                      'w-7 h-7 rounded border border-border bg-black',
-                      selectedElement.tailwindClasses.includes('bg-black') && 'ring-2 ring-primary ring-offset-1'
-                    )}
-                    title="black"
-                    onClick={() => {
-                      const newClasses = selectedElement.tailwindClasses
-                        .filter(c => !c.startsWith('bg-'))
-                        .concat('bg-black')
-                        .join(' ');
-                      onUpdateClasses(newClasses);
-                    }}
-                  />
-                  {TAILWIND_COLORS.slice(0, 9).map((color) => (
-                    <button
-                      key={color}
-                      className={cn(
-                        'w-7 h-7 rounded border border-border transition-transform hover:scale-110',
-                        selectedElement.tailwindClasses.some(c => c.startsWith(`bg-${color}`)) && 'ring-2 ring-primary ring-offset-1'
-                      )}
-                      style={{ backgroundColor: `var(--color-${color}-500, #888)` }}
-                      title={color}
-                      onClick={() => {
-                        const newClasses = selectedElement.tailwindClasses
-                          .filter(c => !c.startsWith('bg-'))
-                          .concat(`bg-${color}-500`)
-                          .join(' ');
-                        onUpdateClasses(newClasses);
-                      }}
-                    />
-                  ))}
-                </div>
+                <ColorGrid
+                  colors={TAILWIND_COLORS.slice(0, 9)}
+                  selectedClasses={selectedElement.tailwindClasses}
+                  classPrefix="bg"
+                  includeSpecials
+                  onSelectColor={(colorClass) => {
+                    const newClasses = selectedElement.tailwindClasses
+                      .filter(c => !c.startsWith('bg-'))
+                      .concat(colorClass)
+                      .join(' ');
+                    onUpdateClasses(newClasses);
+                  }}
+                />
               </div>
 
               <Separator />
