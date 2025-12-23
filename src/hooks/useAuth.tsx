@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { setUserContext, clearUserContext, addBreadcrumb } from '@/lib/sentry';
 import { logger } from '@/lib/logger';
 import type { Profile } from '@/types/database';
+import type { Json } from '@/integrations/supabase/types';
 
 type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
 interface AuthContextType {
@@ -125,9 +126,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return;
+    const supabaseUpdates = {
+      ...updates,
+      preferences: updates.preferences as Json | undefined,
+    };
     const { error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(supabaseUpdates)
       .eq('id', user.id);
     if (error) throw error;
     setProfile(prev => prev ? { ...prev, ...updates } : null);
