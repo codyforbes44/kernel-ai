@@ -44,6 +44,7 @@ Allow: /tutorials
 Allow: /security
 
 # Protected/private routes - disallow crawling
+Disallow: /assistant
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /settings

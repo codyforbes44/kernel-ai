@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", label: "Chat", icon: MessageSquare },
+  { href: "/assistant", label: "Assistant", icon: MessageSquare },
   { href: "/builder", label: "Builder", icon: Code2 },
 ];
 
@@ -38,7 +38,7 @@ export function TopNavBar() {
   return (
     <header className="h-12 border-b border-border/50 bg-sidebar flex items-center justify-between px-4">
       {/* Logo & Brand */}
-      <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+      <Link to="/assistant" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <KernelLogo size="sm" />
         <span className="font-semibold text-sm hidden sm:inline">Kernel</span>
       </Link>

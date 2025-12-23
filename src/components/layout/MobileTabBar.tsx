@@ -16,7 +16,7 @@ interface Tab {
 }
 
 const baseTabs: Tab[] = [
-  { href: "/", label: "Chat", icon: MessageSquare, key: "chat" },
+  { href: "/assistant", label: "Assistant", icon: MessageSquare, key: "chat" },
   { href: "/builder", label: "Builder", icon: Code2, key: "builder" },
 ];
 

@@ -22,10 +22,10 @@ export const PAGE_SEO = {
     keywords: ['AI development', 'web builder', 'no-code', 'app builder', 'AI assistant', 'visual editor'] as string[],
   },
   home: {
-    title: 'AI Chat Assistant',
-    description: 'Chat with your AI development companion. Get intelligent assistance for coding, debugging, and building apps faster than ever.',
+    title: 'AI Assistant',
+    description: 'Your AI-powered development companion. Get intelligent assistance for coding, debugging, and building apps faster than ever.',
     ogImage: '/og-images/chat.png',
-    keywords: ['AI chat', 'coding assistant', 'developer tools', 'AI programming'],
+    keywords: ['AI assistant', 'coding assistant', 'developer tools', 'AI programming'],
   },
   auth: {
     signIn: {
