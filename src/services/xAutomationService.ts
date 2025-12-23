@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/serviceWrapper';
+import { logger } from '@/lib/logger';
 
 export interface TweetGenerationOptions {
   model?: 'grok-3' | 'grok-3-fast';
@@ -43,45 +44,40 @@ export interface GeneratedImage {
   suggestion?: string;
 }
 
-class XAutomationService {
-  private async callEdgeFunction<T>(
-    action: 'generate' | 'analyze' | 'image',
-    prompt: string,
-    options?: TweetGenerationOptions | ImageGenerationOptions | { model?: string }
-  ): Promise<T> {
-    const { data, error } = await supabase.functions.invoke('x-automation', {
-      body: { action, prompt, options },
-    });
+type XAutomationAction = 'generate' | 'analyze' | 'image';
 
-    if (error) {
-      console.error('X Automation error:', error);
-      throw new Error(error.message || 'Failed to call X automation service');
-    }
+async function callXAutomation<T>(
+  action: XAutomationAction,
+  prompt: string,
+  options?: TweetGenerationOptions | ImageGenerationOptions | { model?: string }
+): Promise<T> {
+  logger.info('[XAutomation] Calling:', { action, prompt: prompt.slice(0, 50) });
+  
+  return invoke<T>('x-automation', { action, prompt, options }, {
+    retries: 1,
+    retryDelay: 2000,
+  });
+}
 
-    if (data?.error) {
-      throw new Error(data.error);
-    }
-
-    return data as T;
-  }
-
+export const xAutomationService = {
   async generateTweet(
     prompt: string,
     options?: TweetGenerationOptions
   ): Promise<GeneratedTweet> {
-    return this.callEdgeFunction<GeneratedTweet>('generate', prompt, options);
-  }
+    return callXAutomation<GeneratedTweet>('generate', prompt, options);
+  },
 
-  async analyzeTrends(topic: string, options?: { model?: string }): Promise<TrendAnalysis> {
-    return this.callEdgeFunction<TrendAnalysis>('analyze', topic, options);
-  }
+  async analyzeTrends(
+    topic: string, 
+    options?: { model?: string }
+  ): Promise<TrendAnalysis> {
+    return callXAutomation<TrendAnalysis>('analyze', topic, options);
+  },
 
   async generateImage(
     prompt: string,
     options?: ImageGenerationOptions
   ): Promise<GeneratedImage> {
-    return this.callEdgeFunction<GeneratedImage>('image', prompt, options);
-  }
-}
-
-export const xAutomationService = new XAutomationService();
+    return callXAutomation<GeneratedImage>('image', prompt, options);
+  },
+};

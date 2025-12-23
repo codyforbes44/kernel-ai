@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { authenticatedFetch } from '@/lib/serviceWrapper';
 import { logger } from '@/lib/logger';
 import type { 
   TableInfo, 
@@ -113,31 +114,22 @@ export interface ExternalConnectionParams {
 export const databaseService = {
   // Get list of all tables
   async listTables(external?: ExternalConnectionParams): Promise<TableInfo[]> {
-    try {
-      let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=tables`;
-      if (external) {
-        url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
-      }
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        logger.warn('Failed to fetch tables from edge function, using fallback');
-        return external ? [] : KNOWN_TABLES;
-      }
-      
-      const data = await response.json();
-      return data.tables || (external ? [] : KNOWN_TABLES);
-    } catch (error) {
-      logger.error('Error listing tables:', error);
+    let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=tables`;
+    if (external) {
+      url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
+    }
+    
+    const { data, error } = await authenticatedFetch<{ tables?: TableInfo[] }>(url, {
+      method: 'GET',
+      retries: 1,
+    });
+    
+    if (error || !data) {
+      logger.warn('Failed to fetch tables from edge function, using fallback');
       return external ? [] : KNOWN_TABLES;
     }
+    
+    return data.tables || (external ? [] : KNOWN_TABLES);
   },
 
   // Get schema for a specific table
@@ -155,30 +147,22 @@ export const databaseService = {
 
   // Get all relationships
   async getRelationships(external?: ExternalConnectionParams): Promise<Relationship[]> {
-    try {
-      let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=relationships`;
-      if (external) {
-        url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
-      }
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        return [];
-      }
-      
-      const data = await response.json();
-      return data.relationships || [];
-    } catch (error) {
-      console.error('Error getting relationships:', error);
+    let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=relationships`;
+    if (external) {
+      url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
+    }
+    
+    const { data, error } = await authenticatedFetch<{ relationships?: Relationship[] }>(url, {
+      method: 'GET',
+      retries: 1,
+    });
+    
+    if (error || !data) {
+      logger.warn('Failed to fetch relationships from edge function');
       return [];
     }
+    
+    return data.relationships || [];
   },
 
   // Fetch records with pagination, sorting, filtering
