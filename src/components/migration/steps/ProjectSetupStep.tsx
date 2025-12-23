@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { MigrationPlatform } from '@/lib/migration-data';
+import { MigrationPlatform, SupabaseDetection } from '@/lib/migration-data';
+import { SupabaseCredentials } from '@/hooks/useMigrationWizard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { FolderOpen, MessageSquare, BookOpen } from 'lucide-react';
+import { SupabaseConnectionStep } from './SupabaseConnectionStep';
 
 interface ProjectSetupStepProps {
   platform: MigrationPlatform;
@@ -16,6 +18,16 @@ interface ProjectSetupStepProps {
   onProjectDescriptionChange: (description: string) => void;
   onCreateConversationChange: (value: boolean) => void;
   onEnableKnowledgeBaseChange: (value: boolean) => void;
+  // Supabase connection props
+  supabaseDetection?: SupabaseDetection | null;
+  supabaseCredentials?: SupabaseCredentials | null;
+  onSupabaseCredentialsChange?: (credentials: SupabaseCredentials) => void;
+  onTestSupabaseConnection?: () => Promise<boolean>;
+  supabaseConnectionTested?: boolean;
+  supabaseConnectionValid?: boolean;
+  isTestingSupabaseConnection?: boolean;
+  skipSupabaseConnection?: boolean;
+  onSkipSupabaseConnection?: (skip: boolean) => void;
 }
 
 export function ProjectSetupStep({
@@ -28,6 +40,15 @@ export function ProjectSetupStep({
   onProjectDescriptionChange,
   onCreateConversationChange,
   onEnableKnowledgeBaseChange,
+  supabaseDetection,
+  supabaseCredentials,
+  onSupabaseCredentialsChange,
+  onTestSupabaseConnection,
+  supabaseConnectionTested,
+  supabaseConnectionValid,
+  isTestingSupabaseConnection,
+  skipSupabaseConnection,
+  onSkipSupabaseConnection,
 }: ProjectSetupStepProps) {
   return (
     <div className="space-y-8">
@@ -123,6 +144,23 @@ export function ProjectSetupStep({
             />
           </motion.div>
         </div>
+
+        {/* Supabase Connection Section */}
+        {supabaseDetection?.hasSupabase && onSupabaseCredentialsChange && onTestSupabaseConnection && onSkipSupabaseConnection && (
+          <div className="pt-4 border-t border-border">
+            <SupabaseConnectionStep
+              detection={supabaseDetection}
+              credentials={supabaseCredentials || null}
+              onCredentialsChange={onSupabaseCredentialsChange}
+              onTestConnection={onTestSupabaseConnection}
+              connectionTested={supabaseConnectionTested || false}
+              connectionValid={supabaseConnectionValid || false}
+              isTesting={isTestingSupabaseConnection || false}
+              skipped={skipSupabaseConnection || false}
+              onSkip={onSkipSupabaseConnection}
+            />
+          </div>
+        )}
 
         {/* Migration note */}
         <motion.div

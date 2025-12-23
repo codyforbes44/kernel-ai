@@ -273,6 +273,17 @@ export const importMethodLabels: Record<ImportMethod, { label: string; descripti
   },
 };
 
+export interface SupabaseDetection {
+  hasSupabase: boolean;
+  configFound: boolean;
+  schemaFiles: string[];
+  edgeFunctions: string[];
+  migrationFiles: string[];
+  estimatedTables: number;
+  projectRef?: string;
+  envReferences: string[];
+}
+
 export interface DetectionResult {
   platform: MigrationPlatform | null;
   confidence: 'high' | 'medium' | 'low';
@@ -284,6 +295,7 @@ export interface DetectionResult {
     configs: number;
     styles: number;
   };
+  supabaseDetection?: SupabaseDetection;
 }
 
 // Comprehensive file pattern detection
@@ -470,4 +482,121 @@ export function quickDetectPlatform(files: File[]): MigrationPlatform | null {
     }
   }
   return null;
+}
+
+// Detect Supabase configuration from uploaded files
+export async function detectSupabaseConfig(files: File[]): Promise<SupabaseDetection> {
+  const detection: SupabaseDetection = {
+    hasSupabase: false,
+    configFound: false,
+    schemaFiles: [],
+    edgeFunctions: [],
+    migrationFiles: [],
+    estimatedTables: 0,
+    envReferences: [],
+  };
+
+  const filePaths = files.map(f => f.webkitRelativePath || f.name);
+
+  // Check for Supabase config.toml
+  const configFile = files.find(f => 
+    (f.webkitRelativePath || f.name).includes('supabase/config.toml')
+  );
+  
+  if (configFile) {
+    detection.configFound = true;
+    detection.hasSupabase = true;
+    
+    try {
+      const content = await configFile.text();
+      // Try to extract project_id from config
+      const projectIdMatch = content.match(/project_id\s*=\s*["']([^"']+)["']/);
+      if (projectIdMatch) {
+        detection.projectRef = projectIdMatch[1];
+      }
+    } catch {
+      // Ignore read errors
+    }
+  }
+
+  // Check for migration files
+  for (const path of filePaths) {
+    if (path.includes('supabase/migrations/') && path.endsWith('.sql')) {
+      detection.migrationFiles.push(path);
+      detection.hasSupabase = true;
+    }
+  }
+
+  // Check for edge functions
+  for (const path of filePaths) {
+    if (path.includes('supabase/functions/') && path.endsWith('index.ts')) {
+      const functionName = path.split('supabase/functions/')[1]?.split('/')[0];
+      if (functionName && !detection.edgeFunctions.includes(functionName)) {
+        detection.edgeFunctions.push(functionName);
+        detection.hasSupabase = true;
+      }
+    }
+  }
+
+  // Check for schema files
+  for (const path of filePaths) {
+    if (path.includes('supabase/') && (path.endsWith('.sql') || path.includes('schema'))) {
+      if (!path.includes('migrations/')) {
+        detection.schemaFiles.push(path);
+      }
+    }
+  }
+
+  // Check for Supabase client references
+  const clientFiles = files.filter(f => {
+    const name = f.name.toLowerCase();
+    return name.endsWith('.ts') || name.endsWith('.tsx') || name.endsWith('.js') || name.endsWith('.jsx') || name === '.env' || name === '.env.local';
+  }).slice(0, 20);
+
+  for (const file of clientFiles) {
+    try {
+      const content = await file.text();
+      
+      // Check for SUPABASE_URL references
+      if (content.includes('SUPABASE_URL') || content.includes('VITE_SUPABASE_URL')) {
+        if (!detection.envReferences.includes('SUPABASE_URL')) {
+          detection.envReferences.push('SUPABASE_URL');
+        }
+        detection.hasSupabase = true;
+      }
+      
+      // Check for SUPABASE_ANON_KEY references
+      if (content.includes('SUPABASE_ANON_KEY') || content.includes('VITE_SUPABASE_ANON_KEY') || content.includes('SUPABASE_PUBLISHABLE_KEY')) {
+        if (!detection.envReferences.includes('SUPABASE_ANON_KEY')) {
+          detection.envReferences.push('SUPABASE_ANON_KEY');
+        }
+        detection.hasSupabase = true;
+      }
+      
+      // Check for supabase client imports
+      if (content.includes('@supabase/supabase-js') || content.includes('createClient')) {
+        detection.hasSupabase = true;
+      }
+    } catch {
+      // Ignore read errors
+    }
+  }
+
+  // Estimate table count from migration files
+  for (const migrationPath of detection.migrationFiles) {
+    const migrationFile = files.find(f => (f.webkitRelativePath || f.name) === migrationPath);
+    if (migrationFile) {
+      try {
+        const content = await migrationFile.text();
+        const createTableMatches = content.match(/CREATE\s+TABLE/gi);
+        if (createTableMatches) {
+          detection.estimatedTables += createTableMatches.length;
+        }
+      } catch {
+        // Ignore
+      }
+    }
+  }
+
+  return detection;
 }

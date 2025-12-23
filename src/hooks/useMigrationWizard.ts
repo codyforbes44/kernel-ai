@@ -1,8 +1,13 @@
 import { useState, useCallback } from 'react';
-import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult } from '@/lib/migration-data';
+import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult, SupabaseDetection, detectSupabaseConfig } from '@/lib/migration-data';
 import { isValidLovableUrl, extractProjectId } from '@/lib/lovable-url';
 import { templateSharingService, SharedTemplate } from '@/services/templateSharingService';
 
+export interface SupabaseCredentials {
+  url: string;
+  anonKey: string;
+  serviceRoleKey: string;
+}
 export type MigrationStep = 
   | 'platform'
   | 'method'
@@ -49,6 +54,13 @@ export interface MigrationState {
   createdProjectId: string | null;
   detectionResult: DetectionResult | null;
   isAnalyzing: boolean;
+  // Supabase connection transfer
+  supabaseDetection: SupabaseDetection | null;
+  supabaseCredentials: SupabaseCredentials | null;
+  supabaseConnectionTested: boolean;
+  supabaseConnectionValid: boolean;
+  skipSupabaseConnection: boolean;
+  isTestingSupabaseConnection: boolean;
 }
 
 const initialState: MigrationState = {
@@ -73,6 +85,12 @@ const initialState: MigrationState = {
   createdProjectId: null,
   detectionResult: null,
   isAnalyzing: false,
+  supabaseDetection: null,
+  supabaseCredentials: null,
+  supabaseConnectionTested: false,
+  supabaseConnectionValid: false,
+  skipSupabaseConnection: false,
+  isTestingSupabaseConnection: false,
 };
 
 export function useMigrationWizard() {
@@ -109,14 +127,19 @@ export function useMigrationWizard() {
       isAnalyzing: true,
     }));
 
-    // Then do deep async analysis
+    // Then do deep async analysis including Supabase detection
     try {
-      const result = await detectPlatformFromFiles(files);
+      const [result, supabaseResult] = await Promise.all([
+        detectPlatformFromFiles(files),
+        detectSupabaseConfig(files),
+      ]);
+      
       setState(prev => ({
         ...prev,
-        detectionResult: result,
+        detectionResult: { ...result, supabaseDetection: supabaseResult },
         detectedFramework: result.detectedFramework || prev.detectedFramework,
         selectedPlatform: result.platform || prev.selectedPlatform,
+        supabaseDetection: supabaseResult,
         isAnalyzing: false,
       }));
     } catch {
@@ -202,6 +225,57 @@ export function useMigrationWizard() {
     setState(prev => ({ ...prev, ...details }));
   }, []);
 
+  const setSupabaseCredentials = useCallback((credentials: SupabaseCredentials) => {
+    setState(prev => ({
+      ...prev,
+      supabaseCredentials: credentials,
+      supabaseConnectionTested: false,
+      supabaseConnectionValid: false,
+    }));
+  }, []);
+
+  const testSupabaseConnection = useCallback(async (): Promise<boolean> => {
+    const { supabaseCredentials } = state;
+    if (!supabaseCredentials?.url || !supabaseCredentials?.anonKey) {
+      return false;
+    }
+
+    setState(prev => ({ ...prev, isTestingSupabaseConnection: true }));
+
+    try {
+      // Test connection by making a simple request to Supabase
+      const response = await fetch(`${supabaseCredentials.url}/rest/v1/`, {
+        headers: {
+          'apikey': supabaseCredentials.anonKey,
+          'Authorization': `Bearer ${supabaseCredentials.anonKey}`,
+        },
+      });
+
+      const isValid = response.ok || response.status === 404; // 404 is OK for empty DB
+      
+      setState(prev => ({
+        ...prev,
+        isTestingSupabaseConnection: false,
+        supabaseConnectionTested: true,
+        supabaseConnectionValid: isValid,
+      }));
+
+      return isValid;
+    } catch {
+      setState(prev => ({
+        ...prev,
+        isTestingSupabaseConnection: false,
+        supabaseConnectionTested: true,
+        supabaseConnectionValid: false,
+      }));
+      return false;
+    }
+  }, [state.supabaseCredentials]);
+
+  const setSkipSupabaseConnection = useCallback((skip: boolean) => {
+    setState(prev => ({ ...prev, skipSupabaseConnection: skip }));
+  }, []);
+
   const setProcessing = useCallback((isProcessing: boolean) => {
     setState(prev => ({ ...prev, isProcessing }));
   }, []);
@@ -268,6 +342,9 @@ export function useMigrationWizard() {
     setShareCode,
     lookupShareCode,
     setProjectDetails,
+    setSupabaseCredentials,
+    testSupabaseConnection,
+    setSkipSupabaseConnection,
     setProcessing,
     setCreatedProject,
     nextStep,

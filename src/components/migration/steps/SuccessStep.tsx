@@ -1,16 +1,26 @@
 import { motion } from 'framer-motion';
-import { MigrationPlatform } from '@/lib/migration-data';
+import { MigrationPlatform, SupabaseDetection } from '@/lib/migration-data';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Code, Sparkles, BookOpen, ExternalLink } from 'lucide-react';
+import { Check, ArrowRight, Code, Sparkles, BookOpen, ExternalLink, Database, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface SuccessStepProps {
   platform: MigrationPlatform;
   projectName: string;
   projectId: string | null;
+  supabaseDetection?: SupabaseDetection | null;
+  supabaseConnectionValid?: boolean;
+  skipSupabaseConnection?: boolean;
 }
 
-export function SuccessStep({ platform, projectName, projectId }: SuccessStepProps) {
+export function SuccessStep({ 
+  platform, 
+  projectName, 
+  projectId,
+  supabaseDetection,
+  supabaseConnectionValid,
+  skipSupabaseConnection,
+}: SuccessStepProps) {
   const navigate = useNavigate();
 
   const actions = [
@@ -106,6 +116,56 @@ export function SuccessStep({ platform, projectName, projectId }: SuccessStepPro
           );
         })}
       </motion.div>
+
+      {/* Supabase Connection Status */}
+      {supabaseDetection?.hasSupabase && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.65 }}
+          className="max-w-2xl mx-auto"
+        >
+          <div className={`rounded-xl p-4 border ${
+            supabaseConnectionValid 
+              ? 'bg-green-500/10 border-green-500/30' 
+              : 'bg-yellow-500/10 border-yellow-500/30'
+          }`}>
+            <div className="flex items-center gap-3">
+              {supabaseConnectionValid ? (
+                <>
+                  <Database className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <p className="font-medium text-sm">Supabase Connected</p>
+                    <p className="text-xs text-muted-foreground">
+                      {supabaseDetection.migrationFiles.length} migrations • {supabaseDetection.edgeFunctions.length} edge functions
+                    </p>
+                  </div>
+                </>
+              ) : skipSupabaseConnection ? (
+                <>
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <div>
+                    <p className="font-medium text-sm">Supabase Connection Skipped</p>
+                    <p className="text-xs text-muted-foreground">
+                      Remember to configure your Supabase connection in project settings
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <div>
+                    <p className="font-medium text-sm">Supabase Configuration Needed</p>
+                    <p className="text-xs text-muted-foreground">
+                      Configure your Supabase connection in project settings
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Quick tips */}
       <motion.div
