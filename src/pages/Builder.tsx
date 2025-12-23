@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
-import { useProtectedPage } from '@/hooks/useProtectedPage';
+import { useAuth } from '@/hooks/useAuth';
 import { useRemixProject } from '@/hooks/useRemixProject';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Builder() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useProtectedPage();
+  // Auth is handled by ProtectedRoute wrapper
+  const { loading: authLoading } = useAuth();
   const { projects, createProject, createProjectFromFiles, isLoading } = useBuilderProject();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -92,10 +93,6 @@ export default function Builder() {
 
   if (authLoading) {
     return <LoadingSpinner fullScreen />;
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

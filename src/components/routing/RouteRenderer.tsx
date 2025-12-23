@@ -1,7 +1,8 @@
-import { Suspense, lazy, ComponentType, LazyExoticComponent } from 'react';
+import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { LoadingFallback } from './LoadingFallback';
+import { ProtectedRoute } from './ProtectedRoute';
 
 // Core pages - keep static for fast initial load
 import Landing from '@/pages/Landing';
@@ -44,6 +45,8 @@ export interface AppRouteConfig {
   withErrorBoundary?: boolean;
   /** Skip lazy loading (for core pages) */
   eager?: boolean;
+  /** Whether route requires authentication */
+  requiresAuth?: boolean;
 }
 
 // Route configuration with component mappings
@@ -70,19 +73,19 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/auth', component: 'Auth' },
   
   // Protected routes (with extra error boundary protection)
-  { path: '/assistant', component: 'Index' },
-  { path: '/dashboard', component: 'Index' }, // Legacy redirect
-  { path: '/onboarding', component: 'Onboarding', withErrorBoundary: true },
-  { path: '/admin', component: 'Admin', withErrorBoundary: true },
-  { path: '/settings', component: 'Settings', withErrorBoundary: true },
-  { path: '/builder', component: 'Builder', withErrorBoundary: true },
-  { path: '/builder/:projectId', component: 'BuilderProject', withErrorBoundary: true },
+  { path: '/assistant', component: 'Index', requiresAuth: true },
+  { path: '/dashboard', component: 'Index', requiresAuth: true }, // Legacy redirect
+  { path: '/onboarding', component: 'Onboarding', withErrorBoundary: true, requiresAuth: true },
+  { path: '/admin', component: 'Admin', withErrorBoundary: true, requiresAuth: true },
+  { path: '/settings', component: 'Settings', withErrorBoundary: true, requiresAuth: true },
+  { path: '/builder', component: 'Builder', withErrorBoundary: true, requiresAuth: true },
+  { path: '/builder/:projectId', component: 'BuilderProject', withErrorBoundary: true, requiresAuth: true },
   { path: '/seo', component: 'SEODashboard', withErrorBoundary: true },
   { path: '/performance', component: 'Performance', withErrorBoundary: true },
 ];
 
 function renderRoute(config: AppRouteConfig) {
-  const { path, component, withErrorBoundary, eager } = config;
+  const { path, component, withErrorBoundary, eager, requiresAuth } = config;
   
   // Handle eager/static components
   if (eager || component === 'Landing') {
@@ -104,6 +107,11 @@ function renderRoute(config: AppRouteConfig) {
     </Suspense>
   );
   
+  // Wrap with ProtectedRoute if authentication is required
+  if (requiresAuth) {
+    element = <ProtectedRoute>{element}</ProtectedRoute>;
+  }
+  
   // Wrap with ErrorBoundary if needed
   if (withErrorBoundary) {
     element = <ErrorBoundary>{element}</ErrorBoundary>;
@@ -114,7 +122,7 @@ function renderRoute(config: AppRouteConfig) {
 
 /**
  * Data-driven route renderer that generates Route elements from configuration.
- * Centralizes route definitions and applies consistent patterns (Suspense, ErrorBoundary).
+ * Centralizes route definitions and applies consistent patterns (Suspense, ErrorBoundary, ProtectedRoute).
  */
 export function RouteRenderer() {
   return (

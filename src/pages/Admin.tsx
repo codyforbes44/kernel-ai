@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,7 +28,7 @@ import {
 
 export default function Admin() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useProtectedPage();
+  // Auth is handled by ProtectedRoute wrapper
   const { 
     isAdmin, 
     loading: adminLoading, 
@@ -58,10 +57,10 @@ export default function Admin() {
   const [messagesLoading, setMessagesLoading] = useState(false);
 
   useEffect(() => {
-    if (!adminLoading && !isAdmin && user) {
+    if (!adminLoading && !isAdmin) {
       navigate('/');
     }
-  }, [isAdmin, adminLoading, user, navigate]);
+  }, [isAdmin, adminLoading, navigate]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -83,7 +82,7 @@ export default function Admin() {
     refetch();
   };
 
-  if (authLoading || adminLoading) {
+  if (adminLoading) {
     return <LoadingSpinner fullScreen />;
   }
 
@@ -149,7 +148,7 @@ export default function Admin() {
             <AdminPanelWrapper panelName="User Management" onRetry={handleRefresh}>
               <UserManagementPanel 
                 users={users}
-                currentUserId={user?.id}
+                currentUserId={undefined}
                 onPromote={promoteToAdmin}
                 onDemote={demoteFromAdmin}
                 onSuspend={suspendUser}
