@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProtectedPage } from '@/hooks/useProtectedPage';
 import { useAdmin } from '@/hooks/useAdmin';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAdminStats } from '@/hooks/useAdminStats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Users, MessageSquare, Shield, ShieldCheck, ShieldOff, Search, Filter, Mail } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import type { Message } from '@/types/database';
@@ -18,17 +18,42 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
-import { AnalyticsDashboard } from '@/components/analytics/AnalyticsDashboard';
 import { ContactSubmissionsPanel } from '@/components/admin/ContactSubmissionsPanel';
+import { SystemStatsCards } from '@/components/admin/SystemStatsCards';
+import { UserManagementPanel } from '@/components/admin/UserManagementPanel';
+import { AIUsagePanel } from '@/components/admin/AIUsagePanel';
+import { LoginLocationsPanel } from '@/components/admin/LoginLocationsPanel';
+import { VisitorAnalyticsPanel } from '@/components/admin/VisitorAnalyticsPanel';
 
 export default function Admin() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useProtectedPage();
-  const { isAdmin, loading: adminLoading, users, conversations, fetchAllUsers, fetchAllConversations, getConversationMessages, promoteToAdmin, demoteFromAdmin } = useAdmin();
+  const { 
+    isAdmin, 
+    loading: adminLoading, 
+    users, 
+    conversations, 
+    fetchAllUsers, 
+    fetchAllConversations, 
+    getConversationMessages, 
+    promoteToAdmin, 
+    demoteFromAdmin 
+  } = useAdmin();
+  const { 
+    systemStats, 
+    aiUsageLogs, 
+    loginLocations, 
+    pageViews, 
+    modelUsageBreakdown,
+    loading: statsLoading,
+    suspendUser,
+    grantCredits,
+    refetch
+  } = useAdminStats();
+  
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
-  const [roleLoading, setRoleLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin && user) {
@@ -51,30 +76,9 @@ export default function Admin() {
     setMessagesLoading(false);
   };
 
-  const handlePromote = async (userId: string) => {
-    setRoleLoading(userId);
-    const success = await promoteToAdmin(userId);
-    if (success) {
-      toast.success('User promoted to admin');
-    } else {
-      toast.error('Failed to promote user');
-    }
-    setRoleLoading(null);
-  };
-
-  const handleDemote = async (userId: string) => {
-    if (userId === user?.id) {
-      toast.error("You can't demote yourself");
-      return;
-    }
-    setRoleLoading(userId);
-    const success = await demoteFromAdmin(userId);
-    if (success) {
-      toast.success('Admin role removed');
-    } else {
-      toast.error('Failed to demote user');
-    }
-    setRoleLoading(null);
+  const handleRefresh = () => {
+    fetchAllUsers();
+    refetch();
   };
 
   if (authLoading || adminLoading) {
@@ -84,9 +88,6 @@ export default function Admin() {
   if (!isAdmin) {
     return null;
   }
-
-  const totalMessages = users.reduce((sum, u) => sum + (u.message_count || 0), 0);
-  const totalConversations = users.reduce((sum, u) => sum + (u.conversation_count || 0), 0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -108,17 +109,29 @@ export default function Admin() {
       />
 
       <main className="container mx-auto px-4 py-8">
-        {/* Enhanced Analytics Dashboard */}
+        {/* System Stats Overview */}
         <div className="mb-8">
-          <AnalyticsDashboard variant="full" showExport />
+          <SystemStatsCards stats={systemStats} loading={statsLoading} />
         </div>
 
-        {/* Main Content */}
+        {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
               Users
+            </TabsTrigger>
+            <TabsTrigger value="visitors" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Visitors
+            </TabsTrigger>
+            <TabsTrigger value="ai-usage" className="gap-2">
+              <Cpu className="h-4 w-4" />
+              AI Usage
+            </TabsTrigger>
+            <TabsTrigger value="locations" className="gap-2">
+              <MapPin className="h-4 w-4" />
+              Logins
             </TabsTrigger>
             <TabsTrigger value="conversations" className="gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -131,88 +144,27 @@ export default function Admin() {
           </TabsList>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>View all registered users and their activity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Conversations</TableHead>
-                        <TableHead>Messages</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((u) => (
-                        <TableRow key={u.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-medium">
-                                {u.display_name?.charAt(0).toUpperCase() || '?'}
-                              </div>
-                              <div>
-                                <div className="font-medium">{u.display_name || 'Unknown'}</div>
-                                <div className="text-xs text-muted-foreground">{u.id.slice(0, 8)}...</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {u.is_admin ? (
-                              <Badge className="bg-primary/20 text-primary border-primary/30">
-                                <ShieldCheck className="h-3 w-3 mr-1" />
-                                Admin
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline">User</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{u.conversation_count}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{u.message_count}</Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(u.created_at), 'MMM d, yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            {u.is_admin ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={u.id === user?.id || roleLoading === u.id}
-                                onClick={() => handleDemote(u.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <ShieldOff className="h-4 w-4 mr-1" />
-                                {roleLoading === u.id ? 'Loading...' : 'Demote'}
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={roleLoading === u.id}
-                                onClick={() => handlePromote(u.id)}
-                              >
-                                <ShieldCheck className="h-4 w-4 mr-1" />
-                                {roleLoading === u.id ? 'Loading...' : 'Promote'}
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+            <UserManagementPanel 
+              users={users}
+              currentUserId={user?.id}
+              onPromote={promoteToAdmin}
+              onDemote={demoteFromAdmin}
+              onSuspend={suspendUser}
+              onGrantCredits={grantCredits}
+              onRefresh={handleRefresh}
+            />
+          </TabsContent>
+
+          <TabsContent value="visitors">
+            <VisitorAnalyticsPanel pageViews={pageViews} loading={statsLoading} />
+          </TabsContent>
+
+          <TabsContent value="ai-usage">
+            <AIUsagePanel logs={aiUsageLogs} modelBreakdown={modelUsageBreakdown} loading={statsLoading} />
+          </TabsContent>
+
+          <TabsContent value="locations">
+            <LoginLocationsPanel locations={loginLocations} loading={statsLoading} />
           </TabsContent>
 
           <TabsContent value="conversations">
