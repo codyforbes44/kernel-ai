@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { MessageSquare, Code2, Settings, Sparkles, Shield } from "lucide-react";
+import { MessageSquare, Code2, Settings, Sparkles, Shield, Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useAICredits } from "@/hooks/useAICredits";
 
 type TabKey = "chat" | "builder" | "settings" | "admin";
 
@@ -41,6 +42,7 @@ export function MobileTabBar() {
   const { light } = useHaptic();
   const { isAdmin } = useAdmin();
   const { counts: notificationCounts } = useNotifications();
+  const { credits } = useAICredits();
 
   const handleTabClick = () => {
     light();
@@ -50,6 +52,8 @@ export function MobileTabBar() {
   const tabs = isAdmin 
     ? [...baseTabs, adminTab, settingsTab]
     : [...baseTabs, settingsTab];
+
+  const isLowCredits = (credits?.balance ?? 0) < 10;
 
   return (
     <nav 
@@ -99,6 +103,20 @@ export function MobileTabBar() {
           </Link>
         );
       })}
+
+      {/* Credits Badge */}
+      <div className="flex flex-col items-center justify-center gap-1 py-2 px-2">
+        <div className={cn(
+          "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+          isLowCredits 
+            ? "bg-destructive/15 text-destructive" 
+            : "bg-primary/15 text-primary"
+        )}>
+          <Coins className="h-3.5 w-3.5" />
+          <span>{credits?.balance ?? 0}</span>
+        </div>
+        <span className="text-[10px] text-muted-foreground">Credits</span>
+      </div>
     </nav>
   );
 }

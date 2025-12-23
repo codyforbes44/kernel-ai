@@ -183,11 +183,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 size="icon"
                 onClick={() => navigate('/builder')}
                 className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                aria-label="Builder"
               >
                 <Code2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">App Builder</TooltipContent>
+            <TooltipContent side="right">Builder</TooltipContent>
           </Tooltip>
 
           {isAdmin && (
@@ -399,7 +400,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             )}
             <DropdownMenuItem onClick={() => navigate('/builder')}>
               <Code2 className="h-4 w-4 mr-2" />
-              App Builder
+              Builder
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/settings')}>
               <Settings className="h-4 w-4 mr-2" />

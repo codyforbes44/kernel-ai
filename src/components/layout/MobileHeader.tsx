@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { KernelLogo } from "@/components/ui/kernel-logo";
 import { Menu, Plus, PanelRight, WifiOff, Loader2, FolderPlus } from "lucide-react";
 import { useState } from "react";
 import { CreateProjectDialog } from "@/components/dialogs/CreateProjectDialog";
@@ -39,16 +41,21 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
   return (
     <>
       <header className="h-14 flex items-center justify-between px-3 border-b border-border/50 bg-sidebar safe-area-top">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleOpenSidebar}
-          className="h-10 w-10"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleOpenSidebar}
+            className="h-10 w-10"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <Link to="/" className="flex items-center">
+            <KernelLogo size="sm" />
+          </Link>
+        </div>
 
-        <div className="flex-1 min-w-0 mx-3 text-center">
+        <div className="flex-1 min-w-0 mx-2 text-center">
           <div className="flex items-center justify-center gap-2">
             {!isOnline && (
               <WifiOff className="h-3 w-3 text-destructive shrink-0" />

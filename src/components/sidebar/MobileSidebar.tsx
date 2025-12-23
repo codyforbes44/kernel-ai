@@ -149,7 +149,7 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
             onClick={() => handleNavigation("/builder")}
           >
             <Code2 className="h-4 w-4" />
-            App Builder
+            Builder
           </Button>
           {isAdmin && (
             <Button
