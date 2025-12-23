@@ -12,12 +12,37 @@ import { SEO } from "@/components/seo/SEO";
 import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getServiceSchema, BREADCRUMBS } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { PlatformComparisonChart } from "@/components/pricing/PlatformComparisonChart";
-import { pricingFAQs } from "@/lib/faq-data";
+import { usePricingFAQs } from "@/hooks/useStaticData";
 import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { PremiumFeatureCard, PremiumFeatureGrid } from "@/components/ui/premium-feature-card";
 import { PremiumUpgradeModal, usePremiumUpgradeModal } from "@/components/ui/premium-upgrade-modal";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// FAQ section that loads data asynchronously
+function PricingFAQSection() {
+  const { data: faqs, isLoading } = usePricingFAQs();
+  
+  if (isLoading) {
+    return (
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <Skeleton className="h-10 w-80 mx-auto mb-4" />
+          </div>
+          <div className="max-w-2xl mx-auto space-y-2">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+  
+  return <FAQSection faqs={faqs || []} />;
+}
 
 function FeatureValue({ value }: { value: boolean | string }) {
   if (typeof value === "boolean") {
@@ -488,7 +513,7 @@ export default function Pricing() {
       </section>
 
       {/* FAQ Section */}
-      <FAQSection faqs={pricingFAQs} />
+      <PricingFAQSection />
 
       {/* CTA Section */}
       <section className="pb-20 px-4">
