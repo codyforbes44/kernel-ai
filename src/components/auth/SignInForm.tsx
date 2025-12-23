@@ -26,7 +26,6 @@ interface SignInFormProps {
   onOAuthSignIn: (provider: OAuthProvider) => Promise<void>;
   oauthLoading: OAuthProvider | null;
   onForgotPassword: () => void;
-  onSwitchToSignUp: () => void;
 }
 
 export function SignInForm({
@@ -34,7 +33,6 @@ export function SignInForm({
   onOAuthSignIn,
   oauthLoading,
   onForgotPassword,
-  onSwitchToSignUp,
 }: SignInFormProps) {
   const isMobile = useIsMobile();
   const { success, error: hapticError } = useHaptic();
@@ -250,20 +248,13 @@ export function SignInForm({
           {form.formState.isSubmitting ? "Signing in..." : isLocked ? "Account Locked" : "Sign In"}
         </Button>
 
-        <div className="flex items-center justify-between text-sm pt-1">
+        <div className="text-sm pt-1">
           <button
             type="button"
             onClick={onForgotPassword}
             className="text-muted-foreground hover:text-primary touch-manipulation py-2 -my-2 px-1 -mx-1"
           >
             Forgot password?
-          </button>
-          <button
-            type="button"
-            onClick={onSwitchToSignUp}
-            className="text-primary hover:underline touch-manipulation py-2 -my-2 px-1 -mx-1"
-          >
-            Sign up
           </button>
         </div>
       </form>
