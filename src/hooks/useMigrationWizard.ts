@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { MigrationPlatform, ImportMethod, detectPlatformFromFiles } from '@/lib/migration-data';
+import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult } from '@/lib/migration-data';
 
 export type MigrationStep = 
   | 'platform'
@@ -34,6 +34,8 @@ export interface MigrationState {
   fileCount: number;
   isProcessing: boolean;
   createdProjectId: string | null;
+  detectionResult: DetectionResult | null;
+  isAnalyzing: boolean;
 }
 
 const initialState: MigrationState = {
@@ -52,6 +54,8 @@ const initialState: MigrationState = {
   fileCount: 0,
   isProcessing: false,
   createdProjectId: null,
+  detectionResult: null,
+  isAnalyzing: false,
 };
 
 export function useMigrationWizard() {
@@ -73,8 +77,9 @@ export function useMigrationWizard() {
     setState(prev => ({ ...prev, selectedMethod: method }));
   }, []);
 
-  const setFiles = useCallback((files: File[]) => {
-    const detectedPlatform = detectPlatformFromFiles(files);
+  const setFiles = useCallback(async (files: File[]) => {
+    // Quick sync detection first
+    const quickPlatform = quickDetectPlatform(files);
     const framework = detectFramework(files);
     
     setState(prev => ({
@@ -82,9 +87,24 @@ export function useMigrationWizard() {
       files,
       fileCount: files.length,
       detectedFramework: framework,
-      selectedPlatform: detectedPlatform || prev.selectedPlatform,
+      selectedPlatform: quickPlatform || prev.selectedPlatform,
       projectName: prev.projectName || generateProjectName(files),
+      isAnalyzing: true,
     }));
+
+    // Then do deep async analysis
+    try {
+      const result = await detectPlatformFromFiles(files);
+      setState(prev => ({
+        ...prev,
+        detectionResult: result,
+        detectedFramework: result.detectedFramework || prev.detectedFramework,
+        selectedPlatform: result.platform || prev.selectedPlatform,
+        isAnalyzing: false,
+      }));
+    } catch {
+      setState(prev => ({ ...prev, isAnalyzing: false }));
+    }
   }, []);
 
   const setPastedCode = useCallback((code: string) => {
@@ -135,10 +155,10 @@ export function useMigrationWizard() {
         if (state.selectedMethod === 'zip') return state.files.length > 0;
         if (state.selectedMethod === 'paste') return state.pastedCode.trim().length > 0;
         if (state.selectedMethod === 'url') return state.importUrl.trim().length > 0;
-        if (state.selectedMethod === 'github') return true; // GitHub auth flow handles this
+        if (state.selectedMethod === 'github') return true;
         return false;
       case 'features':
-        return true; // Always can proceed from features
+        return true;
       case 'setup':
         return state.projectName.trim().length > 0;
       case 'success':
@@ -190,7 +210,6 @@ function detectFramework(files: File[]): string | null {
 }
 
 function generateProjectName(files: File[]): string {
-  // Try to extract from package.json or directory name
   const paths = files.map(f => f.webkitRelativePath || f.name);
   if (paths.length > 0) {
     const firstPath = paths[0];

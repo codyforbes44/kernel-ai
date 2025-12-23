@@ -267,23 +267,200 @@ export const importMethodLabels: Record<ImportMethod, { label: string; descripti
   },
 };
 
-export function detectPlatformFromFiles(files: File[]): MigrationPlatform | null {
-  for (const platform of migrationPlatforms) {
-    for (const file of files) {
-      for (const pattern of platform.filePatterns) {
-        if (file.name.includes(pattern) || file.webkitRelativePath?.includes(pattern)) {
-          return platform;
-        }
+export interface DetectionResult {
+  platform: MigrationPlatform | null;
+  confidence: 'high' | 'medium' | 'low';
+  matchedPatterns: string[];
+  detectedFramework: string | null;
+  fileStats: {
+    total: number;
+    components: number;
+    configs: number;
+    styles: number;
+  };
+}
+
+// Comprehensive file pattern detection
+const detectionPatterns: Record<string, { patterns: string[]; weight: number }> = {
+  bolt: {
+    patterns: ['.bolt', 'bolt.config', '.bolt.json', 'bolt-lock.yaml'],
+    weight: 10,
+  },
+  replit: {
+    patterns: ['.replit', 'replit.nix', '.replit.json', 'replit.toml'],
+    weight: 10,
+  },
+  cursor: {
+    patterns: ['.cursorrules', '.cursor', 'cursor.json'],
+    weight: 10,
+  },
+  lovable: {
+    patterns: ['lovable.json', '.lovable', 'supabase/config.toml'],
+    weight: 8,
+  },
+  v0: {
+    patterns: ['v0.json', '.v0'],
+    weight: 10,
+  },
+};
+
+// Content-based detection patterns (check inside files)
+const contentPatterns: Record<string, { content: string[]; weight: number }> = {
+  bolt: {
+    content: ['@bolt/', 'bolt.new', 'stackblitz'],
+    weight: 5,
+  },
+  replit: {
+    content: ['replit.com', '@replit/', 'REPL_'],
+    weight: 5,
+  },
+  v0: {
+    content: ['v0.dev', '@vercel/v0', 'shadcn'],
+    weight: 3,
+  },
+  lovable: {
+    content: ['lovable.dev', '@lovable/', 'supabase'],
+    weight: 3,
+  },
+};
+
+// Framework detection patterns
+const frameworkPatterns: Record<string, string[]> = {
+  'Next.js': ['next.config.js', 'next.config.ts', 'next.config.mjs', '.next'],
+  'Vite + React': ['vite.config.ts', 'vite.config.js', 'vite.config.mjs'],
+  'Create React App': ['react-scripts', 'react-app-env.d.ts'],
+  'Remix': ['remix.config.js', 'remix.config.ts'],
+  'Astro': ['astro.config.mjs', 'astro.config.ts'],
+  'SvelteKit': ['svelte.config.js', 'svelte.config.ts'],
+  'Vue': ['vue.config.js', 'vite.config.ts'],
+  'Angular': ['angular.json', 'angular.cli.json'],
+};
+
+export async function detectPlatformFromFiles(files: File[]): Promise<DetectionResult> {
+  const scores: Record<string, number> = {};
+  const matchedPatterns: string[] = [];
+  let detectedFramework: string | null = null;
+  
+  const fileStats = {
+    total: files.length,
+    components: 0,
+    configs: 0,
+    styles: 0,
+  };
+
+  // Get all file paths
+  const filePaths = files.map(f => f.webkitRelativePath || f.name);
+  const fileNames = files.map(f => f.name.toLowerCase());
+
+  // Check file name patterns
+  for (const [platformId, config] of Object.entries(detectionPatterns)) {
+    for (const pattern of config.patterns) {
+      const found = filePaths.some(path => 
+        path.toLowerCase().includes(pattern.toLowerCase())
+      );
+      if (found) {
+        scores[platformId] = (scores[platformId] || 0) + config.weight;
+        matchedPatterns.push(`File: ${pattern}`);
       }
     }
   }
-  return null;
+
+  // Detect framework
+  for (const [framework, patterns] of Object.entries(frameworkPatterns)) {
+    const found = patterns.some(pattern => 
+      fileNames.includes(pattern.toLowerCase())
+    );
+    if (found) {
+      detectedFramework = framework;
+      break;
+    }
+  }
+
+  // Count file types
+  for (const file of files) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.tsx') || name.endsWith('.jsx')) {
+      fileStats.components++;
+    } else if (name.endsWith('.json') || name.endsWith('.config.ts') || name.endsWith('.config.js')) {
+      fileStats.configs++;
+    } else if (name.endsWith('.css') || name.endsWith('.scss') || name.endsWith('.sass')) {
+      fileStats.styles++;
+    }
+  }
+
+  // Read content of key files for deeper detection
+  const textFiles = files.filter(f => {
+    const ext = f.name.split('.').pop()?.toLowerCase();
+    return ['json', 'js', 'ts', 'tsx', 'jsx', 'md', 'txt'].includes(ext || '');
+  }).slice(0, 10); // Limit to first 10 text files
+
+  for (const file of textFiles) {
+    try {
+      const content = await file.text();
+      for (const [platformId, config] of Object.entries(contentPatterns)) {
+        for (const pattern of config.content) {
+          if (content.toLowerCase().includes(pattern.toLowerCase())) {
+            scores[platformId] = (scores[platformId] || 0) + config.weight;
+            if (!matchedPatterns.includes(`Content: ${pattern}`)) {
+              matchedPatterns.push(`Content: ${pattern}`);
+            }
+          }
+        }
+      }
+    } catch {
+      // Skip files that can't be read
+    }
+  }
+
+  // Find the platform with highest score
+  let topPlatformId: string | null = null;
+  let topScore = 0;
+  for (const [platformId, score] of Object.entries(scores)) {
+    if (score > topScore) {
+      topScore = score;
+      topPlatformId = platformId;
+    }
+  }
+
+  // Determine confidence
+  let confidence: DetectionResult['confidence'] = 'low';
+  if (topScore >= 10) {
+    confidence = 'high';
+  } else if (topScore >= 5) {
+    confidence = 'medium';
+  }
+
+  const platform = topPlatformId 
+    ? migrationPlatforms.find(p => p.id === topPlatformId) || null 
+    : null;
+
+  return {
+    platform,
+    confidence,
+    matchedPatterns,
+    detectedFramework,
+    fileStats,
+  };
 }
 
 export function detectPlatformFromUrl(url: string): MigrationPlatform | null {
   for (const platform of migrationPlatforms) {
     if (platform.urlPattern && platform.urlPattern.test(url)) {
       return platform;
+    }
+  }
+  return null;
+}
+
+// Quick sync detection for initial file drop (before async analysis)
+export function quickDetectPlatform(files: File[]): MigrationPlatform | null {
+  const filePaths = files.map(f => (f.webkitRelativePath || f.name).toLowerCase());
+  
+  for (const platform of migrationPlatforms) {
+    for (const pattern of platform.filePatterns) {
+      if (filePaths.some(path => path.includes(pattern.toLowerCase()))) {
+        return platform;
+      }
     }
   }
   return null;

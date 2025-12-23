@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ImportMethod, MigrationPlatform } from '@/lib/migration-data';
+import { ImportMethod, MigrationPlatform, DetectionResult } from '@/lib/migration-data';
 import { cn } from '@/lib/utils';
-import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2, Sparkles, Files, Settings, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 interface FileUploadStepProps {
   platform: MigrationPlatform;
@@ -18,6 +19,8 @@ interface FileUploadStepProps {
   onFilesChange: (files: File[]) => void;
   onPastedCodeChange: (code: string) => void;
   onImportUrlChange: (url: string) => void;
+  detectionResult?: DetectionResult | null;
+  isAnalyzing?: boolean;
 }
 
 export function FileUploadStep({
@@ -31,6 +34,8 @@ export function FileUploadStep({
   onFilesChange,
   onPastedCodeChange,
   onImportUrlChange,
+  detectionResult,
+  isAnalyzing,
 }: FileUploadStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isConnectingGitHub, setIsConnectingGitHub] = useState(false);
@@ -106,12 +111,76 @@ export function FileUploadStep({
                 <p className="text-sm text-muted-foreground">
                   {(files[0].size / 1024 / 1024).toFixed(2)} MB
                 </p>
-                {detectedFramework && (
+                
+                {/* Detection Results */}
+                {isAnalyzing ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground"
+                  >
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Analyzing project files...
+                  </motion.div>
+                ) : detectionResult ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 space-y-3"
+                  >
+                    {/* Platform Detection */}
+                    {detectionResult.platform && (
+                      <div className="flex items-center justify-center gap-2">
+                        <Badge variant={detectionResult.confidence === 'high' ? 'default' : 'secondary'}>
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {detectionResult.confidence === 'high' ? 'Detected' : 'Likely'}: {detectionResult.platform.name}
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    {/* Framework & Stats */}
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      {detectionResult.detectedFramework && (
+                        <Badge variant="outline">
+                          <FileCode className="w-3 h-3 mr-1" />
+                          {detectionResult.detectedFramework}
+                        </Badge>
+                      )}
+                      {detectionResult.fileStats.components > 0 && (
+                        <Badge variant="outline">
+                          <Files className="w-3 h-3 mr-1" />
+                          {detectionResult.fileStats.components} components
+                        </Badge>
+                      )}
+                      {detectionResult.fileStats.configs > 0 && (
+                        <Badge variant="outline">
+                          <Settings className="w-3 h-3 mr-1" />
+                          {detectionResult.fileStats.configs} configs
+                        </Badge>
+                      )}
+                      {detectionResult.fileStats.styles > 0 && (
+                        <Badge variant="outline">
+                          <Palette className="w-3 h-3 mr-1" />
+                          {detectionResult.fileStats.styles} styles
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {/* Matched Patterns */}
+                    {detectionResult.matchedPatterns.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium">Identified: </span>
+                        {detectionResult.matchedPatterns.slice(0, 3).join(', ')}
+                        {detectionResult.matchedPatterns.length > 3 && ` +${detectionResult.matchedPatterns.length - 3} more`}
+                      </div>
+                    )}
+                  </motion.div>
+                ) : detectedFramework ? (
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-sm">
                     <FileCode className="w-4 h-4" />
                     Detected: {detectedFramework}
                   </div>
-                )}
+                ) : null}
               </div>
             ) : (
               <div className="text-center">
