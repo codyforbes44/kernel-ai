@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -8,7 +8,7 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Button } from "@/components/ui/button";
 import { Check, Copy, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { useClipboard } from "@/hooks/useClipboard";
 import "katex/dist/katex.min.css";
 
 interface MarkdownRendererProps {
@@ -21,17 +21,12 @@ interface CodeBlockProps {
 }
 
 function CodeBlock({ language, value }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useClipboard({ successMessage: "Code copied!" });
   const [collapsed, setCollapsed] = useState(false);
   const lineCount = value.split("\n").length;
   const isLongCode = lineCount > 15;
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    toast.success("Code copied!");
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopy = () => copy(value);
 
   return (
     <div className="relative group rounded-lg overflow-hidden border border-border/50 my-4">

@@ -11,8 +11,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { toast } from "sonner";
 import { Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { handleError } from "@/lib/errorHandler";
 
 interface CleanupConversationsDialogProps {
   open: boolean;
@@ -51,8 +51,7 @@ export function CleanupConversationsDialog({
       if (error) throw error;
       setEmptyConversations(data || []);
     } catch (error) {
-      console.error("Error fetching empty conversations:", error);
-      toast.error("Failed to fetch conversations");
+      handleError(error, { prefix: "Failed to fetch conversations" });
     } finally {
       setLoading(false);
     }
@@ -71,12 +70,10 @@ export function CleanupConversationsDialog({
 
       if (error) throw error;
 
-      toast.success(`Deleted ${emptyConversations.length} empty conversation(s)`);
       await refresh();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error deleting conversations:", error);
-      toast.error("Failed to delete conversations");
+      handleError(error, { prefix: "Failed to delete conversations" });
     } finally {
       setDeleting(false);
     }
