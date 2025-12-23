@@ -122,6 +122,15 @@ function processLine(
       continue;
     }
     
+    // Skip if this is a TypeScript generic context (e.g., useState<boolean>, useRef<string>)
+    // Check if the character before '<' is alphanumeric or underscore
+    if (match.index > 0) {
+      const charBeforeAngle = line[match.index - 1];
+      if (/[a-zA-Z0-9_]/.test(charBeforeAngle)) {
+        continue; // This is a generic type parameter, not JSX
+      }
+    }
+    
     // Skip if this appears to be inside a string
     const beforeMatch = line.substring(0, match.index);
     if (isInsideString(beforeMatch)) {
@@ -200,6 +209,7 @@ function isInsideString(text: string): boolean {
  */
 function shouldSkipTag(tagName: string): boolean {
   const skipTags = [
+    // React internals
     'React',
     'Fragment',
     'Suspense',
@@ -222,6 +232,43 @@ function shouldSkipTag(tagName: string): boolean {
     'TooltipProvider',
     'HelmetProvider',
     'Helmet',
+    // TypeScript primitive types (in case generic detection misses them)
+    'boolean',
+    'string',
+    'number',
+    'null',
+    'undefined',
+    'void',
+    'never',
+    'any',
+    'unknown',
+    'object',
+    'symbol',
+    'bigint',
+    // Common TypeScript utility types
+    'Array',
+    'Map',
+    'Set',
+    'Record',
+    'Promise',
+    'Partial',
+    'Required',
+    'Readonly',
+    'Pick',
+    'Omit',
+    'Exclude',
+    'Extract',
+    'ReturnType',
+    'Parameters',
+    'NonNullable',
+    'Awaited',
+    // Generic type parameters
+    'T',
+    'K',
+    'V',
+    'U',
+    'P',
+    'R',
   ];
   
   return skipTags.includes(tagName);
