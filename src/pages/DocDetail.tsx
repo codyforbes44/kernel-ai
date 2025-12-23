@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -25,12 +26,11 @@ import {
   Info
 } from 'lucide-react';
 import { 
-  getArticleBySlug, 
-  getRelatedArticles, 
-  getAdjacentArticles,
-  DocArticle,
-  DocSection 
-} from '@/lib/documentation-data';
+  useDocArticle, 
+  useAdjacentArticles, 
+  useRelatedArticles,
+  DocSectionData 
+} from '@/hooks/useStaticData';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -39,7 +39,35 @@ const DocDetail = () => {
   const { categorySlug, slug } = useParams<{ categorySlug: string; slug: string }>();
   const navigate = useNavigate();
 
-  const article = categorySlug && slug ? getArticleBySlug(categorySlug, slug) : undefined;
+  const { data: article, isLoading } = useDocArticle(categorySlug || '', slug || '');
+  const { prev, next } = useAdjacentArticles(categorySlug || '', slug || '');
+  const relatedArticles = useRelatedArticles(article?.relatedDocs || []);
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <Skeleton className="h-6 w-72 mb-8" />
+          <Skeleton className="h-8 w-24 mb-4" />
+          <Skeleton className="h-14 w-full mb-4" />
+          <Skeleton className="h-6 w-96 mb-6" />
+          <div className="flex gap-4 mb-12">
+            <Skeleton className="h-5 w-24" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+          <Skeleton className="h-32 w-full mb-12" />
+          <div className="space-y-8">
+            {[1, 2, 3].map(i => (
+              <div key={i}>
+                <Skeleton className="h-8 w-48 mb-4" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
 
   if (!article) {
     return (
@@ -57,9 +85,6 @@ const DocDetail = () => {
       </PublicLayout>
     );
   }
-
-  const { prev, next } = getAdjacentArticles(article);
-  const relatedArticles = article.relatedDocs ? getRelatedArticles(article.relatedDocs) : [];
 
   const breadcrumbSchema = getBreadcrumbSchema([
     { name: 'Home', url: SEO_CONFIG.siteUrl },
@@ -226,7 +251,7 @@ const DocDetail = () => {
 };
 
 // Section component with code highlighting
-const DocSectionComponent = ({ section, index }: { section: DocSection; index: number }) => {
+const DocSectionComponent = ({ section, index }: { section: DocSectionData; index: number }) => {
   return (
     <section id={`section-${index}`} className="mb-12 scroll-mt-24">
       <h2 className="text-2xl font-bold mb-4">{section.title}</h2>

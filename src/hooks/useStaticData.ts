@@ -200,6 +200,53 @@ export function useAllDocArticles(options?: Omit<UseQueryOptions<DocArticleData[
 }
 
 // ============================================
+// Search Documentation Helper
+// ============================================
+
+export function useDocSearch(query: string) {
+  const { data: allArticles = [] } = useAllDocArticles();
+  
+  if (!query.trim()) return [];
+  
+  const normalizedQuery = query.toLowerCase().trim();
+  return allArticles.filter(article => {
+    const searchText = `${article.title} ${article.description} ${article.category}`.toLowerCase();
+    return searchText.includes(normalizedQuery);
+  });
+}
+
+// ============================================
+// Related Articles Helper
+// ============================================
+
+export function useRelatedArticles(articleIds: string[]) {
+  const { data: allArticles = [] } = useAllDocArticles();
+  
+  if (!articleIds.length) return [];
+  
+  return articleIds
+    .map(id => allArticles.find(a => a.id === id))
+    .filter((a): a is DocArticleData => a !== undefined);
+}
+
+// ============================================
+// Adjacent Articles Helper
+// ============================================
+
+export function useAdjacentArticles(categorySlug: string, articleSlug: string) {
+  const { data: category } = useDocCategory(categorySlug);
+  
+  if (!category) return { prev: undefined, next: undefined };
+  
+  const currentIndex = category.articles.findIndex(a => a.slug === articleSlug);
+  
+  return {
+    prev: currentIndex > 0 ? category.articles[currentIndex - 1] : undefined,
+    next: currentIndex < category.articles.length - 1 ? category.articles[currentIndex + 1] : undefined,
+  };
+}
+
+// ============================================
 // Prefetch Utilities
 // ============================================
 

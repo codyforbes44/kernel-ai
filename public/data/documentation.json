@@ -1,0 +1,765 @@
+[
+  {
+    "title": "Getting Started",
+    "slug": "getting-started",
+    "description": "Learn the basics of Kernel and get up to speed quickly.",
+    "iconName": "Rocket",
+    "articles": [
+      {
+        "id": "gs-1",
+        "slug": "quick-start-guide",
+        "title": "Quick Start Guide",
+        "description": "Get up and running with Kernel in under 5 minutes. Create your account, understand the interface, and deploy your first app.",
+        "category": "Getting Started",
+        "categorySlug": "getting-started",
+        "iconName": "Rocket",
+        "readTime": "5 min",
+        "lastUpdated": "2024-01-15",
+        "sections": [
+          {
+            "title": "Welcome to Kernel",
+            "content": "Kernel is an AI-powered development platform that helps you build beautiful web applications faster than ever. Whether you're a seasoned developer or just starting out, Kernel's intelligent assistant and visual tools make app development accessible to everyone.\n\nIn this guide, you'll learn how to:\n- Create your Kernel account\n- Navigate the main interface\n- Build your first component with AI assistance\n- Deploy your application to the web"
+          },
+          {
+            "title": "Creating Your Account",
+            "content": "Getting started with Kernel is simple. Visit our homepage and click the \"Get Started\" button. You can sign up using:\n\n- **Email and password** - Traditional signup with email verification\n- **Google OAuth** - One-click signup with your Google account\n- **GitHub OAuth** - Perfect for developers who want to sync their repos\n\nAfter signing up, you'll be guided through a brief onboarding flow that helps us understand your goals and customize your experience.",
+            "tip": "Using GitHub OAuth enables seamless integration with your existing repositories and allows for automatic code syncing."
+          },
+          {
+            "title": "Understanding the Interface",
+            "content": "The Kernel interface is designed for productivity. Here's a quick overview of the main areas:\n\n**Left Sidebar** - Navigation between projects, conversations, and settings\n**Main Canvas** - Where you build and preview your application\n**AI Chat Panel** - Your AI assistant for code generation and help\n**Top Toolbar** - Quick actions like deploy, share, and settings\n\nThe interface adapts based on your current context. When building, you'll see code editing tools. When designing, you'll get visual editing capabilities.",
+            "codeExample": {
+              "language": "bash",
+              "code": "# Keyboard shortcuts to remember\nCtrl/Cmd + K - Open command palette\nCtrl/Cmd + S - Save current file\nCtrl/Cmd + P - Quick file search\nCtrl/Cmd + / - Toggle comment",
+              "filename": "shortcuts.txt"
+            }
+          },
+          {
+            "title": "Building Your First Component",
+            "content": "Let's create a simple component using AI assistance. In the chat panel, try typing:\n\n\"Create a hero section with a heading, description, and call-to-action button\"\n\nThe AI will generate a complete, styled component that you can:\n- Preview instantly in the live preview panel\n- Edit the code directly in the editor\n- Customize with additional prompts\n- Deploy to production",
+            "codeExample": {
+              "language": "tsx",
+              "code": "// AI-generated Hero component\nconst Hero = () => {\n  return (\n    <section className=\"py-20 px-4 text-center\">\n      <h1 className=\"text-4xl font-bold mb-4\">\n        Welcome to My App\n      </h1>\n      <p className=\"text-muted-foreground mb-8 max-w-2xl mx-auto\">\n        Build amazing things with AI assistance.\n      </p>\n      <Button size=\"lg\">Get Started</Button>\n    </section>\n  );\n};",
+              "filename": "Hero.tsx"
+            }
+          },
+          {
+            "title": "Deploying Your App",
+            "content": "Ready to share your creation with the world? Kernel makes deployment as simple as clicking a button.\n\n1. Click the **Publish** button in the top right corner\n2. Choose your deployment environment (staging or production)\n3. Optionally add a custom domain\n4. Click **Deploy** and watch your app go live!\n\nYour app will be available at a unique URL like `your-app.kernel.cool`. You can share this link immediately or configure a custom domain in settings.",
+            "tip": "Frontend changes require clicking \"Update\" to deploy, but backend changes (database, edge functions) deploy automatically."
+          }
+        ],
+        "relatedDocs": ["gs-2", "gs-3", "ab-1"]
+      },
+      {
+        "id": "gs-2",
+        "slug": "creating-your-first-project",
+        "title": "Creating Your First Project",
+        "description": "Learn how to create a new project from scratch or use templates to jumpstart your development.",
+        "category": "Getting Started",
+        "categorySlug": "getting-started",
+        "iconName": "Rocket",
+        "readTime": "8 min",
+        "lastUpdated": "2024-01-14",
+        "sections": [
+          {
+            "title": "Project Creation Options",
+            "content": "Kernel offers multiple ways to start a new project based on your needs:\n\n**Blank Project** - Start with a minimal setup and build from scratch\n**Templates** - Choose from pre-built templates for common app types\n**Import from GitHub** - Bring an existing project into Kernel\n**Clone a Public Project** - Remix someone else's creation\n\nEach option has its advantages. Blank projects give you full control, while templates provide proven patterns and designs to build upon."
+          },
+          {
+            "title": "Using Templates",
+            "content": "Templates are the fastest way to get started with a polished foundation. We offer templates for:\n\n- **Landing Pages** - Marketing sites with hero sections, features, and CTAs\n- **Dashboards** - Admin panels with charts, tables, and data visualization\n- **E-commerce** - Product listings, carts, and checkout flows\n- **SaaS Starter** - Authentication, pricing pages, and user management\n- **Blog/Portfolio** - Content-focused sites with clean typography\n\nTo use a template:\n1. Click \"New Project\" in the sidebar\n2. Browse the template gallery\n3. Preview any template before selecting\n4. Click \"Use Template\" to create your project",
+            "tip": "Templates can be customized extensively. Use them as a starting point and let the AI help you transform them into your unique vision."
+          },
+          {
+            "title": "Project Settings",
+            "content": "After creating your project, configure essential settings:\n\n**Project Name** - A descriptive name for your project\n**Description** - Brief summary of what you're building\n**Visibility** - Public (anyone can view) or Private\n**Framework** - React is the default and recommended choice\n\nYou can access these settings anytime by clicking the project name in the header and selecting \"Settings\"."
+          },
+          {
+            "title": "Understanding File Structure",
+            "content": "Every Kernel project follows a clean, organized structure:\n\n```\nsrc/\n├── components/     # Reusable UI components\n│   └── ui/        # Base UI components (Button, Card, etc.)\n├── pages/         # Route components\n├── hooks/         # Custom React hooks\n├── lib/           # Utilities and helpers\n├── types/         # TypeScript definitions\n└── App.tsx        # Main application component\n```\n\nThis structure promotes code organization and makes it easy to find and modify components. The AI understands this structure and places generated code in appropriate locations.",
+            "note": "You can customize this structure, but sticking to conventions makes AI assistance more effective."
+          },
+          {
+            "title": "Next Steps",
+            "content": "Now that your project is set up, you're ready to start building! Here's what to explore next:\n\n1. **Chat with the AI** - Describe what you want to build\n2. **Explore the file tree** - Understand the generated code\n3. **Use the preview** - See your changes in real-time\n4. **Connect a database** - Add persistence to your app\n5. **Deploy** - Share your creation with the world\n\nThe AI is your partner throughout this journey. Don't hesitate to ask questions, request changes, or explore new ideas."
+          }
+        ],
+        "relatedDocs": ["gs-1", "gs-3", "comp-1"]
+      },
+      {
+        "id": "gs-3",
+        "slug": "understanding-the-interface",
+        "title": "Understanding the Interface",
+        "description": "A comprehensive tour of the Kernel interface, including panels, shortcuts, and productivity features.",
+        "category": "Getting Started",
+        "categorySlug": "getting-started",
+        "iconName": "Rocket",
+        "readTime": "10 min",
+        "lastUpdated": "2024-01-13",
+        "sections": [
+          {
+            "title": "Interface Overview",
+            "content": "The Kernel interface is thoughtfully designed to maximize your productivity. It's divided into several key areas that work together seamlessly.\n\n**The layout automatically adapts** based on your screen size and current task. On desktop, you'll see the full experience. On tablet and mobile, panels collapse into a more focused view."
+          },
+          {
+            "title": "The Sidebar",
+            "content": "The left sidebar is your project navigation hub:\n\n**Projects** - Switch between your projects or create new ones\n**Conversations** - View chat history with the AI assistant\n**Templates** - Access saved templates and prompts\n**Settings** - Configure your account and preferences\n\nYou can collapse the sidebar by clicking the hamburger menu or pressing `Ctrl/Cmd + B` to gain more screen space when needed."
+          },
+          {
+            "title": "The Code Editor",
+            "content": "Our Monaco-based code editor provides a professional development experience:\n\n- **Syntax highlighting** for TypeScript, JavaScript, CSS, and more\n- **IntelliSense** with autocomplete and type hints\n- **Multi-cursor editing** for efficient code changes\n- **Integrated terminal** for running commands\n- **Git integration** for version control\n\nThe editor syncs with AI suggestions in real-time. When the AI generates code, you'll see it appear directly in the relevant files.",
+            "codeExample": {
+              "language": "tsx",
+              "code": "// Editor supports full TypeScript\ninterface UserProps {\n  name: string;\n  email: string;\n  avatar?: string;\n}\n\nconst UserCard = ({ name, email, avatar }: UserProps) => {\n  return (\n    <Card>\n      <Avatar src={avatar} fallback={name[0]} />\n      <h3>{name}</h3>\n      <p>{email}</p>\n    </Card>\n  );\n};",
+              "filename": "UserCard.tsx"
+            }
+          },
+          {
+            "title": "The AI Chat Panel",
+            "content": "The chat panel on the right is where you interact with your AI assistant. It's designed for natural conversation about your project.\n\n**Features:**\n- **Context-aware** - The AI knows about your project structure\n- **File attachments** - Share images or designs for reference\n- **Code blocks** - Properly formatted code in responses\n- **History** - Scroll back through previous conversations\n\n**Tips for effective prompting:**\n- Be specific about what you want\n- Mention file names when relevant\n- Describe visual designs in detail\n- Ask follow-up questions to refine",
+            "tip": "Start prompts with action verbs like \"Create\", \"Update\", \"Fix\", or \"Add\" for clearer intent."
+          },
+          {
+            "title": "The Preview Panel",
+            "content": "The live preview shows your application as it will appear to users. It updates in real-time as you make changes.\n\n**Preview features:**\n- **Hot reload** - See changes instantly\n- **Responsive testing** - Toggle between device sizes\n- **Zoom controls** - Focus on specific areas\n- **Console access** - Debug JavaScript issues\n\nYou can also access the preview in a new tab for a full-screen experience."
+          },
+          {
+            "title": "Keyboard Shortcuts",
+            "content": "Master these shortcuts to work faster:",
+            "codeExample": {
+              "language": "markdown",
+              "code": "| Shortcut | Action |\n|----------|--------|\n| Ctrl/Cmd + K | Command palette |\n| Ctrl/Cmd + S | Save file |\n| Ctrl/Cmd + P | Quick file search |\n| Ctrl/Cmd + B | Toggle sidebar |\n| Ctrl/Cmd + / | Toggle comment |\n| Ctrl/Cmd + D | Duplicate line |\n| Ctrl/Cmd + Shift + P | Open settings |\n| F5 | Refresh preview |",
+              "filename": "shortcuts.md"
+            }
+          },
+          {
+            "title": "Command Palette",
+            "content": "Press `Ctrl/Cmd + K` to open the command palette - a powerful tool for quick navigation and actions.\n\nFrom the command palette, you can:\n- Search and open any file\n- Run project commands\n- Toggle settings\n- Access documentation\n- Switch themes\n- Navigate to specific lines\n\nStart typing to filter commands, then press Enter to execute.",
+            "note": "The command palette learns from your usage and surfaces frequently used commands first."
+          }
+        ],
+        "relatedDocs": ["gs-1", "gs-2", "ab-1"]
+      }
+    ]
+  },
+  {
+    "title": "AI Builder",
+    "slug": "ai-builder",
+    "description": "Master AI-assisted development for faster, smarter coding.",
+    "iconName": "Zap",
+    "articles": [
+      {
+        "id": "ab-1",
+        "slug": "ai-powered-development",
+        "title": "AI-Powered Development",
+        "description": "Understand how Kernel's AI assistant works and how to leverage it for maximum productivity.",
+        "category": "AI Builder",
+        "categorySlug": "ai-builder",
+        "iconName": "Zap",
+        "readTime": "12 min",
+        "lastUpdated": "2024-01-12",
+        "sections": [
+          {
+            "title": "How AI Assistance Works",
+            "content": "Kernel's AI is designed to be your intelligent coding partner. It understands your project context, follows best practices, and generates production-ready code.\n\n**The AI can:**\n- Generate complete components from descriptions\n- Fix bugs and improve code quality\n- Explain complex code concepts\n- Suggest architectural improvements\n- Create database schemas and queries\n- Write tests and documentation\n\nThe more context you provide, the better the AI performs. It learns from your project's patterns and maintains consistency."
+          },
+          {
+            "title": "AI Capabilities",
+            "content": "Understanding what the AI excels at helps you get the most from it:\n\n**Code Generation**\n- UI components with proper styling\n- API integrations and data fetching\n- Form handling with validation\n- State management patterns\n\n**Analysis & Improvement**\n- Code review and suggestions\n- Performance optimization\n- Accessibility improvements\n- Security best practices\n\n**Learning & Explanation**\n- Concept explanations\n- Code walkthroughs\n- Best practice guidance",
+            "tip": "The AI works best when you treat it as a collaborator. Share your goals, not just tasks."
+          },
+          {
+            "title": "Context and Memory",
+            "content": "The AI maintains context about your project through several mechanisms:\n\n**Project Context**\n- File structure and contents\n- Installed dependencies\n- Component relationships\n- Database schema\n\n**Conversation History**\n- Previous requests in the session\n- Your preferences and patterns\n- Established conventions\n\n**Knowledge Base**\n- Custom instructions you've added\n- Tech stack preferences\n- Code conventions"
+          },
+          {
+            "title": "Limitations to Know",
+            "content": "While powerful, the AI has some limitations:\n\n**Cannot access external services**\n- No live API calls during generation\n- Cannot browse the web in real-time\n- External data must be provided\n\n**May need guidance for**\n- Complex business logic\n- Highly specific requirements\n- Legacy system integration\n\n**Works best with**\n- Clear, specific requests\n- Incremental changes\n- Standard web technologies",
+            "warning": "Always review generated code before deploying to production. The AI is a powerful tool, but human oversight ensures quality."
+          },
+          {
+            "title": "Best Practices",
+            "content": "Maximize your productivity with these best practices:\n\n1. **Start with the big picture** - Describe your overall goal before diving into details\n2. **Be specific** - \"Add a blue button\" is better than \"make it look nice\"\n3. **Iterate** - Build incrementally rather than requesting everything at once\n4. **Review changes** - Check generated code and ask for adjustments\n5. **Use examples** - Share screenshots or code samples for reference\n6. **Ask questions** - The AI can explain its choices and alternatives"
+          }
+        ],
+        "relatedDocs": ["ab-2", "ab-3", "gs-1"]
+      },
+      {
+        "id": "ab-2",
+        "slug": "prompt-engineering-tips",
+        "title": "Prompt Engineering Tips",
+        "description": "Master the art of writing effective prompts to get exactly what you need from the AI assistant.",
+        "category": "AI Builder",
+        "categorySlug": "ai-builder",
+        "iconName": "Zap",
+        "readTime": "10 min",
+        "lastUpdated": "2024-01-11",
+        "sections": [
+          {
+            "title": "The Art of Prompting",
+            "content": "Writing effective prompts is key to productive AI collaboration. A well-crafted prompt gives the AI the context and specificity it needs to generate exactly what you want.\n\nThink of prompting as giving instructions to a very capable but literal-minded assistant. The clearer your instructions, the better the results."
+          },
+          {
+            "title": "Prompt Structure",
+            "content": "A good prompt typically includes:\n\n1. **Action** - What you want done (create, update, fix, explain)\n2. **Subject** - What you're working with (component, page, function)\n3. **Details** - Specific requirements and constraints\n4. **Context** - Relevant background information\n\n**Basic formula:**\n`[Action] a [Subject] that [Details] with [Context]`",
+            "codeExample": {
+              "language": "markdown",
+              "code": "# Example Prompts\n\n## Basic\n\"Create a button component\"\n\n## Better\n\"Create a primary button component with loading state\"\n\n## Best\n\"Create a Button component with variants (primary, secondary, outline), \nsizes (sm, md, lg), and a loading state that shows a spinner \nand disables interaction. Use the existing design tokens.\"",
+              "filename": "prompts.md"
+            }
+          },
+          {
+            "title": "Effective Patterns",
+            "content": "These patterns consistently produce good results:\n\n**Reference existing code**\n\"Update the UserCard component to match the styling of ProductCard\"\n\n**Describe behavior**\n\"Create a dropdown menu that closes when clicking outside\"\n\n**Specify technologies**\n\"Add form validation using react-hook-form and zod\"\n\n**Include constraints**\n\"Build a responsive grid that works on mobile without horizontal scroll\"\n\n**Request iterations**\n\"Improve the loading state with a skeleton placeholder\"",
+            "tip": "If the first result isn't perfect, refine with follow-up prompts. \"Make it more compact\" or \"Use icons instead of text\" work great."
+          },
+          {
+            "title": "Common Mistakes",
+            "content": "Avoid these common prompting pitfalls:\n\n**Too vague**\n❌ \"Make it better\"\n✅ \"Improve the contrast for accessibility and add hover states\"\n\n**Too much at once**\n❌ \"Build a complete e-commerce site with cart, checkout, admin panel...\"\n✅ \"Create the product listing page first, with a grid of product cards\"\n\n**Assuming context**\n❌ \"Fix the bug\" \n✅ \"Fix the TypeError in UserProfile.tsx on line 42\"\n\n**Ignoring constraints**\n❌ \"Add a fancy animation\"\n✅ \"Add a subtle fade-in animation that respects reduced motion preferences\"",
+            "warning": "Avoid requesting changes to files you haven't opened or referenced. The AI works best with explicit context."
+          },
+          {
+            "title": "Advanced Techniques",
+            "content": "Level up with these advanced prompting strategies:\n\n**Chain prompts** for complex features:\n1. \"Create the data model for a blog\"\n2. \"Build the API endpoints using edge functions\"\n3. \"Create the blog post component\"\n4. \"Add the list view with pagination\"\n\n**Use comparisons:**\n\"Make the pricing cards look like Stripe's pricing page, with popular plan highlighted\"\n\n**Request alternatives:**\n\"Show me 3 different layout options for this dashboard\"\n\n**Ask for explanations:**\n\"Explain why you chose this state management approach\""
+          }
+        ],
+        "relatedDocs": ["ab-1", "ab-3", "gs-3"]
+      },
+      {
+        "id": "ab-3",
+        "slug": "code-generation-best-practices",
+        "title": "Code Generation Best Practices",
+        "description": "Learn how to review, customize, and optimize AI-generated code for production use.",
+        "category": "AI Builder",
+        "categorySlug": "ai-builder",
+        "iconName": "Zap",
+        "readTime": "8 min",
+        "lastUpdated": "2024-01-10",
+        "sections": [
+          {
+            "title": "Reviewing Generated Code",
+            "content": "AI-generated code is a starting point, not the final product. Always review before committing:\n\n**Check for:**\n- Correct file placement\n- Proper imports\n- Type safety\n- Edge cases\n- Error handling\n- Accessibility\n\nThe AI follows best practices, but your domain knowledge adds essential context."
+          },
+          {
+            "title": "Customization Workflow",
+            "content": "Establish a workflow for customizing generated code:\n\n1. **Generate** - Let the AI create the initial version\n2. **Review** - Read through the generated code\n3. **Test** - Verify it works in the preview\n4. **Refine** - Ask for specific changes\n5. **Polish** - Make final manual adjustments\n\nThis iterative approach produces the best results while minimizing manual work."
+          },
+          {
+            "title": "Optimization Tips",
+            "content": "Optimize generated code for production:\n\n**Performance**\n- Add React.memo for expensive components\n- Implement proper loading states\n- Use virtualization for long lists\n- Optimize images and assets\n\n**Maintainability**\n- Add meaningful comments\n- Extract reusable logic into hooks\n- Create consistent patterns\n- Write tests for critical paths",
+            "tip": "Ask the AI to optimize: \"Add memoization and loading states to improve performance\""
+          },
+          {
+            "title": "Testing Generated Code",
+            "content": "Testing ensures generated code works correctly:\n\n**Manual testing**\n- Test all user interactions\n- Check responsive behavior\n- Verify error states\n- Test edge cases\n\n**Automated testing**\n- Ask the AI to generate tests\n- Use the testing framework included in your project\n- Focus on critical user flows"
+          }
+        ],
+        "relatedDocs": ["ab-1", "ab-2", "comp-3"]
+      }
+    ]
+  },
+  {
+    "title": "Components",
+    "slug": "components",
+    "description": "Explore the comprehensive UI component library.",
+    "iconName": "Code",
+    "articles": [
+      {
+        "id": "comp-1",
+        "slug": "component-overview",
+        "title": "Component Overview",
+        "description": "Explore the comprehensive component library available in Kernel, built on shadcn/ui and Radix primitives.",
+        "category": "Components",
+        "categorySlug": "components",
+        "iconName": "Code",
+        "readTime": "12 min",
+        "lastUpdated": "2024-01-09",
+        "sections": [
+          {
+            "title": "Component Library",
+            "content": "Kernel includes a rich component library based on shadcn/ui, which provides beautifully designed, accessible components built on Radix UI primitives.\n\n**Why shadcn/ui?**\n- Fully customizable - you own the code\n- Accessible by default\n- Dark mode support built-in\n- Consistent design language\n- TypeScript support\n\nComponents are copied into your project, giving you full control over customization."
+          },
+          {
+            "title": "Available Components",
+            "content": "The component library includes:\n\n**Layout**\n- Card, Dialog, Sheet, Drawer\n- Accordion, Collapsible, Tabs\n- Separator, Aspect Ratio\n\n**Forms**\n- Button, Input, Textarea\n- Select, Checkbox, Radio\n- Switch, Slider, Toggle\n\n**Data Display**\n- Table, Avatar, Badge\n- Tooltip, Hover Card\n- Progress, Skeleton\n\n**Navigation**\n- Navigation Menu, Breadcrumb\n- Command (⌘K), Context Menu\n- Dropdown Menu, Menubar\n\n**Feedback**\n- Alert, Toast, Sonner\n- Alert Dialog\n- Progress"
+          },
+          {
+            "title": "Using Components",
+            "content": "Components are imported from the `@/components/ui` directory:",
+            "codeExample": {
+              "language": "tsx",
+              "code": "import { Button } from \"@/components/ui/button\";\nimport { Card, CardHeader, CardTitle, CardContent } from \"@/components/ui/card\";\nimport { Input } from \"@/components/ui/input\";\n\nexport const LoginCard = () => {\n  return (\n    <Card className=\"w-[350px]\">\n      <CardHeader>\n        <CardTitle>Login</CardTitle>\n      </CardHeader>\n      <CardContent>\n        <Input placeholder=\"Email\" type=\"email\" />\n        <Input placeholder=\"Password\" type=\"password\" className=\"mt-4\" />\n        <Button className=\"w-full mt-4\">Sign In</Button>\n      </CardContent>\n    </Card>\n  );\n};",
+              "filename": "LoginCard.tsx"
+            }
+          },
+          {
+            "title": "Component Variants",
+            "content": "Most components support variants for different styles and sizes:\n\n**Button variants:**\n- default, destructive, outline, secondary, ghost, link\n\n**Button sizes:**\n- default, sm, lg, icon\n\nVariants are implemented using class-variance-authority (CVA) for type-safe styling."
+          }
+        ],
+        "relatedDocs": ["comp-2", "comp-3", "ds-1"]
+      },
+      {
+        "id": "comp-2",
+        "slug": "customizing-components",
+        "title": "Customizing Components",
+        "description": "Learn how to customize component styles, create variants, and extend functionality.",
+        "category": "Components",
+        "categorySlug": "components",
+        "iconName": "Code",
+        "readTime": "10 min",
+        "lastUpdated": "2024-01-08",
+        "sections": [
+          {
+            "title": "Styling with Tailwind",
+            "content": "Components use Tailwind CSS for styling. You can customize them by:\n\n1. **Adding classes** - Pass additional classes via className\n2. **Modifying the component file** - Edit the source in /components/ui\n3. **Updating the design system** - Change CSS variables\n\nThe `cn()` utility merges classes intelligently, handling conflicts properly."
+          },
+          {
+            "title": "Creating Custom Variants",
+            "content": "Add new variants using class-variance-authority:"
+          },
+          {
+            "title": "Theme Customization",
+            "content": "Customize the design system by modifying CSS variables:",
+            "note": "Changes to CSS variables automatically apply to all components using those tokens."
+          }
+        ],
+        "relatedDocs": ["comp-1", "comp-3", "ds-2"]
+      },
+      {
+        "id": "comp-3",
+        "slug": "creating-custom-components",
+        "title": "Creating Custom Components",
+        "description": "Build your own reusable components following best practices and patterns.",
+        "category": "Components",
+        "categorySlug": "components",
+        "iconName": "Code",
+        "readTime": "15 min",
+        "lastUpdated": "2024-01-07",
+        "sections": [
+          {
+            "title": "Component Design Principles",
+            "content": "Follow these principles when creating components:\n\n**Single Responsibility** - Each component does one thing well\n**Composability** - Components can be combined easily\n**Flexibility** - Accept props for customization\n**Accessibility** - Include ARIA attributes and keyboard support\n**Consistency** - Follow project conventions"
+          },
+          {
+            "title": "Basic Component Structure",
+            "content": "A well-structured component includes types, styling, and forwarded refs."
+          },
+          {
+            "title": "Adding Accessibility",
+            "content": "Make components accessible by default with ARIA attributes and keyboard handlers.",
+            "note": "Always include keyboard handlers, ARIA attributes, and focus styles for accessibility."
+          }
+        ],
+        "relatedDocs": ["comp-1", "comp-2", "ab-3"]
+      }
+    ]
+  },
+  {
+    "title": "Database",
+    "slug": "database",
+    "description": "Store and manage your application data securely.",
+    "iconName": "Database",
+    "articles": [
+      {
+        "id": "db-1",
+        "slug": "database-setup",
+        "title": "Database Setup",
+        "description": "Enable and configure the database for your Kernel project with step-by-step guidance.",
+        "category": "Database",
+        "categorySlug": "database",
+        "iconName": "Database",
+        "readTime": "8 min",
+        "lastUpdated": "2024-01-06",
+        "sections": [
+          {
+            "title": "Enabling the Database",
+            "content": "Kernel projects include a powerful built-in database powered by PostgreSQL. To enable it:\n\n1. Open your project settings\n2. Navigate to the \"Cloud\" tab\n3. Click \"Enable Database\"\n4. Wait for provisioning (usually under 30 seconds)\n\nOnce enabled, you'll have access to:\n- Full PostgreSQL database\n- Real-time subscriptions\n- Row Level Security (RLS)\n- Automatic backups"
+          },
+          {
+            "title": "Database Panel",
+            "content": "The Database Panel provides a visual interface for managing your data:\n\n**Tables View** - See all your tables at a glance\n**Schema Editor** - Create and modify table structures\n**Data Grid** - View and edit records directly\n**Relationship Diagram** - Visualize table relationships\n\nAccess the Database Panel from the left sidebar when in the Builder view.",
+            "tip": "You can create tables using natural language: \"Create a users table with email, name, and avatar columns\""
+          },
+          {
+            "title": "Type Safety",
+            "content": "Kernel automatically generates TypeScript types for your database schema."
+          }
+        ],
+        "relatedDocs": ["db-2", "db-3", "auth-1"]
+      },
+      {
+        "id": "db-2",
+        "slug": "tables-and-schemas",
+        "title": "Tables and Schemas",
+        "description": "Design database tables with proper relationships, constraints, and best practices.",
+        "category": "Database",
+        "categorySlug": "database",
+        "iconName": "Database",
+        "readTime": "12 min",
+        "lastUpdated": "2024-01-05",
+        "sections": [
+          {
+            "title": "Creating Tables",
+            "content": "Tables can be created through natural language, SQL, or the visual editor."
+          },
+          {
+            "title": "Best Practices",
+            "content": "Follow these guidelines for effective database design:\n\n**Use UUIDs for primary keys** - Better for distributed systems\n**Add timestamps** - created_at and updated_at for auditing\n**Enable RLS** - Always secure your data\n**Create indexes** - For frequently queried columns",
+            "tip": "Only add indexes for columns you frequently query or sort by. Too many indexes slow down writes."
+          }
+        ],
+        "relatedDocs": ["db-1", "db-3", "auth-3"]
+      },
+      {
+        "id": "db-3",
+        "slug": "querying-data",
+        "title": "Querying Data",
+        "description": "Master data querying with filters, joins, pagination, and real-time subscriptions.",
+        "category": "Database",
+        "categorySlug": "database",
+        "iconName": "Database",
+        "readTime": "15 min",
+        "lastUpdated": "2024-01-04",
+        "sections": [
+          {
+            "title": "Basic Queries",
+            "content": "The Supabase client provides a powerful query builder for fetching data."
+          },
+          {
+            "title": "Filtering",
+            "content": "Filter results with various operators like eq, neq, gte, lte, ilike, in, and contains."
+          },
+          {
+            "title": "Real-time Subscriptions",
+            "content": "Subscribe to live database changes with real-time events.",
+            "note": "Enable real-time for tables in your database settings before using subscriptions."
+          }
+        ],
+        "relatedDocs": ["db-1", "db-2", "auth-3"]
+      }
+    ]
+  },
+  {
+    "title": "Authentication",
+    "slug": "authentication",
+    "description": "Secure your application with built-in auth solutions.",
+    "iconName": "Shield",
+    "articles": [
+      {
+        "id": "auth-1",
+        "slug": "auth-overview",
+        "title": "Auth Overview",
+        "description": "Understand Kernel's authentication system architecture and available providers.",
+        "category": "Authentication",
+        "categorySlug": "authentication",
+        "iconName": "Shield",
+        "readTime": "10 min",
+        "lastUpdated": "2024-01-03",
+        "sections": [
+          {
+            "title": "Authentication Architecture",
+            "content": "Kernel's authentication is built on a secure, battle-tested foundation that handles:\n\n**User Management**\n- Email/password signup and login\n- Email verification\n- Password reset flows\n- Session management\n\n**OAuth Providers**\n- Google\n- GitHub\n- Additional providers on request\n\n**Security Features**\n- JWT-based sessions\n- Secure cookie handling\n- CSRF protection\n- Rate limiting"
+          },
+          {
+            "title": "Auth Flow",
+            "content": "Understanding the authentication flow:\n\n1. **Sign Up** - User creates account with email/password or OAuth\n2. **Verification** - Email confirmation (optional, configurable)\n3. **Sign In** - User authenticates and receives session\n4. **Session** - JWT stored securely, auto-refreshed\n5. **Sign Out** - Session invalidated, tokens cleared\n\nSessions are automatically refreshed before expiration, providing a seamless user experience."
+          },
+          {
+            "title": "Auth Hook",
+            "content": "Use the provided auth hook for React components:",
+            "tip": "The useAuth hook handles loading states and automatically redirects unauthenticated users."
+          }
+        ],
+        "relatedDocs": ["auth-2", "auth-3", "db-1"]
+      },
+      {
+        "id": "auth-2",
+        "slug": "social-login-setup",
+        "title": "Social Login Setup",
+        "description": "Configure Google, GitHub, and other OAuth providers for seamless authentication.",
+        "category": "Authentication",
+        "categorySlug": "authentication",
+        "iconName": "Shield",
+        "readTime": "12 min",
+        "lastUpdated": "2024-01-02",
+        "sections": [
+          {
+            "title": "Available Providers",
+            "content": "Kernel supports multiple OAuth providers:\n\n**Google** - Most popular, great for consumer apps\n**GitHub** - Perfect for developer-focused applications\n**Additional Providers** - Contact support for others\n\nSocial login provides:\n- One-click authentication\n- Access to user profile data\n- Reduced friction for sign-ups\n- No password management for users"
+          },
+          {
+            "title": "Google OAuth Setup",
+            "content": "To enable Google authentication:\n\n1. Create a project in Google Cloud Console\n2. Enable the Google+ API\n3. Create OAuth 2.0 credentials\n4. Add authorized redirect URIs\n5. Copy Client ID and Secret to Kernel settings",
+            "warning": "Keep your OAuth secrets secure. Never commit them to version control."
+          }
+        ],
+        "relatedDocs": ["auth-1", "auth-3", "gs-2"]
+      },
+      {
+        "id": "auth-3",
+        "slug": "role-based-access",
+        "title": "Role-Based Access",
+        "description": "Implement user roles, permissions, and Row Level Security policies.",
+        "category": "Authentication",
+        "categorySlug": "authentication",
+        "iconName": "Shield",
+        "readTime": "15 min",
+        "lastUpdated": "2024-01-01",
+        "sections": [
+          {
+            "title": "Understanding RLS",
+            "content": "Row Level Security (RLS) is PostgreSQL's built-in authorization system. It allows you to define policies that control which rows users can access.\n\n**Why RLS?**\n- Security at the database level\n- Policies can't be bypassed from the client\n- Works automatically with all queries\n- Fine-grained access control"
+          },
+          {
+            "title": "User Roles",
+            "content": "Implement a roles system for different access levels.",
+            "warning": "Always test RLS policies thoroughly. A misconfigured policy can expose sensitive data."
+          },
+          {
+            "title": "Frontend Role Checks",
+            "content": "Check roles in your React components for UI decisions.",
+            "note": "Frontend role checks are for UX only. Always enforce access control with RLS policies."
+          }
+        ],
+        "relatedDocs": ["auth-1", "auth-2", "db-2"]
+      }
+    ]
+  },
+  {
+    "title": "Design System",
+    "slug": "design-system",
+    "description": "Create consistent, beautiful designs across your app.",
+    "iconName": "Palette",
+    "articles": [
+      {
+        "id": "ds-1",
+        "slug": "theme-configuration",
+        "title": "Theme Configuration",
+        "description": "Configure your project's theme with CSS variables, Tailwind settings, and design tokens.",
+        "category": "Design System",
+        "categorySlug": "design-system",
+        "iconName": "Palette",
+        "readTime": "10 min",
+        "lastUpdated": "2023-12-30",
+        "sections": [
+          {
+            "title": "Theme Architecture",
+            "content": "Kernel's theme system is built on CSS custom properties (variables) and Tailwind CSS. This architecture provides:\n\n**Consistency** - Single source of truth for design tokens\n**Flexibility** - Easy to customize and extend\n**Dark Mode** - Built-in support for light/dark themes\n**Type Safety** - Tailwind IntelliSense support"
+          },
+          {
+            "title": "CSS Variables",
+            "content": "The core theme is defined in index.css using CSS custom properties."
+          }
+        ],
+        "relatedDocs": ["ds-2", "ds-3", "comp-1"]
+      },
+      {
+        "id": "ds-2",
+        "slug": "colors-and-typography",
+        "title": "Colors and Typography",
+        "description": "Design beautiful interfaces with a consistent color palette and typography scale.",
+        "category": "Design System",
+        "categorySlug": "design-system",
+        "iconName": "Palette",
+        "readTime": "12 min",
+        "lastUpdated": "2023-12-29",
+        "sections": [
+          {
+            "title": "Color System",
+            "content": "The color system uses semantic naming for flexibility and dark mode support."
+          },
+          {
+            "title": "Typography Scale",
+            "content": "Define a consistent typography scale with proper line heights and letter spacing.",
+            "tip": "Use a display font for headlines and a readable sans-serif for body text."
+          }
+        ],
+        "relatedDocs": ["ds-1", "ds-3", "comp-1"]
+      },
+      {
+        "id": "ds-3",
+        "slug": "dark-mode-support",
+        "title": "Dark Mode Support",
+        "description": "Implement dark mode with theme switching, system preference detection, and persistence.",
+        "category": "Design System",
+        "categorySlug": "design-system",
+        "iconName": "Palette",
+        "readTime": "8 min",
+        "lastUpdated": "2023-12-28",
+        "sections": [
+          {
+            "title": "Dark Mode Architecture",
+            "content": "Kernel uses a class-based dark mode approach:\n\n1. A `.dark` class is added to the `<html>` element\n2. CSS variables are overridden in the `.dark` scope\n3. Tailwind's dark: prefix works automatically\n4. Theme preference is persisted in localStorage"
+          },
+          {
+            "title": "Dark Mode Tips",
+            "content": "Best practices for dark mode design:\n\n**Reduce contrast slightly** - Pure white (#fff) can be harsh on dark backgrounds\n**Adjust shadows** - Use lighter shadows or glows in dark mode\n**Test thoroughly** - Check all components in both modes\n**Respect system preference** - Default to user's system setting\n**Avoid pure black** - Slightly lighter blacks feel more natural",
+            "note": "Use the dark: Tailwind prefix for mode-specific styles that can't be handled by CSS variables."
+          }
+        ],
+        "relatedDocs": ["ds-1", "ds-2", "comp-2"]
+      }
+    ]
+  },
+  {
+    "title": "Version Control",
+    "slug": "version-control",
+    "description": "Track changes and collaborate with your team.",
+    "iconName": "GitBranch",
+    "articles": [
+      {
+        "id": "vc-1",
+        "slug": "github-integration",
+        "title": "GitHub Integration",
+        "description": "Connect your GitHub account to sync code, collaborate, and manage version control.",
+        "category": "Version Control",
+        "categorySlug": "version-control",
+        "iconName": "GitBranch",
+        "readTime": "10 min",
+        "lastUpdated": "2023-12-27",
+        "sections": [
+          {
+            "title": "Connecting GitHub",
+            "content": "Link your GitHub account to enable powerful version control features:\n\n1. Open Project Settings\n2. Navigate to the GitHub tab\n3. Click \"Connect GitHub\"\n4. Authorize Kernel to access your repositories\n5. Select or create a repository to sync\n\nOnce connected, you can push code, pull changes, and collaborate with your team."
+          },
+          {
+            "title": "Syncing Your Project",
+            "content": "After connecting, you can sync your project:\n\n**Push to GitHub** - Send your latest changes to the remote repository\n**Pull from GitHub** - Fetch and merge remote changes\n**Sync** - Combines push and pull operations\n\nThe GitHub panel shows your sync status and any pending changes.",
+            "tip": "Commit frequently with descriptive messages. The AI can help you write meaningful commit messages."
+          }
+        ],
+        "relatedDocs": ["vc-2", "vc-3", "deploy-1"]
+      },
+      {
+        "id": "vc-2",
+        "slug": "version-history",
+        "title": "Version History",
+        "description": "Track changes, view history, and restore previous versions of your code.",
+        "category": "Version Control",
+        "categorySlug": "version-control",
+        "iconName": "GitBranch",
+        "readTime": "8 min",
+        "lastUpdated": "2023-12-26",
+        "sections": [
+          {
+            "title": "Viewing History",
+            "content": "Kernel automatically tracks all changes to your project:\n\n**File History** - See all versions of a specific file\n**Project Timeline** - View all changes across the project\n**Commit Log** - Browse commits with messages and diffs\n\nAccess history from the File Explorer by right-clicking a file and selecting \"View History\"."
+          },
+          {
+            "title": "Restoring Previous Versions",
+            "content": "Roll back to a previous version if needed:\n\n1. Open version history for the file\n2. Find the version you want to restore\n3. Click \"Restore this version\"\n4. Confirm the restoration\n\nThe current version will be saved before restoration, so you can always go back.",
+            "warning": "Restoring a version replaces current file contents. Make sure to save any important changes first."
+          }
+        ],
+        "relatedDocs": ["vc-1", "vc-3", "gs-3"]
+      },
+      {
+        "id": "vc-3",
+        "slug": "branching-strategy",
+        "title": "Branching Strategy",
+        "description": "Learn branching patterns for solo development and team collaboration.",
+        "category": "Version Control",
+        "categorySlug": "version-control",
+        "iconName": "GitBranch",
+        "readTime": "10 min",
+        "lastUpdated": "2023-12-25",
+        "sections": [
+          {
+            "title": "Why Use Branches",
+            "content": "Branches let you work on features in isolation:\n\n**Experimentation** - Try ideas without risk\n**Parallel development** - Multiple features at once\n**Code review** - Review before merging\n**Rollback safety** - Easy to abandon failed experiments\n\nEven for solo projects, branches help organize your work."
+          },
+          {
+            "title": "Handling Conflicts",
+            "content": "When branches diverge, conflicts may occur:\n\n1. **Understand the conflict** - Git marks conflicting sections\n2. **Decide resolution** - Keep one version or combine both\n3. **Test thoroughly** - Ensure the merge works correctly\n4. **Commit the resolution** - Complete the merge\n\nKernel's editor highlights conflicts and helps you resolve them.",
+            "tip": "Pull from main frequently to reduce conflict size and complexity."
+          }
+        ],
+        "relatedDocs": ["vc-1", "vc-2", "deploy-1"]
+      }
+    ]
+  },
+  {
+    "title": "Deployment",
+    "slug": "deployment",
+    "description": "Deploy your applications to production with ease.",
+    "iconName": "Cloud",
+    "articles": [
+      {
+        "id": "deploy-1",
+        "slug": "deployment-options",
+        "title": "Deployment Options",
+        "description": "Deploy your application with one click, manage environments, and configure preview deploys.",
+        "category": "Deployment",
+        "categorySlug": "deployment",
+        "iconName": "Cloud",
+        "readTime": "8 min",
+        "lastUpdated": "2023-12-24",
+        "sections": [
+          {
+            "title": "One-Click Deployment",
+            "content": "Kernel makes deployment incredibly simple:\n\n1. Click the \"Publish\" button in the top right\n2. Select your deployment environment\n3. Add an optional commit message\n4. Click \"Deploy\"\n\nYour app will be live in seconds at a unique URL like `your-app.kernel.cool`."
+          },
+          {
+            "title": "Deployment Environments",
+            "content": "Manage different environments for your app:\n\n**Preview** - Temporary deployments for testing\n**Staging** - Pre-production environment\n**Production** - Your live application\n\nEach environment can have its own:\n- Environment variables\n- Database connections\n- Feature flags",
+            "tip": "Use preview deployments to test changes before pushing to production."
+          },
+          {
+            "title": "Rollback",
+            "content": "If something goes wrong, you can roll back:\n\n1. Open the Deployments panel\n2. Find the previous working deployment\n3. Click \"Rollback to this version\"\n4. Confirm the rollback\n\nRollbacks are instant and don't require rebuilding.",
+            "warning": "Backend changes (database, edge functions) deploy immediately and aren't affected by frontend rollbacks."
+          }
+        ],
+        "relatedDocs": ["deploy-2", "deploy-3", "vc-1"]
+      },
+      {
+        "id": "deploy-2",
+        "slug": "custom-domains",
+        "title": "Custom Domains",
+        "description": "Connect your own domain to your Kernel project with SSL certificates.",
+        "category": "Deployment",
+        "categorySlug": "deployment",
+        "iconName": "Cloud",
+        "readTime": "10 min",
+        "lastUpdated": "2023-12-23",
+        "sections": [
+          {
+            "title": "Domain Setup",
+            "content": "Connect your custom domain to your Kernel project:\n\n1. Go to Project Settings > Domains\n2. Enter your domain name\n3. Copy the provided DNS records\n4. Add the records at your DNS provider\n5. Wait for verification (usually 15-30 minutes)\n\nSSL certificates are automatically provisioned and renewed."
+          },
+          {
+            "title": "DNS Configuration",
+            "content": "Add the required DNS records at your domain provider.",
+            "note": "DNS propagation can take up to 48 hours, but usually completes within 30 minutes."
+          }
+        ],
+        "relatedDocs": ["deploy-1", "deploy-3", "vc-1"]
+      },
+      {
+        "id": "deploy-3",
+        "slug": "environment-variables",
+        "title": "Environment Variables",
+        "description": "Configure environment-specific settings for development, staging, and production.",
+        "category": "Deployment",
+        "categorySlug": "deployment",
+        "iconName": "Cloud",
+        "readTime": "8 min",
+        "lastUpdated": "2023-12-22",
+        "sections": [
+          {
+            "title": "Managing Variables",
+            "content": "Environment variables store configuration that changes between environments:\n\n**Common uses:**\n- API keys and secrets\n- Feature flags\n- Service URLs\n- Third-party credentials\n\nAccess them in Project Settings > Environment Variables."
+          },
+          {
+            "title": "Security Best Practices",
+            "content": "Keep your secrets secure:\n\n- Never commit secrets to version control\n- Use separate values for each environment\n- Rotate secrets periodically\n- Limit access to production secrets\n- Use environment-specific API keys",
+            "warning": "Frontend environment variables are exposed to the browser. Only use them for public values."
+          }
+        ],
+        "relatedDocs": ["deploy-1", "deploy-2", "auth-2"]
+      }
+    ]
+  }
+]
