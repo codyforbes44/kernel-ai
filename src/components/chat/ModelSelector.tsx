@@ -5,9 +5,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Sparkles, Zap, Rocket, ChevronDown, Brain, Cpu, Atom, FlaskConical } from "lucide-react";
 import { AI_MODELS, type AIModel } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { ModelInfoCard } from "./ModelInfoCard";
 
 interface ModelSelectorProps {
   selectedModel: AIModel;
@@ -51,30 +57,41 @@ export function ModelSelector({ selectedModel, onModelChange, disabled, defaultM
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
+      <DropdownMenuContent align="start" className="w-48 bg-popover">
         {(Object.keys(AI_MODELS) as AIModel[]).map((modelId) => {
           const model = AI_MODELS[modelId];
           const isSelected = modelId === selectedModel;
           
           return (
-            <DropdownMenuItem
-              key={modelId}
-              onClick={() => onModelChange(modelId)}
-              className={cn(
-                "flex items-center gap-2 cursor-pointer",
-                isSelected && "bg-primary/10"
-              )}
-            >
-              {modelIcons[modelId]}
-              <div className="flex flex-col">
-                <span className={cn("text-sm", isSelected && "font-medium")}>
-                  {model.name}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {model.description}
-                </span>
-              </div>
-            </DropdownMenuItem>
+            <HoverCard key={modelId} openDelay={300} closeDelay={100}>
+              <HoverCardTrigger asChild>
+                <DropdownMenuItem
+                  onClick={() => onModelChange(modelId)}
+                  className={cn(
+                    "flex items-center gap-2 cursor-pointer",
+                    isSelected && "bg-primary/10"
+                  )}
+                >
+                  {modelIcons[modelId]}
+                  <div className="flex flex-col">
+                    <span className={cn("text-sm", isSelected && "font-medium")}>
+                      {model.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {model.description}
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              </HoverCardTrigger>
+              <HoverCardContent 
+                side="right" 
+                align="start" 
+                className="p-0 w-auto bg-popover border-border"
+                sideOffset={8}
+              >
+                <ModelInfoCard modelId={modelId} />
+              </HoverCardContent>
+            </HoverCard>
           );
         })}
       </DropdownMenuContent>
