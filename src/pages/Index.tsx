@@ -47,11 +47,11 @@ const Index = () => {
           BREADCRUMBS.home(SEO_CONFIG.siteUrl)
         ]}
       />
-      <div className="h-screen flex flex-col">
+      <div id="main-content" className="h-screen flex flex-col" tabIndex={-1}>
         {!isMobile && <TopNavBar />}
-        <div className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden">
           <IDELayout />
-        </div>
+        </main>
       </div>
       <WelcomeTour />
     </>
