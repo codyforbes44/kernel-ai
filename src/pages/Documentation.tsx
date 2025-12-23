@@ -110,10 +110,10 @@ const Documentation = () => {
         description={PAGE_SEO.documentation.description}
         ogImage={PAGE_SEO.documentation.ogImage}
         keywords={PAGE_SEO.documentation.keywords as unknown as string[]}
-        canonical="/documentation"
+        canonical="/docs"
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.documentation(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.docs(SEO_CONFIG.siteUrl),
         ]}
       />
       
