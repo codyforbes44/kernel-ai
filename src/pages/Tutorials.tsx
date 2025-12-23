@@ -1,34 +1,17 @@
+import { Link } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { tutorials, type Tutorial } from '@/lib/tutorial-data';
 import { 
   Play, 
   FileText, 
   Clock, 
   Star,
-  Rocket,
-  Database,
-  Shield,
-  Palette,
-  Code,
-  Zap
 } from 'lucide-react';
-
-interface Tutorial {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: string;
-  type: 'video' | 'article';
-  category: string;
-  icon: React.ElementType;
-  popular?: boolean;
-}
 
 const tutorials: Tutorial[] = [
   {
@@ -170,43 +153,45 @@ const Tutorials = () => {
   const popularTutorials = tutorials.filter(t => t.popular);
 
   const TutorialCard = ({ tutorial }: { tutorial: Tutorial }) => (
-    <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-            <tutorial.icon className="h-5 w-5 text-primary" />
+    <Link to={`/tutorials/${tutorial.slug}`}>
+      <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-2">
+            <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+              <tutorial.icon className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex items-center gap-2">
+              {tutorial.popular && (
+                <Badge variant="outline" className="gap-1">
+                  <Star className="h-3 w-3 fill-gold text-gold" />
+                  Popular
+                </Badge>
+              )}
+              {tutorial.type === 'video' ? (
+                <Play className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {tutorial.popular && (
-              <Badge variant="outline" className="gap-1">
-                <Star className="h-3 w-3 fill-gold text-gold" />
-                Popular
-              </Badge>
-            )}
-            {tutorial.type === 'video' ? (
-              <Play className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            )}
+          <CardTitle className="text-lg group-hover:text-primary transition-colors">
+            {tutorial.title}
+          </CardTitle>
+          <CardDescription>{tutorial.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <Badge className={difficultyColors[tutorial.difficulty]}>
+              {tutorial.difficulty}
+            </Badge>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {tutorial.duration}
+            </div>
           </div>
-        </div>
-        <CardTitle className="text-lg group-hover:text-primary transition-colors">
-          {tutorial.title}
-        </CardTitle>
-        <CardDescription>{tutorial.description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <Badge className={difficultyColors[tutorial.difficulty]}>
-            {tutorial.difficulty}
-          </Badge>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            {tutorial.duration}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 
   const featuredTutorial = popularTutorials[0];

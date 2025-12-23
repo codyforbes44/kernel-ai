@@ -127,6 +127,17 @@ export const routes: RouteConfig[] = [
     robots: 'allow',
   },
   {
+    path: '/tutorials/:slug',
+    title: 'Tutorial',
+    description: 'In-depth tutorial guide',
+    changefreq: 'weekly',
+    priority: 0.6,
+    includeInSitemap: false,
+    requiresAuth: false,
+    isDynamic: true,
+    robots: 'allow',
+  },
+  {
     path: '/security',
     title: 'Security',
     description: 'Our security practices and compliance',
