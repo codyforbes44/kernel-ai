@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { MonacoEditor, IStandaloneCodeEditor, MonacoInstance } from './MonacoEditor';
 import { RemoteCursorsManager, RemoteCursor, SelectionRange } from './editor/RemoteCursorsManager';
 
@@ -26,7 +26,11 @@ interface CollaborativeMonacoEditorProps {
   onTyping?: () => void;
 }
 
-export function CollaborativeMonacoEditor({
+export interface CollaborativeMonacoEditorRef {
+  insertCode: (code: string) => void;
+}
+
+export const CollaborativeMonacoEditor = forwardRef<CollaborativeMonacoEditorRef, CollaborativeMonacoEditorProps>(function CollaborativeMonacoEditor({
   value,
   language,
   onChange,
@@ -38,7 +42,7 @@ export function CollaborativeMonacoEditor({
   onCursorChange,
   onSelectionChange,
   onTyping,
-}: CollaborativeMonacoEditorProps) {
+}, ref) {
   const editorRef = useRef<IStandaloneCodeEditor | null>(null);
   const cursorsManagerRef = useRef<RemoteCursorsManager | null>(null);
   const cursorListenerRef = useRef<{ dispose: () => void } | null>(null);
@@ -101,6 +105,34 @@ export function CollaborativeMonacoEditor({
     });
   }, [onCursorChange, onSelectionChange, onTyping]);
 
+  // Expose insertCode method via ref
+  useImperativeHandle(ref, () => ({
+    insertCode: (code: string) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      
+      const position = editor.getPosition();
+      if (!position) return;
+      
+      const model = editor.getModel();
+      if (!model) return;
+      
+      // Insert code at current cursor position
+      const range = {
+        startLineNumber: position.lineNumber,
+        startColumn: position.column,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column,
+      };
+      
+      // Execute the edit
+      editor.executeEdits('insertCode', [{ range, text: code }]);
+      
+      // Focus the editor after inserting
+      editor.focus();
+    },
+  }), []);
+
   // Update remote cursors when collaborators change
   useEffect(() => {
     if (!cursorsManagerRef.current) return;
@@ -150,4 +182,4 @@ export function CollaborativeMonacoEditor({
       onMount={handleEditorDidMount}
     />
   );
-}
+});
