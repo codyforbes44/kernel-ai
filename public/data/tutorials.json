@@ -1,0 +1,773 @@
+[
+  {
+    "id": "1",
+    "slug": "getting-started",
+    "title": "Getting Started with Kernel",
+    "description": "Learn the basics of Kernel and build your first application in under 10 minutes.",
+    "difficulty": "Beginner",
+    "duration": "10 min",
+    "type": "video",
+    "category": "Getting Started",
+    "iconName": "Rocket",
+    "popular": true,
+    "prerequisites": [
+      "A modern web browser (Chrome, Firefox, Safari, or Edge)",
+      "A free Kernel account"
+    ],
+    "whatYouWillLearn": [
+      "Navigate the Kernel interface",
+      "Use the AI assistant to generate code",
+      "Preview your application in real-time",
+      "Make your first deployment"
+    ],
+    "steps": [
+      {
+        "title": "Create Your Account",
+        "content": "Getting started with Kernel is simple. Head to the homepage and click **\"Get Started\"** to create your free account.\n\nYou can sign up with:\n- Email and password\n- Google account\n- GitHub account\n\nOnce signed in, you'll be taken to the dashboard where you can create your first project.",
+        "tip": "Use GitHub login if you plan to sync your code to a repository later."
+      },
+      {
+        "title": "Create Your First Project",
+        "content": "Click the **\"New Project\"** button to start building. You'll see a selection of templates to choose from:\n\n- **Blank Project**: Start from scratch\n- **Landing Page**: Pre-built marketing page\n- **Dashboard**: Admin-style interface\n- **E-commerce**: Product listing template\n\nFor this tutorial, select **Blank Project** and give it a name like \"My First App\".",
+        "codeExample": {
+          "language": "text",
+          "code": "Project Name: My First App\nTemplate: Blank Project\nFramework: React + Tailwind CSS",
+          "filename": "project-settings.txt"
+        }
+      },
+      {
+        "title": "Understanding the Interface",
+        "content": "The Kernel interface has three main areas:\n\n1. **Left Panel**: Chat with the AI assistant\n2. **Center Panel**: Live preview of your app\n3. **Right Panel**: File explorer and code editor\n\nThe AI assistant is your primary tool for building. Simply describe what you want, and it will generate the code for you.",
+        "tip": "Press Cmd/Ctrl + K to open the command palette for quick navigation."
+      },
+      {
+        "title": "Build with AI",
+        "content": "Let's create something! In the chat panel, type:\n\n> \"Create a hero section with a heading that says 'Welcome to My App', a subtitle, and a call-to-action button\"\n\nThe AI will generate the code and you'll see the changes appear in the live preview instantly.",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const HeroSection = () => {\n  return (\n    <section className=\"py-20 px-4 text-center\">\n      <h1 className=\"text-4xl font-bold mb-4\">\n        Welcome to My App\n      </h1>\n      <p className=\"text-muted-foreground mb-8\">\n        Build amazing things with AI assistance\n      </p>\n      <button className=\"bg-primary text-primary-foreground px-6 py-3 rounded-lg\">\n        Get Started\n      </button>\n    </section>\n  );\n};",
+          "filename": "HeroSection.tsx"
+        }
+      },
+      {
+        "title": "Deploy Your App",
+        "content": "Ready to share your creation? Click the **\"Publish\"** button in the top right corner.\n\nKernel will:\n1. Build your application\n2. Deploy it to a staging URL\n3. Provide you with a shareable link\n\nYour app is now live! Share the URL with anyone to show off your work.",
+        "tip": "You can connect a custom domain in the project settings for production apps."
+      }
+    ],
+    "nextTutorial": "building-todo-app"
+  },
+  {
+    "id": "2",
+    "slug": "building-todo-app",
+    "title": "Building a Todo App",
+    "description": "Create a fully functional todo application with database persistence and user authentication.",
+    "difficulty": "Beginner",
+    "duration": "25 min",
+    "type": "video",
+    "category": "Getting Started",
+    "iconName": "Code",
+    "prerequisites": [
+      "Completed \"Getting Started with Kernel\" tutorial",
+      "Basic understanding of web applications"
+    ],
+    "whatYouWillLearn": [
+      "Create a database table to store todos",
+      "Build CRUD operations (Create, Read, Update, Delete)",
+      "Add user authentication",
+      "Connect the UI to the database"
+    ],
+    "steps": [
+      {
+        "title": "Project Setup",
+        "content": "Create a new project and name it \"Todo App\". We'll build a complete todo list with:\n\n- Add new tasks\n- Mark tasks as complete\n- Delete tasks\n- Persist data in a database\n\nStart by asking the AI: \"Create a todo app interface with an input field, add button, and a list of todo items with checkboxes and delete buttons\""
+      },
+      {
+        "title": "Design the UI Components",
+        "content": "The AI will generate the UI components. Let's understand the structure:\n\n- **TodoInput**: Input field and add button\n- **TodoItem**: Individual todo with checkbox and delete\n- **TodoList**: Container for all todo items\n\nAsk the AI to make it beautiful: \"Style the todo app with a clean, modern design using cards and subtle shadows\"",
+        "codeExample": {
+          "language": "tsx",
+          "code": "interface Todo {\n  id: string;\n  text: string;\n  completed: boolean;\n  created_at: string;\n}\n\nconst TodoItem = ({ todo, onToggle, onDelete }: {\n  todo: Todo;\n  onToggle: (id: string) => void;\n  onDelete: (id: string) => void;\n}) => (\n  <div className=\"flex items-center gap-3 p-4 bg-card rounded-lg border\">\n    <Checkbox \n      checked={todo.completed} \n      onCheckedChange={() => onToggle(todo.id)} \n    />\n    <span className={todo.completed ? \"line-through text-muted-foreground\" : \"\"}>\n      {todo.text}\n    </span>\n    <Button variant=\"ghost\" size=\"sm\" onClick={() => onDelete(todo.id)}>\n      <Trash2 className=\"h-4 w-4\" />\n    </Button>\n  </div>\n);",
+          "filename": "TodoItem.tsx"
+        }
+      },
+      {
+        "title": "Set Up the Database",
+        "content": "Now let's persist our todos. Ask the AI:\n\n> \"Create a todos table in the database with columns for id, text, completed status, user_id, and timestamps. Add row-level security so users can only see their own todos.\"\n\nThe AI will create a database migration for you. Review and apply it.",
+        "codeExample": {
+          "language": "sql",
+          "code": "CREATE TABLE todos (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID REFERENCES auth.users NOT NULL,\n  text TEXT NOT NULL,\n  completed BOOLEAN DEFAULT false,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- Enable Row Level Security\nALTER TABLE todos ENABLE ROW LEVEL SECURITY;\n\n-- Users can only see their own todos\nCREATE POLICY \"Users can view own todos\" \n  ON todos FOR SELECT \n  USING (auth.uid() = user_id);",
+          "filename": "migration.sql"
+        },
+        "warning": "Always enable Row Level Security (RLS) on tables that contain user data."
+      },
+      {
+        "title": "Add Authentication",
+        "content": "Users need to sign in to save their todos. Ask the AI:\n\n> \"Add authentication to the app with a sign in and sign up form. Redirect to the todo list after successful login.\"\n\nThe AI will create:\n- Sign in/sign up forms\n- Protected routes\n- User session management",
+        "tip": "Enable email auto-confirm in development to skip email verification."
+      },
+      {
+        "title": "Connect to the Database",
+        "content": "Finally, wire everything together. Ask the AI:\n\n> \"Connect the todo app to the database. Fetch todos on load, add new todos to the database, update completed status, and delete todos.\"\n\nThe AI will use React Query to manage server state and provide real-time updates.",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const useTodos = () => {\n  return useQuery({\n    queryKey: ['todos'],\n    queryFn: async () => {\n      const { data, error } = await supabase\n        .from('todos')\n        .select('*')\n        .order('created_at', { ascending: false });\n      \n      if (error) throw error;\n      return data;\n    }\n  });\n};\n\nconst useAddTodo = () => {\n  const queryClient = useQueryClient();\n  \n  return useMutation({\n    mutationFn: async (text: string) => {\n      const { data, error } = await supabase\n        .from('todos')\n        .insert({ text })\n        .select()\n        .single();\n      \n      if (error) throw error;\n      return data;\n    },\n    onSuccess: () => {\n      queryClient.invalidateQueries({ queryKey: ['todos'] });\n    }\n  });\n};",
+          "filename": "useTodos.ts"
+        }
+      }
+    ],
+    "prevTutorial": "getting-started",
+    "nextTutorial": "deploying-your-first-app"
+  },
+  {
+    "id": "3",
+    "slug": "deploying-your-first-app",
+    "title": "Deploying Your First App",
+    "description": "Learn how to deploy your application with one click, configure custom domains, and manage environments.",
+    "difficulty": "Beginner",
+    "duration": "15 min",
+    "type": "video",
+    "category": "Deployment",
+    "iconName": "Rocket",
+    "prerequisites": [
+      "A completed Kernel project",
+      "Basic understanding of web hosting (optional)"
+    ],
+    "whatYouWillLearn": [
+      "Deploy your app with one click",
+      "Configure a custom domain",
+      "Set up environment variables",
+      "Manage staging vs production"
+    ],
+    "steps": [
+      {
+        "title": "Understanding Deployments",
+        "content": "Kernel makes deployment incredibly simple. When you click **Publish**, your app is built and deployed to our global edge network.\n\nKey concepts:\n- **Staging**: Preview URL for testing (yourapp.lovable.app)\n- **Production**: Your custom domain (yourapp.com)\n- **Edge Network**: Fast loading worldwide",
+        "tip": "Every deployment is instant and reversible."
+      },
+      {
+        "title": "One-Click Deploy",
+        "content": "To deploy your app:\n\n1. Click the **\"Publish\"** button in the top right\n2. Review the deployment preview\n3. Click **\"Update\"** to go live\n\nYour app will be built and deployed in seconds. You'll receive a unique URL like `yourproject.lovable.app`."
+      },
+      {
+        "title": "Configure Custom Domain",
+        "content": "To use your own domain:\n\n1. Go to **Project Settings** → **Domains**\n2. Click **\"Add Custom Domain\"**\n3. Enter your domain (e.g., myapp.com)\n4. Add the DNS records to your domain provider\n\nKernel will automatically provision an SSL certificate.",
+        "codeExample": {
+          "language": "text",
+          "code": "DNS Configuration:\nType: CNAME\nName: www\nValue: cname.lovable.app\n\nType: A\nName: @\nValue: 76.76.21.21",
+          "filename": "dns-records.txt"
+        },
+        "tip": "DNS changes can take up to 48 hours to propagate, though usually it's much faster."
+      },
+      {
+        "title": "Environment Variables",
+        "content": "For production apps, you'll need environment variables for:\n- API keys\n- Database URLs\n- Feature flags\n\nGo to **Project Settings** → **Environment** to add secrets. These are encrypted and only available at runtime.",
+        "warning": "Never commit API keys or secrets to your code. Always use environment variables."
+      },
+      {
+        "title": "Deployment History & Rollbacks",
+        "content": "Every deployment is versioned. If something goes wrong:\n\n1. Go to **Project Settings** → **Deployments**\n2. Find a previous working version\n3. Click **\"Rollback\"**\n\nYour app will be reverted to the previous version instantly."
+      }
+    ],
+    "prevTutorial": "building-todo-app",
+    "nextTutorial": "building-responsive-layouts"
+  },
+  {
+    "id": "4",
+    "slug": "building-responsive-layouts",
+    "title": "Building Responsive Layouts",
+    "description": "Master mobile-first design patterns and create layouts that look great on any device.",
+    "difficulty": "Beginner",
+    "duration": "20 min",
+    "type": "article",
+    "category": "Design",
+    "iconName": "Palette",
+    "prerequisites": [
+      "Basic understanding of HTML/CSS concepts",
+      "Familiarity with the Kernel interface"
+    ],
+    "whatYouWillLearn": [
+      "Apply mobile-first design principles",
+      "Use Tailwind CSS responsive breakpoints",
+      "Create flexible grid and flex layouts",
+      "Test across different screen sizes"
+    ],
+    "steps": [
+      {
+        "title": "Mobile-First Approach",
+        "content": "Mobile-first means designing for small screens first, then adding complexity for larger screens.\n\nIn Tailwind CSS, unprefixed utilities apply to all sizes, while prefixed ones apply at that breakpoint and up:\n- `text-base` → All sizes\n- `md:text-lg` → Medium screens (768px+)\n- `lg:text-xl` → Large screens (1024px+)",
+        "codeExample": {
+          "language": "tsx",
+          "code": "<h1 className=\"text-2xl md:text-4xl lg:text-5xl font-bold\">\n  Responsive Heading\n</h1>\n\n<div className=\"p-4 md:p-8 lg:p-12\">\n  Content with responsive padding\n</div>",
+          "filename": "ResponsiveExample.tsx"
+        }
+      },
+      {
+        "title": "Responsive Grid Layouts",
+        "content": "Grids are perfect for card layouts. Change the number of columns based on screen size:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// 1 column on mobile, 2 on tablet, 3 on desktop\n<div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6\">\n  <Card>Item 1</Card>\n  <Card>Item 2</Card>\n  <Card>Item 3</Card>\n</div>\n\n// Auto-fit grid that adjusts based on available space\n<div className=\"grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4\">\n  {items.map(item => <Card key={item.id}>{item.title}</Card>)}\n</div>",
+          "filename": "ResponsiveGrid.tsx"
+        },
+        "tip": "Use auto-fit with minmax() for truly flexible grids that don't need breakpoints."
+      },
+      {
+        "title": "Flexbox for Navigation",
+        "content": "Flexbox is great for navigation bars and horizontal layouts:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "<nav className=\"flex flex-col md:flex-row items-center justify-between gap-4 p-4\">\n  <Logo />\n  \n  {/* Hidden on mobile, visible on desktop */}\n  <div className=\"hidden md:flex items-center gap-6\">\n    <NavLink href=\"/features\">Features</NavLink>\n    <NavLink href=\"/pricing\">Pricing</NavLink>\n    <NavLink href=\"/docs\">Docs</NavLink>\n  </div>\n  \n  {/* Hamburger menu for mobile */}\n  <button className=\"md:hidden\">\n    <Menu className=\"h-6 w-6\" />\n  </button>\n</nav>",
+          "filename": "ResponsiveNav.tsx"
+        }
+      },
+      {
+        "title": "Container and Max-Width",
+        "content": "Contain your content to prevent it from stretching too wide on large screens:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// Centered container with responsive padding\n<div className=\"container mx-auto px-4 md:px-6 lg:px-8\">\n  <Content />\n</div>\n\n// Max-width for readable text\n<article className=\"max-w-prose mx-auto\">\n  <p>Long form content stays readable at ~65 characters per line.</p>\n</article>\n\n// Different max-widths for different content\n<div className=\"max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto\">\n  <Card />\n</div>",
+          "filename": "ContainerExample.tsx"
+        }
+      },
+      {
+        "title": "Testing Responsive Design",
+        "content": "Always test your layouts at multiple sizes. In the Kernel preview:\n\n1. **Drag the preview divider** to resize\n2. Use browser DevTools (F12) → Toggle device toolbar\n3. Test common breakpoints:\n   - 375px (iPhone SE)\n   - 768px (iPad)\n   - 1024px (Small laptop)\n   - 1440px (Desktop)\n\nAsk the AI: \"Make this component look better on mobile\" if something doesn't work.",
+        "tip": "The preview panel can be resized to test responsive behavior without leaving Kernel."
+      }
+    ],
+    "prevTutorial": "deploying-your-first-app",
+    "nextTutorial": "database-design-fundamentals"
+  },
+  {
+    "id": "5",
+    "slug": "database-design-fundamentals",
+    "title": "Database Design Fundamentals",
+    "description": "Learn how to design efficient database schemas for your applications with proper relationships.",
+    "difficulty": "Intermediate",
+    "duration": "30 min",
+    "type": "article",
+    "category": "Database",
+    "iconName": "Database",
+    "prerequisites": [
+      "Basic SQL knowledge",
+      "Understanding of data types",
+      "Completed beginner tutorials"
+    ],
+    "whatYouWillLearn": [
+      "Design normalized database schemas",
+      "Create relationships between tables",
+      "Use proper data types and constraints",
+      "Implement row-level security"
+    ],
+    "steps": [
+      {
+        "title": "Understanding Tables & Columns",
+        "content": "A well-designed database starts with understanding your data. Consider:\n\n- **Entities**: What \"things\" does your app track? (users, posts, products)\n- **Attributes**: What properties does each entity have?\n- **Relationships**: How do entities relate to each other?\n\nExample: A blog has Users, Posts, and Comments.",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- Users table\nCREATE TABLE users (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  email TEXT UNIQUE NOT NULL,\n  display_name TEXT,\n  avatar_url TEXT,\n  created_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- Posts table\nCREATE TABLE posts (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  author_id UUID REFERENCES users(id) ON DELETE CASCADE,\n  title TEXT NOT NULL,\n  content TEXT,\n  published BOOLEAN DEFAULT false,\n  created_at TIMESTAMPTZ DEFAULT now(),\n  updated_at TIMESTAMPTZ DEFAULT now()\n);",
+          "filename": "schema.sql"
+        }
+      },
+      {
+        "title": "Data Types & Constraints",
+        "content": "Choose the right data type for each column:\n\n| Type | Use Case |\n|------|----------|\n| UUID | Primary keys, foreign keys |\n| TEXT | Strings of any length |\n| INTEGER | Whole numbers |\n| NUMERIC | Money, precise decimals |\n| BOOLEAN | True/false flags |\n| TIMESTAMPTZ | Dates with timezone |\n| JSONB | Flexible structured data |\n\nAdd constraints to ensure data integrity.",
+        "codeExample": {
+          "language": "sql",
+          "code": "CREATE TABLE products (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  name TEXT NOT NULL,\n  description TEXT,\n  price NUMERIC(10,2) NOT NULL CHECK (price >= 0),\n  stock INTEGER DEFAULT 0 CHECK (stock >= 0),\n  category TEXT NOT NULL,\n  is_active BOOLEAN DEFAULT true,\n  metadata JSONB DEFAULT '{}',\n  created_at TIMESTAMPTZ DEFAULT now()\n);",
+          "filename": "products.sql"
+        },
+        "tip": "Use NUMERIC for money, never FLOAT (floating point has precision issues)."
+      },
+      {
+        "title": "Relationships & Foreign Keys",
+        "content": "Tables relate to each other through foreign keys:\n\n- **One-to-Many**: User has many Posts\n- **Many-to-Many**: Posts have many Tags (needs junction table)\n- **One-to-One**: User has one Profile",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- One-to-Many: Posts belong to Users\nCREATE TABLE posts (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  author_id UUID REFERENCES users(id) ON DELETE CASCADE,\n  title TEXT NOT NULL\n);\n\n-- Many-to-Many: Posts have Tags (junction table)\nCREATE TABLE tags (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  name TEXT UNIQUE NOT NULL\n);\n\nCREATE TABLE post_tags (\n  post_id UUID REFERENCES posts(id) ON DELETE CASCADE,\n  tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,\n  PRIMARY KEY (post_id, tag_id)\n);",
+          "filename": "relationships.sql"
+        },
+        "warning": "Always consider ON DELETE behavior. CASCADE deletes related records, SET NULL keeps them."
+      },
+      {
+        "title": "Normalization Basics",
+        "content": "Normalization reduces data redundancy:\n\n1. **1NF**: No repeating groups (don't store arrays as comma-separated strings)\n2. **2NF**: Every non-key column depends on the whole primary key\n3. **3NF**: No transitive dependencies (column depends only on the key)\n\nBad: Storing \"author_name\" on every post\nGood: Reference author_id and join to get the name",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- BAD: Denormalized (data duplication)\nCREATE TABLE orders_bad (\n  id UUID PRIMARY KEY,\n  customer_name TEXT,  -- Duplicated for every order!\n  customer_email TEXT, -- Duplicated for every order!\n  product_name TEXT,\n  quantity INTEGER\n);\n\n-- GOOD: Normalized (reference by ID)\nCREATE TABLE customers (\n  id UUID PRIMARY KEY,\n  name TEXT NOT NULL,\n  email TEXT UNIQUE NOT NULL\n);\n\nCREATE TABLE orders_good (\n  id UUID PRIMARY KEY,\n  customer_id UUID REFERENCES customers(id),\n  product_id UUID REFERENCES products(id),\n  quantity INTEGER NOT NULL\n);",
+          "filename": "normalization.sql"
+        }
+      },
+      {
+        "title": "Row Level Security (RLS)",
+        "content": "RLS ensures users can only access their own data. Always enable it for user data!",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- Enable RLS\nALTER TABLE posts ENABLE ROW LEVEL SECURITY;\n\n-- Users can read published posts\nCREATE POLICY \"Anyone can read published posts\"\n  ON posts FOR SELECT\n  USING (published = true);\n\n-- Users can read their own drafts\nCREATE POLICY \"Authors can read own drafts\"\n  ON posts FOR SELECT\n  USING (auth.uid() = author_id);\n\n-- Only authors can update their posts\nCREATE POLICY \"Authors can update own posts\"\n  ON posts FOR UPDATE\n  USING (auth.uid() = author_id);\n\n-- Only authors can delete their posts\nCREATE POLICY \"Authors can delete own posts\"\n  ON posts FOR DELETE\n  USING (auth.uid() = author_id);",
+          "filename": "rls-policies.sql"
+        },
+        "warning": "Without RLS, all authenticated users can see all data in a table."
+      }
+    ],
+    "prevTutorial": "building-responsive-layouts",
+    "nextTutorial": "working-with-database-panel"
+  },
+  {
+    "id": "6",
+    "slug": "working-with-database-panel",
+    "title": "Working with the Database Panel",
+    "description": "Master the Database Panel to create tables, manage records, and visualize relationships.",
+    "difficulty": "Intermediate",
+    "duration": "25 min",
+    "type": "video",
+    "category": "Database",
+    "iconName": "Database",
+    "popular": true,
+    "prerequisites": [
+      "Completed \"Database Design Fundamentals\"",
+      "A Kernel project with Cloud enabled"
+    ],
+    "whatYouWillLearn": [
+      "Navigate the Database Panel interface",
+      "Create and modify tables visually",
+      "Add, edit, and delete records",
+      "View table relationships"
+    ],
+    "steps": [
+      {
+        "title": "Accessing the Database Panel",
+        "content": "The Database Panel is your visual interface for managing data:\n\n1. Open your project in the Builder\n2. Click the **\"Cloud\"** tab in the right panel\n3. Select **\"Database\"** from the submenu\n\nYou'll see a list of all your tables and can explore the schema."
+      },
+      {
+        "title": "Creating Tables",
+        "content": "To create a table without writing SQL:\n\n1. Click **\"New Table\"**\n2. Enter the table name\n3. Add columns with types and constraints\n4. Enable RLS if the table contains user data\n5. Click **\"Create\"**\n\nThe panel generates the SQL migration for you.",
+        "codeExample": {
+          "language": "typescript",
+          "code": "// After creating a table, you can query it:\nconst { data, error } = await supabase\n  .from('your_table')\n  .select('*');\n\n// Insert a record\nconst { data, error } = await supabase\n  .from('your_table')\n  .insert({ column1: 'value1', column2: 'value2' })\n  .select()\n  .single();",
+          "filename": "query-example.ts"
+        }
+      },
+      {
+        "title": "Managing Records",
+        "content": "The Table View shows all records in a spreadsheet-like interface:\n\n- **Add Row**: Click the \"+\" button to add a new record\n- **Edit**: Click any cell to edit inline\n- **Delete**: Select rows and click delete\n- **Filter**: Use the filter bar to find specific records\n- **Sort**: Click column headers to sort\n\nChanges are saved immediately to the database.",
+        "tip": "Use filters to find specific records quickly in large tables."
+      },
+      {
+        "title": "Viewing Relationships",
+        "content": "The Schema Viewer shows how tables relate:\n\n1. Click **\"Schema\"** tab in the Database Panel\n2. View the entity-relationship diagram\n3. See foreign key connections between tables\n4. Click a table to see its columns and constraints\n\nThis helps you understand your data model at a glance."
+      },
+      {
+        "title": "Common Operations",
+        "content": "Here are SQL equivalents for common panel operations:",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- Add a column\nALTER TABLE products ADD COLUMN status TEXT DEFAULT 'active';\n\n-- Remove a column\nALTER TABLE products DROP COLUMN old_column;\n\n-- Add an index for faster queries\nCREATE INDEX idx_products_category ON products(category);\n\n-- Rename a table\nALTER TABLE old_name RENAME TO new_name;",
+          "filename": "common-operations.sql"
+        },
+        "warning": "Dropping columns or tables is irreversible. Always backup important data first."
+      }
+    ],
+    "prevTutorial": "database-design-fundamentals",
+    "nextTutorial": "implementing-authentication"
+  },
+  {
+    "id": "7",
+    "slug": "implementing-authentication",
+    "title": "Implementing User Authentication",
+    "description": "Set up secure authentication with email, social login, and role-based access control.",
+    "difficulty": "Intermediate",
+    "duration": "30 min",
+    "type": "video",
+    "category": "Authentication",
+    "iconName": "Shield",
+    "popular": true,
+    "prerequisites": [
+      "Completed database tutorials",
+      "Understanding of HTTP and sessions"
+    ],
+    "whatYouWillLearn": [
+      "Set up email/password authentication",
+      "Add social login providers",
+      "Create protected routes",
+      "Implement role-based access control"
+    ],
+    "steps": [
+      {
+        "title": "Authentication Overview",
+        "content": "Kernel uses secure, built-in authentication. The flow is:\n\n1. User signs up with email or social provider\n2. User receives a session token (JWT)\n3. Token is stored in the browser\n4. All API requests include the token\n5. Backend validates and identifies the user\n\nNo need to build auth from scratch!"
+      },
+      {
+        "title": "Email/Password Setup",
+        "content": "Ask the AI to create auth forms:\n\n> \"Create a sign-in page with email and password fields, and a sign-up page with password confirmation. Add forgot password functionality.\"\n\nThe AI will generate:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const SignInForm = () => {\n  const [email, setEmail] = useState('');\n  const [password, setPassword] = useState('');\n  const [loading, setLoading] = useState(false);\n\n  const handleSignIn = async (e: React.FormEvent) => {\n    e.preventDefault();\n    setLoading(true);\n    \n    const { error } = await supabase.auth.signInWithPassword({\n      email,\n      password,\n    });\n\n    if (error) {\n      toast.error(error.message);\n    } else {\n      navigate('/dashboard');\n    }\n    setLoading(false);\n  };\n\n  return (\n    <form onSubmit={handleSignIn}>\n      <Input \n        type=\"email\" \n        value={email} \n        onChange={(e) => setEmail(e.target.value)}\n        placeholder=\"Email\" \n      />\n      <Input \n        type=\"password\" \n        value={password} \n        onChange={(e) => setPassword(e.target.value)}\n        placeholder=\"Password\" \n      />\n      <Button type=\"submit\" disabled={loading}>\n        {loading ? 'Signing in...' : 'Sign In'}\n      </Button>\n    </form>\n  );\n};",
+          "filename": "SignInForm.tsx"
+        },
+        "tip": "Enable auto-confirm in development to skip email verification."
+      },
+      {
+        "title": "Social Login Providers",
+        "content": "Add Google, GitHub, or other social logins:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const handleGoogleSignIn = async () => {\n  const { error } = await supabase.auth.signInWithOAuth({\n    provider: 'google',\n    options: {\n      redirectTo: `${window.location.origin}/auth/callback`,\n    },\n  });\n  \n  if (error) {\n    toast.error(error.message);\n  }\n};\n\n// In your component\n<Button variant=\"outline\" onClick={handleGoogleSignIn}>\n  <GoogleIcon className=\"mr-2 h-4 w-4\" />\n  Continue with Google\n</Button>",
+          "filename": "SocialAuth.tsx"
+        }
+      },
+      {
+        "title": "Protected Routes",
+        "content": "Prevent unauthenticated users from accessing certain pages:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {\n  const { user, loading } = useAuth();\n  const navigate = useNavigate();\n\n  useEffect(() => {\n    if (!loading && !user) {\n      navigate('/auth');\n    }\n  }, [user, loading, navigate]);\n\n  if (loading) {\n    return <LoadingSpinner />;\n  }\n\n  return user ? <>{children}</> : null;\n};\n\n// Usage in App.tsx\n<Route \n  path=\"/dashboard\" \n  element={\n    <ProtectedRoute>\n      <Dashboard />\n    </ProtectedRoute>\n  } \n/>",
+          "filename": "ProtectedRoute.tsx"
+        }
+      },
+      {
+        "title": "Role-Based Access Control",
+        "content": "For apps with admins, moderators, etc., create a roles table:",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- Create user roles table\nCREATE TABLE user_roles (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID REFERENCES auth.users NOT NULL,\n  role TEXT NOT NULL CHECK (role IN ('user', 'admin', 'moderator')),\n  created_at TIMESTAMPTZ DEFAULT now(),\n  UNIQUE(user_id, role)\n);\n\n-- Function to check if user has a role\nCREATE FUNCTION has_role(role_name TEXT)\nRETURNS BOOLEAN AS $$\nBEGIN\n  RETURN EXISTS (\n    SELECT 1 FROM user_roles\n    WHERE user_id = auth.uid()\n    AND role = role_name\n  );\nEND;\n$$ LANGUAGE plpgsql SECURITY DEFINER;\n\n-- Use in RLS policies\nCREATE POLICY \"Admins can do anything\"\n  ON posts FOR ALL\n  USING (has_role('admin'));",
+          "filename": "rbac.sql"
+        },
+        "warning": "Always check roles server-side (RLS/edge functions). Never trust client-side role checks alone."
+      }
+    ],
+    "prevTutorial": "working-with-database-panel",
+    "nextTutorial": "integrating-external-apis"
+  },
+  {
+    "id": "8",
+    "slug": "integrating-external-apis",
+    "title": "Integrating External APIs",
+    "description": "Connect to third-party APIs using Edge Functions with proper error handling and rate limiting.",
+    "difficulty": "Intermediate",
+    "duration": "35 min",
+    "type": "video",
+    "category": "Integration",
+    "iconName": "Zap",
+    "prerequisites": [
+      "Understanding of REST APIs",
+      "Basic TypeScript knowledge",
+      "Kernel project with Cloud enabled"
+    ],
+    "whatYouWillLearn": [
+      "Create Edge Functions for API calls",
+      "Securely store API keys",
+      "Handle errors and retries",
+      "Implement rate limiting"
+    ],
+    "steps": [
+      {
+        "title": "Why Edge Functions?",
+        "content": "Never call external APIs directly from the frontend because:\n\n- **Security**: API keys would be exposed in browser\n- **CORS**: Many APIs don't allow browser requests\n- **Rate Limiting**: Hard to control from client\n- **Secrets**: Environment variables not available in browser\n\nEdge Functions run on the server, solving all these issues."
+      },
+      {
+        "title": "Creating an Edge Function",
+        "content": "Ask the AI to create an edge function:\n\n> \"Create an edge function that fetches weather data from OpenWeatherMap API and returns it in a simplified format\"",
+        "codeExample": {
+          "language": "typescript",
+          "code": "// supabase/functions/get-weather/index.ts\nimport { serve } from 'https://deno.land/std@0.168.0/http/server.ts'\n\nconst corsHeaders = {\n  'Access-Control-Allow-Origin': '*',\n  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',\n}\n\nserve(async (req) => {\n  if (req.method === 'OPTIONS') {\n    return new Response('ok', { headers: corsHeaders })\n  }\n\n  try {\n    const { city } = await req.json()\n    const apiKey = Deno.env.get('OPENWEATHER_API_KEY')\n    \n    const response = await fetch(\n      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`\n    )\n    \n    if (!response.ok) {\n      throw new Error('Weather API error')\n    }\n    \n    const data = await response.json()\n    \n    return new Response(\n      JSON.stringify({\n        city: data.name,\n        temp: data.main.temp,\n        description: data.weather[0].description,\n      }),\n      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }\n    )\n  } catch (error) {\n    return new Response(\n      JSON.stringify({ error: error.message }),\n      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }\n    )\n  }\n})",
+          "filename": "get-weather/index.ts"
+        }
+      },
+      {
+        "title": "Storing API Keys Securely",
+        "content": "Never hardcode API keys. Use environment secrets:\n\n1. Go to **Project Settings** → **Environment**\n2. Add a new secret: `OPENWEATHER_API_KEY`\n3. The secret is encrypted and only available to Edge Functions\n4. Access it with `Deno.env.get('OPENWEATHER_API_KEY')`",
+        "warning": "Secrets are not available in client-side code. Only Edge Functions can access them."
+      },
+      {
+        "title": "Calling Edge Functions from React",
+        "content": "Use the Supabase client to invoke your functions:",
+        "codeExample": {
+          "language": "typescript",
+          "code": "const getWeather = async (city: string) => {\n  const { data, error } = await supabase.functions.invoke('get-weather', {\n    body: { city },\n  });\n\n  if (error) {\n    throw new Error(error.message);\n  }\n\n  return data;\n};\n\n// Usage with React Query\nconst useWeather = (city: string) => {\n  return useQuery({\n    queryKey: ['weather', city],\n    queryFn: () => getWeather(city),\n    staleTime: 5 * 60 * 1000, // Cache for 5 minutes\n  });\n};",
+          "filename": "useWeather.ts"
+        },
+        "tip": "Use React Query to cache API responses and reduce unnecessary calls."
+      },
+      {
+        "title": "Error Handling & Retries",
+        "content": "Robust error handling makes your app reliable:",
+        "codeExample": {
+          "language": "typescript",
+          "code": "const fetchWithRetry = async (\n  url: string, \n  options: RequestInit, \n  retries = 3\n): Promise<Response> => {\n  for (let i = 0; i < retries; i++) {\n    try {\n      const response = await fetch(url, options);\n      \n      if (response.status === 429) {\n        // Rate limited, wait and retry\n        const retryAfter = response.headers.get('Retry-After') || '1';\n        await new Promise(r => setTimeout(r, parseInt(retryAfter) * 1000));\n        continue;\n      }\n      \n      if (!response.ok) {\n        throw new Error(`HTTP ${response.status}`);\n      }\n      \n      return response;\n    } catch (error) {\n      if (i === retries - 1) throw error;\n      // Exponential backoff\n      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));\n    }\n  }\n  \n  throw new Error('Max retries exceeded');\n};",
+          "filename": "fetchWithRetry.ts"
+        }
+      }
+    ],
+    "prevTutorial": "implementing-authentication",
+    "nextTutorial": "creating-custom-design-systems"
+  },
+  {
+    "id": "9",
+    "slug": "creating-custom-design-systems",
+    "title": "Creating Custom Design Systems",
+    "description": "Build a cohesive design system with custom themes, colors, typography, and reusable components.",
+    "difficulty": "Intermediate",
+    "duration": "35 min",
+    "type": "article",
+    "category": "Design",
+    "iconName": "Palette",
+    "prerequisites": [
+      "Understanding of CSS and Tailwind",
+      "Familiarity with component-based design"
+    ],
+    "whatYouWillLearn": [
+      "Define a color palette with CSS variables",
+      "Create typography scales",
+      "Build reusable component variants",
+      "Implement dark mode support"
+    ],
+    "steps": [
+      {
+        "title": "Why Design Systems Matter",
+        "content": "A design system ensures consistency across your app:\n\n- **Consistency**: Same colors, spacing, typography everywhere\n- **Speed**: Reuse components instead of rebuilding\n- **Maintainability**: Change once, update everywhere\n- **Collaboration**: Team knows what components exist\n\nKernel uses CSS variables and Tailwind for theming."
+      },
+      {
+        "title": "Defining Colors",
+        "content": "Define your color palette in index.css using HSL values:",
+        "codeExample": {
+          "language": "css",
+          "code": ":root {\n  /* Brand Colors */\n  --primary: 222 47% 50%;\n  --primary-foreground: 0 0% 100%;\n  \n  /* Semantic Colors */\n  --background: 0 0% 100%;\n  --foreground: 222 47% 11%;\n  --muted: 210 40% 96%;\n  --muted-foreground: 215 16% 47%;\n  \n  /* Accents */\n  --accent: 210 40% 90%;\n  --accent-foreground: 222 47% 11%;\n  \n  /* Feedback Colors */\n  --destructive: 0 84% 60%;\n  --success: 142 71% 45%;\n  --warning: 38 92% 50%;\n}\n\n.dark {\n  --background: 222 47% 5%;\n  --foreground: 210 40% 98%;\n  --muted: 217 33% 17%;\n  /* ... dark mode overrides */\n}",
+          "filename": "index.css"
+        },
+        "tip": "Use HSL colors for easy adjustments. Change just the lightness to create variants."
+      },
+      {
+        "title": "Typography Scale",
+        "content": "Define consistent font sizes and weights:",
+        "codeExample": {
+          "language": "javascript",
+          "code": "// tailwind.config.ts\nexport default {\n  theme: {\n    extend: {\n      fontFamily: {\n        sans: ['Inter', 'system-ui', 'sans-serif'],\n        heading: ['Cal Sans', 'Inter', 'sans-serif'],\n        mono: ['JetBrains Mono', 'monospace'],\n      },\n      fontSize: {\n        '2xs': ['0.625rem', { lineHeight: '1rem' }],\n        xs: ['0.75rem', { lineHeight: '1rem' }],\n        sm: ['0.875rem', { lineHeight: '1.25rem' }],\n        base: ['1rem', { lineHeight: '1.5rem' }],\n        lg: ['1.125rem', { lineHeight: '1.75rem' }],\n        xl: ['1.25rem', { lineHeight: '1.75rem' }],\n        '2xl': ['1.5rem', { lineHeight: '2rem' }],\n        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],\n        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],\n        '5xl': ['3rem', { lineHeight: '1' }],\n      },\n    },\n  },\n}",
+          "filename": "tailwind.config.ts"
+        }
+      },
+      {
+        "title": "Component Variants",
+        "content": "Use class-variance-authority (CVA) for component variants:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "import { cva, type VariantProps } from 'class-variance-authority';\n\nconst buttonVariants = cva(\n  'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2',\n  {\n    variants: {\n      variant: {\n        default: 'bg-primary text-primary-foreground hover:bg-primary/90',\n        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',\n        outline: 'border border-input bg-background hover:bg-accent',\n        ghost: 'hover:bg-accent hover:text-accent-foreground',\n        link: 'text-primary underline-offset-4 hover:underline',\n      },\n      size: {\n        sm: 'h-9 px-3 text-sm',\n        md: 'h-10 px-4 py-2',\n        lg: 'h-11 px-8 text-lg',\n        icon: 'h-10 w-10',\n      },\n    },\n    defaultVariants: {\n      variant: 'default',\n      size: 'md',\n    },\n  }\n);\n\ninterface ButtonProps \n  extends React.ButtonHTMLAttributes<HTMLButtonElement>,\n    VariantProps<typeof buttonVariants> {}\n\nconst Button = ({ variant, size, className, ...props }: ButtonProps) => (\n  <button className={cn(buttonVariants({ variant, size }), className)} {...props} />\n);",
+          "filename": "Button.tsx"
+        }
+      },
+      {
+        "title": "Dark Mode Support",
+        "content": "Kernel includes dark mode out of the box:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "import { useTheme } from 'next-themes';\n\nconst ThemeToggle = () => {\n  const { theme, setTheme } = useTheme();\n\n  return (\n    <Button\n      variant=\"ghost\"\n      size=\"icon\"\n      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}\n    >\n      <Sun className=\"h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0\" />\n      <Moon className=\"absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100\" />\n    </Button>\n  );\n};\n\n// Your CSS variables automatically switch based on .dark class\n// Tailwind's dark: prefix also works\n<div className=\"bg-background text-foreground dark:bg-slate-950\">\n  Content adapts to theme\n</div>",
+          "filename": "ThemeToggle.tsx"
+        },
+        "tip": "Test both themes regularly to catch contrast and readability issues."
+      }
+    ],
+    "prevTutorial": "integrating-external-apis",
+    "nextTutorial": "ai-powered-development"
+  },
+  {
+    "id": "10",
+    "slug": "ai-powered-development",
+    "title": "AI-Powered Development",
+    "description": "Master AI prompts and code generation to build applications faster with smart suggestions.",
+    "difficulty": "Intermediate",
+    "duration": "40 min",
+    "type": "video",
+    "category": "AI",
+    "iconName": "Zap",
+    "popular": true,
+    "prerequisites": [
+      "Completed beginner tutorials",
+      "Basic understanding of React components"
+    ],
+    "whatYouWillLearn": [
+      "Write effective prompts for code generation",
+      "Use context to improve AI responses",
+      "Iterate on AI-generated code",
+      "Debug with AI assistance"
+    ],
+    "steps": [
+      {
+        "title": "The Art of Prompting",
+        "content": "Good prompts lead to good code. Be specific about:\n\n- **What**: The exact feature you want\n- **How**: Any specific approach or library\n- **Style**: Design preferences\n- **Context**: Related existing code\n\n**Bad prompt**: \"Add a form\"\n**Good prompt**: \"Create a contact form with name, email, and message fields. Use the existing Card component for styling. Add validation and show a success toast on submit.\""
+      },
+      {
+        "title": "Providing Context",
+        "content": "The AI works better with context. Share:\n\n- Existing component patterns\n- Database schema information\n- Design system tokens\n- Error messages you're seeing\n\nYou can reference files: \"Update the UserCard component from src/components/UserCard.tsx to include the user's avatar\"",
+        "codeExample": {
+          "language": "text",
+          "code": "Example prompt with context:\n\n\"I have a todos table with columns (id, text, completed, user_id). \nCreate a hook called useTodos that:\n- Fetches all todos for the current user\n- Provides addTodo, toggleTodo, and deleteTodo mutations\n- Uses React Query for caching\n- Follows the same pattern as useAuth hook\"",
+          "filename": "prompt-example.txt"
+        },
+        "tip": "The more specific you are, the less you'll need to iterate."
+      },
+      {
+        "title": "Iterative Development",
+        "content": "Build incrementally:\n\n1. Start with the basic structure\n2. Ask for specific improvements\n3. Refine styling\n4. Add edge cases\n\n**Example flow**:\n1. \"Create a user profile page with avatar, name, and bio\"\n2. \"Add an edit mode with a form to update the profile\"\n3. \"Make the avatar upload work with drag and drop\"\n4. \"Add loading and error states\""
+      },
+      {
+        "title": "Debugging with AI",
+        "content": "When things break, share the error:\n\n> \"I'm getting this error: TypeError: Cannot read property 'map' of undefined at ProductList.tsx:23. Here's my code: [paste code]. The API returns products but they're not rendering.\"\n\nThe AI can:\n- Identify the bug\n- Explain why it happened\n- Provide the fix\n- Suggest how to prevent it",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// Common issue: data not ready yet\nconst ProductList = () => {\n  const { data: products } = useProducts();\n  \n  // ❌ This crashes if products is undefined\n  return products.map(p => <Product key={p.id} {...p} />);\n  \n  // ✅ Handle loading state\n  return products?.map(p => <Product key={p.id} {...p} />) ?? <Loading />;\n};",
+          "filename": "debugging-example.tsx"
+        }
+      },
+      {
+        "title": "Advanced Techniques",
+        "content": "Level up your AI usage:\n\n**Multi-file changes**: \"Refactor the auth logic from AuthContext.tsx into a custom hook useAuth.ts and update all components that use it\"\n\n**Code review**: \"Review this component for performance issues and suggest improvements\"\n\n**Learning**: \"Explain how React Query's staleTime and cacheTime work with an example\"\n\n**Best practices**: \"Is there a better way to handle form validation in this component?\"",
+        "tip": "Ask \"why\" questions to understand the code better, not just \"what\" to build."
+      }
+    ],
+    "prevTutorial": "creating-custom-design-systems",
+    "nextTutorial": "advanced-state-management"
+  },
+  {
+    "id": "11",
+    "slug": "advanced-state-management",
+    "title": "Advanced State Management",
+    "description": "Learn patterns for managing complex application state with React Query and custom hooks.",
+    "difficulty": "Advanced",
+    "duration": "45 min",
+    "type": "article",
+    "category": "Development",
+    "iconName": "Code",
+    "prerequisites": [
+      "Strong React fundamentals",
+      "Experience with hooks",
+      "Understanding of async patterns"
+    ],
+    "whatYouWillLearn": [
+      "Structure application state effectively",
+      "Master React Query for server state",
+      "Create powerful custom hooks",
+      "Optimize re-renders"
+    ],
+    "steps": [
+      {
+        "title": "State Categories",
+        "content": "Not all state is equal. Categorize yours:\n\n| Type | Example | Tool |\n|------|---------|------|\n| **Server State** | User data, posts | React Query |\n| **Client State** | UI state, forms | useState/useReducer |\n| **URL State** | Filters, pagination | URL params |\n| **Form State** | Input values | React Hook Form |\n\nUse the right tool for each type."
+      },
+      {
+        "title": "React Query Deep Dive",
+        "content": "React Query handles server state brilliantly:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// Configure defaults for the whole app\nconst queryClient = new QueryClient({\n  defaultOptions: {\n    queries: {\n      staleTime: 5 * 60 * 1000, // 5 minutes\n      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)\n      retry: 3,\n      refetchOnWindowFocus: false,\n    },\n  },\n});\n\n// Custom hook with all the bells and whistles\nconst useProducts = (filters: ProductFilters) => {\n  return useQuery({\n    queryKey: ['products', filters],\n    queryFn: () => fetchProducts(filters),\n    placeholderData: keepPreviousData, // Keep old data while fetching new\n    select: (data) => data.sort((a, b) => a.name.localeCompare(b.name)),\n  });\n};\n\n// Mutation with optimistic updates\nconst useUpdateProduct = () => {\n  const queryClient = useQueryClient();\n  \n  return useMutation({\n    mutationFn: updateProduct,\n    onMutate: async (newProduct) => {\n      // Cancel outgoing refetches\n      await queryClient.cancelQueries({ queryKey: ['products'] });\n      \n      // Snapshot previous value\n      const previous = queryClient.getQueryData(['products']);\n      \n      // Optimistically update\n      queryClient.setQueryData(['products'], (old: Product[]) =>\n        old.map(p => p.id === newProduct.id ? newProduct : p)\n      );\n      \n      return { previous };\n    },\n    onError: (err, newProduct, context) => {\n      // Rollback on error\n      queryClient.setQueryData(['products'], context?.previous);\n    },\n    onSettled: () => {\n      // Refetch to ensure consistency\n      queryClient.invalidateQueries({ queryKey: ['products'] });\n    },\n  });\n};",
+          "filename": "react-query-patterns.tsx"
+        }
+      },
+      {
+        "title": "Custom Hook Patterns",
+        "content": "Extract complex logic into reusable hooks:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// Composition: Combine multiple hooks\nconst useProductPage = (productId: string) => {\n  const product = useProduct(productId);\n  const reviews = useReviews(productId);\n  const relatedProducts = useRelatedProducts(productId);\n  \n  return {\n    product,\n    reviews,\n    relatedProducts,\n    isLoading: product.isLoading || reviews.isLoading,\n    hasError: product.isError || reviews.isError,\n  };\n};\n\n// Encapsulation: Hide implementation details\nconst useDebounce = <T>(value: T, delay: number): T => {\n  const [debouncedValue, setDebouncedValue] = useState(value);\n\n  useEffect(() => {\n    const timer = setTimeout(() => setDebouncedValue(value), delay);\n    return () => clearTimeout(timer);\n  }, [value, delay]);\n\n  return debouncedValue;\n};\n\n// Usage: Search with debounce\nconst ProductSearch = () => {\n  const [query, setQuery] = useState('');\n  const debouncedQuery = useDebounce(query, 300);\n  const { data: results } = useProductSearch(debouncedQuery);\n  \n  return (\n    <>\n      <Input value={query} onChange={e => setQuery(e.target.value)} />\n      <ProductList products={results} />\n    </>\n  );\n};",
+          "filename": "custom-hooks.tsx"
+        }
+      },
+      {
+        "title": "Preventing Unnecessary Re-renders",
+        "content": "Optimize performance with careful state management:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "// Split state to minimize re-renders\nconst ProductPage = () => {\n  // Bad: One big state object\n  // const [state, setState] = useState({ product, reviews, cart });\n  \n  // Good: Separate concerns\n  const product = useProduct(id);\n  const reviews = useReviews(id);\n  const [cartOpen, setCartOpen] = useState(false);\n  \n  return (\n    <>\n      {/* Only re-renders when product changes */}\n      <ProductInfo product={product.data} />\n      \n      {/* Only re-renders when reviews change */}\n      <Reviews reviews={reviews.data} />\n      \n      {/* Only re-renders when cart state changes */}\n      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />\n    </>\n  );\n};\n\n// Memoize expensive computations\nconst ProductList = ({ products, filter }: Props) => {\n  const filteredProducts = useMemo(\n    () => products.filter(p => p.category === filter),\n    [products, filter]\n  );\n  \n  return filteredProducts.map(p => <ProductCard key={p.id} product={p} />);\n};\n\n// Memoize callbacks passed to children\nconst ParentComponent = () => {\n  const handleClick = useCallback((id: string) => {\n    console.log('Clicked:', id);\n  }, []);\n  \n  return <ChildComponent onClick={handleClick} />;\n};",
+          "filename": "optimization.tsx"
+        },
+        "tip": "Use React DevTools Profiler to identify unnecessary re-renders."
+      },
+      {
+        "title": "State Machines for Complex Flows",
+        "content": "For multi-step processes, consider state machines:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "type CheckoutState = \n  | { status: 'cart' }\n  | { status: 'shipping'; cartId: string }\n  | { status: 'payment'; cartId: string; addressId: string }\n  | { status: 'confirmation'; orderId: string }\n  | { status: 'error'; message: string };\n\ntype CheckoutAction =\n  | { type: 'PROCEED_TO_SHIPPING'; cartId: string }\n  | { type: 'PROCEED_TO_PAYMENT'; addressId: string }\n  | { type: 'COMPLETE_ORDER'; orderId: string }\n  | { type: 'ERROR'; message: string }\n  | { type: 'RESET' };\n\nconst checkoutReducer = (\n  state: CheckoutState,\n  action: CheckoutAction\n): CheckoutState => {\n  switch (action.type) {\n    case 'PROCEED_TO_SHIPPING':\n      if (state.status !== 'cart') return state;\n      return { status: 'shipping', cartId: action.cartId };\n    \n    case 'PROCEED_TO_PAYMENT':\n      if (state.status !== 'shipping') return state;\n      return { status: 'payment', cartId: state.cartId, addressId: action.addressId };\n    \n    case 'COMPLETE_ORDER':\n      if (state.status !== 'payment') return state;\n      return { status: 'confirmation', orderId: action.orderId };\n    \n    case 'ERROR':\n      return { status: 'error', message: action.message };\n    \n    case 'RESET':\n      return { status: 'cart' };\n    \n    default:\n      return state;\n  }\n};",
+          "filename": "checkout-state-machine.tsx"
+        }
+      }
+    ],
+    "prevTutorial": "ai-powered-development",
+    "nextTutorial": "building-realtime-applications"
+  },
+  {
+    "id": "12",
+    "slug": "building-realtime-applications",
+    "title": "Building Real-time Applications",
+    "description": "Create live-updating features with real-time database subscriptions and presence indicators.",
+    "difficulty": "Advanced",
+    "duration": "50 min",
+    "type": "video",
+    "category": "Database",
+    "iconName": "Database",
+    "prerequisites": [
+      "Completed database tutorials",
+      "Understanding of WebSockets",
+      "React Query experience"
+    ],
+    "whatYouWillLearn": [
+      "Subscribe to database changes",
+      "Build real-time chat",
+      "Implement presence indicators",
+      "Handle connection states"
+    ],
+    "steps": [
+      {
+        "title": "Real-time Overview",
+        "content": "Real-time features update instantly without refreshing:\n\n- **Chat messages**: Appear immediately\n- **Notifications**: Pop up as they happen\n- **Collaborative editing**: See others' changes live\n- **Presence**: Know who's online\n\nKernel uses database subscriptions via WebSockets."
+      },
+      {
+        "title": "Enabling Real-time",
+        "content": "First, enable real-time on your table:",
+        "codeExample": {
+          "language": "sql",
+          "code": "-- Add table to real-time publication\nALTER PUBLICATION supabase_realtime ADD TABLE messages;\n\n-- For existing tables, you may need:\n-- DROP PUBLICATION IF EXISTS supabase_realtime;\n-- CREATE PUBLICATION supabase_realtime FOR TABLE messages, notifications;",
+          "filename": "enable-realtime.sql"
+        },
+        "warning": "Only enable real-time on tables that need it. Each subscription uses server resources."
+      },
+      {
+        "title": "Subscribing to Changes",
+        "content": "Listen for database changes in real-time:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const useRealtimeMessages = (channelId: string) => {\n  const queryClient = useQueryClient();\n\n  useEffect(() => {\n    const channel = supabase\n      .channel(`messages:${channelId}`)\n      .on(\n        'postgres_changes',\n        {\n          event: '*', // INSERT, UPDATE, DELETE\n          schema: 'public',\n          table: 'messages',\n          filter: `channel_id=eq.${channelId}`,\n        },\n        (payload) => {\n          // Update cache based on event type\n          if (payload.eventType === 'INSERT') {\n            queryClient.setQueryData(\n              ['messages', channelId],\n              (old: Message[] = []) => [...old, payload.new as Message]\n            );\n          } else if (payload.eventType === 'DELETE') {\n            queryClient.setQueryData(\n              ['messages', channelId],\n              (old: Message[] = []) => \n                old.filter(m => m.id !== payload.old.id)\n            );\n          }\n        }\n      )\n      .subscribe();\n\n    return () => {\n      supabase.removeChannel(channel);\n    };\n  }, [channelId, queryClient]);\n};",
+          "filename": "useRealtimeMessages.tsx"
+        }
+      },
+      {
+        "title": "Building Real-time Chat",
+        "content": "A complete chat implementation:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const ChatRoom = ({ roomId }: { roomId: string }) => {\n  const { user } = useAuth();\n  const { data: messages = [] } = useMessages(roomId);\n  const sendMessage = useSendMessage(roomId);\n  const [newMessage, setNewMessage] = useState('');\n  const messagesEndRef = useRef<HTMLDivElement>(null);\n\n  // Subscribe to real-time updates\n  useRealtimeMessages(roomId);\n\n  // Auto-scroll to bottom on new messages\n  useEffect(() => {\n    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });\n  }, [messages.length]);\n\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    if (!newMessage.trim()) return;\n    \n    await sendMessage.mutateAsync(newMessage);\n    setNewMessage('');\n  };\n\n  return (\n    <div className=\"flex flex-col h-full\">\n      <div className=\"flex-1 overflow-y-auto p-4 space-y-4\">\n        {messages.map((message) => (\n          <ChatMessage \n            key={message.id} \n            message={message} \n            isOwn={message.user_id === user?.id}\n          />\n        ))}\n        <div ref={messagesEndRef} />\n      </div>\n      \n      <form onSubmit={handleSubmit} className=\"p-4 border-t\">\n        <div className=\"flex gap-2\">\n          <Input\n            value={newMessage}\n            onChange={(e) => setNewMessage(e.target.value)}\n            placeholder=\"Type a message...\"\n          />\n          <Button type=\"submit\" disabled={sendMessage.isPending}>\n            Send\n          </Button>\n        </div>\n      </form>\n    </div>\n  );\n};",
+          "filename": "ChatRoom.tsx"
+        }
+      },
+      {
+        "title": "Presence Indicators",
+        "content": "Show who's online and what they're doing:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const usePresence = (roomId: string) => {\n  const { user } = useAuth();\n  const [onlineUsers, setOnlineUsers] = useState<PresenceUser[]>([]);\n\n  useEffect(() => {\n    const channel = supabase.channel(`presence:${roomId}`, {\n      config: { presence: { key: user?.id } },\n    });\n\n    channel\n      .on('presence', { event: 'sync' }, () => {\n        const state = channel.presenceState();\n        const users = Object.values(state).flat() as PresenceUser[];\n        setOnlineUsers(users);\n      })\n      .on('presence', { event: 'join' }, ({ newPresences }) => {\n        console.log('User joined:', newPresences);\n      })\n      .on('presence', { event: 'leave' }, ({ leftPresences }) => {\n        console.log('User left:', leftPresences);\n      })\n      .subscribe(async (status) => {\n        if (status === 'SUBSCRIBED') {\n          await channel.track({\n            user_id: user?.id,\n            user_name: user?.email,\n            online_at: new Date().toISOString(),\n          });\n        }\n      });\n\n    return () => {\n      channel.unsubscribe();\n    };\n  }, [roomId, user]);\n\n  return onlineUsers;\n};\n\n// Usage\nconst OnlineUsers = ({ roomId }: { roomId: string }) => {\n  const onlineUsers = usePresence(roomId);\n\n  return (\n    <div className=\"flex items-center gap-2\">\n      <div className=\"flex -space-x-2\">\n        {onlineUsers.map((user) => (\n          <Avatar key={user.user_id}>\n            <AvatarFallback>{user.user_name?.[0]}</AvatarFallback>\n          </Avatar>\n        ))}\n      </div>\n      <span className=\"text-sm text-muted-foreground\">\n        {onlineUsers.length} online\n      </span>\n    </div>\n  );\n};",
+          "filename": "usePresence.tsx"
+        }
+      },
+      {
+        "title": "Connection State Handling",
+        "content": "Handle disconnections gracefully:",
+        "codeExample": {
+          "language": "tsx",
+          "code": "const useConnectionStatus = () => {\n  const [status, setStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');\n\n  useEffect(() => {\n    const channel = supabase.channel('connection-status');\n    \n    channel.subscribe((status) => {\n      switch (status) {\n        case 'SUBSCRIBED':\n          setStatus('connected');\n          break;\n        case 'CHANNEL_ERROR':\n        case 'TIMED_OUT':\n        case 'CLOSED':\n          setStatus('disconnected');\n          break;\n        default:\n          setStatus('connecting');\n      }\n    });\n\n    return () => {\n      channel.unsubscribe();\n    };\n  }, []);\n\n  return status;\n};\n\n// Show connection status to user\nconst ConnectionIndicator = () => {\n  const status = useConnectionStatus();\n\n  if (status === 'connected') return null;\n\n  return (\n    <div className={cn(\n      'fixed bottom-4 right-4 px-4 py-2 rounded-lg text-sm',\n      status === 'connecting' && 'bg-yellow-500 text-yellow-50',\n      status === 'disconnected' && 'bg-red-500 text-red-50'\n    )}>\n      {status === 'connecting' ? 'Reconnecting...' : 'Connection lost'}\n    </div>\n  );\n};",
+          "filename": "ConnectionStatus.tsx"
+        },
+        "tip": "Always inform users about connection issues so they know their changes might not save."
+      }
+    ],
+    "prevTutorial": "advanced-state-management"
+  }
+]

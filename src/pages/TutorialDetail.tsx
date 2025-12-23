@@ -2,11 +2,12 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
 import { SEO_CONFIG, getOrganizationSchema, getHowToSchema, getBreadcrumbSchema } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { getTutorialBySlug, getRelatedTutorials, type Tutorial } from '@/lib/tutorial-data';
+import { useTutorial, useTutorials, type TutorialData } from '@/hooks/useStaticData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -28,12 +29,70 @@ const difficultyColors: Record<string, string> = {
   Advanced: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
+const TutorialDetailSkeleton = () => (
+  <article className="container mx-auto px-4 py-8 md:py-16 max-w-4xl">
+    <Skeleton className="h-9 w-32 mb-6" />
+    <header className="mb-12">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-5 w-16" />
+        <Skeleton className="h-5 w-24" />
+      </div>
+      <Skeleton className="h-12 w-3/4 mb-4" />
+      <Skeleton className="h-6 w-full" />
+    </header>
+    <div className="grid md:grid-cols-2 gap-6 mb-12">
+      <Card>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </article>
+);
+
 const TutorialDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const tutorial = slug ? getTutorialBySlug(slug) : undefined;
+  const { data: tutorial, isLoading, error } = useTutorial(slug || '');
+  const { data: allTutorials = [] } = useTutorials();
 
-  if (!tutorial) {
+  // Get related tutorials based on category or difficulty
+  const getRelatedTutorials = (currentTutorial: TutorialData, limit = 3): TutorialData[] => {
+    return allTutorials
+      .filter(t => 
+        t.id !== currentTutorial.id && 
+        (t.category === currentTutorial.category || t.difficulty === currentTutorial.difficulty)
+      )
+      .slice(0, limit);
+  };
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <TutorialDetailSkeleton />
+      </PublicLayout>
+    );
+  }
+
+  if (error || !tutorial) {
     return (
       <PublicLayout>
         <div className="container mx-auto px-4 py-16 max-w-4xl text-center">
