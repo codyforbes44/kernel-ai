@@ -455,9 +455,9 @@ export const BREADCRUMBS = {
     { name: 'Home', url: siteUrl },
     { name: 'About', url: `${siteUrl}/about` }
   ]),
-  documentation: (siteUrl: string) => getBreadcrumbSchema([
+  docs: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
-    { name: 'Documentation', url: `${siteUrl}/documentation` }
+    { name: 'Documentation', url: `${siteUrl}/docs` }
   ]),
   tutorials: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
