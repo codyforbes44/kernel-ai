@@ -1779,6 +1779,107 @@ export type Database = {
         }
         Relationships: []
       }
+      x_scheduled_tweets: {
+        Row: {
+          content: string
+          created_at: string | null
+          draft_id: string | null
+          error_message: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          posted_at: string | null
+          scheduled_for: string
+          status: string | null
+          timezone: string | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          draft_id?: string | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          posted_at?: string | null
+          scheduled_for: string
+          status?: string | null
+          timezone?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          draft_id?: string | null
+          error_message?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          posted_at?: string | null
+          scheduled_for?: string
+          status?: string | null
+          timezone?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "x_scheduled_tweets_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "x_tweet_drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      x_tweet_drafts: {
+        Row: {
+          content: string
+          created_at: string | null
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          is_favorite: boolean | null
+          metadata: Json | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          metadata?: Json | null
+          type?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          metadata?: Json | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

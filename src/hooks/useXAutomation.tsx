@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   xAutomationService,
@@ -9,17 +9,38 @@ import {
   TrendAnalysis,
   GeneratedImage,
 } from '@/services/xAutomationService';
-
-interface Draft {
-  id: string;
-  content: string;
-  createdAt: Date;
-  type: 'tweet' | 'thread';
-}
+import {
+  xDatabaseService,
+  XTweetDraft,
+  XScheduledTweet,
+  CreateDraftInput,
+  UpdateDraftInput,
+  ScheduleTweetInput,
+} from '@/services/xDatabaseService';
 
 export function useXAutomation() {
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [selectedDraft, setSelectedDraft] = useState<Draft | null>(null);
+  const queryClient = useQueryClient();
+  const [selectedDraft, setSelectedDraft] = useState<XTweetDraft | null>(null);
+
+  // Fetch drafts from database
+  const {
+    data: drafts = [],
+    isLoading: isLoadingDrafts,
+    refetch: refetchDrafts,
+  } = useQuery({
+    queryKey: ['x-tweet-drafts'],
+    queryFn: () => xDatabaseService.getDrafts(),
+  });
+
+  // Fetch scheduled tweets from database
+  const {
+    data: scheduledTweets = [],
+    isLoading: isLoadingScheduled,
+    refetch: refetchScheduled,
+  } = useQuery({
+    queryKey: ['x-scheduled-tweets'],
+    queryFn: () => xDatabaseService.getScheduledTweets(),
+  });
 
   // Generate tweet mutation
   const generateTweetMutation = useMutation({
@@ -32,18 +53,21 @@ export function useXAutomation() {
     }) => {
       return xAutomationService.generateTweet(prompt, options);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success('Tweet generated successfully!');
       // Auto-save as draft
       if (data.tweets?.length > 0) {
-        const newDraft: Draft = {
-          id: crypto.randomUUID(),
-          content: data.tweets.join('\n\n'),
-          createdAt: new Date(),
-          type: data.tweets.length > 1 ? 'thread' : 'tweet',
-        };
-        setDrafts((prev) => [newDraft, ...prev]);
-        setSelectedDraft(newDraft);
+        try {
+          const newDraft = await xDatabaseService.saveDraft({
+            content: data.tweets.join('\n\n'),
+            type: data.tweets.length > 1 ? 'thread' : 'tweet',
+            hashtags: data.hashtags || [],
+          });
+          queryClient.invalidateQueries({ queryKey: ['x-tweet-drafts'] });
+          setSelectedDraft(newDraft);
+        } catch (error) {
+          console.error('Failed to save draft:', error);
+        }
       }
     },
     onError: (error) => {
@@ -87,36 +111,91 @@ export function useXAutomation() {
     },
   });
 
-  // Draft management
-  const saveDraft = useCallback((content: string, type: 'tweet' | 'thread' = 'tweet') => {
-    const newDraft: Draft = {
-      id: crypto.randomUUID(),
-      content,
-      createdAt: new Date(),
-      type,
-    };
-    setDrafts((prev) => [newDraft, ...prev]);
-    setSelectedDraft(newDraft);
-    toast.success('Draft saved!');
-    return newDraft;
-  }, []);
+  // Save draft mutation
+  const saveDraftMutation = useMutation({
+    mutationFn: (input: CreateDraftInput) => xDatabaseService.saveDraft(input),
+    onSuccess: (data) => {
+      toast.success('Draft saved!');
+      queryClient.invalidateQueries({ queryKey: ['x-tweet-drafts'] });
+      setSelectedDraft(data);
+    },
+    onError: (error) => {
+      toast.error(`Failed to save draft: ${error.message}`);
+    },
+  });
 
-  const deleteDraft = useCallback((draftId: string) => {
-    setDrafts((prev) => prev.filter((d) => d.id !== draftId));
-    if (selectedDraft?.id === draftId) {
+  // Update draft mutation
+  const updateDraftMutation = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateDraftInput }) =>
+      xDatabaseService.updateDraft(id, input),
+    onSuccess: () => {
+      toast.success('Draft updated!');
+      queryClient.invalidateQueries({ queryKey: ['x-tweet-drafts'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to update draft: ${error.message}`);
+    },
+  });
+
+  // Delete draft mutation
+  const deleteDraftMutation = useMutation({
+    mutationFn: (id: string) => xDatabaseService.deleteDraft(id),
+    onSuccess: () => {
+      toast.success('Draft deleted');
+      queryClient.invalidateQueries({ queryKey: ['x-tweet-drafts'] });
       setSelectedDraft(null);
-    }
-    toast.success('Draft deleted');
-  }, [selectedDraft]);
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete draft: ${error.message}`);
+    },
+  });
 
-  const updateDraft = useCallback((draftId: string, content: string) => {
-    setDrafts((prev) =>
-      prev.map((d) => (d.id === draftId ? { ...d, content } : d))
-    );
-    if (selectedDraft?.id === draftId) {
-      setSelectedDraft((prev) => (prev ? { ...prev, content } : null));
-    }
-  }, [selectedDraft]);
+  // Toggle favorite mutation
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: (id: string) => xDatabaseService.toggleFavorite(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['x-tweet-drafts'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to update favorite: ${error.message}`);
+    },
+  });
+
+  // Schedule tweet mutation
+  const scheduleTweetMutation = useMutation({
+    mutationFn: (input: ScheduleTweetInput) => xDatabaseService.scheduleTweet(input),
+    onSuccess: () => {
+      toast.success('Tweet scheduled!');
+      queryClient.invalidateQueries({ queryKey: ['x-scheduled-tweets'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to schedule tweet: ${error.message}`);
+    },
+  });
+
+  // Cancel scheduled tweet mutation
+  const cancelScheduledMutation = useMutation({
+    mutationFn: (id: string) => xDatabaseService.cancelScheduledTweet(id),
+    onSuccess: () => {
+      toast.success('Scheduled tweet cancelled');
+      queryClient.invalidateQueries({ queryKey: ['x-scheduled-tweets'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to cancel: ${error.message}`);
+    },
+  });
+
+  // Delete scheduled tweet mutation
+  const deleteScheduledMutation = useMutation({
+    mutationFn: (id: string) => xDatabaseService.deleteScheduledTweet(id),
+    onSuccess: () => {
+      toast.success('Scheduled tweet deleted');
+      queryClient.invalidateQueries({ queryKey: ['x-scheduled-tweets'] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete: ${error.message}`);
+    },
+  });
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {
@@ -128,7 +207,7 @@ export function useXAutomation() {
   }, []);
 
   return {
-    // Mutations
+    // AI Mutations
     generateTweet: generateTweetMutation.mutateAsync,
     isGeneratingTweet: generateTweetMutation.isPending,
     generatedTweet: generateTweetMutation.data as GeneratedTweet | undefined,
@@ -143,11 +222,28 @@ export function useXAutomation() {
 
     // Draft management
     drafts,
+    isLoadingDrafts,
+    refetchDrafts,
     selectedDraft,
     setSelectedDraft,
-    saveDraft,
-    deleteDraft,
-    updateDraft,
+    saveDraft: saveDraftMutation.mutateAsync,
+    isSavingDraft: saveDraftMutation.isPending,
+    updateDraft: updateDraftMutation.mutateAsync,
+    isUpdatingDraft: updateDraftMutation.isPending,
+    deleteDraft: deleteDraftMutation.mutate,
+    isDeletingDraft: deleteDraftMutation.isPending,
+    toggleFavorite: toggleFavoriteMutation.mutate,
+
+    // Scheduled tweets
+    scheduledTweets,
+    isLoadingScheduled,
+    refetchScheduled,
+    scheduleTweet: scheduleTweetMutation.mutateAsync,
+    isSchedulingTweet: scheduleTweetMutation.isPending,
+    cancelScheduledTweet: cancelScheduledMutation.mutate,
+    isCancellingScheduled: cancelScheduledMutation.isPending,
+    deleteScheduledTweet: deleteScheduledMutation.mutate,
+    isDeletingScheduled: deleteScheduledMutation.isPending,
 
     // Utils
     copyToClipboard,
