@@ -13,6 +13,7 @@ export type PanelType =
   | 'storage'
   | 'database'
   | 'security'
+  | 'x-automation'
   | null;
 
 interface PanelConfig {
@@ -35,6 +36,7 @@ const PANEL_CONFIGS: Record<Exclude<PanelType, null>, PanelConfig> = {
   'storage': { id: 'storage', defaultSize: 30, minSize: 25, maxSize: 50 },
   'database': { id: 'database', defaultSize: 50, minSize: 35, maxSize: 70 },
   'security': { id: 'security', defaultSize: 40, minSize: 30, maxSize: 60 },
+  'x-automation': { id: 'x-automation', defaultSize: 30, minSize: 25, maxSize: 50 },
 };
 
 export interface UsePanelManagerReturn {

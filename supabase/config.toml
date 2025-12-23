@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.execute-migration]
 verify_jwt = false
+
+[functions.x-automation]
+verify_jwt = false

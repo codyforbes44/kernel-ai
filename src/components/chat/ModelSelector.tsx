@@ -10,7 +10,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Sparkles, Zap, Rocket, ChevronDown, Brain, Cpu, Atom, FlaskConical } from "lucide-react";
+import { Sparkles, Zap, Rocket, ChevronDown, Brain, Cpu, Atom, FlaskConical, Twitter } from "lucide-react";
 import { AI_MODELS, type AIModel } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ModelInfoCard } from "./ModelInfoCard";
@@ -23,6 +23,9 @@ interface ModelSelectorProps {
 }
 
 const modelIcons: Record<AIModel, React.ReactNode> = {
+  'xai/grok-3': <Twitter className="h-3.5 w-3.5" />,
+  'xai/grok-3-fast': <Twitter className="h-3.5 w-3.5" />,
+  'xai/grok-2-image': <Twitter className="h-3.5 w-3.5" />,
   'google/gemini-2.5-flash': <Zap className="h-3.5 w-3.5" />,
   'google/gemini-2.5-pro': <Sparkles className="h-3.5 w-3.5" />,
   'google/gemini-3-pro-preview': <FlaskConical className="h-3.5 w-3.5" />,
