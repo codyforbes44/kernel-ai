@@ -14,6 +14,7 @@ import { useOLEDSuggestion } from "@/hooks/useOLEDSuggestion";
 import { CommandPalette } from "@/components/CommandPalette";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UpdateNotification } from "@/components/pwa/UpdateNotification";
+import { InstallPromptBanner } from "@/components/pwa/InstallPromptBanner";
 // Core pages - keep static for fast initial load
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
@@ -87,6 +88,7 @@ const App = () => (
                 <Toaster />
                 <Sonner />
                 <UpdateNotification />
+                <InstallPromptBanner />
               <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                 <CommandPalette />
                 <Routes>
