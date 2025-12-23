@@ -32,6 +32,9 @@ const AgentChat = lazy(() =>
 const AIAssetsPanel = lazy(() => 
   import('./AIAssetsPanel').then(m => ({ default: m.AIAssetsPanel }))
 );
+const XAutomationPanel = lazy(() => 
+  import('./XAutomationPanel').then(m => ({ default: m.XAutomationPanel }))
+);
 
 interface PanelRendererProps {
   activePanel: PanelType | null;
@@ -222,6 +225,15 @@ export function PanelRenderer({
                 onInsertCode={onInsertCode}
                 initialTab={aiStudioInitialTab}
               />
+            </Suspense>
+          </PanelErrorBoundary>
+        );
+
+      case 'x-automation':
+        return (
+          <PanelErrorBoundary panelName="X Automation">
+            <Suspense fallback={<PanelLoadingFallback />}>
+              <XAutomationPanel />
             </Suspense>
           </PanelErrorBoundary>
         );

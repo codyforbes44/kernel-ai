@@ -1,5 +1,33 @@
 // AI Model configurations - single source of truth
 export const AI_MODELS = {
+  // xAI Grok Models
+  'xai/grok-3': {
+    name: 'Grok-3',
+    description: 'Most capable with live X data',
+    speed: 'medium',
+    costTier: 'high',
+    capabilities: ['Advanced reasoning', 'Live X data access', 'Complex coding', 'Real-time trends'],
+    contextWindow: '128K tokens',
+    bestFor: 'X platform automation and real-time analysis',
+  },
+  'xai/grok-3-fast': {
+    name: 'Grok-3 Fast',
+    description: 'Speed-optimized Grok',
+    speed: 'fast',
+    costTier: 'medium',
+    capabilities: ['Fast responses', 'X data access', 'Content generation', 'Trend analysis'],
+    contextWindow: '128K tokens',
+    bestFor: 'Quick X content generation and analysis',
+  },
+  'xai/grok-2-image': {
+    name: 'Grok-2 Image',
+    description: 'Image generation for social',
+    speed: 'medium',
+    costTier: 'medium',
+    capabilities: ['Image generation', 'Social graphics', 'Visual content'],
+    contextWindow: 'N/A',
+    bestFor: 'Creating images for X posts',
+  },
   // Gemini Models
   'google/gemini-2.5-flash': {
     name: 'Gemini Flash',
