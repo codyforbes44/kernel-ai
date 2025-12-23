@@ -49,9 +49,11 @@ interface PanelRendererProps {
   onInstallComponent: (code: string) => void;
   onInsertCode?: (code: string) => void;
   togglePanel: (panel: PanelType) => void;
+  setActivePanel: (panel: PanelType) => void;
   getPanelConfig: (panel: PanelType) => { defaultSize: number; minSize: number; maxSize: number };
   onFixHandlerReady: (handler: (errors: CapturedError[]) => void) => void;
   onAgentRunningChange?: (isRunning: boolean) => void;
+  aiStudioInitialTab?: 'generate' | 'screenshot' | 'library';
 }
 
 // Loading fallback for lazy-loaded panels
@@ -79,9 +81,11 @@ export function PanelRenderer({
   onInstallComponent,
   onInsertCode,
   togglePanel,
+  setActivePanel,
   getPanelConfig,
   onFixHandlerReady,
   onAgentRunningChange,
+  aiStudioInitialTab,
 }: PanelRendererProps) {
   if (!activePanel) return null;
 
@@ -99,6 +103,9 @@ export function PanelRenderer({
               onClearErrors={onClearErrors}
               projectId={projectId}
               onFixHandlerReady={onFixHandlerReady}
+              onOpenAIStudio={(tab) => {
+                setActivePanel('ai-assets');
+              }}
             />
           </PanelErrorBoundary>
         );
@@ -213,6 +220,7 @@ export function PanelRenderer({
               <AIAssetsPanel 
                 projectId={projectId}
                 onInsertCode={onInsertCode}
+                initialTab={aiStudioInitialTab}
               />
             </Suspense>
           </PanelErrorBoundary>

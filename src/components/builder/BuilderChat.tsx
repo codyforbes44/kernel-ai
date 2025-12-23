@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database } from 'lucide-react';
+import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database, Wand2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +37,8 @@ interface BuilderChatProps {
   onClearErrors?: () => void;
   /** Callback that receives the fix errors handler for parent to invoke */
   onFixHandlerReady?: (handler: (errors: CapturedError[]) => void) => void;
+  /** Callback to open AI Studio panel */
+  onOpenAIStudio?: (tab?: 'generate' | 'screenshot') => void;
 }
 
 // Parse the streamed JSON response
@@ -60,7 +62,7 @@ function parseStreamedResponse(content: string): AIResponse | null {
   }
 }
 
-export function BuilderChat({ files, onApplyOperations, projectId, errors = [], onClearErrors, onFixHandlerReady }: BuilderChatProps) {
+export function BuilderChat({ files, onApplyOperations, projectId, errors = [], onClearErrors, onFixHandlerReady, onOpenAIStudio }: BuilderChatProps) {
   const {
     conversationId,
     messages: persistedMessages,
@@ -485,6 +487,30 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
                 >
                   "Add a navigation bar"
                 </button>
+                
+                {/* AI Studio Section */}
+                <div className="border-t border-border pt-2 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+                    <Wand2 className="h-3.5 w-3.5" />
+                    AI Studio
+                  </div>
+                  <button
+                    onClick={() => onOpenAIStudio?.('generate')}
+                    className="w-full text-xs text-left px-3 py-2 rounded-md bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 transition-colors flex items-center gap-2"
+                  >
+                    <Wand2 className="h-3.5 w-3.5 text-primary" />
+                    Generate AI Images
+                  </button>
+                  <button
+                    onClick={() => onOpenAIStudio?.('screenshot')}
+                    className="w-full text-xs text-left px-3 py-2 rounded-md bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 transition-colors flex items-center gap-2 mt-1"
+                  >
+                    <Camera className="h-3.5 w-3.5 text-primary" />
+                    Screenshot to UI
+                  </button>
+                </div>
+                
+                {/* Database Schema Section */}
                 <div className="border-t border-border pt-2 mt-2">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                     <Database className="h-3.5 w-3.5" />
