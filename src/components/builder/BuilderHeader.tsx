@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,10 +18,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
+import { KernelLogo } from '@/components/ui/kernel-logo';
 import { 
   Save, Code2, Globe, MoreVertical, Settings, Copy,
   Sparkles, History, Rocket, Github, Palette, Package, 
-  BookMarked, HardDrive, Database, Bot, Shield, Wand2
+  BookMarked, HardDrive, Database, Bot, Shield, Wand2, Home
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PanelType } from '@/hooks/usePanelManager';
@@ -72,32 +73,41 @@ export const BuilderHeader = memo(function BuilderHeader({
   onOpenSettings,
   onOpenRemix,
 }: BuilderHeaderProps) {
+  const navigate = useNavigate();
+  
   return (
     <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-card">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/builder" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                <Code2 className="h-4 w-4" />
-                Builder
-              </Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="font-medium flex items-center gap-2">
-              {projectName}
-              {isPublic && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
-                  <Globe className="h-3 w-3" />
-                  Public
-                </span>
-              )}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="flex items-center gap-3">
+        {/* Home/Logo Link */}
+        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <KernelLogo size="sm" />
+        </Link>
+        
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/builder" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                  <Code2 className="h-4 w-4" />
+                  Builder
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-medium flex items-center gap-2">
+                {projectName}
+                {isPublic && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
+                    <Globe className="h-3 w-3" />
+                    Public
+                  </span>
+                )}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
       
       <div className="flex items-center gap-2">
         {/* Collaborator Avatars */}
@@ -147,11 +157,19 @@ export const BuilderHeader = memo(function BuilderHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate('/')}>
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onOpenSettings}>
               <Settings className="h-4 w-4 mr-2" />
               Project Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onOpenRemix}>
               <Copy className="h-4 w-4 mr-2" />
               Remix Project
