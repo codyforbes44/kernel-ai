@@ -5,6 +5,7 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -14,13 +15,37 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { ArrowLeft, ArrowRight, Clock, Book } from 'lucide-react';
-import { getCategoryBySlug, docCategories } from '@/lib/documentation-data';
+import { useDocCategory, useDocCategories } from '@/hooks/useStaticData';
+import { getDocIcon } from '@/lib/docIcons';
 
 const DocCategory = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const navigate = useNavigate();
 
-  const category = categorySlug ? getCategoryBySlug(categorySlug) : undefined;
+  const { data: category, isLoading } = useDocCategory(categorySlug || '');
+  const { data: docCategories = [] } = useDocCategories();
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+          <Skeleton className="h-6 w-64 mb-8" />
+          <div className="flex items-center gap-4 mb-12">
+            <Skeleton className="h-16 w-16 rounded-xl" />
+            <div>
+              <Skeleton className="h-10 w-48 mb-2" />
+              <Skeleton className="h-5 w-72" />
+            </div>
+          </div>
+          <div className="grid gap-4">
+            {[1, 2, 3].map(i => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
 
   if (!category) {
     return (
@@ -39,7 +64,7 @@ const DocCategory = () => {
     );
   }
 
-  const CategoryIcon = category.icon;
+  const CategoryIcon = getDocIcon(category.iconName);
   const currentIndex = docCategories.findIndex(c => c.slug === category.slug);
   const prevCategory = currentIndex > 0 ? docCategories[currentIndex - 1] : undefined;
   const nextCategory = currentIndex < docCategories.length - 1 ? docCategories[currentIndex + 1] : undefined;
@@ -184,7 +209,7 @@ const DocCategory = () => {
               .filter(c => c.slug !== category.slug)
               .slice(0, 6)
               .map((cat) => {
-                const Icon = cat.icon;
+                const Icon = getDocIcon(cat.iconName);
                 return (
                   <Link key={cat.slug} to={`/docs/${cat.slug}`}>
                     <Card className="h-full hover:border-primary/50 transition-colors">

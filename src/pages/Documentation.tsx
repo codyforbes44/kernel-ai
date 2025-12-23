@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Book, 
   Rocket, 
@@ -14,17 +15,35 @@ import {
   X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { docCategories, searchDocumentation, DocArticle } from '@/lib/documentation-data';
+import { useDocCategories, useDocSearch, DocArticleData } from '@/hooks/useStaticData';
+import { getDocIcon } from '@/lib/docIcons';
 
 const Documentation = () => {
   const [searchQuery, setSearchQuery] = useState('');
-
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return searchDocumentation(searchQuery);
-  }, [searchQuery]);
+  const { data: docCategories = [], isLoading } = useDocCategories();
+  const searchResults = useDocSearch(searchQuery);
 
   const isSearching = searchQuery.trim().length > 0;
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="container mx-auto px-4 py-16 max-w-6xl">
+          <div className="text-center mb-12">
+            <Skeleton className="h-8 w-8 mx-auto mb-4" />
+            <Skeleton className="h-12 w-64 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto mb-8" />
+            <Skeleton className="h-10 w-80 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-48" />
+            ))}
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
 
   return (
     <PublicLayout>
@@ -83,7 +102,7 @@ const Documentation = () => {
             </div>
             {searchResults.length > 0 ? (
               <div className="grid gap-3">
-                {searchResults.map((article: DocArticle) => (
+                {searchResults.map((article: DocArticleData) => (
                   <Link 
                     key={article.id} 
                     to={`/docs/${article.categorySlug}/${article.slug}`}
@@ -148,7 +167,7 @@ const Documentation = () => {
         {!isSearching && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {docCategories.map((category) => {
-              const CategoryIcon = category.icon;
+              const CategoryIcon = getDocIcon(category.iconName);
               return (
                 <Card key={category.slug} className="hover:border-primary/50 transition-colors">
                   <CardHeader>
