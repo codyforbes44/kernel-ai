@@ -105,11 +105,21 @@ const TABLE_SCHEMAS: Record<string, ColumnSchema[]> = {
   ],
 };
 
+export interface ExternalConnectionParams {
+  url: string;
+  key: string;
+}
+
 export const databaseService = {
   // Get list of all tables
-  async listTables(): Promise<TableInfo[]> {
+  async listTables(external?: ExternalConnectionParams): Promise<TableInfo[]> {
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/database-introspect?action=tables`, {
+      let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=tables`;
+      if (external) {
+        url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -119,14 +129,14 @@ export const databaseService = {
       
       if (!response.ok) {
         logger.warn('Failed to fetch tables from edge function, using fallback');
-        return KNOWN_TABLES;
+        return external ? [] : KNOWN_TABLES;
       }
       
       const data = await response.json();
-      return data.tables || KNOWN_TABLES;
+      return data.tables || (external ? [] : KNOWN_TABLES);
     } catch (error) {
       logger.error('Error listing tables:', error);
-      return KNOWN_TABLES;
+      return external ? [] : KNOWN_TABLES;
     }
   },
 
@@ -144,9 +154,14 @@ export const databaseService = {
   },
 
   // Get all relationships
-  async getRelationships(): Promise<Relationship[]> {
+  async getRelationships(external?: ExternalConnectionParams): Promise<Relationship[]> {
     try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/database-introspect?action=relationships`, {
+      let url = `${SUPABASE_URL}/functions/v1/database-introspect?action=relationships`;
+      if (external) {
+        url += `&external_url=${encodeURIComponent(external.url)}&external_key=${encodeURIComponent(external.key)}`;
+      }
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
