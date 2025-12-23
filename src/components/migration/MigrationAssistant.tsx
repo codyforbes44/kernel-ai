@@ -24,6 +24,9 @@ export function MigrationAssistant() {
     setShareCode,
     lookupShareCode,
     setProjectDetails,
+    setSupabaseCredentials,
+    testSupabaseConnection,
+    setSkipSupabaseConnection,
     nextStep,
     prevStep,
     canProceed,
@@ -94,6 +97,15 @@ export function MigrationAssistant() {
             onProjectDescriptionChange={(desc) => setProjectDetails({ projectDescription: desc })}
             onCreateConversationChange={(val) => setProjectDetails({ createConversation: val })}
             onEnableKnowledgeBaseChange={(val) => setProjectDetails({ enableKnowledgeBase: val })}
+            supabaseDetection={state.supabaseDetection}
+            supabaseCredentials={state.supabaseCredentials}
+            onSupabaseCredentialsChange={setSupabaseCredentials}
+            onTestSupabaseConnection={testSupabaseConnection}
+            supabaseConnectionTested={state.supabaseConnectionTested}
+            supabaseConnectionValid={state.supabaseConnectionValid}
+            isTestingSupabaseConnection={state.isTestingSupabaseConnection}
+            skipSupabaseConnection={state.skipSupabaseConnection}
+            onSkipSupabaseConnection={setSkipSupabaseConnection}
           />
         );
       case 'success':
@@ -102,6 +114,9 @@ export function MigrationAssistant() {
             platform={state.selectedPlatform}
             projectName={state.projectName}
             projectId={state.createdProjectId}
+            supabaseDetection={state.supabaseDetection}
+            supabaseConnectionValid={state.supabaseConnectionValid}
+            skipSupabaseConnection={state.skipSupabaseConnection}
           />
         );
       default:
