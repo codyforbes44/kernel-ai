@@ -1,22 +1,64 @@
+# Robots.txt for kernel.cool
+# Generated to align with routes.ts directives
+
+# Major search engines with crawl delay
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 2
 
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 2
+
+# Social media crawlers (no delay needed)
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+# Default rules for all other bots
 User-agent: *
 Allow: /
+Allow: /pricing
+Allow: /contact
+Allow: /about
 Allow: /auth
 Allow: /builder
+Allow: /privacy
+Allow: /terms
+Allow: /changelog
+Allow: /docs
+Allow: /tutorials
+Allow: /security
 
-Disallow: /settings
+# Protected/private routes - disallow crawling
+Disallow: /dashboard
 Disallow: /admin
+Disallow: /settings
 Disallow: /builder/
+Disallow: /seo
+Disallow: /onboarding
+Disallow: /performance
 
+# Block common non-content paths
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Crawl delay for general bots
+Crawl-delay: 3
+
+# Sitemap location
 Sitemap: https://kernel.cool/sitemap.xml
