@@ -281,7 +281,7 @@ export default function Contact() {
               
               <p className="text-sm text-muted-foreground mt-6">
                 Can't find what you're looking for?{" "}
-                <a href="mailto:support@kernel.dev" className="text-primary hover:underline">
+                <a href="mailto:support@kernel.cool" className="text-primary hover:underline">
                   Email us directly
                 </a>
               </p>

@@ -173,8 +173,8 @@ export default function Terms() {
               <h2 className="text-2xl font-semibold mb-4">14. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have any questions about these Terms of Service, please contact us at{" "}
-                <a href="mailto:legal@kernel.app" className="text-primary hover:underline">
-                  legal@kernel.app
+                <a href="mailto:legal@kernel.cool" className="text-primary hover:underline">
+                  legal@kernel.cool
                 </a>
                 .
               </p>

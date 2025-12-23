@@ -13,8 +13,8 @@ export const contactOptions: ContactOption[] = [
     icon: Mail,
     title: "Email Us",
     description: "Get a response within 24 hours",
-    action: "support@kernel.app",
-    href: "mailto:support@kernel.app",
+    action: "support@kernel.cool",
+    href: "mailto:support@kernel.cool",
   },
   {
     icon: MessageSquare,

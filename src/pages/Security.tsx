@@ -175,7 +175,7 @@ const Security = () => {
                     Please report security issues responsibly.
                   </p>
                   <Button variant="gold-outline" asChild>
-                    <a href="mailto:security@kernel.dev">
+                    <a href="mailto:security@kernel.cool">
                       <Mail className="mr-2 h-4 w-4" />
                       Report a Vulnerability
                     </a>

@@ -16,8 +16,19 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
   {
+    version: '2.5.0',
+    date: 'December 22, 2025',
+    changes: [
+      { type: 'feature', description: 'Best-in-class SEO with AI-generated OG images for all pages' },
+      { type: 'feature', description: 'Complete structured data schemas (Article, HowTo, Service, FAQ, ContactPoint)' },
+      { type: 'improvement', description: 'Refactored ColorGrid and PropertyEditorPanel components' },
+      { type: 'improvement', description: 'Standardized error handling with centralized error utilities' },
+      { type: 'fix', description: 'Updated all email addresses to @kernel.cool domain' },
+    ],
+  },
+  {
     version: '2.4.0',
-    date: 'December 20, 2024',
+    date: 'December 15, 2025',
     changes: [
       { type: 'feature', description: 'AI-powered code generation with context awareness' },
       { type: 'feature', description: 'Real-time collaboration with live cursors' },
@@ -27,7 +38,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     version: '2.3.0',
-    date: 'December 10, 2024',
+    date: 'December 1, 2025',
     changes: [
       { type: 'feature', description: 'Component marketplace with 100+ templates' },
       { type: 'feature', description: 'GitHub sync with automatic deployment' },
@@ -37,7 +48,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     version: '2.2.0',
-    date: 'November 28, 2024',
+    date: 'November 15, 2025',
     changes: [
       { type: 'feature', description: 'Visual design system editor' },
       { type: 'improvement', description: 'Improved error messages with AI suggestions' },
@@ -47,7 +58,7 @@ const changelog: ChangelogEntry[] = [
   },
   {
     version: '2.1.0',
-    date: 'November 15, 2024',
+    date: 'October 30, 2025',
     changes: [
       { type: 'feature', description: 'Database schema visualization' },
       { type: 'feature', description: 'Edge function deployment with logging' },
