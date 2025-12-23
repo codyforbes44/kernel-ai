@@ -26,6 +26,7 @@ import Changelog from "./pages/Changelog";
 import Documentation from "./pages/Documentation";
 import Tutorials from "./pages/Tutorials";
 import Security from "./pages/Security";
+import Compare from "./pages/Compare";
 
 // Lazy load heavy pages
 const Admin = lazy(() => import("./pages/Admin"));
@@ -91,6 +92,7 @@ const App = () => (
                   <Route path="/docs" element={<Documentation />} />
                   <Route path="/tutorials" element={<Tutorials />} />
                   <Route path="/security" element={<Security />} />
+                  <Route path="/compare" element={<Compare />} />
                   <Route path="/assistant" element={<Index />} />
                   {/* Legacy redirect for backwards compatibility */}
                   <Route path="/dashboard" element={<Index />} />
