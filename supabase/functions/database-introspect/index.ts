@@ -203,7 +203,8 @@ async function getExternalTables(supabase: any, url: string, key: string) {
   }
 }
 
-async function getExternalSchema(supabase: ReturnType<typeof createClient>, url: string, key: string, tableName: string) {
+// deno-lint-ignore no-explicit-any
+async function getExternalSchema(supabase: any, url: string, key: string, tableName: string) {
   try {
     // Try RPC for column info
     const { data: colResult, error: colError } = await supabase.rpc('execute_sql', {
@@ -245,7 +246,8 @@ async function getExternalSchema(supabase: ReturnType<typeof createClient>, url:
       `
     });
 
-    const columns: ColumnSchema[] = (colResult?.rows || []).map((row: {
+    // deno-lint-ignore no-explicit-any
+    const columns: ColumnSchema[] = ((colResult as any)?.rows || []).map((row: {
       name: string;
       type: string;
       nullable: boolean;
@@ -285,7 +287,8 @@ async function getExternalSchema(supabase: ReturnType<typeof createClient>, url:
       `
     });
 
-    const rlsPolicies: RLSPolicy[] = (polResult?.rows || []).map((row: {
+    // deno-lint-ignore no-explicit-any
+    const rlsPolicies: RLSPolicy[] = ((polResult as any)?.rows || []).map((row: {
       name: string;
       command: string;
       definition: string;
@@ -318,7 +321,8 @@ async function getExternalSchema(supabase: ReturnType<typeof createClient>, url:
   }
 }
 
-async function getExternalRelationships(supabase: ReturnType<typeof createClient>, url: string, key: string) {
+// deno-lint-ignore no-explicit-any
+async function getExternalRelationships(supabase: any, url: string, key: string) {
   try {
     const { data: result } = await supabase.rpc('execute_sql', {
       query: `
@@ -338,7 +342,8 @@ async function getExternalRelationships(supabase: ReturnType<typeof createClient
       `
     });
 
-    const relationships: Relationship[] = (result?.rows || []).map((row: {
+    // deno-lint-ignore no-explicit-any
+    const relationships: Relationship[] = ((result as any)?.rows || []).map((row: {
       source_table: string;
       source_column: string;
       target_table: string;
@@ -366,7 +371,8 @@ async function getExternalRelationships(supabase: ReturnType<typeof createClient
 
 // ============ INTERNAL DATABASE FUNCTIONS ============
 
-async function getInternalTables(supabase: ReturnType<typeof createClient>) {
+// deno-lint-ignore no-explicit-any
+async function getInternalTables(supabase: any) {
   const tables: TableInfo[] = [];
   
   const knownTables = [
@@ -408,7 +414,8 @@ async function getInternalTables(supabase: ReturnType<typeof createClient>) {
   });
 }
 
-async function getInternalSchema(supabase: ReturnType<typeof createClient>, tableName: string) {
+// deno-lint-ignore no-explicit-any
+async function getInternalSchema(_supabase: any, tableName: string) {
   const typeDefinitions = getTableTypeDefinitions(tableName);
   const rlsPolicies = getRLSPolicies(tableName);
 
