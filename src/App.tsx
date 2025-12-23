@@ -28,6 +28,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Changelog = lazy(() => import("./pages/Changelog"));
 const Documentation = lazy(() => import("./pages/Documentation"));
 const Tutorials = lazy(() => import("./pages/Tutorials"));
+const TutorialDetail = lazy(() => import("./pages/TutorialDetail"));
 const Security = lazy(() => import("./pages/Security"));
 const Compare = lazy(() => import("./pages/Compare"));
 
