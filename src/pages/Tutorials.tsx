@@ -1,4 +1,5 @@
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -167,12 +168,31 @@ const Tutorials = () => {
     </Card>
   );
 
+  const featuredTutorial = popularTutorials[0];
+  const howToSchema = featuredTutorial ? getHowToSchema({
+    name: featuredTutorial.title,
+    description: featuredTutorial.description,
+    totalTime: `PT${parseInt(featuredTutorial.duration)}M`,
+    steps: [
+      { name: 'Start', text: 'Begin the tutorial' },
+      { name: 'Follow along', text: 'Complete the guided steps' },
+      { name: 'Finish', text: 'Complete the tutorial and practice' },
+    ],
+  }, SEO_CONFIG.siteUrl) : null;
+
   return (
     <PublicLayout>
       <SEO
-        title="Tutorials"
-        description="Learn to build with Kernel through step-by-step tutorials. From beginner guides to advanced techniques."
-        noIndex={false}
+        title={PAGE_SEO.tutorials.title}
+        description={PAGE_SEO.tutorials.description}
+        ogImage={PAGE_SEO.tutorials.ogImage}
+        keywords={PAGE_SEO.tutorials.keywords as unknown as string[]}
+        canonical="/tutorials"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          ...(howToSchema ? [howToSchema] : []),
+          BREADCRUMBS.tutorials(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

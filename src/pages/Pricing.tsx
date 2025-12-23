@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { FAQSection } from "@/components/faq/FAQSection";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, getOrganizationSchema, getProductSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getServiceSchema, BREADCRUMBS } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { pricingFAQs } from "@/lib/faq-data";
 import { useSubscription, STRIPE_PRICES } from "@/hooks/useSubscription";
@@ -163,19 +163,27 @@ export default function Pricing() {
     };
   };
 
-  const pricingSeo = {
-    title: "Pricing - Kernel",
-    description: "Choose the perfect Kernel plan for your needs. From free tier to enterprise solutions with advanced AI code generation.",
-    keywords: ["pricing", "plans", "subscription", "AI coding", "developer tools"],
-  };
+  const pricingPlans = plans.map(plan => ({
+    name: plan.name,
+    description: plan.description,
+    price: plan.monthlyPrice || 0,
+    currency: 'USD',
+    billingPeriod: 'month' as const,
+    features: plan.features.filter(f => f.included).map(f => f.text),
+  }));
 
   return (
     <PublicLayout>
       <SEO 
-        {...pricingSeo}
+        title={PAGE_SEO.pricing.title}
+        description={PAGE_SEO.pricing.description}
+        ogImage={PAGE_SEO.pricing.ogImage}
+        keywords={PAGE_SEO.pricing.keywords as unknown as string[]}
+        canonical="/pricing"
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
-          getProductSchema(SEO_CONFIG.siteUrl),
+          getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl),
+          BREADCRUMBS.pricing(SEO_CONFIG.siteUrl),
         ]}
       />
 

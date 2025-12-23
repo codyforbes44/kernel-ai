@@ -1,4 +1,5 @@
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,9 +106,15 @@ const Documentation = () => {
   return (
     <PublicLayout>
       <SEO
-        title="Documentation"
-        description="Learn how to build with Kernel. Comprehensive guides, tutorials, and API reference."
-        noIndex={false}
+        title={PAGE_SEO.documentation.title}
+        description={PAGE_SEO.documentation.description}
+        ogImage={PAGE_SEO.documentation.ogImage}
+        keywords={PAGE_SEO.documentation.keywords as unknown as string[]}
+        canonical="/documentation"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.documentation(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

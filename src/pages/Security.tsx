@@ -1,4 +1,5 @@
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -62,9 +63,15 @@ const Security = () => {
   return (
     <PublicLayout>
       <SEO
-        title="Security"
-        description="Learn about Kernel's security practices, compliance certifications, and how we protect your data."
-        noIndex={false}
+        title={PAGE_SEO.security.title}
+        description={PAGE_SEO.security.description}
+        ogImage={PAGE_SEO.security.ogImage}
+        keywords={PAGE_SEO.security.keywords as unknown as string[]}
+        canonical="/security"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.security(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

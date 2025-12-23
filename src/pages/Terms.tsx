@@ -1,6 +1,6 @@
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, getOrganizationSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
 
 export default function Terms() {
   const lastUpdated = "December 20, 2025";
@@ -8,9 +8,15 @@ export default function Terms() {
   return (
     <PublicLayout>
       <SEO
-        title="Terms of Service - Kernel"
-        description="Read the terms and conditions for using the Kernel platform."
-        structuredData={[getOrganizationSchema(SEO_CONFIG.siteUrl)]}
+        title={PAGE_SEO.terms.title}
+        description={PAGE_SEO.terms.description}
+        ogImage={PAGE_SEO.terms.ogImage}
+        keywords={PAGE_SEO.terms.keywords as unknown as string[]}
+        canonical="/terms"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.terms(SEO_CONFIG.siteUrl),
+        ]}
       />
 
       <article className="py-16 px-4">

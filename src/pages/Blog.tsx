@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,9 +15,15 @@ const Blog = () => {
   return (
     <PublicLayout>
       <SEO
-        title="Blog"
-        description="Insights, tutorials, and updates from the Kernel team. Learn about AI development, best practices, and more."
-        noIndex={false}
+        title={PAGE_SEO.blog.title}
+        description={PAGE_SEO.blog.description}
+        ogImage={PAGE_SEO.blog.ogImage}
+        keywords={PAGE_SEO.blog.keywords as unknown as string[]}
+        canonical="/blog"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          BREADCRUMBS.blog(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

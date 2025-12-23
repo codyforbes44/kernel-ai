@@ -1,4 +1,5 @@
 import { SEO } from '@/components/seo/SEO';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getJobPostingSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -114,12 +115,29 @@ const values = [
 ];
 
 const Careers = () => {
+  const jobSchemas = openPositions.map(job => getJobPostingSchema({
+    title: job.title,
+    description: `${job.title} position in the ${job.department} department at Kernel.`,
+    department: job.department,
+    location: job.location,
+    employmentType: job.type === 'Full-time' ? 'FULL_TIME' : job.type === 'Part-time' ? 'PART_TIME' : 'CONTRACT',
+    remote: job.remote,
+    datePosted: new Date().toISOString().split('T')[0],
+  }, SEO_CONFIG.siteUrl));
+
   return (
     <PublicLayout>
       <SEO
-        title="Careers"
-        description="Join the Kernel team. Help us build the future of AI-powered development."
-        noIndex={false}
+        title={PAGE_SEO.careers.title}
+        description={PAGE_SEO.careers.description}
+        ogImage={PAGE_SEO.careers.ogImage}
+        keywords={PAGE_SEO.careers.keywords as unknown as string[]}
+        canonical="/careers"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          ...jobSchemas,
+          BREADCRUMBS.careers(SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

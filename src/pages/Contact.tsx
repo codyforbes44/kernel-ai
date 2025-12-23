@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/accordion";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, getOrganizationSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getContactPointSchema, getFAQSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
 import { contactOptions, subjectOptions } from "@/lib/contact-data";
 import { contactFAQs } from "@/lib/faq-data";
 import { toast } from "@/hooks/use-toast";
@@ -87,17 +87,25 @@ export default function Contact() {
     }
   };
 
-  const contactSeo = {
-    title: "Contact & Support - Kernel",
-    description: "Get help with Kernel. Contact our support team, browse FAQs, or find answers to common questions about our AI development platform.",
-    keywords: ["support", "contact", "help", "FAQ", "customer service"],
-  };
+  const faqItems = contactFAQs.slice(0, 8).map(faq => ({
+    question: faq.question,
+    answer: faq.answer,
+  }));
 
   return (
     <PublicLayout>
       <SEO 
-        {...contactSeo}
-        structuredData={[getOrganizationSchema(SEO_CONFIG.siteUrl)]}
+        title={PAGE_SEO.contact.title}
+        description={PAGE_SEO.contact.description}
+        ogImage={PAGE_SEO.contact.ogImage}
+        keywords={PAGE_SEO.contact.keywords as unknown as string[]}
+        canonical="/contact"
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          getContactPointSchema(SEO_CONFIG.siteUrl),
+          getFAQSchema(faqItems),
+          BREADCRUMBS.contact(SEO_CONFIG.siteUrl),
+        ]}
       />
 
       {/* Hero Section */}
