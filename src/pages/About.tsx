@@ -232,8 +232,8 @@ export default function About() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="gold" size="lg" asChild>
-                <Link to="/auth?mode=signup">
-                  Get Started
+                <Link to="/auth">
+                  Sign In
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

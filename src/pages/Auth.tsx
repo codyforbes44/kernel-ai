@@ -7,16 +7,15 @@ import { PAGE_SEO } from "@/lib/seo";
 import {
   AuthCard,
   SignInForm,
-  SignUpForm,
   ForgotPasswordForm,
   ResetPasswordForm,
   type OAuthProvider,
 } from "@/components/auth";
 
-type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
+type AuthMode = 'signin' | 'forgot' | 'reset';
 
 const Auth = () => {
-  const { user, profile, loading, signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
+  const { user, profile, loading, signIn, signInWithOAuth, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('signin');
@@ -26,7 +25,6 @@ const Auth = () => {
   const getSEOTitle = () => {
     switch (mode) {
       case 'signin': return PAGE_SEO.auth.signIn.title;
-      case 'signup': return PAGE_SEO.auth.signUp.title;
       case 'forgot': return PAGE_SEO.auth.forgotPassword.title;
       case 'reset': return 'Set New Password';
       default: return PAGE_SEO.auth.signIn.title;
@@ -36,7 +34,6 @@ const Auth = () => {
   const getSEODescription = () => {
     switch (mode) {
       case 'signin': return PAGE_SEO.auth.signIn.description;
-      case 'signup': return PAGE_SEO.auth.signUp.description;
       case 'forgot': return PAGE_SEO.auth.forgotPassword.description;
       case 'reset': return 'Set a new secure password for your Kernel account.';
       default: return PAGE_SEO.auth.signIn.description;
@@ -46,7 +43,6 @@ const Auth = () => {
   const getCardTitle = () => {
     switch (mode) {
       case 'signin': return 'Welcome';
-      case 'signup': return 'Create Account';
       case 'forgot': return 'Reset Password';
       case 'reset': return 'Set New Password';
     }
@@ -55,21 +51,18 @@ const Auth = () => {
   const getCardDescription = () => {
     switch (mode) {
       case 'signin': return 'Sign in to continue';
-      case 'signup': return 'Sign up to get started';
       case 'forgot': return "We'll send you a reset link";
       case 'reset': return 'Choose a new secure password';
     }
   };
 
-  // Check for password reset token or signup tab in URL
+  // Check for password reset token in URL (signup disabled)
   useEffect(() => {
     const type = searchParams.get('type');
-    const tab = searchParams.get('tab');
     if (type === 'recovery') {
       setMode('reset');
-    } else if (tab === 'signup') {
-      setMode('signup');
     }
+    // Note: signup is temporarily disabled
   }, [searchParams]);
 
   useEffect(() => {
@@ -119,17 +112,6 @@ const Auth = () => {
             onOAuthSignIn={handleOAuthSignIn}
             oauthLoading={oauthLoading}
             onForgotPassword={() => setMode('forgot')}
-            onSwitchToSignUp={() => setMode('signup')}
-          />
-        )}
-
-        {mode === 'signup' && (
-          <SignUpForm
-            onSignUp={signUp}
-            onOAuthSignIn={handleOAuthSignIn}
-            oauthLoading={oauthLoading}
-            onSwitchToSignIn={() => setMode('signin')}
-            onSuccess={() => setMode('signin')}
           />
         )}
 

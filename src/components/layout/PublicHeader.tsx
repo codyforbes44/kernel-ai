@@ -90,11 +90,8 @@ export function PublicHeader() {
           >
             <XLogo className="h-4 w-4" />
           </a>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/auth">Sign In</Link>
-          </Button>
           <Button variant="gold" size="sm" asChild>
-            <Link to="/auth?mode=signup">Get Started</Link>
+            <Link to="/auth">Sign In</Link>
           </Button>
         </div>
 
@@ -128,13 +125,8 @@ export function PublicHeader() {
               </a>
               <div className="border-t border-border my-4" />
               <SheetClose asChild>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-              </SheetClose>
-              <SheetClose asChild>
                 <Button variant="gold" className="w-full" asChild>
-                  <Link to="/auth?mode=signup">Get Started</Link>
+                  <Link to="/auth">Sign In</Link>
                 </Button>
               </SheetClose>
             </nav>

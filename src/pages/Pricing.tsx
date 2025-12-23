@@ -300,7 +300,7 @@ export default function Pricing() {
                         {buttonContent.disabled ? (
                           <span>{buttonContent.text}</span>
                         ) : (
-                          <Link to="/auth?mode=signup">
+                          <Link to="/auth">
                             {buttonContent.text}
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
