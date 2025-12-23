@@ -9,6 +9,7 @@ import {
   ScreenshotToUI,
   AssetLibrary,
   AssetPreviewModal,
+  ImageEditModal,
 } from './ai-assets';
 
 interface AIAssetsPanelProps {
@@ -20,6 +21,8 @@ interface AIAssetsPanelProps {
 export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate' }: AIAssetsPanelProps) {
   const [activeTab, setActiveTab] = useState<'generate' | 'screenshot' | 'library'>(initialTab);
   const [selectedAsset, setSelectedAsset] = useState<GeneratedAsset | null>(null);
+  const [editingAsset, setEditingAsset] = useState<GeneratedAsset | null>(null);
+  const [isEditingImage, setIsEditingImage] = useState(false);
 
   const {
     assets,
@@ -62,6 +65,26 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
 
   const handleCodeGenerated = (code: string, componentName: string) => {
     onInsertCode?.(code);
+  };
+
+  const handleEditImage = async (imageUrl: string, prompt: string) => {
+    setIsEditingImage(true);
+    try {
+      await generateImage({
+        prompt,
+        editImageUrl: imageUrl,
+        editMode: true,
+        projectId,
+      });
+      setActiveTab('library');
+    } finally {
+      setIsEditingImage(false);
+    }
+  };
+
+  const handleOpenEditModal = (asset: GeneratedAsset) => {
+    setSelectedAsset(null);
+    setEditingAsset(asset);
   };
 
   return (
@@ -124,6 +147,7 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
               onDelete={deleteAsset}
               onToggleFavorite={toggleFavorite}
               getCodeSnippet={getImageCodeSnippet}
+              onEditAsset={handleOpenEditModal}
             />
           )}
         </div>
@@ -139,6 +163,16 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
         onDelete={deleteAsset}
         onToggleFavorite={toggleFavorite}
         getCodeSnippet={getImageCodeSnippet}
+        onEditAsset={handleOpenEditModal}
+      />
+
+      {/* Edit Modal */}
+      <ImageEditModal
+        asset={editingAsset}
+        open={!!editingAsset}
+        onOpenChange={(open) => !open && setEditingAsset(null)}
+        onEdit={handleEditImage}
+        isEditing={isEditingImage}
       />
     </div>
   );

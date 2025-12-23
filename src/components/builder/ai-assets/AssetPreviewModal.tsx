@@ -7,7 +7,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Download, Trash2, Heart, Code, Check } from 'lucide-react';
+import { Copy, Download, Trash2, Heart, Code, Check, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import type { GeneratedAsset } from '@/hooks/useAIAssets';
@@ -22,6 +22,7 @@ interface AssetPreviewModalProps {
   onDelete: (assetId: string) => void;
   onToggleFavorite: (assetId: string) => void;
   getCodeSnippet: (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg') => string;
+  onEditAsset?: (asset: GeneratedAsset) => void;
 }
 
 export function AssetPreviewModal({
@@ -33,6 +34,7 @@ export function AssetPreviewModal({
   onDelete,
   onToggleFavorite,
   getCodeSnippet,
+  onEditAsset,
 }: AssetPreviewModalProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -118,6 +120,21 @@ export function AssetPreviewModal({
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Edit with AI button */}
+              {onEditAsset && (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => {
+                    onEditAsset(asset);
+                    onOpenChange(false);
+                  }}
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  Edit with AI
+                </Button>
+              )}
             </div>
 
             {/* Details and code */}

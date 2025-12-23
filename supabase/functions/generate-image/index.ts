@@ -39,10 +39,18 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, style = "realistic", aspectRatio = "1:1", projectId } = await req.json();
+    const { prompt, style = "realistic", aspectRatio = "1:1", projectId, editImageUrl, editMode = false } = await req.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate edit mode has image
+    if (editMode && !editImageUrl) {
+      return new Response(JSON.stringify({ error: "Image URL required for edit mode" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -58,9 +66,22 @@ serve(async (req) => {
       minimal: "minimalist design, clean, simple shapes",
     };
 
-    const enhancedPrompt = `${prompt}. Style: ${stylePrompts[style] || stylePrompts.realistic}. Ultra high resolution.`;
+    const enhancedPrompt = editMode 
+      ? prompt 
+      : `${prompt}. Style: ${stylePrompts[style] || stylePrompts.realistic}. Ultra high resolution.`;
 
-    console.log("Generating image with prompt:", enhancedPrompt);
+    console.log(editMode ? "Editing image with prompt:" : "Generating image with prompt:", enhancedPrompt);
+
+    // Build message content based on mode
+    let messageContent: any;
+    if (editMode && editImageUrl) {
+      messageContent = [
+        { type: "text", text: enhancedPrompt },
+        { type: "image_url", image_url: { url: editImageUrl } }
+      ];
+    } else {
+      messageContent = enhancedPrompt;
+    }
 
     // Call Lovable AI with image generation model
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -74,7 +95,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: enhancedPrompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
