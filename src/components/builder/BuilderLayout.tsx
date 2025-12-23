@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/resizable';
 import { FileExplorer } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
-import { CollaborativeMonacoEditor } from './CollaborativeMonacoEditor';
+import { CollaborativeMonacoEditor, CollaborativeMonacoEditorRef } from './CollaborativeMonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
@@ -100,6 +100,9 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   
   // Store the fix handler from BuilderChat
   const fixHandlerRef = useRef<((errors: CapturedError[]) => void) | null>(null);
+  
+  // Editor ref for code insertion
+  const editorRef = useRef<CollaborativeMonacoEditorRef | null>(null);
   
   const {
     project,
@@ -242,6 +245,18 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   const handleInstallComponent = useCallback((code: string) => {
     toast.success('Component installed! Code copied to clipboard.');
     navigator.clipboard.writeText(code);
+  }, []);
+
+  // Handle code insertion from AI Studio
+  const handleInsertCode = useCallback((code: string) => {
+    if (editorRef.current) {
+      editorRef.current.insertCode(code);
+      toast.success('Code inserted at cursor position');
+    } else {
+      // Fallback to clipboard if no editor is active
+      navigator.clipboard.writeText(code);
+      toast.success('Code copied to clipboard');
+    }
   }, []);
 
   // Keyboard shortcuts
@@ -450,6 +465,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
             {activeFile ? (
               <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
                 <CollaborativeMonacoEditor
+                  ref={editorRef}
                   value={getFileContent(activeFile.id)}
                   language={activeFile.language || 'plaintext'}
                   onChange={(value) => updateLocalContent(activeFile.id, value)}
@@ -525,6 +541,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
           onRestoreVersion={handleRestoreVersion}
           onPreviewChange={handlePreviewChange}
           onInstallComponent={handleInstallComponent}
+          onInsertCode={handleInsertCode}
           togglePanel={togglePanel}
           setActivePanel={setActivePanel}
           getPanelConfig={getPanelConfig}
