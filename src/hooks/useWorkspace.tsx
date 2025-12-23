@@ -4,6 +4,7 @@ import type { Workspace, Project, Conversation } from '@/types/database';
 import { useAuth } from './useAuth';
 import { workspaceService } from '@/services/workspaceService';
 import { toast } from 'sonner';
+import { getTimeOfDayGreeting } from '@/lib/utils';
 
 export interface CreateProjectOptions {
   autoCreateConversation?: boolean;
@@ -289,7 +290,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
       // Add welcome message for first-time users
       if (isFirstConversation) {
-        const welcomeMessage = `👋 **Welcome to your first conversation!**
+        const welcomeMessage = `👋 **${getTimeOfDayGreeting()}! Welcome to your first conversation**
 
 I'm here to help you build amazing things. Here are some tips to get started:
 

@@ -19,6 +19,7 @@ import { PasswordInput } from "./PasswordInput";
 import { BiometricButton } from "./BiometricButton";
 import { BiometricSetupPrompt } from "./BiometricSetupPrompt";
 import { ShieldAlert, Clock, MapPin } from "lucide-react";
+import { getTimeOfDayGreeting } from "@/lib/utils";
 
 interface SignInFormProps {
   onSignIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null; userId?: string }>;
@@ -139,7 +140,7 @@ export function SignInForm({
       }
       
       if (isMobile) success();
-      toast.success("Welcome back!");
+      toast.success(`${getTimeOfDayGreeting()}! Welcome back`);
     }
   };
 
