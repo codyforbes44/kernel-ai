@@ -5,14 +5,30 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { tutorials, type Tutorial } from '@/lib/tutorial-data';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useTutorials, type TutorialData } from '@/hooks/useStaticData';
 import { 
   Play, 
   FileText, 
   Clock, 
   Star,
+  Rocket,
+  Code,
+  Database,
+  Shield,
+  Palette,
+  Zap,
 } from 'lucide-react';
 
+// Icon mapping from string name to component
+const iconMap: Record<string, React.ElementType> = {
+  Rocket,
+  Code,
+  Database,
+  Shield,
+  Palette,
+  Zap,
+};
 
 const difficultyColors: Record<string, string> = {
   Beginner: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
@@ -20,19 +36,16 @@ const difficultyColors: Record<string, string> = {
   Advanced: 'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
-const Tutorials = () => {
-  const beginnerTutorials = tutorials.filter(t => t.difficulty === 'Beginner');
-  const intermediateTutorials = tutorials.filter(t => t.difficulty === 'Intermediate');
-  const advancedTutorials = tutorials.filter(t => t.difficulty === 'Advanced');
-  const popularTutorials = tutorials.filter(t => t.popular);
-
-  const TutorialCard = ({ tutorial }: { tutorial: Tutorial }) => (
+const TutorialCard = ({ tutorial }: { tutorial: TutorialData }) => {
+  const IconComponent = iconMap[tutorial.iconName] || Code;
+  
+  return (
     <Link to={`/tutorials/${tutorial.slug}`}>
       <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-              <tutorial.icon className="h-5 w-5 text-primary" />
+              <IconComponent className="h-5 w-5 text-primary" />
             </div>
             <div className="flex items-center gap-2">
               {tutorial.popular && (
@@ -67,6 +80,34 @@ const Tutorials = () => {
       </Card>
     </Link>
   );
+};
+
+const TutorialCardSkeleton = () => (
+  <Card className="h-full">
+    <CardHeader>
+      <div className="flex items-start justify-between gap-2">
+        <Skeleton className="h-9 w-9 rounded-lg" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <Skeleton className="h-6 w-3/4 mt-2" />
+      <Skeleton className="h-4 w-full mt-2" />
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-20" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const Tutorials = () => {
+  const { data: tutorials = [], isLoading, error } = useTutorials();
+
+  const beginnerTutorials = tutorials.filter(t => t.difficulty === 'Beginner');
+  const intermediateTutorials = tutorials.filter(t => t.difficulty === 'Intermediate');
+  const advancedTutorials = tutorials.filter(t => t.difficulty === 'Advanced');
+  const popularTutorials = tutorials.filter(t => t.popular);
 
   const featuredTutorial = popularTutorials[0];
   const howToSchema = featuredTutorial ? getHowToSchema({
@@ -79,6 +120,17 @@ const Tutorials = () => {
       { name: 'Finish', text: 'Complete the tutorial and practice' },
     ],
   }, SEO_CONFIG.siteUrl) : null;
+
+  if (error) {
+    return (
+      <PublicLayout>
+        <div className="container mx-auto px-4 py-16 max-w-6xl text-center">
+          <h1 className="text-2xl font-bold mb-4">Failed to load tutorials</h1>
+          <p className="text-muted-foreground">Please try refreshing the page.</p>
+        </div>
+      </PublicLayout>
+    );
+  }
 
   return (
     <PublicLayout>
@@ -110,9 +162,17 @@ const Tutorials = () => {
             Popular Tutorials
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {popularTutorials.map((tutorial) => (
-              <TutorialCard key={tutorial.id} tutorial={tutorial} />
-            ))}
+            {isLoading ? (
+              <>
+                <TutorialCardSkeleton />
+                <TutorialCardSkeleton />
+                <TutorialCardSkeleton />
+              </>
+            ) : (
+              popularTutorials.map((tutorial) => (
+                <TutorialCard key={tutorial.id} tutorial={tutorial} />
+              ))
+            )}
           </div>
         </div>
 
@@ -127,33 +187,57 @@ const Tutorials = () => {
 
           <TabsContent value="all">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tutorials.map((tutorial) => (
-                <TutorialCard key={tutorial.id} tutorial={tutorial} />
-              ))}
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <TutorialCardSkeleton key={i} />
+                ))
+              ) : (
+                tutorials.map((tutorial) => (
+                  <TutorialCard key={tutorial.id} tutorial={tutorial} />
+                ))
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="beginner">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {beginnerTutorials.map((tutorial) => (
-                <TutorialCard key={tutorial.id} tutorial={tutorial} />
-              ))}
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TutorialCardSkeleton key={i} />
+                ))
+              ) : (
+                beginnerTutorials.map((tutorial) => (
+                  <TutorialCard key={tutorial.id} tutorial={tutorial} />
+                ))
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="intermediate">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {intermediateTutorials.map((tutorial) => (
-                <TutorialCard key={tutorial.id} tutorial={tutorial} />
-              ))}
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TutorialCardSkeleton key={i} />
+                ))
+              ) : (
+                intermediateTutorials.map((tutorial) => (
+                  <TutorialCard key={tutorial.id} tutorial={tutorial} />
+                ))
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="advanced">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {advancedTutorials.map((tutorial) => (
-                <TutorialCard key={tutorial.id} tutorial={tutorial} />
-              ))}
+              {isLoading ? (
+                Array.from({ length: 2 }).map((_, i) => (
+                  <TutorialCardSkeleton key={i} />
+                ))
+              ) : (
+                advancedTutorials.map((tutorial) => (
+                  <TutorialCard key={tutorial.id} tutorial={tutorial} />
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
