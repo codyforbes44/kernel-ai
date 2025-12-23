@@ -789,6 +789,45 @@ export type Database = {
           },
         ]
       }
+      external_supabase_connections: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_connected_at: string | null
+          project_name: string
+          supabase_anon_key: string
+          supabase_service_role_key: string | null
+          supabase_url: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_connected_at?: string | null
+          project_name: string
+          supabase_anon_key: string
+          supabase_service_role_key?: string | null
+          supabase_url: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_connected_at?: string | null
+          project_name?: string
+          supabase_anon_key?: string
+          supabase_service_role_key?: string | null
+          supabase_url?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       file_versions: {
         Row: {
           content: string
