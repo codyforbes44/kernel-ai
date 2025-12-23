@@ -52,121 +52,61 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const dbUrl = Deno.env.get('SUPABASE_DB_URL')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
     const url = new URL(req.url);
     const action = url.searchParams.get('action') || 'tables';
     const tableName = url.searchParams.get('table');
-
-    console.log(`Database introspect: action=${action}, table=${tableName}`);
+    
+    // External connection parameters
+    const externalUrl = url.searchParams.get('external_url');
+    const externalKey = url.searchParams.get('external_key');
+    
+    // Determine which Supabase to use
+    const isExternal = !!(externalUrl && externalKey);
+    
+    let supabaseUrl: string;
+    let supabaseKey: string;
+    
+    if (isExternal) {
+      supabaseUrl = externalUrl;
+      supabaseKey = externalKey;
+      console.log(`External database introspect: action=${action}, table=${tableName}, url=${externalUrl}`);
+    } else {
+      supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      console.log(`Internal database introspect: action=${action}, table=${tableName}`);
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     if (action === 'tables') {
-      // Get all tables with row counts and RLS status using direct query
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(0);
-
-      // Query pg_stat_user_tables for row counts and pg_tables for RLS info
-      const tables: TableInfo[] = [];
-      
-      // Known tables from the schema
-      const knownTables = [
-        'profiles', 'workspaces', 'projects', 'conversations', 'messages',
-        'prompt_templates', 'usage_analytics', 'builder_projects', 'builder_conversations',
-        'builder_messages', 'project_files', 'deployments', 'design_systems',
-        'marketplace_components', 'component_installations', 'component_likes',
-        'github_connections', 'project_repos', 'github_commits', 'file_versions',
-        'error_logs', 'project_analysis', 'deployment_env_vars', 'custom_domains',
-        'subscriptions', 'subscription_events', 'shared_templates', 'user_roles',
-        'login_attempts', 'user_login_locations', 'login_alerts', 'ai_credits', 'ai_usage_logs'
-      ];
-
-      // Fetch row counts for each table
-      for (const table of knownTables) {
-        try {
-          const { count } = await supabase
-            .from(table as 'profiles')
-            .select('*', { count: 'exact', head: true });
-          
-          tables.push({
-            name: table,
-            rowCount: count || 0,
-            hasRLS: true, // All our tables have RLS enabled
-          });
-        } catch {
-          tables.push({
-            name: table,
-            rowCount: 0,
-            hasRLS: true,
-          });
-        }
+      if (isExternal) {
+        // Dynamic introspection for external databases
+        return await getExternalTables(supabase, supabaseUrl, supabaseKey);
+      } else {
+        // Use known tables for internal database
+        return await getInternalTables(supabase);
       }
-
-      return new Response(JSON.stringify({ tables }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     if (action === 'schema' && tableName) {
-      // Fetch column info from information_schema via the database
-      const columns: ColumnSchema[] = [];
-      
-      // Get columns using a simple approach - query the table with limit 0 to get structure
-      const { data: sampleData, error: sampleError } = await supabase
-        .from(tableName as 'profiles')
-        .select('*')
-        .limit(1);
-
-      // Build column schema from known types file
-      const typeDefinitions = getTableTypeDefinitions(tableName);
-      
-      // Get RLS policies for this table
-      const rlsPolicies = getRLSPolicies(tableName);
-
-      const schema: TableSchema = {
-        name: tableName,
-        columns: typeDefinitions.columns,
-        primaryKey: typeDefinitions.primaryKey,
-        rlsPolicies,
-      };
-
-      return new Response(JSON.stringify({ schema }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (isExternal) {
+        return await getExternalSchema(supabase, supabaseUrl, supabaseKey, tableName);
+      } else {
+        return await getInternalSchema(supabase, tableName);
+      }
     }
 
     if (action === 'relationships') {
-      const relationships: Relationship[] = [
-        { sourceTable: 'projects', sourceColumn: 'workspace_id', targetTable: 'workspaces', targetColumn: 'id', constraintName: 'projects_workspace_id_fkey' },
-        { sourceTable: 'conversations', sourceColumn: 'project_id', targetTable: 'projects', targetColumn: 'id', constraintName: 'conversations_project_id_fkey' },
-        { sourceTable: 'messages', sourceColumn: 'conversation_id', targetTable: 'conversations', targetColumn: 'id', constraintName: 'messages_conversation_id_fkey' },
-        { sourceTable: 'builder_conversations', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'builder_conversations_project_id_fkey' },
-        { sourceTable: 'builder_messages', sourceColumn: 'conversation_id', targetTable: 'builder_conversations', targetColumn: 'id', constraintName: 'builder_messages_conversation_id_fkey' },
-        { sourceTable: 'project_files', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'project_files_project_id_fkey' },
-        { sourceTable: 'deployments', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'deployments_project_id_fkey' },
-        { sourceTable: 'design_systems', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'design_systems_project_id_fkey' },
-        { sourceTable: 'file_versions', sourceColumn: 'file_id', targetTable: 'project_files', targetColumn: 'id', constraintName: 'file_versions_file_id_fkey' },
-        { sourceTable: 'project_repos', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'project_repos_project_id_fkey' },
-        { sourceTable: 'project_repos', sourceColumn: 'github_connection_id', targetTable: 'github_connections', targetColumn: 'id', constraintName: 'project_repos_github_connection_id_fkey' },
-        { sourceTable: 'github_commits', sourceColumn: 'project_repo_id', targetTable: 'project_repos', targetColumn: 'id', constraintName: 'github_commits_project_repo_id_fkey' },
-        { sourceTable: 'component_installations', sourceColumn: 'component_id', targetTable: 'marketplace_components', targetColumn: 'id', constraintName: 'component_installations_component_id_fkey' },
-        { sourceTable: 'component_installations', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'component_installations_project_id_fkey' },
-        { sourceTable: 'component_likes', sourceColumn: 'component_id', targetTable: 'marketplace_components', targetColumn: 'id', constraintName: 'component_likes_component_id_fkey' },
-        { sourceTable: 'error_logs', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'error_logs_project_id_fkey' },
-        { sourceTable: 'custom_domains', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'custom_domains_project_id_fkey' },
-        { sourceTable: 'deployment_env_vars', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'deployment_env_vars_project_id_fkey' },
-        { sourceTable: 'subscription_events', sourceColumn: 'subscription_id', targetTable: 'subscriptions', targetColumn: 'id', constraintName: 'subscription_events_subscription_id_fkey' },
-        { sourceTable: 'login_alerts', sourceColumn: 'location_id', targetTable: 'user_login_locations', targetColumn: 'id', constraintName: 'login_alerts_location_id_fkey' },
-      ];
-
-      return new Response(JSON.stringify({ relationships }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      if (isExternal) {
+        return await getExternalRelationships(supabase, supabaseUrl, supabaseKey);
+      } else {
+        return await getInternalRelationships();
+      }
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
@@ -178,18 +118,9 @@ serve(async (req) => {
     console.error('Database introspect error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     
-    // Handle rate limiting
     if (message.includes('rate limit') || message.includes('too many requests')) {
       return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
         status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    // Handle credit exhaustion
-    if (message.includes('credits') || message.includes('payment required')) {
-      return new Response(JSON.stringify({ error: 'Insufficient credits. Please add more credits.' }), {
-        status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -201,9 +132,330 @@ serve(async (req) => {
   }
 });
 
+// ============ EXTERNAL DATABASE FUNCTIONS ============
+
+// deno-lint-ignore no-explicit-any
+async function getExternalTables(supabase: any, url: string, key: string) {
+  try {
+    // Try to use RPC function if available
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('execute_sql', {
+      query: `
+        SELECT 
+          t.table_name as name,
+          COALESCE(s.n_live_tup, 0) as row_count,
+          COALESCE(c.relrowsecurity, false) as has_rls
+        FROM information_schema.tables t
+        LEFT JOIN pg_stat_user_tables s ON t.table_name = s.relname
+        LEFT JOIN pg_class c ON t.table_name = c.relname
+        WHERE t.table_schema = 'public' 
+        AND t.table_type = 'BASE TABLE'
+        ORDER BY t.table_name
+      `
+    });
+
+    // deno-lint-ignore no-explicit-any
+    if (!rpcError && rpcResult) {
+      // deno-lint-ignore no-explicit-any
+      const tables: TableInfo[] = (rpcResult.rows || rpcResult || []).map((row: any) => ({
+        name: row.name,
+        rowCount: row.row_count || 0,
+        hasRLS: row.has_rls || false,
+      }));
+
+      return new Response(JSON.stringify({ tables }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Fallback: Try to get tables from REST API
+    const response = await fetch(`${url}/rest/v1/`, {
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+      },
+    });
+
+    if (response.ok) {
+      const definitions = await response.json();
+      const tables: TableInfo[] = Object.keys(definitions?.definitions || {})
+        .filter(name => !name.startsWith('_'))
+        .map(name => ({
+          name,
+          rowCount: 0,
+          hasRLS: true, // Assume RLS is enabled
+        }));
+
+      return new Response(JSON.stringify({ tables }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    throw new Error('Could not retrieve table list');
+  } catch (error) {
+    console.error('getExternalTables error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to retrieve tables. Make sure the execute_sql function exists.',
+      tables: [],
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+async function getExternalSchema(supabase: ReturnType<typeof createClient>, url: string, key: string, tableName: string) {
+  try {
+    // Try RPC for column info
+    const { data: colResult, error: colError } = await supabase.rpc('execute_sql', {
+      query: `
+        SELECT 
+          c.column_name as name,
+          c.data_type as type,
+          c.is_nullable = 'YES' as nullable,
+          c.column_default as default_value,
+          c.character_maximum_length as max_length,
+          COALESCE(pk.is_pk, false) as is_primary_key,
+          fk.foreign_table,
+          fk.foreign_column
+        FROM information_schema.columns c
+        LEFT JOIN (
+          SELECT kcu.column_name, true as is_pk
+          FROM information_schema.table_constraints tc
+          JOIN information_schema.key_column_usage kcu 
+            ON tc.constraint_name = kcu.constraint_name
+          WHERE tc.table_name = '${tableName}' 
+          AND tc.constraint_type = 'PRIMARY KEY'
+        ) pk ON c.column_name = pk.column_name
+        LEFT JOIN (
+          SELECT 
+            kcu.column_name,
+            ccu.table_name as foreign_table,
+            ccu.column_name as foreign_column
+          FROM information_schema.table_constraints tc
+          JOIN information_schema.key_column_usage kcu 
+            ON tc.constraint_name = kcu.constraint_name
+          JOIN information_schema.constraint_column_usage ccu 
+            ON tc.constraint_name = ccu.constraint_name
+          WHERE tc.table_name = '${tableName}' 
+          AND tc.constraint_type = 'FOREIGN KEY'
+        ) fk ON c.column_name = fk.column_name
+        WHERE c.table_name = '${tableName}' 
+        AND c.table_schema = 'public'
+        ORDER BY c.ordinal_position
+      `
+    });
+
+    const columns: ColumnSchema[] = (colResult?.rows || []).map((row: {
+      name: string;
+      type: string;
+      nullable: boolean;
+      default_value: string | null;
+      max_length: number | null;
+      is_primary_key: boolean;
+      foreign_table: string | null;
+      foreign_column: string | null;
+    }) => ({
+      name: row.name,
+      type: row.type,
+      nullable: row.nullable,
+      defaultValue: row.default_value,
+      maxLength: row.max_length,
+      isPrimaryKey: row.is_primary_key,
+      isForeignKey: !!row.foreign_table,
+      foreignTable: row.foreign_table,
+      foreignColumn: row.foreign_column,
+    }));
+
+    // Get RLS policies
+    const { data: polResult } = await supabase.rpc('execute_sql', {
+      query: `
+        SELECT 
+          polname as name,
+          CASE polcmd
+            WHEN 'r' THEN 'SELECT'
+            WHEN 'a' THEN 'INSERT'
+            WHEN 'w' THEN 'UPDATE'
+            WHEN 'd' THEN 'DELETE'
+            ELSE '*'
+          END as command,
+          pg_get_expr(polqual, polrelid) as definition
+        FROM pg_policy p
+        JOIN pg_class c ON p.polrelid = c.oid
+        WHERE c.relname = '${tableName}'
+      `
+    });
+
+    const rlsPolicies: RLSPolicy[] = (polResult?.rows || []).map((row: {
+      name: string;
+      command: string;
+      definition: string;
+    }) => ({
+      name: row.name,
+      command: row.command,
+      definition: row.definition || '',
+    }));
+
+    const schema: TableSchema = {
+      name: tableName,
+      columns,
+      primaryKey: columns.filter(c => c.isPrimaryKey).map(c => c.name),
+      rlsPolicies,
+    };
+
+    return new Response(JSON.stringify({ schema }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('getExternalSchema error:', error);
+    return new Response(JSON.stringify({ 
+      error: 'Failed to retrieve schema',
+      schema: { name: tableName, columns: [], primaryKey: [], rlsPolicies: [] },
+    }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+async function getExternalRelationships(supabase: ReturnType<typeof createClient>, url: string, key: string) {
+  try {
+    const { data: result } = await supabase.rpc('execute_sql', {
+      query: `
+        SELECT 
+          tc.table_name as source_table,
+          kcu.column_name as source_column,
+          ccu.table_name as target_table,
+          ccu.column_name as target_column,
+          tc.constraint_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu 
+          ON tc.constraint_name = kcu.constraint_name
+        JOIN information_schema.constraint_column_usage ccu 
+          ON tc.constraint_name = ccu.constraint_name
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+        AND tc.table_schema = 'public'
+      `
+    });
+
+    const relationships: Relationship[] = (result?.rows || []).map((row: {
+      source_table: string;
+      source_column: string;
+      target_table: string;
+      target_column: string;
+      constraint_name: string;
+    }) => ({
+      sourceTable: row.source_table,
+      sourceColumn: row.source_column,
+      targetTable: row.target_table,
+      targetColumn: row.target_column,
+      constraintName: row.constraint_name,
+    }));
+
+    return new Response(JSON.stringify({ relationships }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('getExternalRelationships error:', error);
+    return new Response(JSON.stringify({ relationships: [] }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+// ============ INTERNAL DATABASE FUNCTIONS ============
+
+async function getInternalTables(supabase: ReturnType<typeof createClient>) {
+  const tables: TableInfo[] = [];
+  
+  const knownTables = [
+    'profiles', 'workspaces', 'projects', 'conversations', 'messages',
+    'prompt_templates', 'usage_analytics', 'builder_projects', 'builder_conversations',
+    'builder_messages', 'project_files', 'deployments', 'design_systems',
+    'marketplace_components', 'component_installations', 'component_likes',
+    'github_connections', 'project_repos', 'github_commits', 'file_versions',
+    'error_logs', 'project_analysis', 'deployment_env_vars', 'custom_domains',
+    'subscriptions', 'subscription_events', 'shared_templates', 'user_roles',
+    'login_attempts', 'user_login_locations', 'login_alerts', 'ai_credits', 
+    'ai_usage_logs', 'external_supabase_connections', 'ai_credit_transactions',
+    'generated_assets', 'contact_submissions', 'page_views', 'admin_audit_log',
+    'agent_sessions'
+  ];
+
+  for (const table of knownTables) {
+    try {
+      const { count } = await supabase
+        .from(table as 'profiles')
+        .select('*', { count: 'exact', head: true });
+      
+      tables.push({
+        name: table,
+        rowCount: count || 0,
+        hasRLS: true,
+      });
+    } catch {
+      tables.push({
+        name: table,
+        rowCount: 0,
+        hasRLS: true,
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({ tables }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getInternalSchema(supabase: ReturnType<typeof createClient>, tableName: string) {
+  const typeDefinitions = getTableTypeDefinitions(tableName);
+  const rlsPolicies = getRLSPolicies(tableName);
+
+  const schema: TableSchema = {
+    name: tableName,
+    columns: typeDefinitions.columns,
+    primaryKey: typeDefinitions.primaryKey,
+    rlsPolicies,
+  };
+
+  return new Response(JSON.stringify({ schema }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+async function getInternalRelationships() {
+  const relationships: Relationship[] = [
+    { sourceTable: 'projects', sourceColumn: 'workspace_id', targetTable: 'workspaces', targetColumn: 'id', constraintName: 'projects_workspace_id_fkey' },
+    { sourceTable: 'conversations', sourceColumn: 'project_id', targetTable: 'projects', targetColumn: 'id', constraintName: 'conversations_project_id_fkey' },
+    { sourceTable: 'messages', sourceColumn: 'conversation_id', targetTable: 'conversations', targetColumn: 'id', constraintName: 'messages_conversation_id_fkey' },
+    { sourceTable: 'builder_conversations', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'builder_conversations_project_id_fkey' },
+    { sourceTable: 'builder_messages', sourceColumn: 'conversation_id', targetTable: 'builder_conversations', targetColumn: 'id', constraintName: 'builder_messages_conversation_id_fkey' },
+    { sourceTable: 'project_files', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'project_files_project_id_fkey' },
+    { sourceTable: 'deployments', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'deployments_project_id_fkey' },
+    { sourceTable: 'design_systems', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'design_systems_project_id_fkey' },
+    { sourceTable: 'file_versions', sourceColumn: 'file_id', targetTable: 'project_files', targetColumn: 'id', constraintName: 'file_versions_file_id_fkey' },
+    { sourceTable: 'project_repos', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'project_repos_project_id_fkey' },
+    { sourceTable: 'project_repos', sourceColumn: 'github_connection_id', targetTable: 'github_connections', targetColumn: 'id', constraintName: 'project_repos_github_connection_id_fkey' },
+    { sourceTable: 'github_commits', sourceColumn: 'project_repo_id', targetTable: 'project_repos', targetColumn: 'id', constraintName: 'github_commits_project_repo_id_fkey' },
+    { sourceTable: 'component_installations', sourceColumn: 'component_id', targetTable: 'marketplace_components', targetColumn: 'id', constraintName: 'component_installations_component_id_fkey' },
+    { sourceTable: 'component_installations', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'component_installations_project_id_fkey' },
+    { sourceTable: 'component_likes', sourceColumn: 'component_id', targetTable: 'marketplace_components', targetColumn: 'id', constraintName: 'component_likes_component_id_fkey' },
+    { sourceTable: 'error_logs', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'error_logs_project_id_fkey' },
+    { sourceTable: 'custom_domains', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'custom_domains_project_id_fkey' },
+    { sourceTable: 'deployment_env_vars', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'deployment_env_vars_project_id_fkey' },
+    { sourceTable: 'subscription_events', sourceColumn: 'subscription_id', targetTable: 'subscriptions', targetColumn: 'id', constraintName: 'subscription_events_subscription_id_fkey' },
+    { sourceTable: 'login_alerts', sourceColumn: 'location_id', targetTable: 'user_login_locations', targetColumn: 'id', constraintName: 'login_alerts_location_id_fkey' },
+    { sourceTable: 'agent_sessions', sourceColumn: 'project_id', targetTable: 'builder_projects', targetColumn: 'id', constraintName: 'agent_sessions_project_id_fkey' },
+  ];
+
+  return new Response(JSON.stringify({ relationships }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 // Helper to get RLS policies for a table
 function getRLSPolicies(tableName: string): RLSPolicy[] {
-  // Known RLS policies based on our schema
   const policyMap: Record<string, RLSPolicy[]> = {
     profiles: [
       { name: 'Users can view own profile', command: 'SELECT', definition: 'auth.uid() = id' },
@@ -222,39 +474,18 @@ function getRLSPolicies(tableName: string): RLSPolicy[] {
       { name: 'Users can update own projects', command: 'UPDATE', definition: 'auth.uid() = user_id' },
       { name: 'Users can delete own projects', command: 'DELETE', definition: 'auth.uid() = user_id' },
     ],
-    conversations: [
-      { name: 'Users can view own conversations', command: 'SELECT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can create own conversations', command: 'INSERT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can update own conversations', command: 'UPDATE', definition: 'auth.uid() = user_id' },
-      { name: 'Users can delete own conversations', command: 'DELETE', definition: 'auth.uid() = user_id' },
-    ],
-    messages: [
-      { name: 'Users can view own messages', command: 'SELECT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can create own messages', command: 'INSERT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can update own messages', command: 'UPDATE', definition: 'auth.uid() = user_id' },
-      { name: 'Users can delete own messages', command: 'DELETE', definition: 'auth.uid() = user_id' },
-    ],
-    builder_projects: [
-      { name: 'Users can view their own projects', command: 'SELECT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can create their own projects', command: 'INSERT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can update their own projects', command: 'UPDATE', definition: 'auth.uid() = user_id' },
-      { name: 'Users can delete their own projects', command: 'DELETE', definition: 'auth.uid() = user_id' },
-    ],
-    ai_credits: [
-      { name: 'Users can view own credits', command: 'SELECT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can insert own credits', command: 'INSERT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can update own credits', command: 'UPDATE', definition: 'auth.uid() = user_id' },
-    ],
-    ai_usage_logs: [
-      { name: 'Users can view own usage', command: 'SELECT', definition: 'auth.uid() = user_id' },
-      { name: 'Users can insert own usage', command: 'INSERT', definition: 'auth.uid() = user_id' },
+    external_supabase_connections: [
+      { name: 'Users can view own connections', command: 'SELECT', definition: 'auth.uid() = user_id' },
+      { name: 'Users can create own connections', command: 'INSERT', definition: 'auth.uid() = user_id' },
+      { name: 'Users can update own connections', command: 'UPDATE', definition: 'auth.uid() = user_id' },
+      { name: 'Users can delete own connections', command: 'DELETE', definition: 'auth.uid() = user_id' },
     ],
   };
   
   return policyMap[tableName] || [];
 }
 
-// Helper to get type definitions for tables
+// Helper to get type definitions for internal tables
 function getTableTypeDefinitions(tableName: string): { columns: ColumnSchema[]; primaryKey: string[] } {
   const schemas: Record<string, { columns: ColumnSchema[]; primaryKey: string[] }> = {
     profiles: {
@@ -264,36 +495,24 @@ function getTableTypeDefinitions(tableName: string): { columns: ColumnSchema[]; 
         { name: 'avatar_url', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
         { name: 'preferences', type: 'jsonb', nullable: true, defaultValue: "'{}'::jsonb", isPrimaryKey: false, isForeignKey: false },
         { name: 'onboarding_completed', type: 'boolean', nullable: true, defaultValue: 'false', isPrimaryKey: false, isForeignKey: false },
+        { name: 'is_suspended', type: 'boolean', nullable: true, defaultValue: 'false', isPrimaryKey: false, isForeignKey: false },
         { name: 'created_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
         { name: 'updated_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
       ],
       primaryKey: ['id'],
     },
-    workspaces: {
+    external_supabase_connections: {
       columns: [
         { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
         { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'name', type: 'text', nullable: false, defaultValue: "'Default Workspace'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'icon', type: 'text', nullable: true, defaultValue: "'🏠'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'color', type: 'text', nullable: true, defaultValue: "'#6366f1'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'is_default', type: 'boolean', nullable: true, defaultValue: 'false', isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-        { name: 'updated_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-      ],
-      primaryKey: ['id'],
-    },
-    projects: {
-      columns: [
-        { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
-        { name: 'workspace_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: true, foreignTable: 'workspaces', foreignColumn: 'id' },
-        { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'name', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'description', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'icon', type: 'text', nullable: true, defaultValue: "'📁'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'color', type: 'text', nullable: true, defaultValue: "'#8b5cf6'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'is_archived', type: 'boolean', nullable: true, defaultValue: 'false', isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-        { name: 'updated_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
+        { name: 'project_name', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
+        { name: 'supabase_url', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
+        { name: 'supabase_anon_key', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
+        { name: 'supabase_service_role_key', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
+        { name: 'is_active', type: 'boolean', nullable: true, defaultValue: 'true', isPrimaryKey: false, isForeignKey: false },
+        { name: 'last_connected_at', type: 'timestamptz', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
+        { name: 'created_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
+        { name: 'updated_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
       ],
       primaryKey: ['id'],
     },
@@ -309,62 +528,6 @@ function getTableTypeDefinitions(tableName: string): { columns: ColumnSchema[]; 
         { name: 'is_public', type: 'boolean', nullable: true, defaultValue: 'false', isPrimaryKey: false, isForeignKey: false },
         { name: 'created_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
         { name: 'updated_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-      ],
-      primaryKey: ['id'],
-    },
-    messages: {
-      columns: [
-        { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
-        { name: 'conversation_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: true, foreignTable: 'conversations', foreignColumn: 'id' },
-        { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'role', type: 'message_role', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'content', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'model', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'tokens_used', type: 'integer', nullable: true, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'metadata', type: 'jsonb', nullable: true, defaultValue: "'{}'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-        { name: 'updated_at', type: 'timestamptz', nullable: false, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-      ],
-      primaryKey: ['id'],
-    },
-    ai_credits: {
-      columns: [
-        { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
-        { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'balance', type: 'integer', nullable: false, defaultValue: '1000', isPrimaryKey: false, isForeignKey: false },
-        { name: 'total_purchased', type: 'integer', nullable: false, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'total_used', type: 'integer', nullable: false, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-        { name: 'updated_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-      ],
-      primaryKey: ['id'],
-    },
-    ai_usage_logs: {
-      columns: [
-        { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
-        { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'conversation_id', type: 'uuid', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'function_name', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'model', type: 'text', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'tokens_input', type: 'integer', nullable: false, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'tokens_output', type: 'integer', nullable: false, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'credits_used', type: 'integer', nullable: false, defaultValue: '0', isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
-      ],
-      primaryKey: ['id'],
-    },
-    deployments: {
-      columns: [
-        { name: 'id', type: 'uuid', nullable: false, defaultValue: 'gen_random_uuid()', isPrimaryKey: true, isForeignKey: false },
-        { name: 'project_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: true, foreignTable: 'builder_projects', foreignColumn: 'id' },
-        { name: 'user_id', type: 'uuid', nullable: false, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'version', type: 'integer', nullable: false, defaultValue: '1', isPrimaryKey: false, isForeignKey: false },
-        { name: 'status', type: 'text', nullable: false, defaultValue: "'pending'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'environment', type: 'text', nullable: false, defaultValue: "'preview'", isPrimaryKey: false, isForeignKey: false },
-        { name: 'deploy_url', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'subdomain', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'build_log', type: 'text', nullable: true, defaultValue: null, isPrimaryKey: false, isForeignKey: false },
-        { name: 'created_at', type: 'timestamptz', nullable: true, defaultValue: 'now()', isPrimaryKey: false, isForeignKey: false },
       ],
       primaryKey: ['id'],
     },
