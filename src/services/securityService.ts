@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+import { invoke } from '@/lib/serviceWrapper';
+import { logger } from '@/lib/logger';
 import type { SecurityScanResult, SecurityFinding, SecuritySeverity } from '@/types/security';
 
 const SCAN_CACHE_KEY = 'kernel_security_scan_cache';
@@ -14,12 +15,12 @@ export const securityService = {
    * Run a full security scan
    */
   async runScan(): Promise<SecurityScanResult> {
-    const { data, error } = await supabase.functions.invoke('security-scan');
+    logger.info('[SecurityService] Running security scan...');
     
-    if (error) {
-      console.error('Security scan failed:', error);
-      throw new Error(error.message || 'Failed to run security scan');
-    }
+    const data = await invoke<SecurityScanResult>('security-scan', undefined, {
+      retries: 2,
+      retryDelay: 3000,
+    });
 
     // Cache the result
     const cacheData: CachedScan = {
@@ -28,6 +29,7 @@ export const securityService = {
     };
     localStorage.setItem(SCAN_CACHE_KEY, JSON.stringify(cacheData));
 
+    logger.info('[SecurityService] Scan completed, cached result');
     return data;
   },
 
