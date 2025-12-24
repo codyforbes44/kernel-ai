@@ -18,7 +18,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { MobileFileBrowser } from './MobileFileBrowser';
 import { MobilePanelDrawer } from './MobilePanelDrawer';
-import { MobileBuilderChat, MobileErrorCapture, MobileAgentChat } from './mobile';
+import { MobileBuilderChat, MobileErrorCapture, MobileAgentChat, MobileConsolePanel } from './mobile';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useSwipeToggle } from '@/hooks/useMobileGestures';
@@ -96,6 +96,7 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
   const [showPanel, setShowPanel] = useState(false);
   const [localErrors, setLocalErrors] = useState<CapturedError[]>([]);
   const [isFixingErrors, setIsFixingErrors] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
   
   // Store fix handler for triggering from error capture
   const fixHandlerRef = useRef<((errors: CapturedError[]) => void) | null>(null);
@@ -309,6 +310,15 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
           onErrorsChange={setLocalErrors}
           onTryToFix={handleTryToFix}
           isFixing={isFixingErrors}
+        />
+      )}
+
+      {/* Mobile Console Panel - only show in preview mode */}
+      {showPreview && (
+        <MobileConsolePanel
+          isOpen={showConsole}
+          onToggle={() => setShowConsole(true)}
+          onClose={() => setShowConsole(false)}
         />
       )}
 
