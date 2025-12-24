@@ -18,7 +18,7 @@ export const PAGE_SEO = {
   landing: {
     title: 'Build Apps with AI',
     description: 'Create beautiful web applications with AI-powered assistance. From idea to deployment in minutes with intelligent chat, visual builder, and instant deploy.',
-    ogImage: '/og-images/landing.png',
+    ogImage: '/og-image.png',
     keywords: ['AI development', 'web builder', 'no-code', 'app builder', 'AI assistant', 'visual editor'] as string[],
   },
   home: {
