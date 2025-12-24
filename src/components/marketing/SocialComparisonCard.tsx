@@ -1,52 +1,11 @@
-import { Check, X, Minus } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { KernelLogo } from "@/components/ui/kernel-logo";
+import { platforms } from "@/lib/pricing-data";
+import { COMPARE_SOCIAL_FEATURES } from "@/lib/compare-data";
+import { FeatureValue } from "@/components/compare/FeatureValue";
 import { cn } from "@/lib/utils";
 
-const platforms = [
-  { name: "Kernel", highlight: true },
-  { name: "Lovable" },
-  { name: "Bolt" },
-  { name: "v0" },
-  { name: "Replit" },
-  { name: "Cursor" },
-];
-
-const comparisonFeatures = [
-  { name: "AI Image Generation", kernel: true, lovable: false, bolt: false, v0: false, replit: true, cursor: false },
-  { name: "Screenshot to UI", kernel: true, lovable: true, bolt: true, v0: true, replit: false, cursor: false },
-  { name: "Agent Mode", kernel: true, lovable: true, bolt: true, v0: "Limited", replit: true, cursor: true },
-  { name: "Real-time Cursors", kernel: true, lovable: true, bolt: true, v0: false, replit: true, cursor: false },
-  { name: "Design System Builder", kernel: true, lovable: false, bolt: false, v0: false, replit: false, cursor: false },
-  { name: "Component Marketplace", kernel: true, lovable: false, bolt: false, v0: false, replit: true, cursor: false },
-];
-
-const FeatureValue = ({ value }: { value: boolean | string }) => {
-  if (value === true) {
-    return (
-      <div className="flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-          <Check className="w-4 h-4 text-emerald-400" />
-        </div>
-      </div>
-    );
-  }
-  if (value === false) {
-    return (
-      <div className="flex items-center justify-center">
-        <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center">
-          <X className="w-4 h-4 text-red-400" />
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center justify-center">
-      <span className="text-xs font-medium text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded">
-        {value}
-      </span>
-    </div>
-  );
-};
+type PlatformKey = "kernel" | "lovable" | "bolt" | "v0" | "replit" | "cursor";
 
 interface SocialComparisonCardProps {
   className?: string;
@@ -104,14 +63,14 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
                 key={platform.name}
                 className={cn(
                   "text-center py-2 px-1 rounded-lg",
-                  platform.highlight 
+                  platform.name === "Kernel"
                     ? "bg-primary/20 border border-primary/40" 
                     : "bg-muted/30"
                 )}
               >
                 <span className={cn(
                   "text-sm font-semibold",
-                  platform.highlight ? "text-primary" : "text-muted-foreground"
+                  platform.name === "Kernel" ? "text-primary" : "text-muted-foreground"
                 )}>
                   {platform.name}
                 </span>
@@ -121,7 +80,7 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
 
           {/* Features */}
           <div className="flex-1 flex flex-col gap-1.5">
-            {comparisonFeatures.map((feature, index) => (
+            {COMPARE_SOCIAL_FEATURES.map((feature, index) => (
               <div
                 key={feature.name}
                 className={cn(
@@ -134,12 +93,16 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
                     {feature.name}
                   </span>
                 </div>
-                <FeatureValue value={feature.kernel} />
-                <FeatureValue value={feature.lovable} />
-                <FeatureValue value={feature.bolt} />
-                <FeatureValue value={feature.v0} />
-                <FeatureValue value={feature.replit} />
-                <FeatureValue value={feature.cursor} />
+                {platforms.map((platform) => {
+                  const key = platform.name.toLowerCase() as PlatformKey;
+                  return (
+                    <FeatureValue 
+                      key={platform.name} 
+                      value={feature[key]} 
+                      size="sm"
+                    />
+                  );
+                })}
               </div>
             ))}
           </div>
