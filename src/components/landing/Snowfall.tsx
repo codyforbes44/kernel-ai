@@ -8,28 +8,52 @@ import {
   SnowAccumulation,
   SNOW_CONFIG,
   CHRISTMAS_LAYERS,
+  DEPTH_LAYERS,
 } from './christmas';
 import { useChristmasPerformance, scaleParticleCount } from './christmas/hooks/useChristmasPerformance';
 import type { Snowflake, Star } from './christmas/types';
 
 interface WindGust {
   id: number;
-  intensity: number; // 0.3 to 1.0
-  direction: number; // angle in degrees
+  intensity: number;
+  direction: number;
   startTime: number;
 }
 
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
 /**
- * Main Christmas scene component that orchestrates all winter wonderland elements.
- * Uses z-index layering for proper visual stacking and optimizes for performance.
+ * Main Christmas scene component with enhanced depth perception.
+ * Uses 5-layer system with blur, perspective, and mouse parallax.
  */
 export function Snowfall() {
   const { particleScale, prefersReducedMotion } = useChristmasPerformance();
   const [windGust, setWindGust] = useState<WindGust | null>(null);
+  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0.5, y: 0.5 });
   const gustTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const gustClearRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Wind gust system - creates occasional gentle gusts
+  // Mouse tracking for parallax effect
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Normalize mouse position to -0.5 to 0.5 range
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) - 0.5,
+        y: (e.clientY / window.innerHeight) - 0.5,
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [prefersReducedMotion]);
+
+  // Wind gust system
   const triggerWindGust = useCallback(() => {
     const intensity = 0.3 + Math.random() * 0.7;
     const direction = Math.random() > 0.5 ? 1 : -1;
@@ -42,7 +66,6 @@ export function Snowfall() {
       startTime: Date.now(),
     });
 
-    // Clear gust after duration
     if (gustClearRef.current) clearTimeout(gustClearRef.current);
     gustClearRef.current = setTimeout(() => {
       setWindGust(null);
@@ -60,7 +83,6 @@ export function Snowfall() {
       }, delay);
     };
 
-    // Initial gust after 5 seconds
     const initialTimeout = setTimeout(() => {
       triggerWindGust();
       scheduleNextGust();
@@ -77,13 +99,28 @@ export function Snowfall() {
   const snowflakeCount = scaleParticleCount(SNOW_CONFIG.SNOWFLAKES, particleScale);
   const starCount = scaleParticleCount(SNOW_CONFIG.STARS, particleScale);
 
-  // Optimized snowflake generation with layered variety for magical effect
+  // Generate snowflakes with 5-layer depth system
   const snowflakes = useMemo<Snowflake[]>(() => {
+    // Layer distribution: more flakes in mid layers, sparse at extremes
+    const layerDistribution = [0.12, 0.22, 0.32, 0.22, 0.12]; // 5 layers
+    
     return Array.from({ length: snowflakeCount }, (_, i) => {
-      // Three layers: far (small/slow), mid (medium), close (large/fast)
-      const layer = i % 3;
-      const baseSize = layer === 0 ? 1.5 : layer === 1 ? 3 : 5;
-      const sizeVariation = Math.random() * 1.5;
+      // Determine layer based on distribution
+      let layer = 2; // Default to mid
+      const rand = Math.random();
+      let cumulative = 0;
+      for (let l = 0; l < 5; l++) {
+        cumulative += layerDistribution[l];
+        if (rand < cumulative) {
+          layer = l;
+          break;
+        }
+      }
+      
+      const config = DEPTH_LAYERS[layer as keyof typeof DEPTH_LAYERS];
+      const sizeRange = config.sizeMax - config.sizeMin;
+      const durationRange = config.durationMax - config.durationMin;
+      const opacityRange = config.opacityMax - config.opacityMin;
       
       // Distribute evenly with slight randomness
       const baseX = (i / snowflakeCount) * 100;
@@ -92,16 +129,20 @@ export function Snowfall() {
       return {
         id: i,
         x: (baseX + xJitter + 100) % 100,
-        size: baseSize + sizeVariation,
-        opacity: 0.15 + layer * 0.25 + Math.random() * 0.15,
-        duration: 14 - layer * 3 + Math.random() * 4, // Far: 11-15s, Close: 5-9s
+        size: config.sizeMin + Math.random() * sizeRange,
+        opacity: config.opacityMin + Math.random() * opacityRange,
+        duration: config.durationMin + Math.random() * durationRange,
         delay: Math.random() * 8,
         driftDuration: 2.5 + Math.random() * 2.5,
+        layer,
+        blur: config.blur,
+        translateZ: config.translateZ,
+        parallaxFactor: config.parallaxFactor,
       };
     });
   }, [snowflakeCount]);
 
-  // Optimized star generation with varied organic timing
+  // Generate stars with organic timing
   const stars = useMemo<Star[]>(() => {
     return Array.from({ length: starCount }, (_, i) => {
       const baseDuration = 2.2 + (i % 5) * 0.6;
@@ -117,100 +158,139 @@ export function Snowfall() {
     });
   }, [starCount]);
 
-  // Calculate wind effect for each snowflake based on its position
+  // Calculate wind effect
   const getWindStyle = (flakeId: number, size: number) => {
     if (!windGust) return {};
     
-    // Smaller flakes are more affected by wind
     const sizeMultiplier = 1 + (5 - size) * 0.2;
-    // Add some randomness per flake
     const flakeVariance = 0.7 + (flakeId % 10) * 0.06;
     const effectiveIntensity = windGust.intensity * sizeMultiplier * flakeVariance;
     
     return {
-      animation: `snowfallSmooth 8s linear infinite, windGust ${1.5 + Math.random() * 0.5}s ease-in-out`,
       '--wind-angle': `${windGust.direction * effectiveIntensity}deg`,
       '--wind-shift': `${windGust.direction * effectiveIntensity * 2}px`,
     } as React.CSSProperties;
   };
 
+  // Calculate parallax offset for a snowflake
+  const getParallaxOffset = (parallaxFactor: number) => {
+    if (prefersReducedMotion) return { x: 0, y: 0 };
+    return {
+      x: mousePosition.x * parallaxFactor * 60,
+      y: mousePosition.y * parallaxFactor * 40,
+    };
+  };
+
+  // Get z-index based on layer
+  const getLayerZIndex = (layer: number) => {
+    if (layer <= 1) return CHRISTMAS_LAYERS.SNOWFLAKES_FAR;
+    if (layer === 2) return CHRISTMAS_LAYERS.SNOWFLAKES_MID;
+    return CHRISTMAS_LAYERS.SNOWFLAKES_CLOSE;
+  };
+
   return (
     <div 
+      ref={containerRef}
       className="absolute inset-0 overflow-hidden pointer-events-none"
-      style={{ zIndex: CHRISTMAS_LAYERS.STARS }}
+      style={{ 
+        zIndex: CHRISTMAS_LAYERS.STARS,
+        perspective: '1000px',
+        perspectiveOrigin: '50% 50%',
+      }}
       aria-hidden="true"
     >
-      {/* Layer 0: Subtle moon glow */}
-      <Moon />
-      
-      {/* Layer 1: Twinkling stars (background) - organic varied timing */}
-      {stars.map((star) => (
-        <div
-          key={`star-${star.id}`}
-          className="absolute motion-reduce:hidden"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            animation: `twinkle ${star.twinkleDuration}s cubic-bezier(0.4, 0, 0.6, 1) infinite, starParallax 40s ease-in-out infinite`,
-            animationDelay: `${star.delay}s, ${star.delay * 5}s`,
-            willChange: 'transform, opacity',
-            transform: 'translateZ(0)',
-            zIndex: CHRISTMAS_LAYERS.STARS,
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/90 drop-shadow-[0_0_3px_rgba(255,255,255,0.8)]">
-            <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" />
-          </svg>
-        </div>
-      ))}
-
-      {/* Layer 3: Majestic North Star */}
-      <NorthStar />
-      
-      {/* Layer 3.5: Meteor shower effects */}
-      <MeteorShower />
-      
-      {/* Layer 4: Santa and reindeer sleigh */}
-      <SantaSleigh />
-      
-      {/* Layer 5: Snowflakes with wind gust effects */}
-      {snowflakes.map((flake) => {
-        // Vary the fall endpoint between 60px and 100px from bottom for natural look
-        const fallEnd = 60 + (flake.id % 10) * 4;
-        // Use negative delay to stagger snowflakes throughout their animation cycle
-        const staggeredDelay = -(flake.id / snowflakes.length) * flake.duration + flake.delay;
+      {/* 3D transform container */}
+      <div 
+        className="absolute inset-0"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        {/* Layer 0: Subtle moon glow */}
+        <Moon />
         
-        return (
+        {/* Layer 1: Twinkling stars */}
+        {stars.map((star) => (
           <div
-            key={flake.id}
-            className={`absolute rounded-full bg-white/80 motion-reduce:hidden ${windGust ? 'wind-affected' : ''}`}
+            key={`star-${star.id}`}
+            className="absolute motion-reduce:hidden"
             style={{
-              left: `${flake.x}%`,
-              width: `${flake.size}px`,
-              height: `${flake.size}px`,
-              opacity: flake.opacity,
-              animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite${windGust ? `, windGust 2s ease-in-out` : ''}`,
+              left: `${star.x}%`,
+              top: `${star.y}%`,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              animation: `twinkle ${star.twinkleDuration}s cubic-bezier(0.4, 0, 0.6, 1) infinite, starParallax 40s ease-in-out infinite`,
+              animationDelay: `${star.delay}s, ${star.delay * 5}s`,
+              willChange: 'transform, opacity',
+              transform: 'translateZ(-400px)',
+              zIndex: CHRISTMAS_LAYERS.STARS,
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/90 drop-shadow-[0_0_3px_rgba(255,255,255,0.8)]">
+              <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" />
+            </svg>
+          </div>
+        ))}
+
+        {/* Layer 3: Majestic North Star */}
+        <NorthStar />
+        
+        {/* Layer 3.5: Meteor shower */}
+        <MeteorShower />
+        
+        {/* Layer 4: Santa sleigh */}
+        <SantaSleigh />
+        
+        {/* Atmospheric haze layer - creates depth between far and close snowflakes */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            zIndex: CHRISTMAS_LAYERS.ATMOSPHERIC_HAZE,
+            background: 'linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.03) 30%, rgba(15, 23, 42, 0.08) 60%, transparent 100%)',
+            transform: 'translateZ(-50px)',
+          }}
+        />
+        
+        {/* Layer 5: Snowflakes with 5-layer depth system */}
+        {snowflakes.map((flake) => {
+          const fallEnd = 60 + (flake.id % 10) * 4;
+          const staggeredDelay = -(flake.id / snowflakes.length) * flake.duration + flake.delay;
+          const parallaxOffset = getParallaxOffset(flake.parallaxFactor);
+          
+          // Close flakes get glow effect
+          const glowStyle = flake.layer >= 3 
+            ? { boxShadow: '0 0 4px rgba(255,255,255,0.5)' }
+            : {};
+          
+          return (
+            <div
+              key={flake.id}
+              className={`absolute rounded-full bg-white motion-reduce:hidden ${windGust ? 'wind-affected' : ''}`}
+              style={{
+                left: `${flake.x}%`,
+                width: `${flake.size}px`,
+                height: `${flake.size}px`,
+                opacity: flake.opacity,
+                filter: flake.blur > 0 ? `blur(${flake.blur}px)` : undefined,
+              animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite${windGust ? ', windGust 2s ease-in-out' : ''}`,
               animationDelay: `${staggeredDelay}s, ${flake.delay}s${windGust ? ', 0s' : ''}`,
               willChange: 'transform',
-              transform: 'translateZ(0)',
-              zIndex: CHRISTMAS_LAYERS.SNOWFLAKES,
-              '--fall-end': `calc(100% - ${fallEnd}px)`,
+              transform: `translateZ(${flake.translateZ}px) translate(${parallaxOffset.x}px, ${parallaxOffset.y}px)`,
+              zIndex: getLayerZIndex(flake.layer),
+              ...glowStyle,
               ...getWindStyle(flake.id, flake.size),
-            } as React.CSSProperties}
-          />
-        );
-      })}
-      
-      {/* Layer 5.5: Snow accumulation */}
-      <SnowAccumulation />
-      
-      {/* Layer 6: Snow pile */}
-      <div style={{ zIndex: CHRISTMAS_LAYERS.SNOW_PILE }}>
-        <SnowPile />
+              ...{ '--fall-end': `calc(100% - ${fallEnd}px)` } as React.CSSProperties,
+            }}
+            />
+          );
+        })}
+        
+        {/* Layer 5.5: Snow accumulation */}
+        <SnowAccumulation />
+        
+        {/* Layer 6: Snow pile */}
+        <div style={{ zIndex: CHRISTMAS_LAYERS.SNOW_PILE }}>
+          <SnowPile />
+        </div>
       </div>
-      
     </div>
   );
 }
