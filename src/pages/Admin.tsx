@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key } from 'lucide-react';
+import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key, Bot } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,7 +24,8 @@ import {
   LoginLocationsPanel, 
   VisitorAnalyticsPanel,
   AdminPanelWrapper,
-  TeamAccessSettings
+  TeamAccessSettings,
+  XAISettingsPanel
 } from '@/components/admin';
 
 export default function Admin() {
@@ -147,6 +148,10 @@ export default function Admin() {
               <Key className="h-4 w-4" />
               Team Access
             </TabsTrigger>
+            <TabsTrigger value="xai-settings" className="gap-2">
+              <Bot className="h-4 w-4" />
+              xAI Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
@@ -250,6 +255,12 @@ export default function Admin() {
           <TabsContent value="team-access">
             <AdminPanelWrapper panelName="Team Access">
               <TeamAccessSettings />
+            </AdminPanelWrapper>
+          </TabsContent>
+
+          <TabsContent value="xai-settings">
+            <AdminPanelWrapper panelName="xAI Settings">
+              <XAISettingsPanel />
             </AdminPanelWrapper>
           </TabsContent>
         </Tabs>
