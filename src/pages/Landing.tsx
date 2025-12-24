@@ -14,6 +14,7 @@ import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
+import { ChristmasCountdown } from '@/components/landing/christmas';
 import { 
   MessageSquare, 
   Code2, 
@@ -92,7 +93,11 @@ export default function Landing() {
             icon={<Sparkles className="h-4 w-4" />}
             className="mb-8"
           >
-            Happy Holidays from Cody Forbes! 🎄
+            <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
+              <span>Happy Holidays from Cody Forbes! 🎄</span>
+              <span className="hidden sm:inline opacity-50">•</span>
+              <ChristmasCountdown />
+            </span>
           </GlowBadge>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text">
