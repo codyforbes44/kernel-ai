@@ -3,11 +3,11 @@ import { GradientMesh } from './GradientMesh';
 import { ParticleField } from './ParticleField';
 import { AnimatedCodeBlocks } from './AnimatedCodeBlocks';
 import { Snowfall } from './Snowfall';
+import { StarConstellation } from './StarConstellation';
 
 export function HeroBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollY, setScrollY] = useState(0);
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -98,64 +98,8 @@ export function HeroBackground() {
         <AnimatedCodeBlocks />
       </div>
 
-      {/* Floating geometric shapes - varied parallax speeds */}
-      <div style={{ transform: `translateY(${fastParallax * 0.4}px)` }}>
-        <FloatingShape 
-          className="top-[15%] left-[10%]" 
-          size={60} 
-          duration={20} 
-          delay={0}
-          shape="hexagon"
-        />
-        <FloatingShape 
-          className="top-[25%] right-[15%]" 
-          size={40} 
-          duration={25} 
-          delay={2}
-          shape="triangle"
-        />
-      </div>
-      
-      <div style={{ transform: `translateY(${mediumParallax * 0.6}px)` }}>
-        <FloatingShape 
-          className="top-[60%] left-[5%]" 
-          size={30} 
-          duration={18} 
-          delay={4}
-          shape="circle"
-        />
-        <FloatingShape 
-          className="top-[70%] right-[10%]" 
-          size={50} 
-          duration={22} 
-          delay={1}
-          shape="square"
-        />
-      </div>
-      
-      <div style={{ transform: `translateY(${slowParallax * 0.8}px)` }}>
-        <FloatingShape 
-          className="top-[40%] left-[20%]" 
-          size={25} 
-          duration={30} 
-          delay={3}
-          shape="circle"
-        />
-        <FloatingShape 
-          className="top-[80%] left-[40%]" 
-          size={35} 
-          duration={24} 
-          delay={5}
-          shape="triangle"
-        />
-        <FloatingShape 
-          className="top-[10%] right-[30%]" 
-          size={45} 
-          duration={28} 
-          delay={2}
-          shape="hexagon"
-        />
-      </div>
+      {/* Star constellations - replaces floating shapes */}
+      <StarConstellation scrollY={scrollY} />
 
       {/* Terminal cursor blink effect - cyan themed */}
       <div 
@@ -191,53 +135,5 @@ export function HeroBackground() {
       {/* Festive snowfall overlay */}
       <Snowfall />
     </div>
-  );
-}
-
-interface FloatingShapeProps {
-  className?: string;
-  size: number;
-  duration: number;
-  delay: number;
-  shape: 'circle' | 'square' | 'triangle' | 'hexagon';
-}
-
-function FloatingShape({ className, size, duration, delay, shape }: FloatingShapeProps) {
-  const getShapeStyles = () => {
-    switch (shape) {
-      case 'circle':
-        return { borderRadius: '50%' };
-      case 'square':
-        return { borderRadius: '4px', transform: 'rotate(45deg)' };
-      case 'triangle':
-        return { 
-          clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-          borderRadius: '0'
-        };
-      case 'hexagon':
-        return { 
-          clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-          borderRadius: '0'
-        };
-      default:
-        return {};
-    }
-  };
-
-  return (
-    <div
-      className={`absolute ${className}`}
-      style={{
-        width: size,
-        height: size,
-        ...getShapeStyles(),
-        border: '1px solid hsl(185 100% 50% / 0.2)',
-        background: 'hsl(185 100% 50% / 0.04)',
-        boxShadow: '0 0 15px hsl(185 100% 50% / 0.08)',
-        animation: `float ${duration}s ease-in-out infinite`,
-        animationDelay: `${delay}s`,
-        willChange: 'transform',
-      }}
-    />
   );
 }
