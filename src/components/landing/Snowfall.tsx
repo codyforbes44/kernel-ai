@@ -7,12 +7,13 @@ import {
   MeteorShower,
   SnowAccumulation,
   SNOW_CONFIG,
+  MOBILE_SNOW_CONFIG,
   CHRISTMAS_LAYERS,
   DEPTH_LAYERS,
+  MOBILE_DEPTH_LAYERS,
   PERSPECTIVE_CONFIG,
-  ATMOSPHERIC_COLORS,
 } from './christmas';
-import { useChristmasPerformance, scaleParticleCount, lerp } from './christmas/hooks/useChristmasPerformance';
+import { useChristmasPerformance, scaleParticleCount, lerp, clampSize } from './christmas/hooks/useChristmasPerformance';
 import type { Snowflake, Star } from './christmas/types';
 
 interface WindGust {
@@ -31,11 +32,20 @@ interface MousePosition {
 
 /**
  * Main Christmas scene component with enhanced 7-layer depth perception.
- * Features atmospheric perspective, smooth parallax, and cross-device optimization.
+ * Mobile-first optimized with removed atmospheric haze layers.
  */
 export function Snowfall() {
   const performanceConfig = useChristmasPerformance();
-  const { particleScale, prefersReducedMotion, enableBlur, enable3DTransforms, enableAtmosphericEffects } = performanceConfig;
+  const { 
+    particleScale, 
+    prefersReducedMotion, 
+    enableBlur, 
+    enable3DTransforms, 
+    enableAtmosphericEffects,
+    isSmallScreen,
+    maxSnowflakeSize,
+  } = performanceConfig;
+  
   const [windGust, setWindGust] = useState<WindGust | null>(null);
   const [mousePosition, setMousePosition] = useState<MousePosition>({ 
     x: 0.5, y: 0.5, targetX: 0.5, targetY: 0.5 
@@ -43,6 +53,10 @@ export function Snowfall() {
   const gustTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const gustClearRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Use mobile config for small screens
+  const snowConfig = isSmallScreen ? MOBILE_SNOW_CONFIG : SNOW_CONFIG;
+  const depthLayers = isSmallScreen ? MOBILE_DEPTH_LAYERS : DEPTH_LAYERS;
 
   // Smooth mouse position interpolation for buttery parallax
   useEffect(() => {
@@ -55,7 +69,6 @@ export function Snowfall() {
       setMousePosition(prev => {
         const newX = lerp(prev.x, prev.targetX, smoothFactor);
         const newY = lerp(prev.y, prev.targetY, smoothFactor);
-        // Only update if there's meaningful change
         if (Math.abs(newX - prev.x) > 0.001 || Math.abs(newY - prev.y) > 0.001) {
           return { ...prev, x: newX, y: newY };
         }
@@ -73,7 +86,6 @@ export function Snowfall() {
     if (prefersReducedMotion) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Normalize mouse position to 0-1 range
       setMousePosition(prev => ({
         ...prev,
         targetX: e.clientX / window.innerWidth,
@@ -128,19 +140,17 @@ export function Snowfall() {
   }, [prefersReducedMotion, triggerWindGust]);
 
   // Scale particle counts based on device capabilities
-  const snowflakeCount = scaleParticleCount(SNOW_CONFIG.SNOWFLAKES, particleScale);
-  const starCount = scaleParticleCount(SNOW_CONFIG.STARS, particleScale);
+  const snowflakeCount = scaleParticleCount(snowConfig.SNOWFLAKES, particleScale);
+  const starCount = scaleParticleCount(snowConfig.STARS, particleScale);
 
-  // Generate snowflakes with 7-layer depth system
+  // Generate snowflakes with 7-layer depth system - CAPPED SIZES
   const snowflakes = useMemo<Snowflake[]>(() => {
     if (prefersReducedMotion) return [];
     
-    // Layer distribution: more in mid layers, sparse at extremes (7 layers)
     const layerDistribution = [0.06, 0.10, 0.14, 0.18, 0.22, 0.18, 0.12];
     
     return Array.from({ length: snowflakeCount }, (_, i) => {
-      // Determine layer based on distribution
-      let layer = 4; // Default to focal plane
+      let layer = 4;
       const rand = Math.random();
       let cumulative = 0;
       for (let l = 0; l <= 6; l++) {
@@ -151,19 +161,22 @@ export function Snowfall() {
         }
       }
       
-      const config = DEPTH_LAYERS[layer];
+      const config = depthLayers[layer];
       const sizeRange = config.sizeMax - config.sizeMin;
       const durationRange = config.durationMax - config.durationMin;
       const opacityRange = config.opacityMax - config.opacityMin;
       
-      // Distribute evenly with slight randomness
       const baseX = (i / snowflakeCount) * 100;
       const xJitter = (Math.random() - 0.5) * 15;
+      
+      // Clamp size to maxSnowflakeSize
+      const rawSize = config.sizeMin + Math.random() * sizeRange;
+      const size = clampSize(rawSize, maxSnowflakeSize);
       
       return {
         id: i,
         x: (baseX + xJitter + 100) % 100,
-        size: config.sizeMin + Math.random() * sizeRange,
+        size,
         opacity: config.opacityMin + Math.random() * opacityRange,
         duration: config.durationMin + Math.random() * durationRange,
         delay: Math.random() * 8,
@@ -175,11 +188,13 @@ export function Snowfall() {
         colorShift: enableAtmosphericEffects ? config.colorShift : 0,
       };
     });
-  }, [snowflakeCount, prefersReducedMotion, enableBlur, enable3DTransforms, enableAtmosphericEffects]);
+  }, [snowflakeCount, prefersReducedMotion, enableBlur, enable3DTransforms, enableAtmosphericEffects, depthLayers, maxSnowflakeSize]);
 
-  // Generate stars with organic timing
+  // Generate stars with organic timing - CAPPED SIZES
   const stars = useMemo<Star[]>(() => {
     if (prefersReducedMotion) return [];
+    
+    const maxStarSize = isSmallScreen ? 2 : 3;
     
     return Array.from({ length: starCount }, (_, i) => {
       const baseDuration = 2.2 + (i % 5) * 0.6;
@@ -188,12 +203,12 @@ export function Snowfall() {
         id: i,
         x: (i * 5) % 100,
         y: 5 + (i * 2.8) % 55,
-        size: 2 + (i % 3),
+        size: Math.min(1.5 + (i % 3), maxStarSize),
         twinkleDuration: baseDuration + variation,
         delay: (i * 0.23) % 4,
       };
     });
-  }, [starCount, prefersReducedMotion]);
+  }, [starCount, prefersReducedMotion, isSmallScreen]);
 
   // Calculate wind effect
   const getWindStyle = (flakeId: number, size: number) => {
@@ -223,7 +238,7 @@ export function Snowfall() {
 
   // Get z-index based on layer (7-layer system)
   const getLayerZIndex = (layer: number): number => {
-    const layerConfig = DEPTH_LAYERS[layer];
+    const layerConfig = depthLayers[layer];
     return layerConfig?.zIndex || CHRISTMAS_LAYERS.SNOWFLAKES_MID;
   };
 
@@ -232,7 +247,6 @@ export function Snowfall() {
     if (!enableAtmosphericEffects || colorShift === 0) {
       return 'white';
     }
-    // Blend toward blue for distant objects
     const blueIntensity = Math.min(35, colorShift * 55);
     return `hsl(210, ${blueIntensity}%, ${100 - colorShift * 8}%)`;
   };
@@ -274,11 +288,10 @@ export function Snowfall() {
                 transform: enable3DTransforms 
                   ? `translate3d(${parallax.x}px, ${parallax.y}px, -450px)`
                   : `translate(${parallax.x}px, ${parallax.y}px)`,
-                filter: enableBlur ? 'blur(1.5px)' : 'none',
                 zIndex: CHRISTMAS_LAYERS.STARS,
               }}
             >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/80 drop-shadow-[0_0_3px_rgba(255,255,255,0.7)]">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/80 drop-shadow-[0_0_2px_rgba(255,255,255,0.6)]">
                 <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" />
               </svg>
             </div>
@@ -294,17 +307,7 @@ export function Snowfall() {
         {/* Layer 4: Santa sleigh */}
         <SantaSleigh />
         
-        {/* Atmospheric haze layer - far (creates depth separation) */}
-        {enableAtmosphericEffects && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              zIndex: CHRISTMAS_LAYERS.ATMOSPHERIC_HAZE_FAR,
-              background: `linear-gradient(180deg, transparent 0%, ${ATMOSPHERIC_COLORS.FOG_FAR} 40%, ${ATMOSPHERIC_COLORS.DEPTH_TINT} 70%, transparent 100%)`,
-              transform: enable3DTransforms ? 'translateZ(-200px)' : 'none',
-            }}
-          />
-        )}
+        {/* REMOVED: Atmospheric haze layers that created blurred box artifacts */}
         
         {/* Layer 5: Snowflakes with 7-layer depth system */}
         {snowflakes.map((flake) => {
@@ -313,9 +316,9 @@ export function Snowfall() {
           const parallaxOffset = getParallaxOffset(flake.parallaxFactor);
           const atmosphericColor = getAtmosphericColor(flake.colorShift);
           
-          // Close flakes get glow effect
-          const glowStyle = flake.layer >= 4 
-            ? { boxShadow: `0 0 ${flake.size * 0.4}px rgba(255,255,255,0.4)` }
+          // Reduced glow effect - only on close flakes, smaller spread
+          const glowStyle = flake.layer >= 5 
+            ? { boxShadow: `0 0 ${Math.min(flake.size * 0.3, 2)}px rgba(255,255,255,0.3)` }
             : {};
           
           return (
@@ -343,18 +346,6 @@ export function Snowfall() {
             />
           );
         })}
-        
-        {/* Atmospheric haze layer - near (subtle foreground depth) */}
-        {enableAtmosphericEffects && (
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              zIndex: CHRISTMAS_LAYERS.ATMOSPHERIC_HAZE_NEAR,
-              background: `linear-gradient(180deg, transparent 0%, ${ATMOSPHERIC_COLORS.FOG_NEAR} 60%, transparent 100%)`,
-              transform: enable3DTransforms ? 'translateZ(-30px)' : 'none',
-            }}
-          />
-        )}
         
         {/* Layer 5.5: Snow accumulation */}
         <SnowAccumulation />

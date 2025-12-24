@@ -147,6 +147,11 @@ export interface PerformanceConfig {
   constellationDetail: ConstellationDetail;
   deviceTier: DeviceTier;
   enableAtmosphericEffects: boolean;
+  // Mobile-first additions
+  disableAtmosphericHaze: boolean;
+  maxSnowflakeSize: number;
+  maxStarGlow: number;
+  simplifyNebulae: boolean;
 }
 
 // Depth layer configuration for 7-layer system

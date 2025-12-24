@@ -1,5 +1,6 @@
-import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import type { PerformanceConfig, DeviceTier, ConstellationDetail } from '../types';
+import { SIZE_CAPS } from '../constants';
 
 /**
  * Detects WebGL support and GPU capability
@@ -54,9 +55,7 @@ function detectGyroscope(): Promise<boolean> {
       return;
     }
     
-    // Check for permission API (iOS 13+)
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      // Don't request permission here, just check availability
       resolve(true);
     } else {
       resolve(true);
@@ -67,6 +66,7 @@ function detectGyroscope(): Promise<boolean> {
 /**
  * Hook to detect device capabilities and provide optimized performance settings
  * for Christmas animations. Respects prefers-reduced-motion and mobile devices.
+ * Mobile-first approach with aggressive optimization.
  */
 export function useChristmasPerformance(): PerformanceConfig {
   const [isMobile, setIsMobile] = useState(false);
@@ -77,7 +77,6 @@ export function useChristmasPerformance(): PerformanceConfig {
   const [hasGyroscope, setHasGyroscope] = useState(false);
 
   useEffect(() => {
-    // Detect device capabilities and screen size
     const checkDevice = () => {
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const isMobileWidth = window.innerWidth < 768;
@@ -86,7 +85,6 @@ export function useChristmasPerformance(): PerformanceConfig {
       setIsVerySmallScreen(window.innerWidth < 400);
     };
 
-    // Check reduced motion preference
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(motionQuery.matches);
 
@@ -94,11 +92,9 @@ export function useChristmasPerformance(): PerformanceConfig {
       setPrefersReducedMotion(e.matches);
     };
 
-    // Detect GPU capability
     const gpuCapability = detectGPUCapability();
     setDeviceTier(gpuCapability);
 
-    // Detect gyroscope
     detectGyroscope().then(setHasGyroscope);
 
     checkDevice();
@@ -128,11 +124,38 @@ export function useChristmasPerformance(): PerformanceConfig {
         constellationDetail: 'minimal' as ConstellationDetail,
         deviceTier: 'low' as DeviceTier,
         enableAtmosphericEffects: false,
+        disableAtmosphericHaze: true,
+        maxSnowflakeSize: 0,
+        maxStarGlow: 0,
+        simplifyNebulae: true,
       };
     }
 
-    // Low-end devices or very small screens
-    if (deviceTier === 'low' || isVerySmallScreen) {
+    // Very small screens (< 400px) - ultra minimal
+    if (isVerySmallScreen) {
+      return {
+        particleScale: 0.25,
+        enableComplexEffects: false,
+        enableShadows: false,
+        prefersReducedMotion: false,
+        isSmallScreen: true,
+        isVerySmallScreen: true,
+        enableBlur: false,
+        enable3DTransforms: false,
+        maxParticles: 15,
+        enableGyroscope: false,
+        constellationDetail: 'minimal' as ConstellationDetail,
+        deviceTier: 'low' as DeviceTier,
+        enableAtmosphericEffects: false,
+        disableAtmosphericHaze: true,
+        maxSnowflakeSize: SIZE_CAPS.VERY_SMALL_MAX_SNOWFLAKE,
+        maxStarGlow: SIZE_CAPS.VERY_SMALL_MAX_STAR_GLOW,
+        simplifyNebulae: true,
+      };
+    }
+
+    // Low-end devices
+    if (deviceTier === 'low') {
       return {
         particleScale: 0.3,
         enableComplexEffects: false,
@@ -147,25 +170,33 @@ export function useChristmasPerformance(): PerformanceConfig {
         constellationDetail: 'minimal' as ConstellationDetail,
         deviceTier: 'low' as DeviceTier,
         enableAtmosphericEffects: false,
+        disableAtmosphericHaze: true,
+        maxSnowflakeSize: SIZE_CAPS.MOBILE_MAX_SNOWFLAKE,
+        maxStarGlow: SIZE_CAPS.MOBILE_MAX_STAR_GLOW,
+        simplifyNebulae: true,
       };
     }
 
     // Mobile / medium tier
     if (isMobile || deviceTier === 'medium') {
       return {
-        particleScale: 0.5,
+        particleScale: 0.45,
         enableComplexEffects: false,
         enableShadows: true,
         prefersReducedMotion: false,
         isSmallScreen,
         isVerySmallScreen,
-        enableBlur: true,
+        enableBlur: false, // Disable blur on mobile for performance
         enable3DTransforms: true,
-        maxParticles: 40,
+        maxParticles: 35,
         enableGyroscope: hasGyroscope,
         constellationDetail: 'simplified' as ConstellationDetail,
         deviceTier: 'medium' as DeviceTier,
-        enableAtmosphericEffects: true,
+        enableAtmosphericEffects: false, // Disable atmospheric effects on mobile
+        disableAtmosphericHaze: true,
+        maxSnowflakeSize: SIZE_CAPS.MOBILE_MAX_SNOWFLAKE,
+        maxStarGlow: SIZE_CAPS.MOBILE_MAX_STAR_GLOW,
+        simplifyNebulae: true,
       };
     }
 
@@ -179,11 +210,15 @@ export function useChristmasPerformance(): PerformanceConfig {
       isVerySmallScreen,
       enableBlur: true,
       enable3DTransforms: true,
-      maxParticles: 100,
+      maxParticles: 80,
       enableGyroscope: false,
       constellationDetail: 'full' as ConstellationDetail,
       deviceTier: 'high' as DeviceTier,
       enableAtmosphericEffects: true,
+      disableAtmosphericHaze: false,
+      maxSnowflakeSize: SIZE_CAPS.DESKTOP_MAX_SNOWFLAKE,
+      maxStarGlow: SIZE_CAPS.DESKTOP_MAX_STAR_GLOW,
+      simplifyNebulae: false,
     };
   }, [isMobile, prefersReducedMotion, isSmallScreen, isVerySmallScreen, deviceTier, hasGyroscope]);
 
@@ -224,4 +259,11 @@ export function getLayerParticleCount(
  */
 export function lerp(start: number, end: number, factor: number): number {
   return start + (end - start) * factor;
+}
+
+/**
+ * Clamp size to max based on performance config
+ */
+export function clampSize(size: number, maxSize: number): number {
+  return Math.min(size, maxSize);
 }
