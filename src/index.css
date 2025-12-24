@@ -1278,3 +1278,26 @@
     transform: translateY(0);
   }
 }
+
+/* Wind gust effect for snowflakes */
+@keyframes windGust {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(var(--wind-shift, 30px)) rotate(var(--wind-angle, 15deg));
+  }
+  50% {
+    transform: translateX(calc(var(--wind-shift, 30px) * 1.5)) rotate(calc(var(--wind-angle, 15deg) * 0.5));
+  }
+  75% {
+    transform: translateX(calc(var(--wind-shift, 30px) * 0.8)) rotate(calc(var(--wind-angle, 15deg) * 0.3));
+  }
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+.wind-affected {
+  transition: transform 0.3s ease-out;
+}

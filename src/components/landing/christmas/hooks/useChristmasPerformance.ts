@@ -41,6 +41,7 @@ export function useChristmasPerformance(): PerformanceConfig {
         particleScale: 0,
         enableComplexEffects: false,
         enableShadows: false,
+        prefersReducedMotion: true,
       };
     }
 
@@ -49,6 +50,7 @@ export function useChristmasPerformance(): PerformanceConfig {
         particleScale: 0.5,
         enableComplexEffects: false,
         enableShadows: true,
+        prefersReducedMotion: false,
       };
     }
 
@@ -56,6 +58,7 @@ export function useChristmasPerformance(): PerformanceConfig {
       particleScale: 1,
       enableComplexEffects: true,
       enableShadows: true,
+      prefersReducedMotion: false,
     };
   }, [isMobile, prefersReducedMotion]);
 

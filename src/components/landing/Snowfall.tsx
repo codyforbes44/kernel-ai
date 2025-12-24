@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { 
   SantaSleigh, 
   SnowPile, 
@@ -10,19 +10,71 @@ import {
 import { useChristmasPerformance, scaleParticleCount } from './christmas/hooks/useChristmasPerformance';
 import type { Snowflake, Star, ShootingStar } from './christmas/types';
 
+interface WindGust {
+  id: number;
+  intensity: number; // 0.3 to 1.0
+  direction: number; // angle in degrees
+  startTime: number;
+}
+
 /**
  * Main Christmas scene component that orchestrates all winter wonderland elements.
  * Uses z-index layering for proper visual stacking and optimizes for performance.
  */
 export function Snowfall() {
-  const { particleScale } = useChristmasPerformance();
+  const { particleScale, prefersReducedMotion } = useChristmasPerformance();
+  const [windGust, setWindGust] = useState<WindGust | null>(null);
+
+  // Wind gust system - creates occasional gentle gusts
+  const triggerWindGust = useCallback(() => {
+    const intensity = 0.3 + Math.random() * 0.7;
+    const direction = Math.random() > 0.5 ? 1 : -1; // left or right
+    const angle = direction * (15 + Math.random() * 25); // 15-40 degrees
+    
+    setWindGust({
+      id: Date.now(),
+      intensity,
+      direction: angle,
+      startTime: Date.now(),
+    });
+
+    // Clear gust after duration
+    setTimeout(() => {
+      setWindGust(null);
+    }, 2000 + intensity * 1500); // 2-3.5s duration
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    // Random gusts every 8-15 seconds
+    const scheduleNextGust = () => {
+      const delay = 8000 + Math.random() * 7000;
+      return setTimeout(() => {
+        triggerWindGust();
+        scheduleNextGust();
+      }, delay);
+    };
+
+    // Initial gust after 5 seconds
+    const initialTimeout = setTimeout(() => {
+      triggerWindGust();
+    }, 5000);
+
+    const gustTimeout = scheduleNextGust();
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearTimeout(gustTimeout);
+    };
+  }, [prefersReducedMotion, triggerWindGust]);
 
   // Scale particle counts based on device capabilities
   const snowflakeCount = scaleParticleCount(SNOW_CONFIG.SNOWFLAKES, particleScale);
   const starCount = scaleParticleCount(SNOW_CONFIG.STARS, particleScale);
   const shootingStarCount = scaleParticleCount(SNOW_CONFIG.SHOOTING_STARS, particleScale);
 
-  // Optimized snowflake generation
+  // Optimized snowflake generation with wind responsiveness
   const snowflakes = useMemo<Snowflake[]>(() => {
     return Array.from({ length: snowflakeCount }, (_, i) => ({
       id: i,
@@ -57,6 +109,23 @@ export function Snowfall() {
       duration: 2.8 + i * 0.5,
     }));
   }, [shootingStarCount]);
+
+  // Calculate wind effect for each snowflake based on its position
+  const getWindStyle = (flakeId: number, size: number) => {
+    if (!windGust) return {};
+    
+    // Smaller flakes are more affected by wind
+    const sizeMultiplier = 1 + (5 - size) * 0.2;
+    // Add some randomness per flake
+    const flakeVariance = 0.7 + (flakeId % 10) * 0.06;
+    const effectiveIntensity = windGust.intensity * sizeMultiplier * flakeVariance;
+    
+    return {
+      animation: `snowfallSmooth 8s linear infinite, windGust ${1.5 + Math.random() * 0.5}s ease-in-out`,
+      '--wind-angle': `${windGust.direction * effectiveIntensity}deg`,
+      '--wind-shift': `${windGust.direction * effectiveIntensity * 2}px`,
+    } as React.CSSProperties;
+  };
 
   return (
     <div 
@@ -138,21 +207,22 @@ export function Snowfall() {
       {/* Layer 4: Santa and reindeer sleigh */}
       <SantaSleigh />
       
-      {/* Layer 5: Snowflakes with GPU acceleration */}
+      {/* Layer 5: Snowflakes with wind gust effects */}
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
-          className="absolute rounded-full bg-white/80 motion-reduce:hidden"
+          className={`absolute rounded-full bg-white/80 motion-reduce:hidden ${windGust ? 'wind-affected' : ''}`}
           style={{
             left: `${flake.x}%`,
             width: `${flake.size}px`,
             height: `${flake.size}px`,
             opacity: flake.opacity,
-            animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite`,
+            animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite${windGust ? `, windGust 2s ease-in-out` : ''}`,
             animationDelay: `${flake.delay}s`,
             willChange: 'transform',
             transform: 'translateZ(0)',
             zIndex: CHRISTMAS_LAYERS.SNOWFLAKES,
+            ...getWindStyle(flake.id, flake.size),
           }}
         />
       ))}
