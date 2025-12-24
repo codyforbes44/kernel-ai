@@ -638,7 +638,30 @@
   }
 }
 
-/* Northern lights aurora animations */
+/* Comet trail particle animations */
+@keyframes cometParticle {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes cometSparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+
 @keyframes auroraWave1 {
   0%, 100% {
     transform: translateX(-5%) scaleY(1);
