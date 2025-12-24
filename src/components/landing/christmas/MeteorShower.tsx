@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { CHRISTMAS_LAYERS } from './constants';
 import { useChristmasPerformance } from './hooks/useChristmasPerformance';
 
@@ -20,12 +20,12 @@ interface Meteor {
 export function MeteorShower() {
   const { prefersReducedMotion, particleScale, isSmallScreen } = useChristmasPerformance();
   const [activeMeteors, setActiveMeteors] = useState<Meteor[]>([]);
-  const [meteorId, setMeteorId] = useState(0);
+  const meteorIdRef = useRef(0);
 
   // Generate a new meteor with random properties
   const createMeteor = useCallback((): Meteor => {
-    const id = meteorId;
-    setMeteorId(prev => prev + 1);
+    const id = meteorIdRef.current++;
+    
     
     // Start from upper portion of screen, varied positions
     const startX = 10 + Math.random() * 60; // 10-70% from left
@@ -55,7 +55,7 @@ export function MeteorShower() {
       delay: 0,
       brightness,
     };
-  }, [meteorId, isSmallScreen]);
+  }, [isSmallScreen]);
 
   // Spawn meteors at random intervals
   useEffect(() => {
@@ -119,7 +119,7 @@ export function MeteorShower() {
       angle: 30 + (i * 8),
       length: isSmallScreen ? 50 : 80,
       duration: 1.5 + i * 0.3,
-      delay: 20 + i * 25, // Very slow, staggered timing
+      delay: 5 + i * 15, // Reduced delays: 5s, 20s, 35s
       brightness: 0.3 + (i * 0.1),
     }));
   }, [particleScale, isSmallScreen]);
@@ -169,15 +169,15 @@ function MeteorStreak({ meteor, isAmbient = false }: MeteorStreakProps) {
     <div
       className="absolute"
       style={{
+        '--angle': `${meteor.angle}deg`,
         left: `${meteor.startX}%`,
         top: `${meteor.startY}%`,
-        transform: `rotate(${meteor.angle}deg)`,
         animation: isAmbient 
           ? `meteorStreak ${meteor.duration}s ease-out infinite`
           : `meteorStreak ${meteor.duration}s ease-out forwards`,
         animationDelay: `${meteor.delay}s`,
         opacity: 0,
-      }}
+      } as React.CSSProperties}
     >
       {/* Meteor head - bright glowing point */}
       <div
