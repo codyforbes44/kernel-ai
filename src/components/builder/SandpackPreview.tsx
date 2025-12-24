@@ -502,15 +502,18 @@ export function SandpackPreview({
         currentPath="/"
       />
 
-      {/* Preview Area with improved styling */}
-      <div className="flex-1 flex items-stretch justify-center p-4 overflow-auto">
+      {/* Preview Area - maximized to fill palette */}
+      <div className={cn(
+        "flex-1 flex items-stretch justify-center overflow-auto",
+        viewport === 'desktop' ? 'p-0' : 'p-1'
+      )}>
         <DeviceFrame 
           viewport={viewport}
           className={cn(
             "transition-all duration-300",
             viewport === 'desktop' && 'w-full h-full',
-            viewport === 'tablet' && 'h-full max-h-[calc(100%-2rem)]',
-            viewport === 'mobile' && 'h-full max-h-[calc(100%-2rem)]',
+            viewport === 'tablet' && 'h-full',
+            viewport === 'mobile' && 'h-full',
           )}
         >
           <div
