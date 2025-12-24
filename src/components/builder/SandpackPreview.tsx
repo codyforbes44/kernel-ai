@@ -87,14 +87,14 @@ function convertToSandpackFiles(
   
   if (!sandpackFiles['/index.html']) {
     sandpackFiles['/index.html'] = `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="height: 100%">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Preview</title>
   </head>
-  <body>
-    <div id="root"></div>
+  <body style="height: 100%; margin: 0;">
+    <div id="root" style="height: 100%"></div>
   </body>
 </html>`;
   }
@@ -144,7 +144,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   if (!sandpackFiles['/src/App.tsx'] && !sandpackFiles['/src/App.jsx']) {
     sandpackFiles['/src/App.tsx'] = `export default function App() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-center p-5">
+    <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white text-center p-5">
       <h1 className="text-4xl font-bold mb-4">Welcome to the Builder</h1>
       <p className="text-lg opacity-90">Edit App.tsx to start building your app</p>
       <button className="mt-6 px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-opacity-90 transition">
@@ -156,9 +156,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   }
   
   if (!sandpackFiles['/src/App.css']) {
-    sandpackFiles['/src/App.css'] = `* {
+    sandpackFiles['/src/App.css'] = `html, body, #root {
+  height: 100%;
   margin: 0;
   padding: 0;
+}
+* {
   box-sizing: border-box;
 }`;
   }
