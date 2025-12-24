@@ -6,6 +6,7 @@ import {
   NorthStar,
   Moon,
   MeteorShower,
+  SnowAccumulation,
   SNOW_CONFIG,
   CHRISTMAS_LAYERS,
 } from './christmas';
@@ -202,6 +203,9 @@ export function Snowfall() {
           />
         );
       })}
+      
+      {/* Layer 5.5: Snow accumulation */}
+      <SnowAccumulation />
       
       {/* Layer 6: Snow pile */}
       <div style={{ zIndex: CHRISTMAS_LAYERS.SNOW_PILE }}>
