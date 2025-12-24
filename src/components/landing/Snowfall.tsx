@@ -354,7 +354,7 @@ export function Snowfall() {
       {/* Santa and reindeer sleigh */}
       <SantaSleigh />
       
-      {/* Twinkling stars */}
+      {/* Twinkling stars with subtle parallax drift */}
       {stars.map((star) => (
         <div
           key={`star-${star.id}`}
@@ -364,8 +364,9 @@ export function Snowfall() {
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            animation: `twinkle ${star.twinkleDuration}s ease-in-out infinite`,
-            animationDelay: `${star.delay}s`,
+            animation: `twinkle ${star.twinkleDuration}s ease-in-out infinite, starParallax 40s ease-in-out infinite`,
+            animationDelay: `${star.delay}s, ${star.delay * 5}s`,
+            willChange: 'transform, opacity',
           }}
         >
           {/* 4-point star shape */}
