@@ -9,3 +9,4 @@ export { ExportButton } from './ExportButton';
 export { RefreshButton } from './RefreshButton';
 export { AdminPanelWrapper } from './AdminPanelWrapper';
 export { EmptyState } from './EmptyState';
+export { TeamAccessSettings } from './TeamAccessSettings';
