@@ -33,26 +33,38 @@ export function usePWA() {
         
         // Immediate update check on registration
         r.update();
-        
-        // Check for updates every 5 minutes (more responsive than hourly)
-        setInterval(() => {
-          r.update();
-        }, 5 * 60 * 1000);
-        
-        // Check on visibility change (app comes to foreground - important for mobile)
-        const handleVisibilityChange = () => {
-          if (document.visibilityState === 'visible') {
-            logger.log('App visible, checking for updates...');
-            r.update();
-          }
-        };
-        document.addEventListener('visibilitychange', handleVisibilityChange);
       }
     },
     onRegisterError(error) {
       logger.error('SW registration error:', error);
     },
   });
+
+  // Set up update interval and visibility listener with proper cleanup
+  useEffect(() => {
+    const registration = registrationRef.current;
+    if (!registration) return;
+
+    // Check for updates every 5 minutes
+    const intervalId = setInterval(() => {
+      registration.update();
+    }, 5 * 60 * 1000);
+
+    // Check on visibility change (app comes to foreground - important for mobile)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        logger.log('App visible, checking for updates...');
+        registration.update();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [registrationRef.current]);
 
   useEffect(() => {
     // Check if already installed
