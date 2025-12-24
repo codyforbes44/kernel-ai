@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -18,7 +18,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { MobileFileBrowser } from './MobileFileBrowser';
 import { MobilePanelDrawer } from './MobilePanelDrawer';
-import { MobileBuilderChat } from './mobile/MobileBuilderChat';
+import { MobileBuilderChat, MobileErrorCapture } from './mobile';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useSwipeToggle } from '@/hooks/useMobileGestures';
@@ -94,6 +94,11 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
   const [showPanelDrawer, setShowPanelDrawer] = useState(false);
   const [activePanel, setActivePanel] = useState<PanelId | null>(null);
   const [showPanel, setShowPanel] = useState(false);
+  const [localErrors, setLocalErrors] = useState<CapturedError[]>([]);
+  const [isFixingErrors, setIsFixingErrors] = useState(false);
+  
+  // Store fix handler for triggering from error capture
+  const fixHandlerRef = useRef<((errors: CapturedError[]) => void) | null>(null);
   
   // Build file tree for browser
   const fileTree = buildFileTree(files);
@@ -131,6 +136,28 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
       togglePreview();
     }
   }, [onFileSelect, showPreview, togglePreview]);
+  
+  // Handle errors from MobileErrorCapture - opens AI chat and triggers fix
+  const handleTryToFix = useCallback((errors: CapturedError[]) => {
+    setIsFixingErrors(true);
+    // Open AI chat panel
+    setActivePanel('ai-chat');
+    setShowPanel(true);
+    // Trigger fix handler if available
+    if (fixHandlerRef.current) {
+      fixHandlerRef.current(errors);
+    }
+    setTimeout(() => setIsFixingErrors(false), 1000);
+  }, []);
+  
+  // Callback to receive fix handler from MobileBuilderChat
+  const handleMobileChatFixHandlerReady = useCallback((handler: (errors: CapturedError[]) => void) => {
+    fixHandlerRef.current = handler;
+    // Also notify parent if needed
+    if (onFixHandlerReady) {
+      onFixHandlerReady(handler);
+    }
+  }, [onFixHandlerReady]);
   
   const fabActions = [
     { 
@@ -276,6 +303,15 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
         className="bottom-6"
       />
 
+      {/* Mobile Error Capture - only show in preview mode */}
+      {showPreview && (
+        <MobileErrorCapture
+          onErrorsChange={setLocalErrors}
+          onTryToFix={handleTryToFix}
+          isFixing={isFixingErrors}
+        />
+      )}
+
       {/* Mobile File Browser Sheet */}
       <MobileFileBrowser
         open={showFileBrowser}
@@ -305,8 +341,11 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
             files={files}
             projectId={projectId}
             onApplyOperations={applyAIOperations}
-            errors={capturedErrors}
-            onClearErrors={onClearErrors}
+            errors={localErrors.length > 0 ? localErrors : capturedErrors}
+            onClearErrors={() => {
+              setLocalErrors([]);
+              onClearErrors?.();
+            }}
             onClose={() => { hapticFeedback('light'); setShowPanel(false); }}
             onFileOpen={(file) => {
               openFile(file);
@@ -315,7 +354,7 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
                 togglePreview();
               }
             }}
-            onFixHandlerReady={onFixHandlerReady}
+            onFixHandlerReady={handleMobileChatFixHandlerReady}
           />
         </div>
       )}
