@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   SantaSleigh, 
   SnowPile, 
@@ -10,7 +10,7 @@ import {
   CHRISTMAS_LAYERS,
 } from './christmas';
 import { useChristmasPerformance, scaleParticleCount } from './christmas/hooks/useChristmasPerformance';
-import type { Snowflake, Star, ShootingStar } from './christmas/types';
+import type { Snowflake, Star } from './christmas/types';
 
 interface WindGust {
   id: number;
@@ -26,12 +26,14 @@ interface WindGust {
 export function Snowfall() {
   const { particleScale, prefersReducedMotion } = useChristmasPerformance();
   const [windGust, setWindGust] = useState<WindGust | null>(null);
+  const gustTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const gustClearRef = useRef<NodeJS.Timeout | null>(null);
 
   // Wind gust system - creates occasional gentle gusts
   const triggerWindGust = useCallback(() => {
     const intensity = 0.3 + Math.random() * 0.7;
-    const direction = Math.random() > 0.5 ? 1 : -1; // left or right
-    const angle = direction * (15 + Math.random() * 25); // 15-40 degrees
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    const angle = direction * (15 + Math.random() * 25);
     
     setWindGust({
       id: Date.now(),
@@ -41,18 +43,18 @@ export function Snowfall() {
     });
 
     // Clear gust after duration
-    setTimeout(() => {
+    if (gustClearRef.current) clearTimeout(gustClearRef.current);
+    gustClearRef.current = setTimeout(() => {
       setWindGust(null);
-    }, 2000 + intensity * 1500); // 2-3.5s duration
+    }, 2000 + intensity * 1500);
   }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
 
-    // Random gusts every 8-15 seconds
     const scheduleNextGust = () => {
       const delay = 8000 + Math.random() * 7000;
-      return setTimeout(() => {
+      gustTimeoutRef.current = setTimeout(() => {
         triggerWindGust();
         scheduleNextGust();
       }, delay);
@@ -61,61 +63,59 @@ export function Snowfall() {
     // Initial gust after 5 seconds
     const initialTimeout = setTimeout(() => {
       triggerWindGust();
+      scheduleNextGust();
     }, 5000);
-
-    const gustTimeout = scheduleNextGust();
 
     return () => {
       clearTimeout(initialTimeout);
-      clearTimeout(gustTimeout);
+      if (gustTimeoutRef.current) clearTimeout(gustTimeoutRef.current);
+      if (gustClearRef.current) clearTimeout(gustClearRef.current);
     };
   }, [prefersReducedMotion, triggerWindGust]);
 
   // Scale particle counts based on device capabilities
   const snowflakeCount = scaleParticleCount(SNOW_CONFIG.SNOWFLAKES, particleScale);
   const starCount = scaleParticleCount(SNOW_CONFIG.STARS, particleScale);
-  const shootingStarCount = scaleParticleCount(SNOW_CONFIG.SHOOTING_STARS, particleScale);
 
-  // Optimized snowflake generation with wind responsiveness
+  // Optimized snowflake generation with layered variety for magical effect
   const snowflakes = useMemo<Snowflake[]>(() => {
-    return Array.from({ length: snowflakeCount }, (_, i) => ({
-      id: i,
-      x: (i * 3.33) % 100,
-      size: 2 + (i % 4),
-      opacity: 0.3 + (i % 5) * 0.12,
-      duration: 8 + (i % 6),
-      delay: (i * 0.35) % 5,
-      driftDuration: 3 + (i % 4),
-    }));
+    return Array.from({ length: snowflakeCount }, (_, i) => {
+      // Three layers: far (small/slow), mid (medium), close (large/fast)
+      const layer = i % 3;
+      const baseSize = layer === 0 ? 1.5 : layer === 1 ? 3 : 5;
+      const sizeVariation = Math.random() * 1.5;
+      
+      // Distribute evenly with slight randomness
+      const baseX = (i / snowflakeCount) * 100;
+      const xJitter = (Math.random() - 0.5) * 15;
+      
+      return {
+        id: i,
+        x: (baseX + xJitter + 100) % 100,
+        size: baseSize + sizeVariation,
+        opacity: 0.15 + layer * 0.25 + Math.random() * 0.15,
+        duration: 14 - layer * 3 + Math.random() * 4, // Far: 11-15s, Close: 5-9s
+        delay: Math.random() * 8,
+        driftDuration: 2.5 + Math.random() * 2.5,
+      };
+    });
   }, [snowflakeCount]);
 
   // Optimized star generation with varied organic timing
   const stars = useMemo<Star[]>(() => {
     return Array.from({ length: starCount }, (_, i) => {
-      // Create varied twinkle durations based on position for organic feel
-      const baseDuration = 2.2 + (i % 5) * 0.6; // 2.2s to 4.6s range
-      const variation = ((i * 7) % 10) * 0.12; // Add pseudo-random variation
+      const baseDuration = 2.2 + (i % 5) * 0.6;
+      const variation = ((i * 7) % 10) * 0.12;
       return {
         id: i,
         x: (i * 5) % 100,
         y: 5 + (i * 2.8) % 55,
         size: 2 + (i % 3),
         twinkleDuration: baseDuration + variation,
-        delay: (i * 0.23) % 4, // Stagger delays more
+        delay: (i * 0.23) % 4,
       };
     });
   }, [starCount]);
-
-  // Subtle shooting stars - rare and peaceful
-  const shootingStars = useMemo<ShootingStar[]>(() => {
-    return Array.from({ length: shootingStarCount }, (_, i) => ({
-      id: i,
-      startX: 15 + (i * 40),
-      startY: 8 + (i * 8),
-      delay: 18 + i * 30,
-      duration: 2.8 + i * 0.5,
-    }));
-  }, [shootingStarCount]);
 
   // Calculate wind effect for each snowflake based on its position
   const getWindStyle = (flakeId: number, size: number) => {
@@ -166,51 +166,6 @@ export function Snowfall() {
         </div>
       ))}
 
-      {/* Layer 2: Shooting stars */}
-      {shootingStars.map((star) => (
-        <div
-          key={`shooting-${star.id}`}
-          className="absolute motion-reduce:hidden"
-          style={{
-            left: `${star.startX}%`,
-            top: `${star.startY}%`,
-            animation: `shootingStarPeaceful ${star.duration}s ease-in-out infinite`,
-            animationDelay: `${star.delay}s`,
-            willChange: 'transform, opacity',
-            zIndex: CHRISTMAS_LAYERS.SHOOTING_STARS,
-          }}
-        >
-          <div 
-            className="absolute w-1.5 h-1.5 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.6) 60%, transparent 100%)',
-              boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.5), 0 0 8px 2px rgba(220, 230, 255, 0.25)',
-            }}
-          />
-          <div 
-            className="absolute top-0.5 -left-16 w-16 h-0.5 origin-right"
-            style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 40%, rgba(255, 255, 255, 0.4) 100%)',
-              transform: 'rotate(-35deg)',
-              borderRadius: '0 2px 2px 0',
-            }}
-          />
-          {[0, 1, 2].map((i) => (
-            <div
-              key={`trail-${i}`}
-              className="absolute rounded-full"
-              style={{
-                width: `${2 - i * 0.5}px`,
-                height: `${2 - i * 0.5}px`,
-                background: `rgba(255, 255, 255, ${0.4 - i * 0.12})`,
-                left: `${-6 - i * 5}px`,
-                top: `${2 + i * 3}px`,
-              }}
-            />
-          ))}
-        </div>
-      ))}
-      
       {/* Layer 3: Majestic North Star */}
       <NorthStar />
       

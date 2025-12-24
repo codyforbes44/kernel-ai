@@ -57,6 +57,11 @@ export function MeteorShower() {
     };
   }, [isSmallScreen]);
 
+  // Timer refs for proper cleanup
+  const initialDelayRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const cleanupTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
   // Spawn meteors at random intervals
   useEffect(() => {
     if (prefersReducedMotion || particleScale === 0) return;
@@ -66,20 +71,21 @@ export function MeteorShower() {
       setActiveMeteors(prev => [...prev, meteor]);
 
       // Remove meteor after animation completes
-      setTimeout(() => {
+      const cleanupTimeout = setTimeout(() => {
         setActiveMeteors(prev => prev.filter(m => m.id !== meteor.id));
       }, meteor.duration * 1000 + 500);
+      cleanupTimeoutsRef.current.push(cleanupTimeout);
     };
 
     // Random chance for meteor shower (multiple meteors)
     const spawnEvent = () => {
-      const isShower = Math.random() < 0.15; // 15% chance of shower
+      const isShower = Math.random() < 0.15;
       
       if (isShower) {
-        // Spawn 2-4 meteors in quick succession
         const count = 2 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
-          setTimeout(spawnMeteor, i * (200 + Math.random() * 400));
+          const showerTimeout = setTimeout(spawnMeteor, i * (200 + Math.random() * 400));
+          cleanupTimeoutsRef.current.push(showerTimeout);
         }
       } else {
         spawnMeteor();
@@ -87,24 +93,26 @@ export function MeteorShower() {
     };
 
     // Initial delay before first meteor
-    const initialDelay = setTimeout(() => {
+    initialDelayRef.current = setTimeout(() => {
       spawnEvent();
     }, 8000 + Math.random() * 5000);
 
     // Spawn meteors at random intervals (12-25 seconds)
     const scheduleNext = () => {
       const delay = 12000 + Math.random() * 13000;
-      return setTimeout(() => {
+      intervalRef.current = setTimeout(() => {
         spawnEvent();
-        intervalRef = scheduleNext();
+        scheduleNext();
       }, delay);
     };
 
-    let intervalRef = scheduleNext();
+    scheduleNext();
 
     return () => {
-      clearTimeout(initialDelay);
-      clearTimeout(intervalRef);
+      if (initialDelayRef.current) clearTimeout(initialDelayRef.current);
+      if (intervalRef.current) clearTimeout(intervalRef.current);
+      cleanupTimeoutsRef.current.forEach(t => clearTimeout(t));
+      cleanupTimeoutsRef.current = [];
     };
   }, [prefersReducedMotion, particleScale, createMeteor]);
 
