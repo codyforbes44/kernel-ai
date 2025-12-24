@@ -166,7 +166,9 @@ export function SantaSleigh() {
       
       <div 
         className="relative"
-        style={{ animation: 'sleighBob 2s ease-in-out infinite' }}
+        style={{ 
+          animation: 'sleighBob 3.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite, sleighDrift 5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        }}
       >
         {/* Reindeer team */}
         <div className="flex items-center">
