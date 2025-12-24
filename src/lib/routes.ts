@@ -228,6 +228,16 @@ export const routes: RouteConfig[] = [
     requiresAuth: false,
     robots: 'disallow', // Internal tool, don't index
   },
+  {
+    path: '/og-preview',
+    title: 'OG Image Preview',
+    description: 'Preview and download Open Graph images',
+    changefreq: 'monthly',
+    priority: 0.1,
+    includeInSitemap: false,
+    requiresAuth: false,
+    robots: 'disallow', // Internal tool, don't index
+  },
 ];
 
 // Get routes for sitemap generation
