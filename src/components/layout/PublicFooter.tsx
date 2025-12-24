@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { XLogo } from "@/components/ui/x-logo";
+import { APP_VERSION } from "@/lib/version";
 
 interface FooterLink {
   label: string;
@@ -125,9 +126,14 @@ export function PublicFooter() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © {currentYear} Kernel. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              © {currentYear} Kernel. All rights reserved.
+            </p>
+            <span className="text-xs text-muted-foreground/60">
+              v{APP_VERSION}
+            </span>
+          </div>
           <div className="flex items-center gap-6">
             <Link
               to="/privacy"
