@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 interface Snowflake {
   id: number;
@@ -18,6 +18,12 @@ interface Star {
   twinkleDuration: number;
   delay: number;
 }
+
+// Animation cycle timing (in seconds)
+const ACCUMULATE_DURATION = 12;
+const BLOWER_DURATION = 6;
+const RESET_DURATION = 2;
+const TOTAL_CYCLE = ACCUMULATE_DURATION + BLOWER_DURATION + RESET_DURATION; // 20s
 
 function SantaSleigh() {
   return (
@@ -194,15 +200,191 @@ function SantaSleigh() {
   );
 }
 
+function SnowPile() {
+  return (
+    <div 
+      className="absolute bottom-0 left-0 right-0 motion-reduce:hidden"
+      style={{
+        animation: `snowPileGrow ${ACCUMULATE_DURATION}s ease-out forwards, snowPileClear ${BLOWER_DURATION}s ease-in ${ACCUMULATE_DURATION}s forwards`,
+        animationIterationCount: 'infinite',
+      }}
+    >
+      {/* Wavy snow pile with gradient */}
+      <svg 
+        viewBox="0 0 100 12" 
+        preserveAspectRatio="none" 
+        className="w-full h-16"
+        style={{ filter: 'drop-shadow(0 -2px 4px rgba(255, 255, 255, 0.3))' }}
+      >
+        <defs>
+          <linearGradient id="snowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
+            <stop offset="50%" stopColor="rgba(240, 248, 255, 0.9)" />
+            <stop offset="100%" stopColor="rgba(220, 235, 250, 0.85)" />
+          </linearGradient>
+        </defs>
+        <path 
+          d="M0 12 L0 4 Q5 2 10 4 Q15 6 20 3 Q25 1 30 4 Q35 6 40 3 Q45 1 50 4 Q55 6 60 3 Q65 1 70 4 Q75 6 80 3 Q85 1 90 4 Q95 6 100 4 L100 12 Z" 
+          fill="url(#snowGradient)"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function Snowblower() {
+  return (
+    <div 
+      className="absolute bottom-4 motion-reduce:hidden"
+      style={{
+        animation: `snowblowerMove ${BLOWER_DURATION}s linear ${ACCUMULATE_DURATION}s forwards`,
+        animationIterationCount: 'infinite',
+        left: '-120px',
+      }}
+    >
+      <div className="relative">
+        {/* Snow spray */}
+        <div 
+          className="absolute -top-16 left-10"
+          style={{
+            animation: `snowSprayPulse 0.3s ease-in-out infinite`,
+          }}
+        >
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white/80"
+              style={{
+                width: `${4 + Math.random() * 6}px`,
+                height: `${4 + Math.random() * 6}px`,
+                animation: `snowParticle ${0.5 + Math.random() * 0.5}s ease-out infinite`,
+                animationDelay: `${i * 0.05}s`,
+                left: `${Math.random() * 30}px`,
+                top: `${Math.random() * 40}px`,
+                opacity: 0.8,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Snowblower machine */}
+        <svg width="80" height="50" viewBox="0 0 80 50" className="drop-shadow-lg">
+          {/* Main body */}
+          <rect x="20" y="15" width="45" height="25" rx="3" fill="#dc2626" stroke="#991b1b" strokeWidth="1" />
+          
+          {/* Engine housing */}
+          <rect x="45" y="10" width="18" height="15" rx="2" fill="#1f2937" stroke="#111827" strokeWidth="1" />
+          
+          {/* Exhaust */}
+          <rect x="60" y="5" width="4" height="8" fill="#374151" />
+          <ellipse cx="62" cy="4" rx="3" ry="2" fill="#6b7280" />
+          
+          {/* Handle */}
+          <path d="M55 15 L65 0 L70 0 L70 5 L60 15" fill="#4b5563" stroke="#374151" strokeWidth="1" />
+          <rect x="67" y="0" width="8" height="6" rx="2" fill="#1f2937" />
+          
+          {/* Auger housing */}
+          <path d="M5 20 Q0 20 0 30 Q0 40 5 40 L20 40 L20 20 Z" fill="#ef4444" stroke="#dc2626" strokeWidth="1" />
+          
+          {/* Spinning auger blades */}
+          <g style={{ transformOrigin: '12px 30px', animation: 'augerSpin 0.15s linear infinite' }}>
+            <ellipse cx="12" cy="30" rx="10" ry="8" fill="none" stroke="#fbbf24" strokeWidth="2" />
+            <path d="M2 30 L22 30 M12 22 L12 38" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
+            <path d="M5 24 L19 36 M19 24 L5 36" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
+          </g>
+          
+          {/* Chute */}
+          <path d="M8 20 L8 5 Q8 0 15 0 L25 0 Q30 0 28 8 L20 20" fill="#b91c1c" stroke="#991b1b" strokeWidth="1" />
+          <ellipse cx="18" cy="0" rx="8" ry="4" fill="#dc2626" />
+          
+          {/* Wheels */}
+          <circle cx="30" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
+          <circle cx="30" cy="42" r="3" fill="#374151" />
+          <circle cx="55" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
+          <circle cx="55" cy="42" r="3" fill="#374151" />
+          
+          {/* Tread marks */}
+          <path d="M22 42 L38 42 M47 42 L63 42" stroke="#4b5563" strokeWidth="1" strokeDasharray="2 2" />
+          
+          {/* Headlight */}
+          <circle cx="18" cy="25" r="3" fill="#fbbf24" className="animate-pulse" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function AccumulatingSnow({ phase }: { phase: 'accumulating' | 'clearing' | 'reset' }) {
+  const flakes = useMemo(() => {
+    return Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      landDelay: Math.random() * ACCUMULATE_DURATION * 0.8,
+    }));
+  }, []);
+
+  if (phase !== 'accumulating') return null;
+
+  return (
+    <>
+      {flakes.map((flake) => (
+        <div
+          key={`landing-${flake.id}`}
+          className="absolute rounded-full bg-white/80 motion-reduce:hidden"
+          style={{
+            left: `${flake.x}%`,
+            bottom: '60px',
+            width: '4px',
+            height: '4px',
+            animation: `snowLand 0.5s ease-out forwards`,
+            animationDelay: `${flake.landDelay}s`,
+            opacity: 0,
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
 export function Snowfall() {
+  const [phase, setPhase] = useState<'accumulating' | 'clearing' | 'reset'>('accumulating');
+  const [cycleKey, setCycleKey] = useState(0);
+
+  useEffect(() => {
+    const runCycle = () => {
+      // Accumulating phase
+      setPhase('accumulating');
+      
+      setTimeout(() => {
+        // Clearing phase
+        setPhase('clearing');
+      }, ACCUMULATE_DURATION * 1000);
+      
+      setTimeout(() => {
+        // Reset phase
+        setPhase('reset');
+      }, (ACCUMULATE_DURATION + BLOWER_DURATION) * 1000);
+      
+      setTimeout(() => {
+        // Start new cycle
+        setCycleKey(k => k + 1);
+      }, TOTAL_CYCLE * 1000);
+    };
+
+    runCycle();
+    
+    const interval = setInterval(runCycle, TOTAL_CYCLE * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const snowflakes = useMemo<Snowflake[]>(() => {
     return Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       size: Math.random() * 4 + 2,
       opacity: Math.random() * 0.5 + 0.3,
-      duration: Math.random() * 15 + 10,
-      delay: Math.random() * 10,
+      duration: Math.random() * 8 + 6,
+      delay: Math.random() * 5,
       driftDuration: Math.random() * 4 + 3,
     }));
   }, []);
@@ -254,11 +436,24 @@ export function Snowfall() {
             width: `${flake.size}px`,
             height: `${flake.size}px`,
             opacity: flake.opacity,
-            animation: `snowfall ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite`,
+            animation: `snowfallAccumulate ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite`,
             animationDelay: `${flake.delay}s`,
           }}
         />
       ))}
+      
+      {/* Accumulating snow effects */}
+      <AccumulatingSnow key={cycleKey} phase={phase} />
+      
+      {/* Snow pile */}
+      <div key={`pile-${cycleKey}`}>
+        <SnowPile />
+      </div>
+      
+      {/* Snowblower */}
+      <div key={`blower-${cycleKey}`}>
+        <Snowblower />
+      </div>
     </div>
   );
 }
