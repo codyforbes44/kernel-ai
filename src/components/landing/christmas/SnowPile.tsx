@@ -12,22 +12,27 @@ interface BlownParticle {
   duration: number;
 }
 
+/**
+ * Snow pile at the bottom of the screen.
+ * Mobile-first optimized with reduced particles.
+ */
 export function SnowPile() {
-  const { particleScale } = useChristmasPerformance();
+  const { particleScale, isSmallScreen } = useChristmasPerformance();
   
-  // Generate blown snow particles that disperse when wind gusts happen
+  // Reduced particle count on mobile
   const blownParticles = useMemo<BlownParticle[]>(() => {
-    const count = Math.floor(12 * particleScale);
+    const baseCount = isSmallScreen ? 6 : 10;
+    const count = Math.max(2, Math.floor(baseCount * particleScale));
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: 5 + (i / count) * 90, // Spread across the pile
-      size: 3 + Math.random() * 4,
-      driftX: 30 + Math.random() * 60, // Drift right
-      driftY: -15 - Math.random() * 25, // Drift up
-      delay: (i / count) * 0.3, // Stagger the particles
-      duration: 1.5 + Math.random() * 1,
+      x: 5 + (i / count) * 90,
+      size: 2 + Math.random() * 3,
+      driftX: 25 + Math.random() * 45,
+      driftY: -12 - Math.random() * 20,
+      delay: (i / count) * 0.25,
+      duration: 1.2 + Math.random() * 0.8,
     }));
-  }, [particleScale]);
+  }, [particleScale, isSmallScreen]);
 
   return (
     <div 
@@ -38,11 +43,11 @@ export function SnowPile() {
         transform: 'translateZ(0)',
       }}
     >
-      {/* Blown snow particles - appear during wind dispersal phase */}
+      {/* Blown snow particles */}
       {blownParticles.map((particle) => (
         <div
           key={particle.id}
-          className="absolute rounded-full bg-white/80"
+          className="absolute rounded-full bg-white/75"
           style={{
             left: `${particle.x}%`,
             bottom: '8px',
@@ -59,8 +64,8 @@ export function SnowPile() {
       <svg 
         viewBox="0 0 100 12" 
         preserveAspectRatio="none" 
-        className="w-full h-16"
-        style={{ filter: 'drop-shadow(0 -2px 4px rgba(255, 255, 255, 0.3))' }}
+        className={isSmallScreen ? 'w-full h-12' : 'w-full h-16'}
+        style={{ filter: 'drop-shadow(0 -1px 3px rgba(255, 255, 255, 0.25))' }}
       >
         <defs>
           <linearGradient id="snowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
