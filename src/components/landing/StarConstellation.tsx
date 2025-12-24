@@ -14,9 +14,9 @@ interface Star {
 
 interface ConstellationStar extends Star {
   id: string;
-  name?: string;           // Star name for labels
+  name?: string;
   color: StarColor;
-  points: 4 | 6 | 8;       // Multi-point star shape
+  points: 4 | 6 | 8;
 }
 
 interface ConstellationLine {
@@ -48,20 +48,16 @@ const CONSTELLATIONS: ConstellationData[] = [
     name: 'orion',
     displayName: 'Orion',
     stars: [
-      // Belt - Alnitak, Alnilam, Mintaka
-      { id: 'alnitak', x: 40, y: 50, size: 3, brightness: 0.9, twinkleSpeed: 4, twinkleDelay: 0, color: 'blue-white', points: 6 },
-      { id: 'alnilam', x: 50, y: 52, size: 3.5, brightness: 1, twinkleSpeed: 3.5, twinkleDelay: 0.5, name: 'Alnilam', color: 'blue-white', points: 8 },
-      { id: 'mintaka', x: 60, y: 50, size: 3, brightness: 0.85, twinkleSpeed: 4.5, twinkleDelay: 1, color: 'blue-white', points: 6 },
-      // Shoulders
-      { id: 'betelgeuse', x: 25, y: 25, size: 5, brightness: 1, twinkleSpeed: 3, twinkleDelay: 0.3, name: 'Betelgeuse', color: 'red-orange', points: 8 },
-      { id: 'bellatrix', x: 75, y: 28, size: 4, brightness: 0.9, twinkleSpeed: 3.2, twinkleDelay: 0.7, name: 'Bellatrix', color: 'blue-white', points: 6 },
-      // Feet
-      { id: 'rigel', x: 70, y: 85, size: 5, brightness: 1, twinkleSpeed: 2.8, twinkleDelay: 0.2, name: 'Rigel', color: 'blue-white', points: 8 },
-      { id: 'saiph', x: 30, y: 82, size: 3.5, brightness: 0.8, twinkleSpeed: 4, twinkleDelay: 0.9, color: 'blue-white', points: 6 },
-      // Sword region (fainter)
-      { id: 'sword1', x: 48, y: 60, size: 2, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
-      { id: 'sword2', x: 50, y: 65, size: 2.5, brightness: 0.6, twinkleSpeed: 4.5, twinkleDelay: 0.8, color: 'cyan', points: 4 },
-      { id: 'sword3', x: 52, y: 70, size: 2, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.5, color: 'white', points: 4 },
+      { id: 'alnitak', x: 40, y: 50, size: 2.5, brightness: 0.9, twinkleSpeed: 4, twinkleDelay: 0, color: 'blue-white', points: 6 },
+      { id: 'alnilam', x: 50, y: 52, size: 3, brightness: 1, twinkleSpeed: 3.5, twinkleDelay: 0.5, name: 'Alnilam', color: 'blue-white', points: 8 },
+      { id: 'mintaka', x: 60, y: 50, size: 2.5, brightness: 0.85, twinkleSpeed: 4.5, twinkleDelay: 1, color: 'blue-white', points: 6 },
+      { id: 'betelgeuse', x: 25, y: 25, size: 4, brightness: 1, twinkleSpeed: 3, twinkleDelay: 0.3, name: 'Betelgeuse', color: 'red-orange', points: 8 },
+      { id: 'bellatrix', x: 75, y: 28, size: 3, brightness: 0.9, twinkleSpeed: 3.2, twinkleDelay: 0.7, name: 'Bellatrix', color: 'blue-white', points: 6 },
+      { id: 'rigel', x: 70, y: 85, size: 4, brightness: 1, twinkleSpeed: 2.8, twinkleDelay: 0.2, name: 'Rigel', color: 'blue-white', points: 8 },
+      { id: 'saiph', x: 30, y: 82, size: 3, brightness: 0.8, twinkleSpeed: 4, twinkleDelay: 0.9, color: 'blue-white', points: 6 },
+      { id: 'sword1', x: 48, y: 60, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
+      { id: 'sword2', x: 50, y: 65, size: 2, brightness: 0.6, twinkleSpeed: 4.5, twinkleDelay: 0.8, color: 'cyan', points: 4 },
+      { id: 'sword3', x: 52, y: 70, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.5, color: 'white', points: 4 },
     ],
     lines: [
       { from: 'alnitak', to: 'alnilam' },
@@ -75,24 +71,21 @@ const CONSTELLATIONS: ConstellationData[] = [
       { from: 'sword2', to: 'sword3' },
     ],
     nebulae: [
-      // Orion Nebula region (around the sword)
-      { x: 48, y: 64, width: 25, height: 30, rotation: -15, opacity: 0.08, color: 'hsl(280, 60%, 60%)' },
-      { x: 52, y: 66, width: 18, height: 22, rotation: 10, opacity: 0.06, color: 'hsl(200, 70%, 65%)' },
+      { x: 48, y: 64, width: 20, height: 24, rotation: -15, opacity: 0.05, color: 'hsl(280, 60%, 60%)' },
     ],
   },
   {
     name: 'ursaMajor',
     displayName: 'Ursa Major',
     stars: [
-      // Big Dipper pattern
-      { id: 'dubhe', x: 10, y: 20, size: 4, brightness: 0.95, twinkleSpeed: 3.5, twinkleDelay: 0, name: 'Dubhe', color: 'gold', points: 8 },
-      { id: 'merak', x: 10, y: 45, size: 3.5, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.4, name: 'Merak', color: 'white', points: 6 },
-      { id: 'phecda', x: 30, y: 55, size: 3, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.8, color: 'white', points: 6 },
-      { id: 'megrez', x: 45, y: 45, size: 2.8, brightness: 0.7, twinkleSpeed: 4.5, twinkleDelay: 0.2, color: 'white', points: 4 },
-      { id: 'alioth', x: 60, y: 40, size: 3.5, brightness: 0.9, twinkleSpeed: 3.8, twinkleDelay: 0.6, name: 'Alioth', color: 'white', points: 6 },
-      { id: 'mizar', x: 75, y: 35, size: 3.5, brightness: 0.85, twinkleSpeed: 3.5, twinkleDelay: 1, name: 'Mizar', color: 'white', points: 6 },
-      { id: 'alcor', x: 77, y: 33, size: 1.8, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 }, // Companion to Mizar
-      { id: 'alkaid', x: 90, y: 25, size: 4, brightness: 0.95, twinkleSpeed: 3.2, twinkleDelay: 0.3, name: 'Alkaid', color: 'blue-white', points: 8 },
+      { id: 'dubhe', x: 10, y: 20, size: 3, brightness: 0.95, twinkleSpeed: 3.5, twinkleDelay: 0, name: 'Dubhe', color: 'gold', points: 8 },
+      { id: 'merak', x: 10, y: 45, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.4, name: 'Merak', color: 'white', points: 6 },
+      { id: 'phecda', x: 30, y: 55, size: 2.5, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.8, color: 'white', points: 6 },
+      { id: 'megrez', x: 45, y: 45, size: 2.2, brightness: 0.7, twinkleSpeed: 4.5, twinkleDelay: 0.2, color: 'white', points: 4 },
+      { id: 'alioth', x: 60, y: 40, size: 2.8, brightness: 0.9, twinkleSpeed: 3.8, twinkleDelay: 0.6, name: 'Alioth', color: 'white', points: 6 },
+      { id: 'mizar', x: 75, y: 35, size: 2.8, brightness: 0.85, twinkleSpeed: 3.5, twinkleDelay: 1, name: 'Mizar', color: 'white', points: 6 },
+      { id: 'alcor', x: 77, y: 33, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
+      { id: 'alkaid', x: 90, y: 25, size: 3, brightness: 0.95, twinkleSpeed: 3.2, twinkleDelay: 0.3, name: 'Alkaid', color: 'blue-white', points: 8 },
     ],
     lines: [
       { from: 'dubhe', to: 'merak' },
@@ -108,12 +101,11 @@ const CONSTELLATIONS: ConstellationData[] = [
     name: 'cassiopeia',
     displayName: 'Cassiopeia',
     stars: [
-      // W-shape pattern
-      { id: 'schedar', x: 10, y: 40, size: 4, brightness: 0.95, twinkleSpeed: 3.3, twinkleDelay: 0, name: 'Schedar', color: 'gold', points: 8 },
-      { id: 'caph', x: 25, y: 20, size: 3.5, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.5, name: 'Caph', color: 'white', points: 6 },
-      { id: 'gamma', x: 50, y: 50, size: 3.5, brightness: 0.9, twinkleSpeed: 3.5, twinkleDelay: 0.2, name: 'Navi', color: 'blue-white', points: 8 },
-      { id: 'ruchbah', x: 75, y: 25, size: 3, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.7, color: 'white', points: 6 },
-      { id: 'segin', x: 90, y: 45, size: 3.5, brightness: 0.85, twinkleSpeed: 3.8, twinkleDelay: 0.4, name: 'Segin', color: 'blue-white', points: 6 },
+      { id: 'schedar', x: 10, y: 40, size: 3, brightness: 0.95, twinkleSpeed: 3.3, twinkleDelay: 0, name: 'Schedar', color: 'gold', points: 8 },
+      { id: 'caph', x: 25, y: 20, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.5, name: 'Caph', color: 'white', points: 6 },
+      { id: 'gamma', x: 50, y: 50, size: 2.8, brightness: 0.9, twinkleSpeed: 3.5, twinkleDelay: 0.2, name: 'Navi', color: 'blue-white', points: 8 },
+      { id: 'ruchbah', x: 75, y: 25, size: 2.5, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.7, color: 'white', points: 6 },
+      { id: 'segin', x: 90, y: 45, size: 2.8, brightness: 0.85, twinkleSpeed: 3.8, twinkleDelay: 0.4, name: 'Segin', color: 'blue-white', points: 6 },
     ],
     lines: [
       { from: 'schedar', to: 'caph' },
@@ -140,23 +132,23 @@ function getStarPath(points: number, outerRadius: number, innerRadius: number): 
   return path.join(' ');
 }
 
-// Multi-point detailed star component
+// Multi-point detailed star component - simplified for mobile
 const DetailedStar = memo(function DetailedStar({ 
   star, 
   showLabel,
-  blur,
+  simplified,
 }: { 
   star: ConstellationStar; 
   showLabel: boolean;
-  blur: number;
+  simplified: boolean;
 }) {
   const colorValue = STAR_COLORS[star.color] || STAR_COLORS.white;
-  const outerRadius = star.size * 1.5;
-  const innerRadius = star.size * 0.5;
+  const outerRadius = star.size * 1.2;
+  const innerRadius = star.size * 0.4;
   const viewBoxSize = outerRadius * 2;
   
-  // Diffraction spikes for bright stars
-  const hasDiffraction = star.brightness >= 0.9 && star.points === 8;
+  // Diffraction spikes only for bright stars on desktop
+  const hasDiffraction = !simplified && star.brightness >= 0.9 && star.points === 8;
   
   return (
     <div
@@ -165,45 +157,39 @@ const DetailedStar = memo(function DetailedStar({
         left: `${star.x}%`,
         top: `${star.y}%`,
         transform: 'translate(-50%, -50%)',
-        filter: blur > 0 ? `blur(${blur}px)` : undefined,
       }}
     >
-      {/* Outer glow */}
+      {/* Outer glow - reduced on mobile */}
       <div
         className="absolute rounded-full"
         style={{
-          width: star.size * 6,
-          height: star.size * 6,
+          width: star.size * (simplified ? 4 : 5),
+          height: star.size * (simplified ? 4 : 5),
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle, ${colorValue.replace(')', ' / 0.3)')}, transparent 70%)`,
+          background: `radial-gradient(circle, ${colorValue.replace(')', ' / 0.25)')}, transparent 70%)`,
           animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
           animationDelay: `${star.twinkleDelay}s`,
         }}
       />
       
-      {/* Diffraction spikes for bright stars */}
+      {/* Diffraction spikes for bright stars - desktop only */}
       {hasDiffraction && (
         <svg
           className="absolute"
-          width={star.size * 8}
-          height={star.size * 8}
+          width={star.size * 6}
+          height={star.size * 6}
           style={{
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            opacity: 0.4,
+            opacity: 0.3,
           }}
           viewBox="0 0 100 100"
         >
-          {/* Horizontal spike */}
-          <line x1="0" y1="50" x2="100" y2="50" stroke={colorValue} strokeWidth="0.5" opacity="0.6" />
-          {/* Vertical spike */}
-          <line x1="50" y1="0" x2="50" y2="100" stroke={colorValue} strokeWidth="0.5" opacity="0.6" />
-          {/* Diagonal spikes */}
-          <line x1="15" y1="15" x2="85" y2="85" stroke={colorValue} strokeWidth="0.3" opacity="0.4" />
-          <line x1="85" y1="15" x2="15" y2="85" stroke={colorValue} strokeWidth="0.3" opacity="0.4" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke={colorValue} strokeWidth="0.5" opacity="0.5" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke={colorValue} strokeWidth="0.5" opacity="0.5" />
         </svg>
       )}
       
@@ -216,7 +202,7 @@ const DetailedStar = memo(function DetailedStar({
         style={{
           animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
           animationDelay: `${star.twinkleDelay}s`,
-          filter: `drop-shadow(0 0 ${star.size}px ${colorValue})`,
+          filter: simplified ? undefined : `drop-shadow(0 0 ${star.size * 0.8}px ${colorValue})`,
         }}
       >
         <defs>
@@ -230,26 +216,24 @@ const DetailedStar = memo(function DetailedStar({
           d={getStarPath(star.points, outerRadius, innerRadius)}
           fill={`url(#star-gradient-${star.id})`}
         />
-        {/* Bright core */}
         <circle
           cx={outerRadius}
           cy={outerRadius}
-          r={star.size * 0.3}
+          r={star.size * 0.25}
           fill="white"
           opacity={star.brightness}
         />
       </svg>
       
-      {/* Star label */}
+      {/* Star label - hidden on mobile */}
       {showLabel && star.name && (
         <div
-          className="absolute whitespace-nowrap text-[8px] font-light tracking-wider opacity-40 pointer-events-none"
+          className="absolute whitespace-nowrap text-[7px] font-light tracking-wider opacity-35 pointer-events-none"
           style={{
             left: '50%',
-            top: `${viewBoxSize + 4}px`,
+            top: `${viewBoxSize + 3}px`,
             transform: 'translateX(-50%)',
             color: colorValue,
-            textShadow: `0 0 4px ${colorValue}`,
           }}
         >
           {star.name}
@@ -259,8 +243,10 @@ const DetailedStar = memo(function DetailedStar({
   );
 });
 
-// Nebula component for gas cloud effects
-const NebulaCloud = memo(function NebulaCloud({ nebula }: { nebula: Nebula }) {
+// Nebula component - simplified/hidden on mobile
+const NebulaCloud = memo(function NebulaCloud({ nebula, simplified }: { nebula: Nebula; simplified: boolean }) {
+  if (simplified) return null;
+  
   return (
     <div
       className="absolute pointer-events-none"
@@ -271,7 +257,7 @@ const NebulaCloud = memo(function NebulaCloud({ nebula }: { nebula: Nebula }) {
         height: nebula.height,
         transform: `translate(-50%, -50%) rotate(${nebula.rotation}deg)`,
         background: `radial-gradient(ellipse, ${nebula.color.replace(')', ` / ${nebula.opacity})`)}, transparent 70%)`,
-        filter: 'blur(8px)',
+        filter: 'blur(4px)',
         animation: 'constellationPulse 12s ease-in-out infinite',
       }}
     />
@@ -284,7 +270,6 @@ interface ConstellationProps {
   width: number;
   height: number;
   detailLevel: ConstellationDetail;
-  blur?: number;
   showLabels?: boolean;
 }
 
@@ -294,7 +279,6 @@ const Constellation = memo(function Constellation({
   width, 
   height, 
   detailLevel,
-  blur = 0,
   showLabels = true,
 }: ConstellationProps) {
   const data = CONSTELLATIONS.find(c => c.name === name);
@@ -306,30 +290,30 @@ const Constellation = memo(function Constellation({
     return map;
   }, [data.stars]);
 
-  // Filter stars based on detail level
   const visibleStars = useMemo(() => {
     if (detailLevel === 'full') return data.stars;
     if (detailLevel === 'simplified') return data.stars.filter(s => s.brightness >= 0.7);
-    return data.stars.filter(s => s.brightness >= 0.85); // minimal
+    return data.stars.filter(s => s.brightness >= 0.85);
   }, [data.stars, detailLevel]);
 
   const showNebulaEffects = detailLevel === 'full' && data.nebulae;
-  const showStarLabels = showLabels && detailLevel !== 'minimal';
+  const showStarLabels = showLabels && detailLevel === 'full';
+  const simplified = detailLevel !== 'full';
 
   return (
     <div className={`absolute pointer-events-none ${className}`} style={{ width, height }}>
       {/* Nebulae (background) */}
       {showNebulaEffects && data.nebulae?.map((nebula, i) => (
-        <NebulaCloud key={`nebula-${i}`} nebula={nebula} />
+        <NebulaCloud key={`nebula-${i}`} nebula={nebula} simplified={simplified} />
       ))}
       
-      {/* Connection lines with gradient */}
+      {/* Connection lines */}
       <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id={`line-gradient-${name}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.05" />
-            <stop offset="50%" stopColor="hsl(185, 80%, 70%)" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.04" />
+            <stop offset="50%" stopColor="hsl(185, 80%, 70%)" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.04" />
           </linearGradient>
         </defs>
         {data.lines.map((line, i) => {
@@ -337,33 +321,28 @@ const Constellation = memo(function Constellation({
           const to = starMap.get(line.to);
           if (!from || !to) return null;
           
-          // Skip lines to hidden stars in simplified mode
           if (detailLevel !== 'full' && (from.brightness < 0.7 || to.brightness < 0.7)) return null;
           
           return (
             <g key={i}>
-              {/* Glow effect */}
               <line
                 x1={`${from.x}%`}
                 y1={`${from.y}%`}
                 x2={`${to.x}%`}
                 y2={`${to.y}%`}
                 stroke={`url(#line-gradient-${name})`}
-                strokeWidth="3"
+                strokeWidth="2"
                 className="animate-[constellationPulse_8s_ease-in-out_infinite]"
                 style={{ animationDelay: `${i * 0.5}s` }}
               />
-              {/* Core line */}
               <line
                 x1={`${from.x}%`}
                 y1={`${from.y}%`}
                 x2={`${to.x}%`}
                 y2={`${to.y}%`}
                 stroke="hsl(185, 80%, 75%)"
-                strokeWidth="0.5"
-                opacity="0.2"
-                className="animate-[constellationPulse_8s_ease-in-out_infinite]"
-                style={{ animationDelay: `${i * 0.5}s` }}
+                strokeWidth="0.4"
+                opacity="0.15"
               />
             </g>
           );
@@ -376,15 +355,14 @@ const Constellation = memo(function Constellation({
           key={star.id} 
           star={star} 
           showLabel={showStarLabels}
-          blur={blur}
+          simplified={simplified}
         />
       ))}
       
-      {/* Constellation name label */}
+      {/* Constellation name label - desktop only */}
       {showStarLabels && (
         <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 text-[10px] font-light tracking-[0.3em] uppercase opacity-25 text-cyan-300"
-          style={{ textShadow: '0 0 8px hsl(185, 80%, 70%)' }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 text-[9px] font-light tracking-[0.25em] uppercase opacity-20 text-cyan-300"
         >
           {data.displayName}
         </div>
@@ -395,23 +373,22 @@ const Constellation = memo(function Constellation({
 
 interface BackgroundStarsProps {
   count?: number;
-  blur?: number;
+  maxGlow?: number;
 }
 
-export function BackgroundStars({ count = 50, blur = 0 }: BackgroundStarsProps) {
+export function BackgroundStars({ count = 40, maxGlow = 3 }: BackgroundStarsProps) {
   const stars = useMemo(() => {
     return Array.from({ length: count }, (_, i) => {
-      // Varied star types
       const rand = Math.random();
-      const points = rand < 0.6 ? 4 : rand < 0.9 ? 6 : 8;
-      const color: StarColor = rand < 0.7 ? 'white' : rand < 0.85 ? 'blue-white' : rand < 0.95 ? 'gold' : 'cyan';
+      const points = rand < 0.7 ? 4 : rand < 0.9 ? 6 : 8;
+      const color: StarColor = rand < 0.75 ? 'white' : rand < 0.9 ? 'blue-white' : 'gold';
       
       return {
         id: i,
         x: Math.random() * 100,
-        y: Math.random() * 60, // Keep in upper 60% of viewport
-        size: 0.8 + Math.random() * 1.8,
-        opacity: 0.15 + Math.random() * 0.35,
+        y: Math.random() * 60,
+        size: Math.min(0.6 + Math.random() * 1.4, 2), // Capped at 2px
+        opacity: 0.12 + Math.random() * 0.28,
         twinkleSpeed: 5 + Math.random() * 10,
         twinkleDelay: Math.random() * 5,
         points,
@@ -424,6 +401,7 @@ export function BackgroundStars({ count = 50, blur = 0 }: BackgroundStarsProps) 
     <div className="absolute inset-0 pointer-events-none">
       {stars.map((star) => {
         const colorValue = STAR_COLORS[star.color];
+        const glowSize = Math.min(star.size * 1.5, maxGlow);
         return (
           <div
             key={star.id}
@@ -436,10 +414,9 @@ export function BackgroundStars({ count = 50, blur = 0 }: BackgroundStarsProps) 
               opacity: star.opacity,
               backgroundColor: colorValue,
               borderRadius: '50%',
-              boxShadow: `0 0 ${star.size * 2}px ${colorValue.replace(')', ' / 0.5)')}`,
+              boxShadow: `0 0 ${glowSize}px ${colorValue.replace(')', ' / 0.4)')}`,
               animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
               animationDelay: `${star.twinkleDelay}s`,
-              filter: blur > 0 ? `blur(${blur}px)` : undefined,
             }}
           />
         );
@@ -454,50 +431,46 @@ interface StarConstellationProps {
 
 export function StarConstellation({ scrollY }: StarConstellationProps) {
   const performanceConfig = useChristmasPerformance();
-  const { constellationDetail, enableBlur, isSmallScreen, isVerySmallScreen } = performanceConfig;
+  const { constellationDetail, isSmallScreen, isVerySmallScreen, maxStarGlow } = performanceConfig;
   
-  // Parallax transforms for different depth layers
   const slowParallax = scrollY * 0.3;
   const mediumParallax = scrollY * 0.5;
   const fastParallax = scrollY * 0.7;
   
-  // Responsive sizing
+  // Responsive sizing - reduced for mobile
   const getConstellationSize = (baseWidth: number, baseHeight: number) => {
-    if (isVerySmallScreen) return { width: baseWidth * 0.5, height: baseHeight * 0.5 };
-    if (isSmallScreen) return { width: baseWidth * 0.7, height: baseHeight * 0.7 };
+    if (isVerySmallScreen) return { width: baseWidth * 0.4, height: baseHeight * 0.4 };
+    if (isSmallScreen) return { width: baseWidth * 0.6, height: baseHeight * 0.6 };
     return { width: baseWidth, height: baseHeight };
   };
   
-  const orionSize = getConstellationSize(160, 200);
-  const ursaSize = getConstellationSize(240, 110);
-  const cassiopeiaSize = getConstellationSize(200, 90);
+  const orionSize = getConstellationSize(140, 180);
+  const ursaSize = getConstellationSize(200, 100);
+  const cassiopeiaSize = getConstellationSize(180, 80);
   
-  // Depth blur for atmospheric perspective
-  const farBlur = enableBlur ? 1.5 : 0;
-  const midBlur = enableBlur ? 0.8 : 0;
-  const nearBlur = 0;
+  // Background star count based on screen size
+  const bgStarCount = isVerySmallScreen ? 15 : isSmallScreen ? 25 : 45;
 
   return (
     <>
-      {/* Background star field - deepest layer */}
+      {/* Background star field - NO container blur */}
       <div 
         className="absolute inset-0"
         style={{ 
           transform: `translateY(${slowParallax * 0.5}px)`,
-          filter: enableBlur ? 'blur(1px)' : undefined,
         }}
       >
         <BackgroundStars 
-          count={isSmallScreen ? 30 : 60} 
-          blur={farBlur}
+          count={bgStarCount} 
+          maxGlow={maxStarGlow}
         />
       </div>
 
       {/* Cassiopeia - slow parallax (furthest) */}
       <div 
-        className="absolute top-[3%] left-[30%] opacity-50"
+        className="absolute top-[3%] left-[30%] opacity-45"
         style={{ 
-          transform: `translateY(${slowParallax}px) translateZ(-300px)`,
+          transform: `translateY(${slowParallax}px)`,
         }}
       >
         <Constellation 
@@ -505,16 +478,15 @@ export function StarConstellation({ scrollY }: StarConstellationProps) {
           width={cassiopeiaSize.width} 
           height={cassiopeiaSize.height}
           detailLevel={constellationDetail}
-          blur={farBlur}
-          showLabels={!isVerySmallScreen}
+          showLabels={!isSmallScreen}
         />
       </div>
 
       {/* Ursa Major - medium parallax */}
       <div 
-        className="absolute top-[8%] right-[5%] opacity-60"
+        className="absolute top-[8%] right-[5%] opacity-55"
         style={{ 
-          transform: `translateY(${mediumParallax * 0.6}px) translateZ(-200px)`,
+          transform: `translateY(${mediumParallax * 0.6}px)`,
         }}
       >
         <Constellation 
@@ -522,16 +494,15 @@ export function StarConstellation({ scrollY }: StarConstellationProps) {
           width={ursaSize.width} 
           height={ursaSize.height}
           detailLevel={constellationDetail}
-          blur={midBlur}
-          showLabels={!isVerySmallScreen}
+          showLabels={!isSmallScreen}
         />
       </div>
 
       {/* Orion - fast parallax (closest) */}
       <div 
-        className="absolute top-[12%] left-[5%] opacity-75"
+        className="absolute top-[12%] left-[5%] opacity-65"
         style={{ 
-          transform: `translateY(${fastParallax * 0.4}px) translateZ(-100px)`,
+          transform: `translateY(${fastParallax * 0.4}px)`,
         }}
       >
         <Constellation 
@@ -539,7 +510,6 @@ export function StarConstellation({ scrollY }: StarConstellationProps) {
           width={orionSize.width} 
           height={orionSize.height}
           detailLevel={constellationDetail}
-          blur={nearBlur}
           showLabels={!isSmallScreen}
         />
       </div>
