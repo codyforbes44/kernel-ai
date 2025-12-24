@@ -1,10 +1,11 @@
 import { useRef, useCallback, useState } from "react";
-import { Check, X, Share2, Download, ExternalLink, Loader2 } from "lucide-react";
+import { Check, X, Share2, Download, ExternalLink, Loader2, FileText } from "lucide-react";
 import { toPng } from "html-to-image";
 import { Button } from "@/components/ui/button";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { SocialComparisonCard } from "@/components/marketing/SocialComparisonCard";
 import { CompareOGImage } from "@/components/marketing/CompareOGImage";
+import { CompetitiveAnalysisPDF } from "@/components/marketing/CompetitiveAnalysisPDF";
 import { PlatformRadarChart } from "@/components/pricing/PlatformRadarChart";
 import { SEO } from "@/components/seo/SEO";
 import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
@@ -12,6 +13,7 @@ import { platformFeatures, platforms } from "@/lib/pricing-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import { pdfExportService } from "@/services/pdfExportService";
 
 const FeatureValue = ({ value }: { value: boolean | string }) => {
   if (value === true) {
@@ -44,8 +46,9 @@ const FeatureValue = ({ value }: { value: boolean | string }) => {
 const Compare = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const ogImageRef = useRef<HTMLDivElement>(null);
+  const pdfRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const shareText = `🚀 Just discovered Kernel — the most complete AI development platform
 
 ✅ AI Image Generation
@@ -104,6 +107,25 @@ Check the full comparison 👇`;
     }
   }, []);
 
+  const handleDownloadPDF = useCallback(async () => {
+    if (!pdfRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      await pdfExportService.exportAndDownload(pdfRef.current, {
+        filename: "kernel-competitive-analysis.pdf",
+        format: "a4",
+        quality: "high",
+      });
+      toast.success("PDF Report downloaded!");
+    } catch (err) {
+      logger.error("Failed to generate PDF:", err);
+      toast.error("Failed to download PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  }, []);
+
   const groupedFeatures = platformFeatures.reduce((acc, feature) => {
     if (!acc[feature.category]) {
       acc[feature.category] = [];
@@ -131,6 +153,11 @@ Check the full comparison 👇`;
       {/* Hidden OG Image for Export */}
       <div className="fixed left-[-9999px] top-0 pointer-events-none">
         <CompareOGImage ref={ogImageRef} />
+      </div>
+
+      {/* Hidden PDF Component for Export */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none">
+        <CompetitiveAnalysisPDF ref={pdfRef} />
       </div>
 
       <div className="min-h-screen bg-background">
@@ -176,6 +203,19 @@ Check the full comparison 👇`;
                   <Download className="w-4 h-4" />
                 )}
                 Download OG Image
+              </Button>
+              <Button 
+                variant="gold" 
+                onClick={handleDownloadPDF} 
+                disabled={isGeneratingPDF}
+                className="gap-2"
+              >
+                {isGeneratingPDF ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+                Download PDF Report
               </Button>
             </div>
 
