@@ -2,6 +2,7 @@ import { ReactNode, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { AuthProvider } from '@/hooks/useAuth';
+import { TeamAccessProvider } from '@/hooks/useTeamAccess';
 import { WorkspaceProvider } from '@/hooks/useWorkspace';
 import { TemplateInjectionProvider } from '@/hooks/useTemplateInjection';
 import { FeatureGatingProvider } from '@/hooks/useFeatureGating';
@@ -35,6 +36,7 @@ export function AppProviders({ children }: AppProvidersProps) {
       { provider: QueryClientProvider, props: { client: queryClient } },
       { provider: ThemeProvider, props: { attribute: 'class' as const, defaultTheme: 'dark', enableSystem: true } },
       { provider: AuthProvider },
+      { provider: TeamAccessProvider },
       { provider: WorkspaceProvider },
       { provider: FeatureGatingProvider },
       { provider: TemplateInjectionProvider },

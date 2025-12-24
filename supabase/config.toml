@@ -74,3 +74,12 @@ verify_jwt = false
 
 [functions.x-automation]
 verify_jwt = false
+
+[functions.verify-team-passcode]
+verify_jwt = false
+
+[functions.manage-team-passcode]
+verify_jwt = false
+
+[functions.validate-team-session]
+verify_jwt = false

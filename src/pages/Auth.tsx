@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamAccess } from "@/hooks/useTeamAccess";
 import { toast } from "sonner";
 import { SEO } from "@/components/seo/SEO";
 import { PAGE_SEO } from "@/lib/seo";
+import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
 import {
   AuthCard,
   SignInForm,
   ForgotPasswordForm,
   ResetPasswordForm,
+  PasscodeEntry,
   type OAuthProvider,
 } from "@/components/auth";
 
-type AuthMode = 'signin' | 'forgot' | 'reset';
+type AuthMode = 'signin' | 'forgot' | 'reset' | 'team';
 
 const Auth = () => {
   const { user, profile, loading, signIn, signInWithOAuth, resetPassword } = useAuth();
+  const { isTeamMember } = useTeamAccess();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('signin');
@@ -27,6 +32,7 @@ const Auth = () => {
       case 'signin': return PAGE_SEO.auth.signIn.title;
       case 'forgot': return PAGE_SEO.auth.forgotPassword.title;
       case 'reset': return 'Set New Password';
+      case 'team': return 'Team Access';
       default: return PAGE_SEO.auth.signIn.title;
     }
   };
@@ -36,6 +42,7 @@ const Auth = () => {
       case 'signin': return PAGE_SEO.auth.signIn.description;
       case 'forgot': return PAGE_SEO.auth.forgotPassword.description;
       case 'reset': return 'Set a new secure password for your Kernel account.';
+      case 'team': return 'Enter the team passcode to access Kernel.';
       default: return PAGE_SEO.auth.signIn.description;
     }
   };
@@ -45,6 +52,7 @@ const Auth = () => {
       case 'signin': return 'Welcome';
       case 'forgot': return 'Reset Password';
       case 'reset': return 'Set New Password';
+      case 'team': return 'Team Access';
     }
   };
 
@@ -53,6 +61,7 @@ const Auth = () => {
       case 'signin': return 'Sign in to continue';
       case 'forgot': return "We'll send you a reset link";
       case 'reset': return 'Choose a new secure password';
+      case 'team': return 'Enter the team passcode';
     }
   };
 
@@ -66,15 +75,17 @@ const Auth = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!loading && user && mode !== 'reset') {
-      // Redirect to onboarding if user hasn't completed it
-      if (profile && !profile.onboarding_completed) {
+    // Redirect if already authenticated (either user or team member)
+    if (!loading && (user || isTeamMember) && mode !== 'reset') {
+      if (isTeamMember) {
+        navigate("/");
+      } else if (profile && !profile.onboarding_completed) {
         navigate("/onboarding");
       } else if (profile) {
         navigate("/assistant");
       }
     }
-  }, [user, profile, loading, navigate, mode]);
+  }, [user, profile, loading, navigate, mode, isTeamMember]);
 
   const handleOAuthSignIn = async (provider: OAuthProvider) => {
     setOauthLoading(provider);
@@ -107,12 +118,28 @@ const Auth = () => {
       />
       <AuthCard title={getCardTitle()} description={getCardDescription()}>
         {mode === 'signin' && (
-          <SignInForm
-            onSignIn={signIn}
-            onOAuthSignIn={handleOAuthSignIn}
-            oauthLoading={oauthLoading}
-            onForgotPassword={() => setMode('forgot')}
-          />
+          <>
+            <SignInForm
+              onSignIn={signIn}
+              onOAuthSignIn={handleOAuthSignIn}
+              oauthLoading={oauthLoading}
+              onForgotPassword={() => setMode('forgot')}
+            />
+            <div className="mt-4 pt-4 border-t border-border">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setMode('team')}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Team Access
+              </Button>
+            </div>
+          </>
+        )}
+
+        {mode === 'team' && (
+          <PasscodeEntry onBack={() => setMode('signin')} />
         )}
 
         {mode === 'forgot' && (
