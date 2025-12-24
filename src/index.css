@@ -828,15 +828,37 @@
   }
 }
 
-/* North Star pulse animation - gentle breathing glow */
+/* North Star pulse animation - organic breathing with brightness variation */
 @keyframes northStarPulse {
-  0%, 100% {
-    opacity: 0.8;
+  0% {
+    opacity: 0.75;
     transform: scale(1);
+    filter: brightness(1);
   }
-  50% {
+  20% {
+    opacity: 0.85;
+    transform: scale(1.015);
+    filter: brightness(1.05);
+  }
+  45% {
+    opacity: 0.95;
+    transform: scale(1.04);
+    filter: brightness(1.15);
+  }
+  60% {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.06);
+    filter: brightness(1.2);
+  }
+  80% {
+    opacity: 0.88;
+    transform: scale(1.025);
+    filter: brightness(1.08);
+  }
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+    filter: brightness(1);
   }
 }
 
@@ -850,48 +872,138 @@
   }
 }
 
-/* North Star orbiting sparkle particles */
+/* North Star orbiting sparkle particles - varied organic motion */
 @keyframes northStarSparkle {
-  0%, 100% {
-    opacity: 0.4;
-    transform: translate(-50%, -50%) scale(0.8);
+  0% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.75);
+    filter: brightness(0.9);
   }
-  50% {
+  18% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.9);
+    filter: brightness(1);
+  }
+  38% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.1);
+    filter: brightness(1.1);
+  }
+  55% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.25);
+    filter: brightness(1.2);
+  }
+  72% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.05);
+    filter: brightness(1.05);
+  }
+  88% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.85);
+    filter: brightness(0.95);
+  }
+  100% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.75);
+    filter: brightness(0.9);
   }
 }
 
-/* North Star lens flare pulsing */
+/* North Star lens flare pulsing - irregular organic rhythm */
 @keyframes northStarFlare {
-  0%, 100% {
-    opacity: 0.5;
+  0% {
+    opacity: 0.45;
+    transform: scaleX(1);
   }
-  50% {
-    opacity: 0.9;
+  22% {
+    opacity: 0.7;
+    transform: scaleX(1.03);
   }
-}
-
-/* North Star downward light beam */
-@keyframes northStarBeam {
-  0%, 100% {
+  48% {
+    opacity: 0.85;
+    transform: scaleX(1.06);
+  }
+  65% {
     opacity: 0.6;
-    transform: translateX(-50%) scaleY(1);
+    transform: scaleX(1.02);
   }
-  50% {
-    opacity: 0.9;
-    transform: translateX(-50%) scaleY(1.1);
+  82% {
+    opacity: 0.75;
+    transform: scaleX(1.04);
+  }
+  100% {
+    opacity: 0.45;
+    transform: scaleX(1);
   }
 }
 
-@keyframes twinkle {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.8);
+/* North Star downward light beam - gentle sway */
+@keyframes northStarBeam {
+  0% {
+    opacity: 0.55;
+    transform: translateX(-50%) scaleY(1) skewX(0deg);
   }
-  50% {
+  30% {
+    opacity: 0.75;
+    transform: translateX(-50%) scaleY(1.06) skewX(0.5deg);
+  }
+  55% {
+    opacity: 0.9;
+    transform: translateX(-50%) scaleY(1.12) skewX(-0.3deg);
+  }
+  75% {
+    opacity: 0.7;
+    transform: translateX(-50%) scaleY(1.04) skewX(0.2deg);
+  }
+  100% {
+    opacity: 0.55;
+    transform: translateX(-50%) scaleY(1) skewX(0deg);
+  }
+}
+
+/* Stars twinkle - multi-stage organic with brightness flicker */
+@keyframes twinkle {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.8);
+    filter: brightness(0.85);
+  }
+  12% {
+    opacity: 0.5;
+    transform: scale(0.88);
+    filter: brightness(0.95);
+  }
+  28% {
+    opacity: 0.35;
+    transform: scale(0.92);
+    filter: brightness(0.9);
+  }
+  45% {
+    opacity: 0.9;
+    transform: scale(1.1);
+    filter: brightness(1.15);
+  }
+  58% {
     opacity: 1;
     transform: scale(1.2);
+    filter: brightness(1.25);
+  }
+  72% {
+    opacity: 0.65;
+    transform: scale(1.05);
+    filter: brightness(1.05);
+  }
+  85% {
+    opacity: 0.4;
+    transform: scale(0.9);
+    filter: brightness(0.92);
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+    filter: brightness(0.85);
   }
 }
 
@@ -985,21 +1097,69 @@
   }
 }
 
+/* Santa flight - natural acceleration/deceleration curve */
 @keyframes santaFly {
   0% {
     transform: translateX(100vw);
+  }
+  3% {
+    transform: translateX(97vw);
+  }
+  8% {
+    transform: translateX(90vw);
+  }
+  92% {
+    transform: translateX(-150px);
+  }
+  97% {
+    transform: translateX(-180px);
   }
   100% {
     transform: translateX(-200px);
   }
 }
 
+/* Sleigh bob - asymmetric organic motion with gentle rotation */
 @keyframes sleighBob {
-  0%, 100% {
-    transform: translateY(0) rotate(-1deg);
+  0% {
+    transform: translateY(0) rotate(-0.8deg);
+  }
+  18% {
+    transform: translateY(-2px) rotate(-0.3deg);
+  }
+  38% {
+    transform: translateY(-5px) rotate(0.4deg);
+  }
+  55% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+  72% {
+    transform: translateY(-4px) rotate(0.6deg);
+  }
+  88% {
+    transform: translateY(-1px) rotate(-0.2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(-0.8deg);
+  }
+}
+
+/* Sleigh drift - gentle horizontal sway for organic flight feel */
+@keyframes sleighDrift {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
   }
   50% {
-    transform: translateY(-6px) rotate(1deg);
+    transform: translateX(3px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
+  100% {
+    transform: translateX(0);
   }
 }
 

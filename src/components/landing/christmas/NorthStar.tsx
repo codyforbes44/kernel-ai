@@ -227,13 +227,13 @@ export function NorthStar() {
         </div>
       ))}
 
-      {/* Twinkling secondary stars around main star */}
+      {/* Twinkling secondary stars around main star - varied timing for organic feel */}
       {[
-        { x: -60, y: -30, size: 3, delay: 0 },
-        { x: 65, y: -25, size: 2.5, delay: 0.5 },
-        { x: -45, y: 50, size: 2, delay: 1 },
-        { x: 55, y: 45, size: 2.5, delay: 1.5 },
-        { x: 0, y: -55, size: 2, delay: 2 },
+        { x: -60, y: -30, size: 3, delay: 0, duration: 2.8 },
+        { x: 65, y: -25, size: 2.5, delay: 0.7, duration: 3.2 },
+        { x: -45, y: 50, size: 2, delay: 1.3, duration: 2.5 },
+        { x: 55, y: 45, size: 2.5, delay: 2.1, duration: 3.5 },
+        { x: 0, y: -55, size: 2, delay: 2.8, duration: 2.9 },
       ].map((star, i) => (
         <div
           key={`secondary-${i}`}
@@ -244,7 +244,7 @@ export function NorthStar() {
             width: `${star.size}px`,
             height: `${star.size}px`,
             transform: `translate(calc(-50% + ${star.x}px), calc(-50% + ${star.y}px))`,
-            animation: `twinkle 2s ease-in-out infinite ${star.delay}s`,
+            animation: `twinkle ${star.duration}s cubic-bezier(0.4, 0, 0.6, 1) infinite ${star.delay}s`,
           }}
         >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-gold/90 drop-shadow-[0_0_3px_hsla(45,100%,70%,0.8)]">

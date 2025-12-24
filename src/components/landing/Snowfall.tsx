@@ -88,16 +88,21 @@ export function Snowfall() {
     }));
   }, [snowflakeCount]);
 
-  // Optimized star generation
+  // Optimized star generation with varied organic timing
   const stars = useMemo<Star[]>(() => {
-    return Array.from({ length: starCount }, (_, i) => ({
-      id: i,
-      x: (i * 5) % 100,
-      y: 5 + (i * 2.8) % 55,
-      size: 2 + (i % 3),
-      twinkleDuration: 1.5 + (i % 3) * 0.5,
-      delay: (i * 0.15) % 3,
-    }));
+    return Array.from({ length: starCount }, (_, i) => {
+      // Create varied twinkle durations based on position for organic feel
+      const baseDuration = 2.2 + (i % 5) * 0.6; // 2.2s to 4.6s range
+      const variation = ((i * 7) % 10) * 0.12; // Add pseudo-random variation
+      return {
+        id: i,
+        x: (i * 5) % 100,
+        y: 5 + (i * 2.8) % 55,
+        size: 2 + (i % 3),
+        twinkleDuration: baseDuration + variation,
+        delay: (i * 0.23) % 4, // Stagger delays more
+      };
+    });
   }, [starCount]);
 
   // Subtle shooting stars - rare and peaceful
@@ -137,7 +142,7 @@ export function Snowfall() {
       {/* Layer 0: Subtle moon glow */}
       <Moon />
       
-      {/* Layer 1: Twinkling stars (background) */}
+      {/* Layer 1: Twinkling stars (background) - organic varied timing */}
       {stars.map((star) => (
         <div
           key={`star-${star.id}`}
@@ -147,7 +152,7 @@ export function Snowfall() {
             top: `${star.y}%`,
             width: `${star.size}px`,
             height: `${star.size}px`,
-            animation: `twinkle ${star.twinkleDuration}s ease-in-out infinite, starParallax 40s ease-in-out infinite`,
+            animation: `twinkle ${star.twinkleDuration}s cubic-bezier(0.4, 0, 0.6, 1) infinite, starParallax 40s ease-in-out infinite`,
             animationDelay: `${star.delay}s, ${star.delay * 5}s`,
             willChange: 'transform, opacity',
             transform: 'translateZ(0)',
