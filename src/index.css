@@ -500,122 +500,49 @@
   }
 }
 
-/* Snow pile unified cycle: grow (0-60%), hold (60-62%), clear following blower (62-92%), reset (92-100%) */
-@keyframes snowPileCycle {
+/* Natural snow pile cycle: gradual build, gentle wind dispersion, settle back */
+@keyframes snowPileNatural {
   0% {
-    transform: scaleY(0);
-    opacity: 0;
-    clip-path: inset(0 0 0 0);
-  }
-  4% {
-    opacity: 1;
-  }
-  60% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 0);
-  }
-  /* Snowblower starts crossing at 62% - snow starts clearing from left */
-  62% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 0);
-  }
-  /* Progressive clearing - follows snowblower position */
-  68% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 15%);
-  }
-  74% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 35%);
-  }
-  80% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 55%);
-  }
-  86% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 75%);
-  }
-  91% {
-    transform: scaleY(1);
-    opacity: 1;
-    clip-path: inset(0 0 0 95%);
-  }
-  92% {
-    transform: scaleY(1);
-    opacity: 0;
-    clip-path: inset(0 0 0 100%);
-  }
-  96% {
-    transform: scaleY(0);
-    opacity: 0;
-    clip-path: inset(0 0 0 100%);
-  }
-  100% {
-    transform: scaleY(0);
-    opacity: 0;
-    clip-path: inset(0 0 0 0);
-  }
-}
-
-/* Snowblower unified cycle: wait (0-60%), cross (60-92%), reset (92-100%) */
-@keyframes snowblowerCycle {
-  0%, 60% {
-    transform: translateX(0);
+    transform: scaleY(0) translateX(0);
     opacity: 0;
   }
-  62% {
+  8% {
     opacity: 1;
   }
-  90% {
+  70% {
+    transform: scaleY(1) translateX(0);
     opacity: 1;
   }
-  92% {
-    transform: translateX(calc(100vw + 200px));
-    opacity: 0;
+  /* Gentle wind scatter effect */
+  78% {
+    transform: scaleY(0.85) translateX(3px);
+    opacity: 0.9;
   }
-  100% {
-    transform: translateX(0);
-    opacity: 0;
-  }
-}
-
-/* Auger spinning animation */
-@keyframes augerSpin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Enhanced snow arc - parabolic fountain trajectory */
-@keyframes snowArc {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.95;
-  }
-  20% {
-    transform: translate(15px, -35px) scale(1.05);
-    opacity: 1;
-  }
-  50% {
-    transform: translate(35px, -45px) scale(0.95);
-    opacity: 0.85;
-  }
-  80% {
-    transform: translate(55px, -20px) scale(0.7);
+  85% {
+    transform: scaleY(0.4) translateX(8px);
     opacity: 0.5;
   }
+  92% {
+    transform: scaleY(0.15) translateX(12px);
+    opacity: 0.2;
+  }
   100% {
-    transform: translate(70px, 25px) scale(0.3);
+    transform: scaleY(0) translateX(15px);
+    opacity: 0;
+  }
+}
+
+/* Blown snow particles - drift away during wind dispersal */
+@keyframes snowBlownParticle {
+  0%, 70% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  72% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--drift-x, 50px), var(--drift-y, -20px)) scale(0.3);
     opacity: 0;
   }
 }
@@ -668,16 +595,6 @@
   }
 }
 
-/* Wheel rotation */
-@keyframes wheelSpin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* Snow splash on landing */
 @keyframes snowSplash {
   0% {
@@ -722,22 +639,6 @@
   }
 }
 
-
-/* Headlight flicker for snowblower */
-@keyframes headlightFlicker {
-  0%, 100% {
-    opacity: 1;
-    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.8));
-  }
-  50% {
-    opacity: 0.92;
-    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.9));
-  }
-  75% {
-    opacity: 0.97;
-    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.7));
-  }
-}
 
 /* Reindeer head bob while running */
 @keyframes reindeerHeadBob {

@@ -1,15 +1,61 @@
+import { useMemo } from 'react';
 import { ANIMATION_TIMING } from './constants';
+import { useChristmasPerformance } from './hooks/useChristmasPerformance';
+
+interface BlownParticle {
+  id: number;
+  x: number;
+  size: number;
+  driftX: number;
+  driftY: number;
+  delay: number;
+  duration: number;
+}
 
 export function SnowPile() {
+  const { particleScale } = useChristmasPerformance();
+  
+  // Generate blown snow particles that disperse when wind gusts happen
+  const blownParticles = useMemo<BlownParticle[]>(() => {
+    const count = Math.floor(12 * particleScale);
+    return Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: 5 + (i / count) * 90, // Spread across the pile
+      size: 3 + Math.random() * 4,
+      driftX: 30 + Math.random() * 60, // Drift right
+      driftY: -15 - Math.random() * 25, // Drift up
+      delay: (i / count) * 0.3, // Stagger the particles
+      duration: 1.5 + Math.random() * 1,
+    }));
+  }, [particleScale]);
+
   return (
     <div 
       className="absolute bottom-0 left-0 right-0 motion-reduce:hidden origin-bottom"
       style={{
-        animation: `snowPileCycle ${ANIMATION_TIMING.CYCLE_DURATION}s ease-in-out infinite`,
+        animation: `snowPileNatural ${ANIMATION_TIMING.CYCLE_DURATION}s ease-in-out infinite`,
         willChange: 'transform, opacity',
-        transform: 'translateZ(0)', // GPU acceleration
+        transform: 'translateZ(0)',
       }}
     >
+      {/* Blown snow particles - appear during wind dispersal phase */}
+      {blownParticles.map((particle) => (
+        <div
+          key={particle.id}
+          className="absolute rounded-full bg-white/80"
+          style={{
+            left: `${particle.x}%`,
+            bottom: '8px',
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            animation: `snowBlownParticle ${particle.duration}s ease-out infinite`,
+            animationDelay: `${(ANIMATION_TIMING.CYCLE_DURATION * 0.70) + particle.delay}s`,
+            '--drift-x': `${particle.driftX}px`,
+            '--drift-y': `${particle.driftY}px`,
+          } as React.CSSProperties}
+        />
+      ))}
+      
       <svg 
         viewBox="0 0 100 12" 
         preserveAspectRatio="none" 

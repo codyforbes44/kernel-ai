@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { 
   SantaSleigh, 
   SnowPile, 
-  Snowblower,
   NorthStar,
   Moon,
   MeteorShower,
@@ -212,8 +211,6 @@ export function Snowfall() {
         <SnowPile />
       </div>
       
-      {/* Layer 7: Snowblower (topmost) */}
-      <Snowblower />
     </div>
   );
 }
