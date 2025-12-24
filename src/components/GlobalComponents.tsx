@@ -7,6 +7,7 @@ import { CommandPalette } from '@/components/CommandPalette';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOLEDSuggestion } from '@/hooks/useOLEDSuggestion';
 import { usePageTracking } from '@/hooks/usePageTracking';
+import { useSessionRefresh } from '@/hooks/useSessionRefresh';
 
 /**
  * Global preference loaders that need to run on app mount.
@@ -16,6 +17,7 @@ function PreferenceLoaders() {
   useReducedMotion();
   useOLEDSuggestion();
   usePageTracking();
+  useSessionRefresh(); // Auto-refresh on new user session if update available
   return null;
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { logger } from '@/lib/logger';
 
@@ -7,10 +7,18 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// Store the registration globally so other parts of the app can trigger updates
+let swRegistration: ServiceWorkerRegistration | null = null;
+
+export function getServiceWorkerRegistration() {
+  return swRegistration;
+}
+
 export function usePWA() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -19,11 +27,26 @@ export function usePWA() {
   } = useRegisterSW({
     onRegisteredSW(swUrl, r) {
       logger.log('SW registered:', swUrl);
-      // Check for updates every hour
       if (r) {
+        swRegistration = r;
+        registrationRef.current = r;
+        
+        // Immediate update check on registration
+        r.update();
+        
+        // Check for updates every 5 minutes (more responsive than hourly)
         setInterval(() => {
           r.update();
-        }, 60 * 60 * 1000);
+        }, 5 * 60 * 1000);
+        
+        // Check on visibility change (app comes to foreground - important for mobile)
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            logger.log('App visible, checking for updates...');
+            r.update();
+          }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
       }
     },
     onRegisterError(error) {
