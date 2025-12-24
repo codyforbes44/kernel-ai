@@ -470,7 +470,7 @@ export const HolidayOGImage = forwardRef<HTMLDivElement>((_, ref) => {
         >
           <span style={{ fontSize: 14 }}>❄️</span>
           <span style={{ color: "#ffd700", fontSize: 12, fontWeight: 500, letterSpacing: 1 }}>
-            SEASON 2024
+            SEASON 2025
           </span>
         </div>
 
