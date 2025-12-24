@@ -457,6 +457,11 @@ export function SandpackPreview({
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isVisualEditorActive, setIsVisualEditorActive] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(prev => !prev);
+  };
 
   const sandpackFiles = useMemo(
     () => convertToSandpackFiles(files, true, previewCSS, previewFontsUrl),
@@ -479,9 +484,12 @@ export function SandpackPreview({
   };
 
   return (
-    <div className="h-full flex flex-col bg-muted/30 relative">
+    <div className={cn(
+      "h-full flex flex-col bg-muted/30 relative transition-all duration-300",
+      isFullscreen && "fixed inset-0 z-50"
+    )}>
       {/* Design System Preview Indicator */}
-      {previewSystemName && (
+      {previewSystemName && !isFullscreen && (
         <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75"></span>
@@ -491,7 +499,7 @@ export function SandpackPreview({
         </div>
       )}
 
-      {/* Toolbar - now uses new component */}
+      {/* Toolbar - hidden in fullscreen except for floating controls */}
       <PreviewToolbar
         viewport={viewport}
         onViewportChange={setViewport}
@@ -500,12 +508,14 @@ export function SandpackPreview({
         isVisualEditorActive={isVisualEditorActive}
         onToggleVisualEditor={handleToggleVisualEditor}
         currentPath="/"
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={handleToggleFullscreen}
       />
 
       {/* Preview Area - maximized to fill palette */}
       <div className={cn(
         "flex-1 flex items-stretch justify-center overflow-auto",
-        viewport === 'desktop' ? 'p-0' : 'p-1'
+        isFullscreen ? 'p-0' : (viewport === 'desktop' ? 'p-0' : 'p-1')
       )}>
         <DeviceFrame 
           viewport={viewport}

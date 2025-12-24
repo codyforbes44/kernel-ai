@@ -1,4 +1,4 @@
-import { RefreshCw, ExternalLink, Monitor, Tablet, Smartphone, Globe } from 'lucide-react';
+import { RefreshCw, ExternalLink, Monitor, Tablet, Smartphone, Globe, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -46,6 +46,8 @@ interface PreviewToolbarProps {
   onToggleVisualEditor: () => void;
   currentPath?: string;
   isBundling?: boolean;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export function PreviewToolbar({
@@ -57,7 +59,30 @@ export function PreviewToolbar({
   onToggleVisualEditor,
   currentPath = '/',
   isBundling = false,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: PreviewToolbarProps) {
+  // In fullscreen mode, show a minimal floating bar
+  if (isFullscreen) {
+    return (
+      <div className="absolute top-2 right-2 z-50 flex items-center gap-1 bg-background/90 backdrop-blur-sm rounded-lg p-1 border border-border/50 shadow-lg">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={onToggleFullscreen}
+            >
+              <Minimize2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Exit fullscreen</TooltipContent>
+        </Tooltip>
+      </div>
+    );
+  }
+
   return (
     <div className="h-11 flex items-center justify-between px-2 border-b border-border bg-muted/40 backdrop-blur-sm">
       {/* Left side - URL bar style preview indicator */}
@@ -127,6 +152,20 @@ export function PreviewToolbar({
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Refresh preview</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={onToggleFullscreen}
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Fullscreen preview</TooltipContent>
         </Tooltip>
         
         <Tooltip>
