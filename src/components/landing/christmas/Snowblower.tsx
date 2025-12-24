@@ -1,48 +1,58 @@
 import { useMemo } from 'react';
-import { ANIMATION_TIMING, PARTICLE_CONFIG } from './constants';
+import { ANIMATION_TIMING, CHRISTMAS_LAYERS, PARTICLE_CONFIG } from './constants';
+import { useChristmasPerformance, scaleParticleCount } from './hooks/useChristmasPerformance';
 
+/**
+ * Animated snowblower that clears the snow pile.
+ * Features arc particles, mist, exhaust, and ground chunks.
+ */
 export function Snowblower() {
-  // Optimized arc particles - reduced count with larger variety
-  const arcParticles = useMemo(() => 
-    Array.from({ length: PARTICLE_CONFIG.ARC_PARTICLES }, (_, i) => {
-      const angle = -20 + (i / PARTICLE_CONFIG.ARC_PARTICLES) * 40;
-      const speed = 0.8 + (i % 4) * 0.18;
-      const size = i % 3 === 0 ? 'large' : i % 3 === 1 ? 'medium' : 'small';
+  const { particleScale, enableComplexEffects, enableShadows } = useChristmasPerformance();
+
+  // Optimized arc particles with direction variance
+  const arcParticles = useMemo(() => {
+    const count = scaleParticleCount(PARTICLE_CONFIG.ARC_PARTICLES, particleScale);
+    return Array.from({ length: count }, (_, i) => {
+      const baseAngle = -20 + (i / count) * 40;
+      const variance = (Math.random() - 0.5) * 10; // Add spray variance
       return {
         id: i,
-        angle,
-        speed,
-        size,
+        angle: baseAngle + variance,
+        speed: 0.8 + (i % 4) * 0.18,
+        size: i % 3 === 0 ? 'large' : i % 3 === 1 ? 'medium' : 'small',
         delay: (i * 0.05) % 0.8,
         offsetY: Math.sin(i * 0.6) * 10,
       };
-    }), 
-  []);
+    });
+  }, [particleScale]);
 
   // Optimized mist particles
-  const mistParticles = useMemo(() =>
-    Array.from({ length: PARTICLE_CONFIG.MIST_PARTICLES }, (_, i) => ({
+  const mistParticles = useMemo(() => {
+    const count = scaleParticleCount(PARTICLE_CONFIG.MIST_PARTICLES, particleScale);
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
       x: 8 + (i % 3) * 18,
       y: -22 + (i % 2) * 10,
       size: 4 + (i % 3) * 3,
       duration: 1.3 + (i % 3) * 0.4,
       delay: i * 0.12,
-    })),
-  []);
+    }));
+  }, [particleScale]);
 
   // Exhaust puffs
-  const exhaustPuffs = useMemo(() =>
-    Array.from({ length: PARTICLE_CONFIG.EXHAUST_PUFFS }, (_, i) => ({
+  const exhaustPuffs = useMemo(() => {
+    const count = scaleParticleCount(PARTICLE_CONFIG.EXHAUST_PUFFS, particleScale);
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
       delay: i * 0.4,
       size: 4 + (i % 2) * 2,
-    })),
-  []);
+    }));
+  }, [particleScale]);
 
   // Optimized ground chunks
-  const groundChunks = useMemo(() =>
-    Array.from({ length: PARTICLE_CONFIG.GROUND_CHUNKS }, (_, i) => ({
+  const groundChunks = useMemo(() => {
+    const count = scaleParticleCount(PARTICLE_CONFIG.GROUND_CHUNKS, particleScale);
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
       size: i % 3 === 0 ? 7 : i % 3 === 1 ? 5 : 3,
       startX: -4 + (i % 4) * 8,
@@ -51,8 +61,8 @@ export function Snowblower() {
       duration: 0.55 + (i % 3) * 0.18,
       delay: (i * 0.08) % 0.5,
       rotation: (i % 2 === 0 ? 1 : -1) * (200 + i * 40),
-    })),
-  []);
+    }));
+  }, [particleScale]);
 
   const getSizePixels = (size: string) => {
     switch(size) {
@@ -69,11 +79,29 @@ export function Snowblower() {
         animation: `snowblowerCycle ${ANIMATION_TIMING.CYCLE_DURATION}s linear infinite`,
         willChange: 'transform',
         left: '-120px',
-        transform: 'translateZ(0)', // GPU acceleration
+        transform: 'translateZ(0)',
+        zIndex: CHRISTMAS_LAYERS.SNOWBLOWER,
       }}
+      aria-hidden="true"
     >
       <div className="relative" style={{ animation: 'blowerVibrate 0.08s linear infinite' }}>
         
+        {/* Ground vibration effect */}
+        {enableComplexEffects && (
+          <div
+            className="absolute"
+            style={{
+              bottom: '-5px',
+              left: '10px',
+              width: '60px',
+              height: '10px',
+              background: 'radial-gradient(ellipse, rgba(255,255,255,0.2) 0%, transparent 70%)',
+              animation: 'blowerVibrate 0.1s linear infinite',
+              filter: 'blur(2px)',
+            }}
+          />
+        )}
+
         {/* Headlight glow cone */}
         <div 
           className="absolute"
@@ -89,118 +117,134 @@ export function Snowblower() {
         />
 
         {/* Exhaust puffs */}
-        <div className="absolute" style={{ left: '60px', top: '-8px' }}>
-          {exhaustPuffs.map((puff) => (
-            <div
-              key={`exhaust-${puff.id}`}
-              className="absolute rounded-full"
-              style={{
-                width: `${puff.size}px`,
-                height: `${puff.size}px`,
-                background: 'radial-gradient(circle, rgba(120, 120, 120, 0.4) 0%, rgba(80, 80, 80, 0.2) 50%, transparent 100%)',
-                animation: 'exhaustPuff 1.6s ease-out infinite',
-                animationDelay: `${puff.delay}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Snow mist - atmospheric powder */}
-        <div className="absolute" style={{ left: '8px', top: '-25px' }}>
-          {mistParticles.map((mist) => (
-            <div
-              key={`mist-${mist.id}`}
-              className="absolute rounded-full"
-              style={{
-                left: `${mist.x}px`,
-                top: `${mist.y}px`,
-                width: `${mist.size}px`,
-                height: `${mist.size}px`,
-                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(240, 248, 255, 0.3) 50%, transparent 100%)',
-                filter: 'blur(2px)',
-                animation: `snowMist ${mist.duration}s ease-out infinite`,
-                animationDelay: `${mist.delay}s`,
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Main snow arc */}
-        <div className="absolute" style={{ left: '18px', top: '-5px' }}>
-          {arcParticles.map((particle) => {
-            const dims = getSizePixels(particle.size);
-            const colorVariant = particle.id % 3 === 0 
-              ? 'rgba(255, 255, 255, 0.95)' 
-              : particle.id % 3 === 1 
-                ? 'rgba(240, 248, 255, 0.9)' 
-                : 'rgba(250, 252, 255, 0.85)';
-            
-            return (
+        {particleScale > 0 && (
+          <div className="absolute" style={{ left: '60px', top: '-8px' }}>
+            {exhaustPuffs.map((puff) => (
               <div
-                key={`arc-${particle.id}`}
+                key={`exhaust-${puff.id}`}
                 className="absolute rounded-full"
                 style={{
-                  width: `${dims.w}px`,
-                  height: `${dims.h}px`,
-                  background: colorVariant,
-                  boxShadow: particle.size === 'large' 
-                    ? '0 0 4px rgba(255, 255, 255, 0.6)' 
-                    : 'none',
-                  animation: `snowArc ${particle.speed}s ease-out infinite`,
-                  animationDelay: `${particle.delay}s`,
-                  transform: `rotate(${particle.angle}deg)`,
+                  width: `${puff.size}px`,
+                  height: `${puff.size}px`,
+                  background: 'radial-gradient(circle, rgba(120, 120, 120, 0.4) 0%, rgba(80, 80, 80, 0.2) 50%, transparent 100%)',
+                  animation: 'exhaustPuff 1.6s ease-out infinite',
+                  animationDelay: `${puff.delay}s`,
                 }}
               />
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Landing splash - reduced count */}
-        <div className="absolute" style={{ left: '50px', top: '25px' }}>
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={`splash-${i}`}
-              className="absolute rounded-full bg-white/70"
-              style={{
-                width: '3px',
-                height: '3px',
-                animation: 'snowSplash 0.6s ease-out infinite',
-                animationDelay: `${i * 0.15}s`,
-                left: `${i * 12}px`,
-                top: `${(i % 2) * 4}px`,
-              }}
-            />
-          ))}
-        </div>
+        {/* Snow mist - atmospheric powder */}
+        {particleScale > 0 && (
+          <div className="absolute" style={{ left: '8px', top: '-25px' }}>
+            {mistParticles.map((mist) => (
+              <div
+                key={`mist-${mist.id}`}
+                className="absolute rounded-full"
+                style={{
+                  left: `${mist.x}px`,
+                  top: `${mist.y}px`,
+                  width: `${mist.size}px`,
+                  height: `${mist.size}px`,
+                  background: 'radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(240, 248, 255, 0.3) 50%, transparent 100%)',
+                  filter: 'blur(2px)',
+                  animation: `snowMist ${mist.duration}s ease-out infinite`,
+                  animationDelay: `${mist.delay}s`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Main snow arc with spray variance */}
+        {particleScale > 0 && (
+          <div className="absolute" style={{ left: '18px', top: '-5px' }}>
+            {arcParticles.map((particle) => {
+              const dims = getSizePixels(particle.size);
+              const colorVariant = particle.id % 3 === 0 
+                ? 'rgba(255, 255, 255, 0.95)' 
+                : particle.id % 3 === 1 
+                  ? 'rgba(240, 248, 255, 0.9)' 
+                  : 'rgba(250, 252, 255, 0.85)';
+              
+              return (
+                <div
+                  key={`arc-${particle.id}`}
+                  className="absolute rounded-full"
+                  style={{
+                    width: `${dims.w}px`,
+                    height: `${dims.h}px`,
+                    background: colorVariant,
+                    boxShadow: particle.size === 'large' && enableShadows
+                      ? '0 0 4px rgba(255, 255, 255, 0.6)' 
+                      : 'none',
+                    animation: `snowArc ${particle.speed}s ease-out infinite`,
+                    animationDelay: `${particle.delay}s`,
+                    transform: `rotate(${particle.angle}deg)`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
 
-        {/* Ground chunks container with overflow hidden */}
-        <div className="absolute overflow-hidden" style={{ left: '-10px', top: '20px', width: '50px', height: '40px' }}>
-          {groundChunks.map((chunk) => (
-            <div
-              key={`ground-${chunk.id}`}
-              className="absolute"
-              style={{
-                left: `${chunk.startX + 10}px`,
-                bottom: '5px',
-                width: `${chunk.size}px`,
-                height: `${chunk.size}px`,
-                background: chunk.size > 4 
-                  ? 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 40%, rgba(240, 248, 255, 0.7) 100%)'
-                  : 'rgba(255, 255, 255, 0.85)',
-                borderRadius: chunk.size > 4 ? '30% 70% 40% 60%' : '50%',
-                boxShadow: chunk.size > 4 ? '0 0 3px rgba(255, 255, 255, 0.5)' : 'none',
-                animation: `groundChunkFly ${chunk.duration}s ease-out infinite`,
-                animationDelay: `${chunk.delay}s`,
-                ['--chunk-height' as string]: `${chunk.arcHeight}px`,
-                ['--chunk-distance' as string]: `${chunk.arcDistance}px`,
-                ['--chunk-rotation' as string]: `${chunk.rotation}deg`,
-              }}
-            />
-          ))}
-        </div>
+        {/* Landing splash */}
+        {particleScale > 0 && (
+          <div className="absolute" style={{ left: '50px', top: '25px' }}>
+            {Array.from({ length: scaleParticleCount(4, particleScale) }, (_, i) => (
+              <div
+                key={`splash-${i}`}
+                className="absolute rounded-full bg-white/70"
+                style={{
+                  width: '3px',
+                  height: '3px',
+                  animation: 'snowSplash 0.6s ease-out infinite',
+                  animationDelay: `${i * 0.15}s`,
+                  left: `${i * 12}px`,
+                  top: `${(i % 2) * 4}px`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Ground chunks container */}
+        {particleScale > 0 && (
+          <div className="absolute overflow-hidden" style={{ left: '-10px', top: '20px', width: '50px', height: '40px' }}>
+            {groundChunks.map((chunk) => (
+              <div
+                key={`ground-${chunk.id}`}
+                className="absolute"
+                style={{
+                  left: `${chunk.startX + 10}px`,
+                  bottom: '5px',
+                  width: `${chunk.size}px`,
+                  height: `${chunk.size}px`,
+                  background: chunk.size > 4 
+                    ? 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 40%, rgba(240, 248, 255, 0.7) 100%)'
+                    : 'rgba(255, 255, 255, 0.85)',
+                  borderRadius: chunk.size > 4 ? '30% 70% 40% 60%' : '50%',
+                  boxShadow: chunk.size > 4 && enableShadows ? '0 0 3px rgba(255, 255, 255, 0.5)' : 'none',
+                  animation: `groundChunkFly ${chunk.duration}s ease-out infinite`,
+                  animationDelay: `${chunk.delay}s`,
+                  ['--chunk-height' as string]: `${chunk.arcHeight}px`,
+                  ['--chunk-distance' as string]: `${chunk.arcDistance}px`,
+                  ['--chunk-rotation' as string]: `${chunk.rotation}deg`,
+                }}
+              />
+            ))}
+          </div>
+        )}
         
         {/* Snowblower machine */}
-        <svg width="80" height="50" viewBox="0 0 80 50" className="drop-shadow-lg relative z-10">
+        <svg 
+          width="80" 
+          height="50" 
+          viewBox="0 0 80 50" 
+          className={enableShadows ? 'drop-shadow-lg' : ''} 
+          style={{ position: 'relative', zIndex: 10 }}
+        >
           <defs>
             <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#fef08a" />

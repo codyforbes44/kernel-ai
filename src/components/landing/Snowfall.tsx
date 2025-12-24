@@ -4,32 +4,27 @@ import {
   SnowPile, 
   Snowblower,
   NorthStar,
-  SNOW_CONFIG 
+  SNOW_CONFIG,
+  CHRISTMAS_LAYERS,
 } from './christmas';
+import { useChristmasPerformance, scaleParticleCount } from './christmas/hooks/useChristmasPerformance';
+import type { Snowflake, Star, ShootingStar } from './christmas/types';
 
-interface Snowflake {
-  id: number;
-  x: number;
-  size: number;
-  opacity: number;
-  duration: number;
-  delay: number;
-  driftDuration: number;
-}
-
-interface Star {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  twinkleDuration: number;
-  delay: number;
-}
-
+/**
+ * Main Christmas scene component that orchestrates all winter wonderland elements.
+ * Uses z-index layering for proper visual stacking and optimizes for performance.
+ */
 export function Snowfall() {
-  // Optimized snowflake count
+  const { particleScale } = useChristmasPerformance();
+
+  // Scale particle counts based on device capabilities
+  const snowflakeCount = scaleParticleCount(SNOW_CONFIG.SNOWFLAKES, particleScale);
+  const starCount = scaleParticleCount(SNOW_CONFIG.STARS, particleScale);
+  const shootingStarCount = scaleParticleCount(SNOW_CONFIG.SHOOTING_STARS, particleScale);
+
+  // Optimized snowflake generation
   const snowflakes = useMemo<Snowflake[]>(() => {
-    return Array.from({ length: SNOW_CONFIG.SNOWFLAKES }, (_, i) => ({
+    return Array.from({ length: snowflakeCount }, (_, i) => ({
       id: i,
       x: (i * 3.33) % 100,
       size: 2 + (i % 4),
@@ -38,11 +33,11 @@ export function Snowfall() {
       delay: (i * 0.35) % 5,
       driftDuration: 3 + (i % 4),
     }));
-  }, []);
+  }, [snowflakeCount]);
 
-  // Optimized star count
+  // Optimized star generation
   const stars = useMemo<Star[]>(() => {
-    return Array.from({ length: SNOW_CONFIG.STARS }, (_, i) => ({
+    return Array.from({ length: starCount }, (_, i) => ({
       id: i,
       x: (i * 5) % 100,
       y: 5 + (i * 2.8) % 55,
@@ -50,28 +45,49 @@ export function Snowfall() {
       twinkleDuration: 1.5 + (i % 3) * 0.5,
       delay: (i * 0.15) % 3,
     }));
-  }, []);
+  }, [starCount]);
 
   // Subtle shooting stars - rare and peaceful
-  const shootingStars = useMemo(() => {
-    return Array.from({ length: SNOW_CONFIG.SHOOTING_STARS }, (_, i) => ({
+  const shootingStars = useMemo<ShootingStar[]>(() => {
+    return Array.from({ length: shootingStarCount }, (_, i) => ({
       id: i,
       startX: 15 + (i * 40),
       startY: 8 + (i * 8),
       delay: 18 + i * 30,
       duration: 2.8 + i * 0.5,
     }));
-  }, []);
+  }, [shootingStarCount]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-      {/* Majestic North Star */}
-      <NorthStar />
-      
-      {/* Santa and reindeer sleigh */}
-      <SantaSleigh />
-      
-      {/* Shooting stars */}
+    <div 
+      className="absolute inset-0 overflow-hidden pointer-events-none"
+      style={{ zIndex: CHRISTMAS_LAYERS.STARS }}
+      aria-hidden="true"
+    >
+      {/* Layer 1: Twinkling stars (background) */}
+      {stars.map((star) => (
+        <div
+          key={`star-${star.id}`}
+          className="absolute motion-reduce:hidden"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            animation: `twinkle ${star.twinkleDuration}s ease-in-out infinite, starParallax 40s ease-in-out infinite`,
+            animationDelay: `${star.delay}s, ${star.delay * 5}s`,
+            willChange: 'transform, opacity',
+            transform: 'translateZ(0)',
+            zIndex: CHRISTMAS_LAYERS.STARS,
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/90 drop-shadow-[0_0_3px_rgba(255,255,255,0.8)]">
+            <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" />
+          </svg>
+        </div>
+      ))}
+
+      {/* Layer 2: Shooting stars */}
       {shootingStars.map((star) => (
         <div
           key={`shooting-${star.id}`}
@@ -82,6 +98,7 @@ export function Snowfall() {
             animation: `shootingStarPeaceful ${star.duration}s ease-in-out infinite`,
             animationDelay: `${star.delay}s`,
             willChange: 'transform, opacity',
+            zIndex: CHRISTMAS_LAYERS.SHOOTING_STARS,
           }}
         >
           <div 
@@ -115,29 +132,13 @@ export function Snowfall() {
         </div>
       ))}
       
-      {/* Twinkling stars */}
-      {stars.map((star) => (
-        <div
-          key={`star-${star.id}`}
-          className="absolute motion-reduce:hidden"
-          style={{
-            left: `${star.x}%`,
-            top: `${star.y}%`,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            animation: `twinkle ${star.twinkleDuration}s ease-in-out infinite, starParallax 40s ease-in-out infinite`,
-            animationDelay: `${star.delay}s, ${star.delay * 5}s`,
-            willChange: 'transform, opacity',
-            transform: 'translateZ(0)',
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full text-white/90 drop-shadow-[0_0_3px_rgba(255,255,255,0.8)]">
-            <path d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" />
-          </svg>
-        </div>
-      ))}
+      {/* Layer 3: Majestic North Star */}
+      <NorthStar />
       
-      {/* Snowflakes with GPU acceleration */}
+      {/* Layer 4: Santa and reindeer sleigh */}
+      <SantaSleigh />
+      
+      {/* Layer 5: Snowflakes with GPU acceleration */}
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
@@ -151,14 +152,17 @@ export function Snowfall() {
             animationDelay: `${flake.delay}s`,
             willChange: 'transform',
             transform: 'translateZ(0)',
+            zIndex: CHRISTMAS_LAYERS.SNOWFLAKES,
           }}
         />
       ))}
       
-      {/* Snow pile */}
-      <SnowPile />
+      {/* Layer 6: Snow pile */}
+      <div style={{ zIndex: CHRISTMAS_LAYERS.SNOW_PILE }}>
+        <SnowPile />
+      </div>
       
-      {/* Snowblower */}
+      {/* Layer 7: Snowblower (topmost) */}
       <Snowblower />
     </div>
   );

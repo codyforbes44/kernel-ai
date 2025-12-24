@@ -872,6 +872,18 @@
   }
 }
 
+/* North Star downward light beam */
+@keyframes northStarBeam {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scaleY(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(-50%) scaleY(1.1);
+  }
+}
+
 @keyframes twinkle {
   0%, 100% {
     opacity: 0.3;
