@@ -5,7 +5,7 @@ import {
   SandpackLayout,
   useSandpack,
 } from '@codesandbox/sandpack-react';
-import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet, MousePointer2, History } from 'lucide-react';
+import { History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ProjectFile } from '@/types/builder';
@@ -16,9 +16,9 @@ import {
   getVisualEditorInjectionScript,
   FloatingToolbar,
   InlineTextEditor,
-  VisualEditsButton,
   ChangeHistoryPanel,
 } from './visual-editor';
+import { DeviceFrame, PreviewToolbar, PreviewLoadingOverlay, viewportConfig } from './preview';
 import { injectSourceMapping } from '@/lib/jsxSourceMapper';
 import { toast } from 'sonner';
 
@@ -36,22 +36,15 @@ interface SandpackPreviewProps {
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
 
-const viewportConfig: Record<ViewportSize, { width: string; icon: React.ReactNode; label: string }> = {
-  desktop: { width: '100%', icon: <Monitor className="h-4 w-4" />, label: 'Desktop' },
-  tablet: { width: '768px', icon: <Tablet className="h-4 w-4" />, label: 'Tablet' },
-  mobile: { width: '375px', icon: <Smartphone className="h-4 w-4" />, label: 'Mobile' },
-};
-
 // Memoized file conversion cache to avoid reprocessing unchanged files
 const fileContentCache = new Map<string, { hash: string; processed: string }>();
 
 function hashContent(content: string): string {
-  // Simple fast hash for cache invalidation
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
     const char = content.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return hash.toString(36);
 }
@@ -71,32 +64,27 @@ function convertToSandpackFiles(
       const contentHash = hashContent(file.content);
       const cacheKey = `${path}:${injectVisualEditor}:${contentHash}`;
       
-      // Check cache for processed content
       const cached = fileContentCache.get(cacheKey);
       if (cached && cached.hash === contentHash) {
         sandpackFiles[path] = cached.processed;
         continue;
       }
       
-      // Process file
       let content = file.content;
       if (injectVisualEditor && path.match(/\.(jsx|tsx)$/)) {
         content = injectSourceMapping(content, path);
       }
       
-      // Cache the processed content
       fileContentCache.set(cacheKey, { hash: contentHash, processed: content });
       sandpackFiles[path] = content;
     }
   }
   
-  // Limit cache size to prevent memory leaks
   if (fileContentCache.size > 200) {
     const keysToDelete = Array.from(fileContentCache.keys()).slice(0, 50);
     keysToDelete.forEach(key => fileContentCache.delete(key));
   }
   
-  // Ensure we have required files for React template
   if (!sandpackFiles['/index.html']) {
     sandpackFiles['/index.html'] = `<!DOCTYPE html>
 <html lang="en">
@@ -111,7 +99,6 @@ function convertToSandpackFiles(
 </html>`;
   }
   
-  // Inject visual editor script into index.html if enabled
   if (injectVisualEditor && sandpackFiles['/index.html']) {
     const injectionScript = getVisualEditorInjectionScript();
     sandpackFiles['/index.html'] = sandpackFiles['/index.html'].replace(
@@ -120,18 +107,15 @@ function convertToSandpackFiles(
     );
   }
   
-  // Inject design system preview CSS and fonts if provided
   if (sandpackFiles['/index.html']) {
     let headInjection = '';
     
-    // Add Google Fonts link if provided
     if (previewFontsUrl) {
       headInjection += `<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="${previewFontsUrl}">`;
     }
     
-    // Add CSS variables
     if (previewCSS) {
       headInjection += `<style id="design-system-preview">${previewCSS}</style>`;
     }
@@ -189,12 +173,16 @@ function SandpackPreviewInner({
   onSaveVisualChanges,
   onVisualEditorToggle,
   onNavigateToSource,
+  isVisualEditorEnabled,
+  onToggleVisualEditor,
 }: {
   files: ProjectFile[];
   onVisualChange?: (change: VisualChange) => void;
   onSaveVisualChanges?: (changes: Array<{ fileId: string; content: string }>) => Promise<void>;
   onVisualEditorToggle?: (enabled: boolean) => void;
   onNavigateToSource?: (filePath: string, lineNumber: number) => void;
+  isVisualEditorEnabled: boolean;
+  onToggleVisualEditor: () => void;
 }) {
   const { sandpack } = useSandpack();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -207,12 +195,8 @@ function SandpackPreviewInner({
     isEnabled,
     isSaving,
     selectedElement,
-    hoveredElement,
-    isInlineEditing,
-    recentColors,
     canUndo,
     canRedo,
-    enable,
     disable,
     toggle,
     updateStyle,
@@ -228,16 +212,13 @@ function SandpackPreviewInner({
     historyEntries,
     currentHistoryIndex,
     jumpToHistoryPoint,
-    startInlineEdit,
-    endInlineEdit,
-    addRecentColor,
     undoPreview,
     redoPreview,
   } = useVisualEditor({
     iframeRef,
     files,
     onNavigateToSource,
-    onElementSelected: (element) => {
+    onElementSelected: () => {
       setShowFloatingToolbar(true);
     },
     onElementDeselected: () => {
@@ -255,12 +236,17 @@ function SandpackPreviewInner({
     onSaveChanges: onSaveVisualChanges,
   });
 
-  // Notify parent of visual editor toggle
+  // Sync external toggle with internal state
+  useEffect(() => {
+    if (isVisualEditorEnabled !== isEnabled) {
+      toggle();
+    }
+  }, [isVisualEditorEnabled]);
+
   useEffect(() => {
     onVisualEditorToggle?.(isEnabled);
   }, [isEnabled, onVisualEditorToggle]);
 
-  // Get iframe ref from Sandpack
   useEffect(() => {
     const checkIframe = () => {
       const iframe = document.querySelector('.sp-preview-iframe') as HTMLIFrameElement;
@@ -276,7 +262,8 @@ function SandpackPreviewInner({
 
   const handleCloseEditor = useCallback(() => {
     disable();
-  }, [disable]);
+    onToggleVisualEditor();
+  }, [disable, onToggleVisualEditor]);
 
   const handleInlineTextSave = useCallback((text: string) => {
     updateText(text);
@@ -307,7 +294,6 @@ function SandpackPreviewInner({
     }
   }, [selectedElement]);
 
-  // Calculate floating toolbar position (relative to container)
   const getToolbarPosition = useCallback(() => {
     if (!selectedElement || !containerRef.current) return { top: 0, left: 0 };
     
@@ -320,23 +306,13 @@ function SandpackPreviewInner({
 
   return (
     <div ref={containerRef} className="relative h-full">
-      {/* Visual Editor Toggle in toolbar */}
-      <div className="absolute top-2 right-2 z-20">
-        <VisualEditsButton
-          isActive={isEnabled}
-          onClick={toggle}
-        />
-      </div>
-
       {/* Floating Toolbar */}
       {isEnabled && showFloatingToolbar && selectedElement && !showInlineEditor && (
         <FloatingToolbar
           element={selectedElement}
           position={getToolbarPosition()}
           onEditText={() => setShowInlineEditor(true)}
-          onEditColor={() => {
-            // Focus on style tab in property panel
-          }}
+          onEditColor={() => {}}
           onDuplicate={handleDuplicate}
           onDelete={handleDelete}
           onUndo={undo}
@@ -366,9 +342,9 @@ function SandpackPreviewInner({
         />
       )}
 
-      {/* Property Editor Panel */}
+      {/* Property Editor Panel - Slide in from right */}
       {isEnabled && (
-        <div className="absolute right-0 top-12 bottom-0 w-72 z-10">
+        <div className="absolute right-0 top-0 bottom-0 w-72 z-10 animate-slide-in-right">
           <PropertyEditorPanel
             selectedElement={selectedElement}
             onUpdateStyle={updateStyle}
@@ -383,7 +359,7 @@ function SandpackPreviewInner({
 
       {/* Change History Panel */}
       {isEnabled && showHistoryPanel && (
-        <div className="absolute left-4 top-12 z-20">
+        <div className="absolute left-4 top-4 z-20 animate-fade-in">
           <ChangeHistoryPanel
             history={historyEntries}
             currentIndex={currentHistoryIndex}
@@ -396,14 +372,14 @@ function SandpackPreviewInner({
 
       {/* Changes indicator with save button */}
       {pendingChanges.length > 0 && (
-        <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
-          <div className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg">
+        <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 animate-fade-in">
+          <div className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg font-medium">
             {pendingChanges.length} unsaved change{pendingChanges.length > 1 ? 's' : ''}
           </div>
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 w-7 p-0 shadow-lg bg-background"
+            className="h-7 w-7 p-0 shadow-lg bg-background hover:bg-muted"
             onClick={() => setShowHistoryPanel(!showHistoryPanel)}
             title="View change history"
           >
@@ -433,6 +409,40 @@ function SandpackPreviewInner({
   );
 }
 
+// Hook to track Sandpack bundling status
+function useSandpackStatus() {
+  const { sandpack } = useSandpack();
+  const [isBundling, setIsBundling] = useState(true);
+  
+  useEffect(() => {
+    // Check initial status
+    setIsBundling(sandpack.status !== 'running');
+    
+    // Listen for status changes
+    const handleStatus = () => {
+      setIsBundling(sandpack.status !== 'running');
+    };
+    
+    // Poll for status changes (Sandpack doesn't have great event support)
+    const interval = setInterval(handleStatus, 100);
+    return () => clearInterval(interval);
+  }, [sandpack.status]);
+  
+  return { isBundling, status: sandpack.status };
+}
+
+// Status indicator component
+function SandpackStatusIndicator() {
+  const { isBundling } = useSandpackStatus();
+  
+  return (
+    <PreviewLoadingOverlay 
+      isLoading={isBundling}
+      message="Building preview..."
+    />
+  );
+}
+
 export function SandpackPreview({ 
   files, 
   onError, 
@@ -446,6 +456,7 @@ export function SandpackPreview({
 }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isVisualEditorActive, setIsVisualEditorActive] = useState(false);
 
   const sandpackFiles = useMemo(
     () => convertToSandpackFiles(files, true, previewCSS, previewFontsUrl),
@@ -456,11 +467,22 @@ export function SandpackPreview({
     setRefreshKey(k => k + 1);
   };
 
+  const handleOpenExternal = () => {
+    const previewFrame = document.querySelector('.sp-preview-iframe') as HTMLIFrameElement;
+    if (previewFrame?.src) {
+      window.open(previewFrame.src, '_blank');
+    }
+  };
+
+  const handleToggleVisualEditor = () => {
+    setIsVisualEditorActive(prev => !prev);
+  };
+
   return (
-    <div className="h-full flex flex-col bg-background relative">
+    <div className="h-full flex flex-col bg-muted/30 relative">
       {/* Design System Preview Indicator */}
       {previewSystemName && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-foreground"></span>
@@ -469,98 +491,87 @@ export function SandpackPreview({
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-muted/30">
-        <div className="flex items-center gap-1">
-          <span className="text-xs font-medium text-muted-foreground mr-2">Preview</span>
-          {Object.entries(viewportConfig).map(([key, { icon, label }]) => (
-            <Button
-              key={key}
-              variant="ghost"
-              size="icon"
-              className={cn(
-                'h-7 w-7',
-                viewport === key && 'bg-accent'
-              )}
-              onClick={() => setViewport(key as ViewportSize)}
-              title={label}
-            >
-              {icon}
-            </Button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleRefresh}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => {
-              const previewFrame = document.querySelector('.sp-preview-iframe') as HTMLIFrameElement;
-              if (previewFrame?.src) {
-                window.open(previewFrame.src, '_blank');
-              }
-            }}
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      {/* Toolbar - now uses new component */}
+      <PreviewToolbar
+        viewport={viewport}
+        onViewportChange={setViewport}
+        onRefresh={handleRefresh}
+        onOpenExternal={handleOpenExternal}
+        isVisualEditorActive={isVisualEditorActive}
+        onToggleVisualEditor={handleToggleVisualEditor}
+        currentPath="/"
+      />
 
-      {/* Preview Area */}
-      <div className="flex-1 flex items-center justify-center bg-muted/20 p-4 overflow-auto relative">
-        <div
-          className="bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300 h-full relative"
-          style={{
-            width: viewportConfig[viewport].width,
-            maxWidth: '100%',
-          }}
+      {/* Preview Area with improved styling */}
+      <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
+        <DeviceFrame 
+          viewport={viewport}
+          className={cn(
+            "transition-all duration-300",
+            viewport === 'desktop' && 'w-full h-full',
+            viewport === 'tablet' && 'h-[calc(100%-2rem)]',
+            viewport === 'mobile' && 'h-[calc(100%-2rem)]',
+          )}
         >
-          <SandpackProvider
-            key={refreshKey}
-            template="react-ts"
-            files={sandpackFiles}
-            options={{
-              externalResources: [
-                'https://cdn.tailwindcss.com',
-              ],
-              recompileMode: 'delayed',
-              recompileDelay: 500,
+          <div
+            className={cn(
+              "bg-background overflow-hidden transition-all duration-300 h-full relative",
+              viewport === 'desktop' && 'rounded-lg shadow-lg w-full',
+              viewport !== 'desktop' && 'rounded-xl',
+            )}
+            style={{
+              width: viewport === 'desktop' ? '100%' : viewportConfig[viewport].width,
+              maxWidth: '100%',
             }}
-            customSetup={{
-              entry: '/src/main.tsx',
-              dependencies: {
-                'react': '^18.2.0',
-                'react-dom': '^18.2.0',
-              },
-            }}
-            theme="auto"
           >
-            <div className="h-full relative">
-              <SandpackLayout style={{ height: '100%', border: 'none' }}>
-                <SandpackPreviewPane 
-                  style={{ height: '100%' }}
-                  showRefreshButton={false}
-                  showOpenInCodeSandbox={false}
+            <SandpackProvider
+              key={refreshKey}
+              template="react-ts"
+              files={sandpackFiles}
+              options={{
+                externalResources: [
+                  'https://cdn.tailwindcss.com',
+                ],
+                recompileMode: 'delayed',
+                recompileDelay: 500,
+              }}
+              customSetup={{
+                entry: '/src/main.tsx',
+                dependencies: {
+                  'react': '^18.2.0',
+                  'react-dom': '^18.2.0',
+                },
+              }}
+              theme="auto"
+            >
+              <div className="h-full relative">
+                <SandpackLayout style={{ height: '100%', border: 'none' }}>
+                  <SandpackPreviewPane 
+                    style={{ height: '100%' }}
+                    showRefreshButton={false}
+                    showOpenInCodeSandbox={false}
+                  />
+                </SandpackLayout>
+                
+                {/* Loading overlay */}
+                <SandpackStatusIndicator />
+                
+                <SandpackPreviewInner 
+                  files={files}
+                  onVisualChange={onVisualChange} 
+                  onSaveVisualChanges={onSaveVisualChanges}
+                  onVisualEditorToggle={(enabled) => {
+                    setIsVisualEditorActive(enabled);
+                    onVisualEditorToggle?.(enabled);
+                  }}
+                  onNavigateToSource={onNavigateToSource}
+                  isVisualEditorEnabled={isVisualEditorActive}
+                  onToggleVisualEditor={handleToggleVisualEditor}
                 />
-              </SandpackLayout>
-              <SandpackPreviewInner 
-                files={files}
-                onVisualChange={onVisualChange} 
-                onSaveVisualChanges={onSaveVisualChanges}
-                onVisualEditorToggle={onVisualEditorToggle}
-                onNavigateToSource={onNavigateToSource}
-              />
-            </div>
-          </SandpackProvider>
-        </div>
+              </div>
+            </SandpackProvider>
+          </div>
+        </DeviceFrame>
       </div>
     </div>
   );
