@@ -514,7 +514,7 @@ export function SandpackPreview({
 
       {/* Preview Area - maximized to fill palette */}
       <div className={cn(
-        "flex-1 flex items-stretch justify-center overflow-auto",
+        "flex-1 flex items-stretch justify-center overflow-hidden min-h-0",
         isFullscreen ? 'p-0' : (viewport === 'desktop' ? 'p-0' : 'p-1')
       )}>
         <DeviceFrame 
