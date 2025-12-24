@@ -478,58 +478,79 @@
   }
 }
 
-/* Snow accumulates at bottom instead of disappearing */
-@keyframes snowfallAccumulate {
+/* Smooth snowfall - continuous loop */
+@keyframes snowfallSmooth {
   0% {
     top: -10px;
     opacity: 0;
   }
-  5% {
+  3% {
     opacity: 1;
   }
-  95% {
+  97% {
     opacity: 1;
   }
   100% {
-    top: calc(100% - 70px);
+    top: calc(100% - 80px);
     opacity: 0;
   }
 }
 
-/* Snow pile grows from nothing */
-@keyframes snowPileGrow {
+/* Snow pile unified cycle: grow (0-60%), hold (60-64%), clear (64-92%), reset (92-100%) */
+@keyframes snowPileCycle {
   0% {
     transform: scaleY(0);
     opacity: 0;
   }
-  10% {
+  4% {
     opacity: 1;
   }
-  100% {
+  60% {
     transform: scaleY(1);
     opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  64% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  92% {
+    transform: scaleY(1);
+    opacity: 0.3;
+    clip-path: inset(0 0 0 100%);
+  }
+  96% {
+    transform: scaleY(0);
+    opacity: 0;
+    clip-path: inset(0 0 0 100%);
+  }
+  100% {
+    transform: scaleY(0);
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
   }
 }
 
-/* Snow pile gets cleared by snowblower */
-@keyframes snowPileClear {
-  0% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-  }
-  100% {
-    clip-path: inset(0 0 0 100%);
+/* Snowblower unified cycle: wait (0-60%), cross (60-92%), reset (92-100%) */
+@keyframes snowblowerCycle {
+  0%, 60% {
+    transform: translateX(0);
     opacity: 0;
   }
-}
-
-/* Snowblower moves across screen */
-@keyframes snowblowerMove {
-  0% {
-    transform: translateX(0);
+  62% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  92% {
+    transform: translateX(calc(100vw + 200px));
+    opacity: 0;
   }
   100% {
-    transform: translateX(calc(100vw + 200px));
+    transform: translateX(0);
+    opacity: 0;
   }
 }
 
@@ -550,11 +571,11 @@
     opacity: 0.9;
   }
   50% {
-    transform: translate(20px, -30px) scale(1.2);
-    opacity: 0.7;
+    transform: translate(20px, -25px) scale(1.1);
+    opacity: 0.6;
   }
   100% {
-    transform: translate(40px, 20px) scale(0.5);
+    transform: translate(35px, 15px) scale(0.4);
     opacity: 0;
   }
 }
@@ -563,24 +584,11 @@
 @keyframes snowSprayPulse {
   0%, 100% {
     transform: scale(1);
+    opacity: 0.9;
   }
   50% {
-    transform: scale(1.1);
-  }
-}
-
-/* Individual snow landing effect */
-@keyframes snowLand {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  50% {
+    transform: scale(1.05);
     opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(0) scale(1.5);
   }
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 
 interface Snowflake {
   id: number;
@@ -19,11 +19,10 @@ interface Star {
   delay: number;
 }
 
-// Animation cycle timing (in seconds)
-const ACCUMULATE_DURATION = 12;
-const BLOWER_DURATION = 6;
-const RESET_DURATION = 2;
-const TOTAL_CYCLE = ACCUMULATE_DURATION + BLOWER_DURATION + RESET_DURATION; // 20s
+// Animation cycle timing (in seconds) - single source of truth
+const CYCLE_DURATION = 25; // Total cycle
+const ACCUMULATE_PHASE = 15; // Snow accumulates
+const BLOWER_PHASE = 8; // Snowblower crosses
 
 function SantaSleigh() {
   return (
@@ -203,10 +202,10 @@ function SantaSleigh() {
 function SnowPile() {
   return (
     <div 
-      className="absolute bottom-0 left-0 right-0 motion-reduce:hidden"
+      className="absolute bottom-0 left-0 right-0 motion-reduce:hidden origin-bottom"
       style={{
-        animation: `snowPileGrow ${ACCUMULATE_DURATION}s ease-out forwards, snowPileClear ${BLOWER_DURATION}s ease-in ${ACCUMULATE_DURATION}s forwards`,
-        animationIterationCount: 'infinite',
+        animation: `snowPileCycle ${CYCLE_DURATION}s ease-in-out infinite`,
+        willChange: 'transform, opacity',
       }}
     >
       {/* Wavy snow pile with gradient */}
@@ -233,35 +232,46 @@ function SnowPile() {
 }
 
 function Snowblower() {
+  // Pre-generate spray particles to avoid random in render
+  const sprayParticles = useMemo(() => 
+    Array.from({ length: 8 }, (_, i) => ({
+      id: i,
+      width: 4 + (i % 3) * 2,
+      height: 4 + (i % 3) * 2,
+      duration: 0.4 + (i % 4) * 0.15,
+      left: (i % 4) * 8,
+      top: (i % 3) * 15,
+    })), 
+  []);
+
   return (
     <div 
       className="absolute bottom-4 motion-reduce:hidden"
       style={{
-        animation: `snowblowerMove ${BLOWER_DURATION}s linear ${ACCUMULATE_DURATION}s forwards`,
-        animationIterationCount: 'infinite',
+        animation: `snowblowerCycle ${CYCLE_DURATION}s linear infinite`,
+        willChange: 'transform',
         left: '-120px',
       }}
     >
       <div className="relative">
         {/* Snow spray */}
         <div 
-          className="absolute -top-16 left-10"
+          className="absolute -top-12 left-10"
           style={{
             animation: `snowSprayPulse 0.3s ease-in-out infinite`,
           }}
         >
-          {[...Array(12)].map((_, i) => (
+          {sprayParticles.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="absolute rounded-full bg-white/80"
               style={{
-                width: `${4 + Math.random() * 6}px`,
-                height: `${4 + Math.random() * 6}px`,
-                animation: `snowParticle ${0.5 + Math.random() * 0.5}s ease-out infinite`,
-                animationDelay: `${i * 0.05}s`,
-                left: `${Math.random() * 30}px`,
-                top: `${Math.random() * 40}px`,
-                opacity: 0.8,
+                width: `${particle.width}px`,
+                height: `${particle.height}px`,
+                animation: `snowParticle ${particle.duration}s ease-out infinite`,
+                animationDelay: `${particle.id * 0.06}s`,
+                left: `${particle.left}px`,
+                top: `${particle.top}px`,
               }}
             />
           ))}
@@ -314,89 +324,28 @@ function Snowblower() {
   );
 }
 
-function AccumulatingSnow({ phase }: { phase: 'accumulating' | 'clearing' | 'reset' }) {
-  const flakes = useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      landDelay: Math.random() * ACCUMULATE_DURATION * 0.8,
-    }));
-  }, []);
-
-  if (phase !== 'accumulating') return null;
-
-  return (
-    <>
-      {flakes.map((flake) => (
-        <div
-          key={`landing-${flake.id}`}
-          className="absolute rounded-full bg-white/80 motion-reduce:hidden"
-          style={{
-            left: `${flake.x}%`,
-            bottom: '60px',
-            width: '4px',
-            height: '4px',
-            animation: `snowLand 0.5s ease-out forwards`,
-            animationDelay: `${flake.landDelay}s`,
-            opacity: 0,
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
 export function Snowfall() {
-  const [phase, setPhase] = useState<'accumulating' | 'clearing' | 'reset'>('accumulating');
-  const [cycleKey, setCycleKey] = useState(0);
-
-  useEffect(() => {
-    const runCycle = () => {
-      // Accumulating phase
-      setPhase('accumulating');
-      
-      setTimeout(() => {
-        // Clearing phase
-        setPhase('clearing');
-      }, ACCUMULATE_DURATION * 1000);
-      
-      setTimeout(() => {
-        // Reset phase
-        setPhase('reset');
-      }, (ACCUMULATE_DURATION + BLOWER_DURATION) * 1000);
-      
-      setTimeout(() => {
-        // Start new cycle
-        setCycleKey(k => k + 1);
-      }, TOTAL_CYCLE * 1000);
-    };
-
-    runCycle();
-    
-    const interval = setInterval(runCycle, TOTAL_CYCLE * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
+  // Reduced snowflake count for performance
   const snowflakes = useMemo<Snowflake[]>(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
+    return Array.from({ length: 35 }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      opacity: Math.random() * 0.5 + 0.3,
-      duration: Math.random() * 8 + 6,
-      delay: Math.random() * 5,
-      driftDuration: Math.random() * 4 + 3,
+      x: (i * 2.86) % 100, // Deterministic spread
+      size: 2 + (i % 4),
+      opacity: 0.3 + (i % 5) * 0.1,
+      duration: 8 + (i % 6),
+      delay: (i * 0.3) % 5,
+      driftDuration: 3 + (i % 4),
     }));
   }, []);
 
   const stars = useMemo<Star[]>(() => {
     return Array.from({ length: 25 }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 60 + 5,
-      size: Math.random() * 3 + 2,
-      twinkleDuration: Math.random() * 2 + 1.5,
-      delay: Math.random() * 3,
+      x: (i * 4) % 100,
+      y: 5 + (i * 2.4) % 55,
+      size: 2 + (i % 3),
+      twinkleDuration: 1.5 + (i % 3) * 0.5,
+      delay: (i * 0.12) % 3,
     }));
   }, []);
 
@@ -426,7 +375,7 @@ export function Snowfall() {
         </div>
       ))}
       
-      {/* Snowflakes */}
+      {/* Snowflakes with GPU acceleration hint */}
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
@@ -436,24 +385,18 @@ export function Snowfall() {
             width: `${flake.size}px`,
             height: `${flake.size}px`,
             opacity: flake.opacity,
-            animation: `snowfallAccumulate ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite`,
+            animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite`,
             animationDelay: `${flake.delay}s`,
+            willChange: 'transform',
           }}
         />
       ))}
       
-      {/* Accumulating snow effects */}
-      <AccumulatingSnow key={cycleKey} phase={phase} />
+      {/* Snow pile - pure CSS animation */}
+      <SnowPile />
       
-      {/* Snow pile */}
-      <div key={`pile-${cycleKey}`}>
-        <SnowPile />
-      </div>
-      
-      {/* Snowblower */}
-      <div key={`blower-${cycleKey}`}>
-        <Snowblower />
-      </div>
+      {/* Snowblower - pure CSS animation */}
+      <Snowblower />
     </div>
   );
 }
