@@ -1,17 +1,27 @@
 import { CHRISTMAS_LAYERS } from './constants';
+import { useChristmasPerformance } from './hooks/useChristmasPerformance';
 
 /**
  * Subtle moon glow component for peaceful night atmosphere.
  * Positioned in the upper corner with soft ambient glow.
+ * Responsive: scales down on small screens.
  */
 export function Moon() {
+  const { isSmallScreen, isVerySmallScreen } = useChristmasPerformance();
+  
+  // Responsive scaling
+  const scale = isVerySmallScreen ? 0.5 : isSmallScreen ? 0.7 : 1;
+  const rightPosition = isVerySmallScreen ? '6%' : isSmallScreen ? '8%' : '12%';
+  
   return (
     <div
       className="absolute motion-reduce:opacity-50"
       style={{
         top: '8%',
-        right: '12%',
+        right: rightPosition,
         zIndex: CHRISTMAS_LAYERS.STARS,
+        transform: `scale(${scale})`,
+        transformOrigin: 'top right',
       }}
       aria-hidden="true"
     >

@@ -7,7 +7,10 @@ import { useChristmasPerformance, scaleParticleCount } from './hooks/useChristma
  * Features arc particles, mist, exhaust, and ground chunks.
  */
 export function Snowblower() {
-  const { particleScale, enableComplexEffects, enableShadows } = useChristmasPerformance();
+  const { particleScale, enableComplexEffects, enableShadows, isSmallScreen, isVerySmallScreen } = useChristmasPerformance();
+
+  // Responsive scaling for mobile
+  const blowerScale = isVerySmallScreen ? 0.6 : isSmallScreen ? 0.75 : 1;
 
   // Optimized arc particles with direction variance
   const arcParticles = useMemo(() => {
@@ -74,12 +77,14 @@ export function Snowblower() {
 
   return (
     <div 
-      className="absolute bottom-4 motion-reduce:hidden"
+      className="absolute motion-reduce:hidden"
       style={{
+        bottom: isSmallScreen ? '8px' : '16px',
         animation: `snowblowerCycle ${ANIMATION_TIMING.CYCLE_DURATION}s linear infinite`,
         willChange: 'transform',
         left: '-120px',
-        transform: 'translateZ(0)',
+        transform: `translateZ(0) scale(${blowerScale})`,
+        transformOrigin: 'bottom left',
         zIndex: CHRISTMAS_LAYERS.SNOWBLOWER,
       }}
       aria-hidden="true"

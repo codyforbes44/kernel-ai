@@ -7,14 +7,18 @@ import type { PerformanceConfig } from '../types';
  */
 export function useChristmasPerformance(): PerformanceConfig {
   const [isMobile, setIsMobile] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [isVerySmallScreen, setIsVerySmallScreen] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    // Detect mobile devices
-    const checkMobile = () => {
+    // Detect device capabilities and screen size
+    const checkDevice = () => {
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isSmallScreen = window.innerWidth < 768;
-      setIsMobile(isTouchDevice || isSmallScreen);
+      const isMobileWidth = window.innerWidth < 768;
+      setIsMobile(isTouchDevice || isMobileWidth);
+      setIsSmallScreen(window.innerWidth < 640);
+      setIsVerySmallScreen(window.innerWidth < 400);
     };
 
     // Check reduced motion preference
@@ -25,12 +29,12 @@ export function useChristmasPerformance(): PerformanceConfig {
       setPrefersReducedMotion(e.matches);
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
     motionQuery.addEventListener('change', handleMotionChange);
 
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('resize', checkDevice);
       motionQuery.removeEventListener('change', handleMotionChange);
     };
   }, []);
@@ -42,6 +46,8 @@ export function useChristmasPerformance(): PerformanceConfig {
         enableComplexEffects: false,
         enableShadows: false,
         prefersReducedMotion: true,
+        isSmallScreen,
+        isVerySmallScreen,
       };
     }
 
@@ -51,6 +57,8 @@ export function useChristmasPerformance(): PerformanceConfig {
         enableComplexEffects: false,
         enableShadows: true,
         prefersReducedMotion: false,
+        isSmallScreen,
+        isVerySmallScreen,
       };
     }
 
@@ -59,8 +67,10 @@ export function useChristmasPerformance(): PerformanceConfig {
       enableComplexEffects: true,
       enableShadows: true,
       prefersReducedMotion: false,
+      isSmallScreen,
+      isVerySmallScreen,
     };
-  }, [isMobile, prefersReducedMotion]);
+  }, [isMobile, prefersReducedMotion, isSmallScreen, isVerySmallScreen]);
 
   return config;
 }

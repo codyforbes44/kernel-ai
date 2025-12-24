@@ -125,7 +125,10 @@ function Sleigh({ enableShadows }: { enableShadows: boolean }) {
  * Uses extracted sub-components for better maintainability.
  */
 export function SantaSleigh() {
-  const { particleScale, enableShadows } = useChristmasPerformance();
+  const { particleScale, enableShadows, isSmallScreen, isVerySmallScreen } = useChristmasPerformance();
+  
+  // Responsive scaling for mobile
+  const sleighScale = isVerySmallScreen ? 0.5 : isSmallScreen ? 0.65 : 1;
   
   const reindeerCount = PARTICLE_CONFIG.REINDEER_COUNT;
   const bellCount = scaleParticleCount(PARTICLE_CONFIG.SLEIGH_BELLS, particleScale);
@@ -135,11 +138,12 @@ export function SantaSleigh() {
     <div 
       className="absolute motion-reduce:hidden"
       style={{
-        top: '12%',
+        top: isSmallScreen ? '8%' : '12%',
         animation: `santaFly ${ANIMATION_TIMING.CYCLE_DURATION}s ease-in-out infinite`,
         animationDelay: '3s',
         willChange: 'transform',
-        transform: 'translateZ(0)',
+        transform: `translateZ(0) scale(${sleighScale})`,
+        transformOrigin: 'left center',
         zIndex: CHRISTMAS_LAYERS.SANTA,
       }}
       aria-hidden="true"
