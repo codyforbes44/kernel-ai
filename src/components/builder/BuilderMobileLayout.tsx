@@ -18,7 +18,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { MobileFileBrowser } from './MobileFileBrowser';
 import { MobilePanelDrawer } from './MobilePanelDrawer';
-import { MobileBuilderChat, MobileErrorCapture } from './mobile';
+import { MobileBuilderChat, MobileErrorCapture, MobileAgentChat } from './mobile';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useSwipeToggle } from '@/hooks/useMobileGestures';
@@ -331,13 +331,13 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
         onSelectPanel={handleSelectPanel}
       />
 
-      {/* Panel Content Sheet - AI Chat */}
+      {/* Panel Content Sheet - AI Chat with Agent Mode */}
       {showPanel && activePanel === 'ai-chat' && (
         <div 
           className="fixed inset-0 z-50 bg-background animate-slide-in-right"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <MobileBuilderChat
+          <MobileAgentChat
             files={files}
             projectId={projectId}
             onApplyOperations={applyAIOperations}

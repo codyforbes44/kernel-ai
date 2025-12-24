@@ -44,6 +44,8 @@ interface MobileBuilderChatProps {
   onClose: () => void;
   onFileOpen?: (file: ProjectFile) => void;
   onFixHandlerReady?: (handler: (errors: CapturedError[]) => void) => void;
+  /** When true, hides the header (for embedding in MobileAgentChat) */
+  embedded?: boolean;
 }
 
 function parseStreamedResponse(content: string): AIResponse | null {
@@ -73,6 +75,7 @@ export function MobileBuilderChat({
   onClose,
   onFileOpen,
   onFixHandlerReady,
+  embedded = false,
 }: MobileBuilderChatProps) {
   const {
     conversationId,
@@ -383,13 +386,15 @@ export function MobileBuilderChat({
   if (isLoadingConversation) {
     return (
       <div className="h-full flex flex-col">
-        <header className="h-12 flex items-center justify-between px-3 border-b border-border bg-card shrink-0">
-          <Button variant="ghost" size="icon" onClick={onClose} className="touch-manipulation">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <span className="text-sm font-medium">AI Assistant</span>
-          <div className="w-9" />
-        </header>
+        {!embedded && (
+          <header className="h-12 flex items-center justify-between px-3 border-b border-border bg-card shrink-0">
+            <Button variant="ghost" size="icon" onClick={onClose} className="touch-manipulation">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <span className="text-sm font-medium">AI Assistant</span>
+            <div className="w-9" />
+          </header>
+        )}
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
@@ -399,29 +404,31 @@ export function MobileBuilderChat({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <header className="h-12 flex items-center justify-between px-3 border-b border-border bg-card shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => { hapticFeedback('light'); onClose(); }}
-          className="touch-manipulation"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">AI Assistant</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 touch-manipulation"
-          onClick={handleNewConversation}
-        >
-          <MessageSquarePlus className="h-4 w-4" />
-        </Button>
-      </header>
+      {/* Header - only shown when not embedded */}
+      {!embedded && (
+        <header className="h-12 flex items-center justify-between px-3 border-b border-border bg-card shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => { hapticFeedback('light'); onClose(); }}
+            className="touch-manipulation"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">AI Assistant</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 touch-manipulation"
+            onClick={handleNewConversation}
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+          </Button>
+        </header>
+      )}
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
