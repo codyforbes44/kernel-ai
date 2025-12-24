@@ -8,6 +8,10 @@ export interface Snowflake {
   duration: number;
   delay: number;
   driftDuration: number;
+  layer: number;        // 0-4 depth layer
+  blur: number;         // blur amount in px
+  translateZ: number;   // z-axis position for 3D depth
+  parallaxFactor: number; // mouse parallax multiplier
 }
 
 export interface Star {
