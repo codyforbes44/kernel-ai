@@ -1997,12 +1997,79 @@ export type Database = {
         }
         Relationships: []
       }
+      xai_settings: {
+        Row: {
+          alert_threshold_daily: number
+          created_at: string
+          default_model: string
+          id: string
+          is_enabled: boolean
+          max_tokens_per_request: number
+          rate_limit_per_user_daily: number
+          updated_at: string
+        }
+        Insert: {
+          alert_threshold_daily?: number
+          created_at?: string
+          default_model?: string
+          id?: string
+          is_enabled?: boolean
+          max_tokens_per_request?: number
+          rate_limit_per_user_daily?: number
+          updated_at?: string
+        }
+        Update: {
+          alert_threshold_daily?: number
+          created_at?: string
+          default_model?: string
+          id?: string
+          is_enabled?: boolean
+          max_tokens_per_request?: number
+          rate_limit_per_user_daily?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      xai_usage_tracking: {
+        Row: {
+          created_at: string
+          credits_used: number
+          id: string
+          request_count: number
+          request_date: string
+          tokens_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          request_count?: number
+          request_date?: string
+          tokens_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          id?: string
+          request_count?: number
+          request_date?: string
+          tokens_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       check_account_lockout: { Args: { p_email: string }; Returns: Json }
+      check_xai_rate_limit: { Args: { p_user_id: string }; Returns: Json }
       generate_subdomain: {
         Args: { project_id: string; project_name: string }
         Returns: string
@@ -2013,6 +2080,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_xai_usage: {
+        Args: { p_credits?: number; p_tokens?: number; p_user_id: string }
+        Returns: undefined
       }
       record_login_attempt: {
         Args: { p_email: string; p_ip_address?: string; p_success: boolean }
