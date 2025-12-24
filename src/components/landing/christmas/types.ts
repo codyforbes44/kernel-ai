@@ -79,4 +79,5 @@ export interface PerformanceConfig {
   particleScale: number;
   enableComplexEffects: boolean;
   enableShadows: boolean;
+  prefersReducedMotion: boolean;
 }
