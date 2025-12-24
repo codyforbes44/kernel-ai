@@ -495,7 +495,7 @@
     opacity: 1;
   }
   100% {
-    top: calc(100% - 80px);
+    top: var(--fall-end, calc(100% - 80px));
     opacity: 0;
   }
 }
