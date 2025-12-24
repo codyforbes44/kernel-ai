@@ -7,5 +7,5 @@ export { Reindeer } from './Reindeer';
 export { MagicTrail, SoundParticles, ReindeerDust } from './MagicTrail';
 export { MeteorShower } from './MeteorShower';
 export { SnowAccumulation } from './SnowAccumulation';
-export { ANIMATION_TIMING, PARTICLE_CONFIG, SNOW_CONFIG, CHRISTMAS_LAYERS, MOBILE_CONFIG, MOBILE_SNOW_CONFIG, DEPTH_LAYERS } from './constants';
+export { ANIMATION_TIMING, PARTICLE_CONFIG, SNOW_CONFIG, CHRISTMAS_LAYERS, MOBILE_CONFIG, MOBILE_SNOW_CONFIG, DEPTH_LAYERS, PERSPECTIVE_CONFIG, ATMOSPHERIC_COLORS, STAR_COLORS, LOW_END_CONFIG } from './constants';
 export type * from './types';
