@@ -92,7 +92,7 @@ export default function Landing() {
             icon={<Sparkles className="h-4 w-4" />}
             className="mb-8"
           >
-            AI-Powered Development Platform
+            Happy Holidays from Cody Forbes! 🎄
           </GlowBadge>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text">
