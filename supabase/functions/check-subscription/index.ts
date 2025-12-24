@@ -41,6 +41,45 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check for manual subscription override first
+    const { data: override, error: overrideError } = await supabaseClient
+      .from('subscription_overrides')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (overrideError) {
+      logStep("Error checking override", { error: overrideError.message });
+    }
+
+    if (override) {
+      // Check if expired
+      const isExpired = override.expires_at && new Date(override.expires_at) < new Date();
+      
+      if (!isExpired) {
+        logStep("Manual override found", { 
+          plan: override.plan, 
+          reason: override.reason,
+          expires_at: override.expires_at 
+        });
+        
+        return new Response(JSON.stringify({
+          subscribed: true,
+          plan: override.plan,
+          price_id: null,
+          subscription_end: override.expires_at,
+          is_override: true
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } else {
+        logStep("Override expired", { expires_at: override.expires_at });
+      }
+    }
+
+    // Fall back to Stripe check
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
