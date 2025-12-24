@@ -560,31 +560,40 @@ export function SandpackPreview({
               }}
               theme="auto"
             >
-              <div className="flex-1 relative flex flex-col min-h-0">
-                <SandpackLayout style={{ flex: 1, height: '100%', border: 'none' }}>
+              {/* Use absolute positioning to ensure full height */}
+              <div className="absolute inset-0 flex flex-col">
+                <SandpackLayout 
+                  style={{ 
+                    flex: 1, 
+                    height: '100%', 
+                    border: 'none',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
                   <SandpackPreviewPane 
-                    style={{ height: '100%' }}
+                    style={{ flex: 1, height: '100%' }}
                     showRefreshButton={false}
                     showOpenInCodeSandbox={false}
                   />
                 </SandpackLayout>
-                
-                {/* Loading overlay */}
-                <SandpackStatusIndicator />
-                
-                <SandpackPreviewInner 
-                  files={files}
-                  onVisualChange={onVisualChange} 
-                  onSaveVisualChanges={onSaveVisualChanges}
-                  onVisualEditorToggle={(enabled) => {
-                    setIsVisualEditorActive(enabled);
-                    onVisualEditorToggle?.(enabled);
-                  }}
-                  onNavigateToSource={onNavigateToSource}
-                  isVisualEditorEnabled={isVisualEditorActive}
-                  onToggleVisualEditor={handleToggleVisualEditor}
-                />
               </div>
+              
+              {/* Loading overlay - positioned outside absolute container */}
+              <SandpackStatusIndicator />
+              
+              <SandpackPreviewInner 
+                files={files}
+                onVisualChange={onVisualChange} 
+                onSaveVisualChanges={onSaveVisualChanges}
+                onVisualEditorToggle={(enabled) => {
+                  setIsVisualEditorActive(enabled);
+                  onVisualEditorToggle?.(enabled);
+                }}
+                onNavigateToSource={onNavigateToSource}
+                isVisualEditorEnabled={isVisualEditorActive}
+                onToggleVisualEditor={handleToggleVisualEditor}
+              />
             </SandpackProvider>
           </div>
         </DeviceFrame>
