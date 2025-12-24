@@ -2,7 +2,6 @@ import { KernelLogo } from "@/components/ui/kernel-logo";
 import { ShareButtons } from "./ShareButtons";
 import { OGImagePreview } from "./OGImagePreview";
 import { SocialComparisonCard } from "@/components/marketing/SocialComparisonCard";
-import { CompareOGImage } from "@/components/marketing/CompareOGImage";
 
 interface CompareHeroProps {
   exports: {
@@ -17,21 +16,22 @@ interface CompareHeroProps {
 
 export const CompareHero = ({ exports }: CompareHeroProps) => {
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden">
+    <section className="relative py-12 md:py-16 lg:py-24 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.1),transparent_70%)]" />
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       
-      <div className="container relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="flex justify-center mb-6">
-            <KernelLogo size="xl" glow />
+      <div className="container relative z-10 px-4 md:px-6">
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-12">
+          <div className="flex justify-center mb-4 md:mb-6">
+            <KernelLogo size="lg" glow className="md:hidden" />
+            <KernelLogo size="xl" glow className="hidden md:block" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3 md:mb-4">
             <span className="bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
               Kernel vs The Competition
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground">
+          <p className="text-base md:text-lg lg:text-xl text-muted-foreground px-4 md:px-0">
             The only AI platform with everything you need to build, deploy, and scale.
           </p>
         </div>
@@ -47,8 +47,14 @@ export const CompareHero = ({ exports }: CompareHeroProps) => {
 
         <OGImagePreview />
 
-        <div className="flex justify-center mb-16">
+        {/* Desktop only: Show full social card */}
+        <div className="hidden lg:flex justify-center mb-16">
           <SocialComparisonCard />
+        </div>
+
+        {/* Tablet: Show condensed version */}
+        <div className="hidden md:flex lg:hidden justify-center mb-12">
+          <SocialComparisonCard className="max-w-2xl" />
         </div>
       </div>
     </section>

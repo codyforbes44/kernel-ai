@@ -1,6 +1,7 @@
 import { platformFeatures, platforms } from "@/lib/pricing-data";
 import { FeatureValue } from "./FeatureValue";
 import { CompareLegend } from "./CompareLegend";
+import { MobileCategoryAccordion } from "./MobileCategoryAccordion";
 import { cn } from "@/lib/utils";
 
 type PlatformKey = "kernel" | "lovable" | "bolt" | "v0" | "replit" | "cursor";
@@ -14,19 +15,35 @@ export const FeatureComparisonTable = () => {
     return acc;
   }, {} as Record<string, typeof platformFeatures>);
 
+  const categories = Object.entries(groupedFeatures);
+
   return (
-    <section className="py-16 border-t border-border/50">
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section className="py-12 md:py-16 border-t border-border/50">
+      <div className="container px-4 md:px-6">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">
             Complete Feature Comparison
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm md:text-base text-muted-foreground">
             All {platformFeatures.length} features compared across {platforms.length} platforms
           </p>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile: Accordion View */}
+        <div className="lg:hidden space-y-3">
+          {categories.map(([category, features], index) => (
+            <MobileCategoryAccordion
+              key={category}
+              category={category}
+              features={features}
+              defaultOpen={index === 0}
+            />
+          ))}
+          <CompareLegend />
+        </div>
+
+        {/* Desktop: Full Grid View */}
+        <div className="hidden lg:block overflow-x-auto">
           <div className="min-w-[800px]">
             {/* Header */}
             <div className="grid grid-cols-7 gap-2 mb-4 sticky top-0 bg-background/95 backdrop-blur py-4 z-10">
@@ -54,7 +71,7 @@ export const FeatureComparisonTable = () => {
             </div>
 
             {/* Features by Category */}
-            {Object.entries(groupedFeatures).map(([category, features]) => (
+            {categories.map(([category, features]) => (
               <div key={category} className="mb-6">
                 {/* Category Header */}
                 <div className="grid grid-cols-7 gap-2 mb-2">
@@ -94,9 +111,9 @@ export const FeatureComparisonTable = () => {
               </div>
             ))}
           </div>
-        </div>
 
-        <CompareLegend />
+          <CompareLegend />
+        </div>
       </div>
     </section>
   );

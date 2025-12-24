@@ -6,3 +6,5 @@ export { FeatureComparisonTable } from "./FeatureComparisonTable";
 export { CompareLegend } from "./CompareLegend";
 export { CompareCTA } from "./CompareCTA";
 export { RadarChartSection } from "./RadarChartSection";
+export { MobileFeatureCard } from "./MobileFeatureCard";
+export { MobileCategoryAccordion } from "./MobileCategoryAccordion";
