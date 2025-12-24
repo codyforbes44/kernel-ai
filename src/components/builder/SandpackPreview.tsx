@@ -503,14 +503,14 @@ export function SandpackPreview({
       />
 
       {/* Preview Area with improved styling */}
-      <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
+      <div className="flex-1 flex items-stretch justify-center p-4 overflow-auto">
         <DeviceFrame 
           viewport={viewport}
           className={cn(
             "transition-all duration-300",
             viewport === 'desktop' && 'w-full h-full',
-            viewport === 'tablet' && 'h-[calc(100%-2rem)]',
-            viewport === 'mobile' && 'h-[calc(100%-2rem)]',
+            viewport === 'tablet' && 'h-full max-h-[calc(100%-2rem)]',
+            viewport === 'mobile' && 'h-full max-h-[calc(100%-2rem)]',
           )}
         >
           <div
