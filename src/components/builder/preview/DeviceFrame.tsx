@@ -25,7 +25,7 @@ export function DeviceFrame({ viewport, children, className }: DeviceFrameProps)
         {/* Camera notch */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-zinc-900 rounded-full z-10 shadow-inner" />
         {/* Screen */}
-        <div className="relative bg-background rounded-xl overflow-hidden shadow-inner">
+        <div className="relative bg-background rounded-xl overflow-hidden shadow-inner h-full">
           {children}
         </div>
         {/* Home button area indicator */}
@@ -51,7 +51,7 @@ export function DeviceFrame({ viewport, children, className }: DeviceFrameProps)
       <div className="absolute -left-4 top-52 w-1 h-12 bg-zinc-700 rounded-l" />
       <div className="absolute -right-4 top-32 w-1 h-16 bg-zinc-700 rounded-r" />
       {/* Screen with rounded corners */}
-      <div className="relative bg-background rounded-[1.5rem] overflow-hidden shadow-inner">
+      <div className="relative bg-background rounded-[1.5rem] overflow-hidden shadow-inner h-full">
         {children}
       </div>
       {/* Home indicator */}
