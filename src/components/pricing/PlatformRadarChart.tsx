@@ -152,14 +152,14 @@ export const PlatformRadarChart = () => {
 
   return (
     <div className="w-full">
-      {/* Platform Toggles & Scores */}
-      <div className="flex flex-wrap justify-center gap-3 mb-8">
+      {/* Platform Toggles & Scores - Mobile optimized */}
+      <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-6 md:mb-8 px-2">
         {overallScores.map((platform) => (
           <button
             key={platform.id}
             onClick={() => togglePlatform(platform.id)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200",
+              "flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-full border transition-all duration-200 text-sm",
               visiblePlatforms.has(platform.id)
                 ? platform.isHighlighted
                   ? "bg-primary/20 border-primary/50 text-primary"
@@ -169,13 +169,13 @@ export const PlatformRadarChart = () => {
           >
             <Checkbox
               checked={visiblePlatforms.has(platform.id)}
-              className="pointer-events-none"
+              className="pointer-events-none h-3.5 w-3.5 md:h-4 md:w-4"
             />
-            <span className="font-medium">{platform.name}</span>
+            <span className="font-medium text-xs md:text-sm">{platform.name}</span>
             <Badge
               variant={platform.isHighlighted ? "default" : "secondary"}
               className={cn(
-                "text-xs",
+                "text-[10px] md:text-xs px-1.5 md:px-2",
                 platform.isHighlighted && "bg-primary text-primary-foreground"
               )}
             >
@@ -185,10 +185,10 @@ export const PlatformRadarChart = () => {
         ))}
       </div>
 
-      {/* Radar Chart */}
-      <div className="w-full h-[400px] md:h-[500px]">
+      {/* Radar Chart - Responsive height */}
+      <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[500px]">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
             <PolarGrid
               gridType="polygon"
               stroke="hsl(var(--border))"
@@ -196,7 +196,10 @@ export const PlatformRadarChart = () => {
             />
             <PolarAngleAxis
               dataKey="category"
-              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+              tick={{ 
+                fill: "hsl(var(--muted-foreground))", 
+                fontSize: typeof window !== 'undefined' && window.innerWidth < 640 ? 9 : 12 
+              }}
               tickLine={false}
             />
             <PolarRadiusAxis
@@ -224,18 +227,19 @@ export const PlatformRadarChart = () => {
             
             <Tooltip content={<CustomTooltip />} />
             <Legend
-              wrapperStyle={{ paddingTop: 20 }}
+              wrapperStyle={{ paddingTop: 16 }}
               formatter={(value) => (
-                <span className="text-muted-foreground text-sm">{value}</span>
+                <span className="text-muted-foreground text-xs md:text-sm">{value}</span>
               )}
             />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Category Legend */}
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        <p>Hover over the chart to see exact percentages per category</p>
+      {/* Category Legend - Mobile optimized */}
+      <div className="mt-4 md:mt-6 text-center text-xs md:text-sm text-muted-foreground">
+        <p className="hidden sm:block">Hover over the chart to see exact percentages per category</p>
+        <p className="sm:hidden">Tap the chart for details</p>
       </div>
     </div>
   );

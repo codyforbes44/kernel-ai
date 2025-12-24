@@ -11,7 +11,7 @@ export const CompareLegend = ({ size = "md" }: CompareLegendProps) => {
   const badgeSize = size === "sm" ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-1";
 
   return (
-    <div className="flex justify-center gap-8 mt-8 pt-8 border-t border-border/30">
+    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 md:gap-8 mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/30">
       <div className="flex items-center gap-2">
         <div className={`${containerSize} rounded-full bg-emerald-500/20 flex items-center justify-center`}>
           <Check className={`${iconSize} text-emerald-400`} />
