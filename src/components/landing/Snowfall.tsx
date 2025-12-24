@@ -47,7 +47,7 @@ function SantaSleigh() {
                 animationDelay: `${i * 0.1}s`,
               }}
             >
-              {/* Reindeer silhouette */}
+              {/* Reindeer silhouette - facing left (direction of travel) */}
               <svg 
                 width="28" 
                 height="20" 
@@ -56,25 +56,25 @@ function SantaSleigh() {
               >
                 {/* Body */}
                 <ellipse cx="14" cy="12" rx="8" ry="5" fill="currentColor" />
-                {/* Head */}
-                <circle cx="22" cy="9" r="3.5" fill="currentColor" />
-                {/* Antlers */}
+                {/* Head - on left side */}
+                <circle cx="6" cy="9" r="3.5" fill="currentColor" />
+                {/* Antlers - pointing left */}
                 <path 
-                  d="M21 6 L20 2 L18 4 M23 6 L24 2 L26 4 M20 3 L19 1 M24 3 L25 1" 
+                  d="M7 6 L8 2 L10 4 M5 6 L4 2 L2 4 M8 3 L9 1 M4 3 L3 1" 
                   stroke="currentColor" 
                   strokeWidth="1" 
                   fill="none"
                 />
                 {/* Legs (running pose) */}
                 <path 
-                  d="M10 15 L8 19 M12 16 L13 19 M16 16 L15 19 M18 15 L20 19" 
+                  d="M10 15 L8 19 M12 16 L11 19 M16 16 L17 19 M18 15 L20 19" 
                   stroke="currentColor" 
                   strokeWidth="1.5" 
                   strokeLinecap="round"
                 />
                 {/* Nose (Rudolph for lead) */}
-                {i === 3 && (
-                  <circle cx="25" cy="9" r="1.5" fill="#ef4444" className="animate-pulse" />
+                {i === 0 && (
+                  <circle cx="3" cy="9" r="1.5" fill="#ef4444" className="animate-pulse" />
                 )}
               </svg>
             </div>
