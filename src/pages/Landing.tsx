@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
@@ -9,6 +10,7 @@ import { HeroBackground } from '@/components/landing/HeroBackground';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { BackToTopButton } from '@/components/ui/back-to-top-button';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
+import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
@@ -58,8 +60,14 @@ const features = [
 ];
 
 export default function Landing() {
+  const ogImageRef = useRef<HTMLDivElement>(null);
+
   return (
     <PublicLayout>
+      {/* Hidden OG Image Component for Dynamic Generation */}
+      <div className="fixed left-[-9999px] top-0 pointer-events-none">
+        <HomepageOGImage ref={ogImageRef} />
+      </div>
       <SEO
         title={PAGE_SEO.landing.title}
         description={PAGE_SEO.landing.description}
