@@ -142,15 +142,47 @@ function SantaSleigh() {
               </g>
             </svg>
             
-            {/* Sparkle trail */}
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 flex gap-1">
-              {[0, 1, 2].map((i) => (
+            {/* Golden sparkle/star trail */}
+            <div className="absolute -right-8 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
                 <div
                   key={i}
-                  className="w-1 h-1 rounded-full bg-yellow-300/60"
+                  className="absolute"
                   style={{
-                    animation: 'twinkle 0.8s ease-in-out infinite',
-                    animationDelay: `${i * 0.2}s`,
+                    right: `${i * 12}px`,
+                    opacity: 1 - (i * 0.12),
+                    animation: `twinkle ${0.6 + i * 0.1}s ease-in-out infinite, sparkleFloat ${1 + i * 0.2}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.15}s`,
+                  }}
+                >
+                  {/* 4-point star sparkle */}
+                  <svg 
+                    width={Math.max(4, 10 - i)} 
+                    height={Math.max(4, 10 - i)} 
+                    viewBox="0 0 24 24" 
+                    className="text-yellow-300 drop-shadow-[0_0_6px_rgba(255,215,0,0.8)]"
+                  >
+                    <path 
+                      d="M12 0L13.5 10.5L24 12L13.5 13.5L12 24L10.5 13.5L0 12L10.5 10.5L12 0Z" 
+                      fill="currentColor" 
+                    />
+                  </svg>
+                </div>
+              ))}
+              {/* Glowing trail particles */}
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div
+                  key={`particle-${i}`}
+                  className="absolute rounded-full bg-gradient-to-r from-yellow-200 to-amber-400"
+                  style={{
+                    right: `${20 + i * 16}px`,
+                    top: `${Math.sin(i) * 6}px`,
+                    width: `${Math.max(2, 6 - i)}px`,
+                    height: `${Math.max(2, 6 - i)}px`,
+                    opacity: 0.8 - (i * 0.15),
+                    animation: `twinkle ${0.8 + i * 0.15}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.1}s`,
+                    boxShadow: '0 0 8px rgba(255, 215, 0, 0.6)',
                   }}
                 />
               ))}
