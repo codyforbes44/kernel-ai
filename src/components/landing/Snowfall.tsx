@@ -270,6 +270,26 @@ function Snowblower() {
     })),
   []);
 
+  // Ground snow chunks - thrown up as blower passes over pile
+  const groundChunks = useMemo(() =>
+    Array.from({ length: 15 }, (_, i) => {
+      const isLarge = i % 4 === 0;
+      const isMedium = i % 4 === 1;
+      return {
+        id: i,
+        size: isLarge ? 6 : isMedium ? 4 : 3,
+        // Spread chunks across the auger width
+        startX: -5 + (i % 5) * 6,
+        // Varied arc heights and distances
+        arcHeight: 20 + (i % 4) * 12,
+        arcDistance: 8 + (i % 3) * 6,
+        duration: 0.5 + (i % 4) * 0.15,
+        delay: (i * 0.06) % 0.6,
+        rotation: (i % 2 === 0 ? 1 : -1) * (180 + i * 30),
+      };
+    }),
+  []);
+
   const getSizePixels = (size: string) => {
     switch(size) {
       case 'large': return { w: 7, h: 7 };
@@ -385,6 +405,31 @@ function Snowblower() {
                 animationDelay: `${i * 0.12}s`,
                 left: `${i * 10}px`,
                 top: `${(i % 2) * 4}px`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Ground snow chunks - fly up from the pile as auger passes */}
+        <div className="absolute" style={{ left: '0px', top: '35px' }}>
+          {groundChunks.map((chunk) => (
+            <div
+              key={`ground-${chunk.id}`}
+              className="absolute"
+              style={{
+                left: `${chunk.startX}px`,
+                width: `${chunk.size}px`,
+                height: `${chunk.size}px`,
+                background: chunk.size > 4 
+                  ? 'radial-gradient(circle, rgba(255, 255, 255, 0.95) 40%, rgba(240, 248, 255, 0.7) 100%)'
+                  : 'rgba(255, 255, 255, 0.85)',
+                borderRadius: chunk.size > 4 ? '30% 70% 40% 60%' : '50%',
+                boxShadow: chunk.size > 4 ? '0 0 3px rgba(255, 255, 255, 0.5)' : 'none',
+                animation: `groundChunkFly ${chunk.duration}s ease-out infinite`,
+                animationDelay: `${chunk.delay}s`,
+                ['--chunk-height' as string]: `${chunk.arcHeight}px`,
+                ['--chunk-distance' as string]: `${chunk.arcDistance}px`,
+                ['--chunk-rotation' as string]: `${chunk.rotation}deg`,
               }}
             />
           ))}
