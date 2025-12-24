@@ -489,6 +489,42 @@
   }
 }
 
+@keyframes santaFly {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-200px);
+  }
+}
+
+@keyframes sleighBob {
+  0%, 100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@keyframes reindeerRun {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes santaWave {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
