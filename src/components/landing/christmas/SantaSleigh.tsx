@@ -1,6 +1,6 @@
 import { ANIMATION_TIMING, CHRISTMAS_LAYERS, PARTICLE_CONFIG } from './constants';
 import { Reindeer } from './Reindeer';
-import { MagicTrail, SoundParticles } from './MagicTrail';
+import { MagicTrail, SoundParticles, ReindeerDust } from './MagicTrail';
 import { useChristmasPerformance, scaleParticleCount } from './hooks/useChristmasPerformance';
 
 /**
@@ -133,6 +133,7 @@ export function SantaSleigh() {
   const reindeerCount = PARTICLE_CONFIG.REINDEER_COUNT;
   const bellCount = scaleParticleCount(PARTICLE_CONFIG.SLEIGH_BELLS, particleScale);
   const trailCount = scaleParticleCount(PARTICLE_CONFIG.MAGIC_TRAIL_PARTICLES, particleScale);
+  const dustCount = scaleParticleCount(12, particleScale); // Dust particles behind reindeer
 
   return (
     <div 
@@ -170,8 +171,11 @@ export function SantaSleigh() {
           animation: 'sleighBob 3.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite, sleighDrift 5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       >
-        {/* Reindeer team */}
-        <div className="flex items-center">
+        {/* Reindeer team with magical dust trail */}
+        <div className="flex items-center relative">
+          {/* Dust particles kicked up behind reindeer */}
+          {particleScale > 0 && <ReindeerDust particleCount={dustCount} />}
+          
           {Array.from({ length: reindeerCount }, (_, i) => (
             <Reindeer key={i} index={i} isRudolph={i === 0} />
           ))}
