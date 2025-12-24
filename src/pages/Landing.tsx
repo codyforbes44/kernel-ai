@@ -91,12 +91,14 @@ export default function Landing() {
             size="lg" 
             pulse 
             icon={<Sparkles className="h-4 w-4" />}
-            className="mb-8"
+            className="mb-8 relative z-20"
           >
             <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
-              <span>Happy Holidays from Cody Forbes! 🎄</span>
+              <span className="text-sm sm:text-base">Happy Holidays! 🎄</span>
               <span className="hidden sm:inline opacity-50">•</span>
-              <ChristmasCountdown />
+              <span className="hidden xs:inline">
+                <ChristmasCountdown />
+              </span>
             </span>
           </GlowBadge>
           

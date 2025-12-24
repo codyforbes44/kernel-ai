@@ -67,15 +67,19 @@ export function ChristmasCountdown() {
 
   return (
     <span className="inline-flex items-center gap-1 text-xs font-medium tabular-nums">
-      <span className="opacity-70">Christmas in</span>
+      <span className="opacity-70 hidden sm:inline">Christmas in</span>
       <span className="inline-flex items-center gap-0.5">
         <TimeUnit value={timeLeft.days} label="d" />
         <span className="opacity-50">:</span>
         <TimeUnit value={timeLeft.hours} label="h" />
-        <span className="opacity-50">:</span>
-        <TimeUnit value={timeLeft.minutes} label="m" />
-        <span className="opacity-50">:</span>
-        <TimeUnit value={timeLeft.seconds} label="s" />
+        <span className="opacity-50 hidden xs:inline">:</span>
+        <span className="hidden xs:inline-flex items-baseline">
+          <TimeUnit value={timeLeft.minutes} label="m" />
+        </span>
+        <span className="opacity-50 hidden sm:inline">:</span>
+        <span className="hidden sm:inline-flex items-baseline">
+          <TimeUnit value={timeLeft.seconds} label="s" />
+        </span>
       </span>
     </span>
   );

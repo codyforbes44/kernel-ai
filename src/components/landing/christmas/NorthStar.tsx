@@ -44,7 +44,7 @@ export function NorthStar() {
     <div 
       className="absolute motion-reduce:hidden"
       style={{
-        top: '6%',
+        top: isVerySmallScreen ? '12%' : isSmallScreen ? '10%' : '6%',
         left: '50%',
         transform: `translateX(-50%) scale(${containerScale})`,
         transformOrigin: 'top center',
