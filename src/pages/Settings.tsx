@@ -53,6 +53,7 @@ import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
 import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSettings';
 import { CreditsSettings } from '@/components/settings/CreditsSettings';
+import { SystemInfoCard } from '@/components/settings/SystemInfoCard';
 import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabaseSettings';
 
 export default function Settings() {
@@ -1003,6 +1004,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* System Information */}
+        <SystemInfoCard />
       </main>
 
       <DeleteConfirmDialog
