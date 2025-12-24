@@ -8,3 +8,4 @@ export { CompareCTA } from "./CompareCTA";
 export { RadarChartSection } from "./RadarChartSection";
 export { MobileFeatureCard } from "./MobileFeatureCard";
 export { MobileCategoryAccordion } from "./MobileCategoryAccordion";
+export { MobileFeatureDrawer } from "./MobileFeatureDrawer";

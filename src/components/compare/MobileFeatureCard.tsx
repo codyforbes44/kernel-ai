@@ -1,36 +1,33 @@
-import { platforms } from "@/lib/pricing-data";
+import { platforms, PlatformFeature } from "@/lib/pricing-data";
 import { FeatureValue } from "./FeatureValue";
 import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 type PlatformKey = "kernel" | "lovable" | "bolt" | "v0" | "replit" | "cursor";
 
-interface Feature {
-  name: string;
-  kernel: boolean | string;
-  lovable: boolean | string;
-  bolt: boolean | string;
-  v0: boolean | string;
-  replit: boolean | string;
-  cursor: boolean | string;
-}
-
 interface MobileFeatureCardProps {
-  feature: Feature;
+  feature: PlatformFeature;
   index: number;
+  onTap?: (feature: PlatformFeature) => void;
 }
 
-export const MobileFeatureCard = ({ feature, index }: MobileFeatureCardProps) => {
+export const MobileFeatureCard = ({ feature, index, onTap }: MobileFeatureCardProps) => {
   return (
-    <div
+    <button
+      onClick={() => onTap?.(feature)}
       className={cn(
-        "p-4 rounded-xl transition-colors",
-        index % 2 === 0 ? "bg-muted/20" : "bg-muted/10"
+        "w-full p-4 rounded-xl transition-all active:scale-[0.98] text-left",
+        index % 2 === 0 ? "bg-muted/20" : "bg-muted/10",
+        "hover:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/50"
       )}
     >
-      {/* Feature Name */}
-      <h4 className="text-sm font-semibold text-foreground mb-3 text-center">
-        {feature.name}
-      </h4>
+      {/* Feature Name with tap indicator */}
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-semibold text-foreground">
+          {feature.name}
+        </h4>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </div>
 
       {/* Platform Grid - 3x2 layout */}
       <div className="grid grid-cols-3 gap-2">
@@ -58,6 +55,6 @@ export const MobileFeatureCard = ({ feature, index }: MobileFeatureCardProps) =>
           );
         })}
       </div>
-    </div>
+    </button>
   );
 };
