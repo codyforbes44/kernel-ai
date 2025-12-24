@@ -47,16 +47,16 @@ export const MOBILE_CONFIG = {
   STAR_SPARKLES: 4,
 } as const;
 
-// Snow configuration
+// Snow configuration - production optimized
 export const SNOW_CONFIG = {
-  SNOWFLAKES: 30,
-  STARS: 20,
-  SHOOTING_STARS: 2,
+  SNOWFLAKES: 60,
+  STARS: 25,
+  SHOOTING_STARS: 0, // Handled by MeteorShower
 } as const;
 
 // Mobile snow configuration
 export const MOBILE_SNOW_CONFIG = {
-  SNOWFLAKES: 15,
-  STARS: 10,
-  SHOOTING_STARS: 1,
+  SNOWFLAKES: 30,
+  STARS: 15,
+  SHOOTING_STARS: 0,
 } as const;
