@@ -564,31 +564,105 @@
   }
 }
 
-/* Snow particles being thrown */
-@keyframes snowParticle {
+/* Enhanced snow arc - parabolic fountain trajectory */
+@keyframes snowArc {
   0% {
     transform: translate(0, 0) scale(1);
-    opacity: 0.9;
+    opacity: 0.95;
+  }
+  20% {
+    transform: translate(15px, -35px) scale(1.05);
+    opacity: 1;
   }
   50% {
-    transform: translate(20px, -25px) scale(1.1);
-    opacity: 0.6;
+    transform: translate(35px, -45px) scale(0.95);
+    opacity: 0.85;
+  }
+  80% {
+    transform: translate(55px, -20px) scale(0.7);
+    opacity: 0.5;
   }
   100% {
-    transform: translate(35px, 15px) scale(0.4);
+    transform: translate(70px, 25px) scale(0.3);
     opacity: 0;
   }
 }
 
-/* Snow spray pulsing */
-@keyframes snowSprayPulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.9;
+/* Fine snow mist - soft atmospheric powder */
+@keyframes snowMist {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
   }
   50% {
-    transform: scale(1.05);
-    opacity: 1;
+    transform: translate(20px, -15px) scale(1.4);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(40px, -5px) scale(2);
+    opacity: 0;
+  }
+}
+
+/* Exhaust puff animation */
+@keyframes exhaustPuff {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translate(5px, -10px) scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(15px, -25px) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Machine vibration - subtle shake */
+@keyframes blowerVibrate {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-0.5px) translateX(0.3px);
+  }
+  50% {
+    transform: translateY(0.3px) translateX(-0.2px);
+  }
+  75% {
+    transform: translateY(-0.3px) translateX(0.2px);
+  }
+}
+
+/* Wheel rotation */
+@keyframes wheelSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Snow splash on landing */
+@keyframes snowSplash {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(var(--splash-x, 5px), var(--splash-y, -8px)) scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(var(--splash-end-x, 8px), var(--splash-end-y, 5px)) scale(0.2);
+    opacity: 0;
   }
 }
 

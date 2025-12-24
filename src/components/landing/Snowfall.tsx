@@ -232,17 +232,51 @@ function SnowPile() {
 }
 
 function Snowblower() {
-  // Pre-generate spray particles to avoid random in render
-  const sprayParticles = useMemo(() => 
-    Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      width: 4 + (i % 3) * 2,
-      height: 4 + (i % 3) * 2,
-      duration: 0.4 + (i % 4) * 0.15,
-      left: (i % 4) * 8,
-      top: (i % 3) * 15,
-    })), 
+  // Main arc particles - chunky snow thrown in parabolic arc
+  const arcParticles = useMemo(() => 
+    Array.from({ length: 25 }, (_, i) => {
+      const angle = -20 + (i / 25) * 40; // Spread from -20 to 20 degrees
+      const speed = 0.8 + (i % 5) * 0.15;
+      const size = i % 3 === 0 ? 'large' : i % 3 === 1 ? 'medium' : 'small';
+      return {
+        id: i,
+        angle,
+        speed,
+        size,
+        delay: (i * 0.04) % 0.8,
+        offsetY: Math.sin(i * 0.5) * 8,
+      };
+    }), 
   []);
+
+  // Fine mist particles - soft powder effect
+  const mistParticles = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: 5 + (i % 4) * 12,
+      y: -20 + (i % 3) * 8,
+      size: 3 + (i % 3) * 2,
+      duration: 1.2 + (i % 4) * 0.3,
+      delay: i * 0.08,
+    })),
+  []);
+
+  // Exhaust puff particles
+  const exhaustPuffs = useMemo(() =>
+    Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      delay: i * 0.4,
+      size: 4 + (i % 2) * 2,
+    })),
+  []);
+
+  const getSizePixels = (size: string) => {
+    switch(size) {
+      case 'large': return { w: 7, h: 7 };
+      case 'medium': return { w: 5, h: 5 };
+      default: return { w: 3, h: 3 };
+    }
+  };
 
   return (
     <div 
@@ -253,39 +287,133 @@ function Snowblower() {
         left: '-120px',
       }}
     >
-      <div className="relative">
-        {/* Snow spray */}
+      <div className="relative" style={{ animation: 'blowerVibrate 0.08s linear infinite' }}>
+        
+        {/* Headlight glow cone - illuminates ahead */}
         <div 
-          className="absolute -top-12 left-10"
+          className="absolute"
           style={{
-            animation: `snowSprayPulse 0.3s ease-in-out infinite`,
+            left: '-30px',
+            top: '15px',
+            width: '60px',
+            height: '40px',
+            background: 'radial-gradient(ellipse at right, rgba(255, 240, 180, 0.15) 0%, rgba(255, 220, 100, 0.08) 40%, transparent 70%)',
+            transform: 'rotate(-5deg)',
+            filter: 'blur(4px)',
           }}
-        >
-          {sprayParticles.map((particle) => (
+        />
+
+        {/* Exhaust puffs */}
+        <div className="absolute" style={{ left: '60px', top: '-8px' }}>
+          {exhaustPuffs.map((puff) => (
             <div
-              key={particle.id}
-              className="absolute rounded-full bg-white/80"
+              key={`exhaust-${puff.id}`}
+              className="absolute rounded-full"
               style={{
-                width: `${particle.width}px`,
-                height: `${particle.height}px`,
-                animation: `snowParticle ${particle.duration}s ease-out infinite`,
-                animationDelay: `${particle.id * 0.06}s`,
-                left: `${particle.left}px`,
-                top: `${particle.top}px`,
+                width: `${puff.size}px`,
+                height: `${puff.size}px`,
+                background: 'radial-gradient(circle, rgba(120, 120, 120, 0.4) 0%, rgba(80, 80, 80, 0.2) 50%, transparent 100%)',
+                animation: `exhaustPuff 1.6s ease-out infinite`,
+                animationDelay: `${puff.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Snow mist - soft atmospheric powder */}
+        <div className="absolute" style={{ left: '8px', top: '-25px' }}>
+          {mistParticles.map((mist) => (
+            <div
+              key={`mist-${mist.id}`}
+              className="absolute rounded-full"
+              style={{
+                left: `${mist.x}px`,
+                top: `${mist.y}px`,
+                width: `${mist.size}px`,
+                height: `${mist.size}px`,
+                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(240, 248, 255, 0.3) 50%, transparent 100%)',
+                filter: 'blur(2px)',
+                animation: `snowMist ${mist.duration}s ease-out infinite`,
+                animationDelay: `${mist.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Main snow arc - parabolic fountain */}
+        <div className="absolute" style={{ left: '18px', top: '-5px' }}>
+          {arcParticles.map((particle) => {
+            const dims = getSizePixels(particle.size);
+            const colorVariant = particle.id % 3 === 0 
+              ? 'rgba(255, 255, 255, 0.95)' 
+              : particle.id % 3 === 1 
+                ? 'rgba(240, 248, 255, 0.9)' 
+                : 'rgba(250, 252, 255, 0.85)';
+            
+            return (
+              <div
+                key={`arc-${particle.id}`}
+                className="absolute rounded-full"
+                style={{
+                  width: `${dims.w}px`,
+                  height: `${dims.h}px`,
+                  background: colorVariant,
+                  boxShadow: particle.size === 'large' 
+                    ? '0 0 4px rgba(255, 255, 255, 0.6)' 
+                    : 'none',
+                  animation: `snowArc ${particle.speed}s ease-out infinite`,
+                  animationDelay: `${particle.delay}s`,
+                  ['--arc-angle' as string]: `${particle.angle}deg`,
+                  ['--arc-offset' as string]: `${particle.offsetY}px`,
+                  transform: `rotate(${particle.angle}deg)`,
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Landing splash particles */}
+        <div className="absolute" style={{ left: '50px', top: '25px' }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div
+              key={`splash-${i}`}
+              className="absolute rounded-full bg-white/70"
+              style={{
+                width: '3px',
+                height: '3px',
+                animation: `snowSplash 0.6s ease-out infinite`,
+                animationDelay: `${i * 0.12}s`,
+                left: `${i * 10}px`,
+                top: `${(i % 2) * 4}px`,
               }}
             />
           ))}
         </div>
         
         {/* Snowblower machine */}
-        <svg width="80" height="50" viewBox="0 0 80 50" className="drop-shadow-lg">
+        <svg width="80" height="50" viewBox="0 0 80 50" className="drop-shadow-lg relative z-10">
+          <defs>
+            {/* Headlight glow gradient */}
+            <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#fef08a" />
+              <stop offset="60%" stopColor="#fbbf24" />
+              <stop offset="100%" stopColor="#f59e0b" />
+            </radialGradient>
+            {/* Body metallic gradient */}
+            <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ef4444" />
+              <stop offset="50%" stopColor="#dc2626" />
+              <stop offset="100%" stopColor="#b91c1c" />
+            </linearGradient>
+          </defs>
+          
           {/* Main body */}
-          <rect x="20" y="15" width="45" height="25" rx="3" fill="#dc2626" stroke="#991b1b" strokeWidth="1" />
+          <rect x="20" y="15" width="45" height="25" rx="3" fill="url(#bodyGradient)" stroke="#991b1b" strokeWidth="1" />
           
           {/* Engine housing */}
           <rect x="45" y="10" width="18" height="15" rx="2" fill="#1f2937" stroke="#111827" strokeWidth="1" />
           
-          {/* Exhaust */}
+          {/* Exhaust pipe */}
           <rect x="60" y="5" width="4" height="8" fill="#374151" />
           <ellipse cx="62" cy="4" rx="3" ry="2" fill="#6b7280" />
           
@@ -297,7 +425,7 @@ function Snowblower() {
           <path d="M5 20 Q0 20 0 30 Q0 40 5 40 L20 40 L20 20 Z" fill="#ef4444" stroke="#dc2626" strokeWidth="1" />
           
           {/* Spinning auger blades */}
-          <g style={{ transformOrigin: '12px 30px', animation: 'augerSpin 0.15s linear infinite' }}>
+          <g style={{ transformOrigin: '12px 30px', animation: 'augerSpin 0.1s linear infinite' }}>
             <ellipse cx="12" cy="30" rx="10" ry="8" fill="none" stroke="#fbbf24" strokeWidth="2" />
             <path d="M2 30 L22 30 M12 22 L12 38" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
             <path d="M5 24 L19 36 M19 24 L5 36" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" />
@@ -307,17 +435,22 @@ function Snowblower() {
           <path d="M8 20 L8 5 Q8 0 15 0 L25 0 Q30 0 28 8 L20 20" fill="#b91c1c" stroke="#991b1b" strokeWidth="1" />
           <ellipse cx="18" cy="0" rx="8" ry="4" fill="#dc2626" />
           
-          {/* Wheels */}
-          <circle cx="30" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
-          <circle cx="30" cy="42" r="3" fill="#374151" />
-          <circle cx="55" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
-          <circle cx="55" cy="42" r="3" fill="#374151" />
+          {/* Wheels with rotation */}
+          <g style={{ transformOrigin: '30px 42px', animation: 'wheelSpin 0.3s linear infinite' }}>
+            <circle cx="30" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
+            <circle cx="30" cy="42" r="3" fill="#374151" />
+            {/* Tire treads */}
+            <path d="M24 38 L24 46 M30 35 L30 49 M36 38 L36 46" stroke="#4b5563" strokeWidth="1" />
+          </g>
+          <g style={{ transformOrigin: '55px 42px', animation: 'wheelSpin 0.3s linear infinite' }}>
+            <circle cx="55" cy="42" r="8" fill="#1f2937" stroke="#111827" strokeWidth="2" />
+            <circle cx="55" cy="42" r="3" fill="#374151" />
+            <path d="M49 38 L49 46 M55 35 L55 49 M61 38 L61 46" stroke="#4b5563" strokeWidth="1" />
+          </g>
           
-          {/* Tread marks */}
-          <path d="M22 42 L38 42 M47 42 L63 42" stroke="#4b5563" strokeWidth="1" strokeDasharray="2 2" />
-          
-          {/* Headlight */}
-          <circle cx="18" cy="25" r="3" fill="#fbbf24" className="animate-pulse" />
+          {/* Headlight with glow */}
+          <circle cx="18" cy="25" r="4" fill="url(#headlightGlow)" style={{ filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.8))' }} />
+          <circle cx="18" cy="25" r="2" fill="#fef9c3" />
         </svg>
       </div>
     </div>
