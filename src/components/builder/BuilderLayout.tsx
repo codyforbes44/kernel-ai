@@ -231,6 +231,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
   if (isMobile) {
     return (
       <BuilderMobileLayout
+        projectId={projectId}
         projectName={project?.name}
         showPreview={showPreview}
         togglePreview={togglePreview}
@@ -247,6 +248,11 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         getFileContent={getFileContent}
         updateLocalContent={updateLocalContent}
         onSave={handleSave}
+        applyAIOperations={applyAIOperations}
+        capturedErrors={capturedErrors}
+        onClearErrors={handleClearErrors}
+        onFixHandlerReady={handleFixHandlerReady}
+        openFile={openFile}
       />
     );
   }

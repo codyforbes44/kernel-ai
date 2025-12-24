@@ -5,10 +5,10 @@ import {
   Code2, 
   Eye, 
   FolderOpen, 
-  Bot, 
   Save,
   LayoutGrid,
-  Coins
+  Coins,
+  Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KernelLogo } from '@/components/ui/kernel-logo';
@@ -18,6 +18,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { MobileFileBrowser } from './MobileFileBrowser';
 import { MobilePanelDrawer } from './MobilePanelDrawer';
+import { MobileBuilderChat } from './mobile/MobileBuilderChat';
 import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import { useAICredits } from '@/hooks/useAICredits';
 import { useSwipeToggle } from '@/hooks/useMobileGestures';
@@ -26,9 +27,16 @@ import { cn } from '@/lib/utils';
 import { buildFileTree } from '@/lib/fileTree';
 import type { ProjectFile, OpenTab } from '@/types/builder';
 import type { PanelId } from '@/registry/panelRegistry';
+import type { CapturedError } from './ErrorCapture';
+
+interface FileOperation {
+  type: 'create' | 'update' | 'delete';
+  path: string;
+  content?: string;
+}
 
 interface BuilderMobileLayoutProps {
-  projectId?: string;
+  projectId: string;
   projectName?: string;
   showPreview: boolean;
   togglePreview: () => void;
@@ -46,6 +54,11 @@ interface BuilderMobileLayoutProps {
   updateLocalContent: (fileId: string, content: string) => void;
   onSave: () => void;
   onFileSelect?: (file: ProjectFile) => void;
+  applyAIOperations: (operations: FileOperation[]) => Promise<void>;
+  capturedErrors?: CapturedError[];
+  onClearErrors?: () => void;
+  onFixHandlerReady?: (handler: (errors: CapturedError[]) => void) => void;
+  openFile: (file: ProjectFile) => void;
 }
 
 export const BuilderMobileLayout = memo(function BuilderMobileLayout({
@@ -67,6 +80,11 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
   updateLocalContent,
   onSave,
   onFileSelect,
+  applyAIOperations,
+  capturedErrors,
+  onClearErrors,
+  onFixHandlerReady,
+  openFile,
 }: BuilderMobileLayoutProps) {
   const { credits } = useAICredits();
   const isLowCredits = (credits?.balance ?? 0) < 10;
@@ -278,38 +296,27 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
       />
 
       {/* Panel Content Sheet - AI Chat */}
-      {showPanel && activePanel === 'ai-chat' && projectId && (
+      {showPanel && activePanel === 'ai-chat' && (
         <div 
           className="fixed inset-0 z-50 bg-background animate-slide-in-right"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <header className="h-12 flex items-center justify-between px-3 border-b border-border bg-card">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => { hapticFeedback('light'); setShowPanel(false); }}
-              className="touch-manipulation"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <span className="text-sm font-medium">AI Assistant</span>
-            <div className="w-9" />
-          </header>
-          {/* Note: Full BuilderChat requires onApplyOperations - showing a placeholder for mobile */}
-          <div className="h-[calc(100%-48px)] flex flex-col items-center justify-center p-6 text-center">
-            <Bot className="h-16 w-16 text-primary/30 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">AI Assistant</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              For the best AI chat experience, use desktop view where you can apply file changes directly.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowPanel(false)}
-              className="touch-manipulation"
-            >
-              Go Back
-            </Button>
-          </div>
+          <MobileBuilderChat
+            files={files}
+            projectId={projectId}
+            onApplyOperations={applyAIOperations}
+            errors={capturedErrors}
+            onClearErrors={onClearErrors}
+            onClose={() => { hapticFeedback('light'); setShowPanel(false); }}
+            onFileOpen={(file) => {
+              openFile(file);
+              setShowPanel(false);
+              if (showPreview) {
+                togglePreview();
+              }
+            }}
+            onFixHandlerReady={onFixHandlerReady}
+          />
         </div>
       )}
     </div>
