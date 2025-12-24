@@ -620,44 +620,21 @@
 }
 
 
-/* Shooting star streaking across sky */
-@keyframes shootingStar {
+/* Peaceful shooting star - slow, gentle glide */
+@keyframes shootingStarPeaceful {
   0% {
     transform: translateX(0) translateY(0);
     opacity: 0;
   }
-  5% {
-    opacity: 1;
+  8% {
+    opacity: 0.7;
   }
-  80% {
-    opacity: 1;
+  70% {
+    opacity: 0.6;
   }
   100% {
-    transform: translateX(40vw) translateY(25vh);
+    transform: translateX(30vw) translateY(18vh);
     opacity: 0;
-  }
-}
-
-/* Comet trail particle animations */
-@keyframes cometParticle {
-  0%, 100% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(0.7);
-  }
-}
-
-@keyframes cometSparkle {
-  0%, 100% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
   }
 }
 
