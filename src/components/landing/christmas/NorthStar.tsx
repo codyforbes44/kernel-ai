@@ -1,27 +1,37 @@
 import { useMemo } from 'react';
+import { CHRISTMAS_LAYERS, PARTICLE_CONFIG } from './constants';
+import { useChristmasPerformance, scaleParticleCount } from './hooks/useChristmasPerformance';
 
+/**
+ * Majestic golden glowing North Star with ethereal light beam,
+ * orbiting sparkles, and rotating rays.
+ */
 export function NorthStar() {
+  const { particleScale, enableComplexEffects } = useChristmasPerformance();
+
   // Generate orbiting sparkle particles
   const sparkles = useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => ({
+    const count = scaleParticleCount(PARTICLE_CONFIG.STAR_SPARKLES, particleScale);
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
-      angle: i * 45,
+      angle: i * (360 / count),
       delay: i * 0.3,
       size: 2 + (i % 3),
       orbitRadius: 35 + (i % 3) * 10,
     }));
-  }, []);
+  }, [particleScale]);
 
   // Light ray beams
   const rays = useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => ({
+    const count = scaleParticleCount(PARTICLE_CONFIG.STAR_RAYS, particleScale);
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
-      rotation: i * 30,
+      rotation: i * (360 / count),
       length: i % 2 === 0 ? 120 : 80,
       width: i % 3 === 0 ? 3 : 2,
       delay: i * 0.15,
     }));
-  }, []);
+  }, [particleScale]);
 
   return (
     <div 
@@ -32,9 +42,28 @@ export function NorthStar() {
         transform: 'translateX(-50%)',
         width: '200px',
         height: '200px',
-        zIndex: 5,
+        zIndex: CHRISTMAS_LAYERS.NORTH_STAR,
       }}
+      aria-hidden="true"
     >
+      {/* Downward light beam - nativity style */}
+      {enableComplexEffects && (
+        <div
+          className="absolute"
+          style={{
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '60px',
+            height: '200px',
+            background: 'linear-gradient(180deg, hsla(45, 100%, 85%, 0.25) 0%, hsla(45, 100%, 70%, 0.08) 40%, transparent 100%)',
+            clipPath: 'polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%)',
+            filter: 'blur(8px)',
+            animation: 'northStarBeam 4s ease-in-out infinite',
+          }}
+        />
+      )}
+
       {/* Outer ethereal glow haze */}
       <div
         className="absolute inset-0"
@@ -56,27 +85,29 @@ export function NorthStar() {
       />
 
       {/* Rotating light rays container */}
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          animation: 'northStarRays 25s linear infinite',
-        }}
-      >
-        {rays.map((ray) => (
-          <div
-            key={ray.id}
-            className="absolute"
-            style={{
-              width: `${ray.width}px`,
-              height: `${ray.length}px`,
-              background: `linear-gradient(to top, hsla(45, 100%, 85%, 0.6), hsla(45, 100%, 90%, 0) 100%)`,
-              transform: `rotate(${ray.rotation}deg) translateY(-${ray.length / 2}px)`,
-              transformOrigin: 'bottom center',
-              animation: `northStarFlare 2s ease-in-out infinite ${ray.delay}s`,
-            }}
-          />
-        ))}
-      </div>
+      {enableComplexEffects && (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            animation: 'northStarRays 25s linear infinite',
+          }}
+        >
+          {rays.map((ray) => (
+            <div
+              key={ray.id}
+              className="absolute"
+              style={{
+                width: `${ray.width}px`,
+                height: `${ray.length}px`,
+                background: `linear-gradient(to top, hsla(45, 100%, 85%, 0.6), hsla(45, 100%, 90%, 0) 100%)`,
+                transform: `rotate(${ray.rotation}deg) translateY(-${ray.length / 2}px)`,
+                transformOrigin: 'bottom center',
+                animation: `northStarFlare 2s ease-in-out infinite ${ray.delay}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Four-point star shape - elongated vertical */}
       <div className="absolute inset-0 flex items-center justify-center">
