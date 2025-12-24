@@ -603,6 +603,22 @@
   }
 }
 
+/* Stars drift slowly for parallax depth effect */
+@keyframes starParallax {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(8px) translateY(2px);
+  }
+  50% {
+    transform: translateX(0) translateY(-3px);
+  }
+  75% {
+    transform: translateX(-8px) translateY(1px);
+  }
+}
+
 @keyframes sparkleFloat {
   0%, 100% {
     transform: translateY(0);
