@@ -1,7 +1,6 @@
 export { SantaSleigh } from './SantaSleigh';
 export { ChristmasCountdown } from './ChristmasCountdown';
 export { SnowPile } from './SnowPile';
-export { Snowblower } from './Snowblower';
 export { NorthStar } from './NorthStar';
 export { Moon } from './Moon';
 export { Reindeer } from './Reindeer';
