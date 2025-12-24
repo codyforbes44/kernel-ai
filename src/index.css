@@ -718,6 +718,82 @@
   }
 }
 
+/* Snowman head tracking the snowblower */
+@keyframes snowmanWatch {
+  /* Idle - looking left (waiting for blower) */
+  0%, 58% {
+    transform: rotate(0deg) translateX(0);
+  }
+  /* Start noticing the blower approaching from left */
+  62% {
+    transform: rotate(-15deg) translateX(-2px);
+  }
+  /* Following as it passes in front */
+  70% {
+    transform: rotate(-8deg) translateX(0);
+  }
+  /* Blower is center/right - head follows */
+  78% {
+    transform: rotate(5deg) translateX(1px);
+  }
+  /* Blower passing on right side */
+  86% {
+    transform: rotate(12deg) translateX(2px);
+  }
+  /* Watching it leave */
+  92% {
+    transform: rotate(8deg) translateX(1px);
+  }
+  /* Return to idle */
+  96%, 100% {
+    transform: rotate(0deg) translateX(0);
+  }
+}
+
+/* Snowman waving arm */
+@keyframes snowmanWave {
+  /* Idle - arm down */
+  0%, 60% {
+    transform: rotate(0deg);
+  }
+  /* Start waving when blower appears */
+  63% {
+    transform: rotate(-25deg);
+  }
+  66% {
+    transform: rotate(-40deg);
+  }
+  69% {
+    transform: rotate(-25deg);
+  }
+  72% {
+    transform: rotate(-45deg);
+  }
+  75% {
+    transform: rotate(-20deg);
+  }
+  78% {
+    transform: rotate(-40deg);
+  }
+  81% {
+    transform: rotate(-25deg);
+  }
+  84% {
+    transform: rotate(-35deg);
+  }
+  87% {
+    transform: rotate(-20deg);
+  }
+  /* Slow down waving */
+  90% {
+    transform: rotate(-10deg);
+  }
+  /* Return to idle */
+  94%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
 @keyframes twinkle {
   0%, 100% {
     opacity: 0.3;
