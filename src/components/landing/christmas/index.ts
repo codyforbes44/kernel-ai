@@ -5,6 +5,7 @@ export { Snowblower } from './Snowblower';
 export { NorthStar } from './NorthStar';
 export { Moon } from './Moon';
 export { Reindeer } from './Reindeer';
-export { MagicTrail, SoundParticles } from './MagicTrail';
+export { MagicTrail, SoundParticles, ReindeerDust } from './MagicTrail';
+export { MeteorShower } from './MeteorShower';
 export { ANIMATION_TIMING, PARTICLE_CONFIG, SNOW_CONFIG, CHRISTMAS_LAYERS, MOBILE_CONFIG, MOBILE_SNOW_CONFIG } from './constants';
 export type * from './types';

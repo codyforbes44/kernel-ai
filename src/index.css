@@ -1106,6 +1106,51 @@
   }
 }
 
+/* Meteor streak animation - fast diagonal streak across sky */
+@keyframes meteorStreak {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle, 35deg)) translateX(0);
+  }
+  5% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle, 35deg)) translateX(45vw);
+  }
+}
+
+/* Meteor tail sparkle particles */
+@keyframes meteorSparkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Meteor glow pulse on the head */
+@keyframes meteorGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 4px 1px rgba(255,255,255,0.8),
+      0 0 8px 2px rgba(200,220,255,0.5);
+  }
+  50% {
+    box-shadow: 
+      0 0 6px 2px rgba(255,255,255,0.9),
+      0 0 12px 4px rgba(200,220,255,0.6),
+      0 0 18px 6px rgba(150,180,255,0.3);
+  }
+}
+
 
 @keyframes auroraWave1 {
   0%, 100% {

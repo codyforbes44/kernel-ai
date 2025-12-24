@@ -5,6 +5,7 @@ import {
   Snowblower,
   NorthStar,
   Moon,
+  MeteorShower,
   SNOW_CONFIG,
   CHRISTMAS_LAYERS,
 } from './christmas';
@@ -212,6 +213,9 @@ export function Snowfall() {
       
       {/* Layer 3: Majestic North Star */}
       <NorthStar />
+      
+      {/* Layer 3.5: Meteor shower effects */}
+      <MeteorShower />
       
       {/* Layer 4: Santa and reindeer sleigh */}
       <SantaSleigh />
