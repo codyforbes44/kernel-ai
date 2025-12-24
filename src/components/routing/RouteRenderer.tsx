@@ -34,6 +34,7 @@ const pageComponents = {
   SEODashboard: lazy(() => import('@/pages/SEODashboard')),
   Onboarding: lazy(() => import('@/pages/Onboarding')),
   Performance: lazy(() => import('@/pages/Performance')),
+  OGPreview: lazy(() => import('@/pages/OGPreview')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -82,6 +83,7 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/builder/:projectId', component: 'BuilderProject', withErrorBoundary: true, requiresAuth: true },
   { path: '/seo', component: 'SEODashboard', withErrorBoundary: true },
   { path: '/performance', component: 'Performance', withErrorBoundary: true },
+  { path: '/og-preview', component: 'OGPreview' },
 ];
 
 function renderRoute(config: AppRouteConfig) {
