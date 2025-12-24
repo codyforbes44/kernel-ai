@@ -176,24 +176,32 @@ export function Snowfall() {
       <SantaSleigh />
       
       {/* Layer 5: Snowflakes with wind gust effects */}
-      {snowflakes.map((flake) => (
-        <div
-          key={flake.id}
-          className={`absolute rounded-full bg-white/80 motion-reduce:hidden ${windGust ? 'wind-affected' : ''}`}
-          style={{
-            left: `${flake.x}%`,
-            width: `${flake.size}px`,
-            height: `${flake.size}px`,
-            opacity: flake.opacity,
-            animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite${windGust ? `, windGust 2s ease-in-out` : ''}`,
-            animationDelay: `${flake.delay}s`,
-            willChange: 'transform',
-            transform: 'translateZ(0)',
-            zIndex: CHRISTMAS_LAYERS.SNOWFLAKES,
-            ...getWindStyle(flake.id, flake.size),
-          }}
-        />
-      ))}
+      {snowflakes.map((flake) => {
+        // Vary the fall endpoint between 60px and 100px from bottom for natural look
+        const fallEnd = 60 + (flake.id % 10) * 4;
+        // Use negative delay to stagger snowflakes throughout their animation cycle
+        const staggeredDelay = -(flake.id / snowflakes.length) * flake.duration + flake.delay;
+        
+        return (
+          <div
+            key={flake.id}
+            className={`absolute rounded-full bg-white/80 motion-reduce:hidden ${windGust ? 'wind-affected' : ''}`}
+            style={{
+              left: `${flake.x}%`,
+              width: `${flake.size}px`,
+              height: `${flake.size}px`,
+              opacity: flake.opacity,
+              animation: `snowfallSmooth ${flake.duration}s linear infinite, snowDrift ${flake.driftDuration}s ease-in-out infinite${windGust ? `, windGust 2s ease-in-out` : ''}`,
+              animationDelay: `${staggeredDelay}s, ${flake.delay}s${windGust ? ', 0s' : ''}`,
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+              zIndex: CHRISTMAS_LAYERS.SNOWFLAKES,
+              '--fall-end': `calc(100% - ${fallEnd}px)`,
+              ...getWindStyle(flake.id, flake.size),
+            } as React.CSSProperties}
+          />
+        );
+      })}
       
       {/* Layer 6: Snow pile */}
       <div style={{ zIndex: CHRISTMAS_LAYERS.SNOW_PILE }}>
