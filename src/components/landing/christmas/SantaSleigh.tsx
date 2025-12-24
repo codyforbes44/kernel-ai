@@ -138,7 +138,7 @@ export function SantaSleigh() {
     <div 
       className="absolute motion-reduce:hidden"
       style={{
-        top: isSmallScreen ? '8%' : '12%',
+        top: isVerySmallScreen ? '22%' : isSmallScreen ? '18%' : '12%',
         animation: `santaFly ${ANIMATION_TIMING.CYCLE_DURATION}s ease-in-out infinite`,
         animationDelay: '3s',
         willChange: 'transform',

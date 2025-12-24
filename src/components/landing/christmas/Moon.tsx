@@ -10,14 +10,15 @@ export function Moon() {
   const { isSmallScreen, isVerySmallScreen } = useChristmasPerformance();
   
   // Responsive scaling
-  const scale = isVerySmallScreen ? 0.5 : isSmallScreen ? 0.7 : 1;
-  const rightPosition = isVerySmallScreen ? '6%' : isSmallScreen ? '8%' : '12%';
+  const scale = isVerySmallScreen ? 0.35 : isSmallScreen ? 0.55 : 1;
+  const rightPosition = isVerySmallScreen ? '4%' : isSmallScreen ? '6%' : '12%';
+  const topPosition = isVerySmallScreen ? '4%' : isSmallScreen ? '6%' : '8%';
   
   return (
     <div
       className="absolute motion-reduce:opacity-50"
       style={{
-        top: '8%',
+        top: topPosition,
         right: rightPosition,
         zIndex: CHRISTMAS_LAYERS.STARS,
         transform: `scale(${scale})`,
