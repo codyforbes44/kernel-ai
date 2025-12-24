@@ -528,7 +528,7 @@ export function SandpackPreview({
         >
           <div
             className={cn(
-              "bg-background overflow-hidden transition-all duration-300 h-full relative",
+              "bg-background overflow-hidden transition-all duration-300 h-full relative flex flex-col",
               viewport === 'desktop' && 'rounded-lg shadow-lg w-full',
               viewport !== 'desktop' && 'rounded-xl',
             )}
@@ -557,8 +557,8 @@ export function SandpackPreview({
               }}
               theme="auto"
             >
-              <div className="h-full relative">
-                <SandpackLayout style={{ height: '100%', border: 'none' }}>
+              <div className="flex-1 relative flex flex-col min-h-0">
+                <SandpackLayout style={{ flex: 1, height: '100%', border: 'none' }}>
                   <SandpackPreviewPane 
                     style={{ height: '100%' }}
                     showRefreshButton={false}
