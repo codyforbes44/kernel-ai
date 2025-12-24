@@ -18,14 +18,14 @@ export function DeviceFrame({ viewport, children, className }: DeviceFrameProps)
 
   if (viewport === 'tablet') {
     return (
-      <div className={cn("relative mx-auto overflow-hidden", className)}>
+      <div className={cn("relative mx-auto overflow-hidden flex flex-col", className)}>
         {/* iPad-style frame - reduced bezels */}
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-700 to-zinc-800 rounded-[1.5rem] -m-2 shadow-xl" />
         <div className="absolute inset-0 bg-gradient-to-b from-zinc-600 to-zinc-700 rounded-[1.3rem] -m-1" />
         {/* Camera notch */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-0.5 w-1.5 h-1.5 bg-zinc-900 rounded-full z-10 shadow-inner" />
         {/* Screen */}
-        <div className="relative bg-background rounded-lg overflow-hidden shadow-inner h-full w-full">
+        <div className="relative bg-background rounded-lg overflow-hidden shadow-inner flex-1 w-full">
           {children}
         </div>
         {/* Home button area indicator */}
@@ -36,7 +36,7 @@ export function DeviceFrame({ viewport, children, className }: DeviceFrameProps)
 
   // Mobile (iPhone-style frame) - reduced bezels
   return (
-    <div className={cn("relative mx-auto overflow-hidden", className)}>
+    <div className={cn("relative mx-auto overflow-hidden flex flex-col", className)}>
       {/* Outer phone frame */}
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-700 to-zinc-900 rounded-[1.5rem] -m-2 shadow-2xl" />
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-600 to-zinc-800 rounded-[1.3rem] -m-1" />
@@ -51,7 +51,7 @@ export function DeviceFrame({ viewport, children, className }: DeviceFrameProps)
       <div className="absolute -left-2.5 top-40 w-0.5 h-8 bg-zinc-700 rounded-l" />
       <div className="absolute -right-2.5 top-28 w-0.5 h-12 bg-zinc-700 rounded-r" />
       {/* Screen with rounded corners */}
-      <div className="relative bg-background rounded-xl overflow-x-hidden overflow-y-auto shadow-inner h-full w-full">
+      <div className="relative bg-background rounded-xl overflow-x-hidden overflow-y-auto shadow-inner flex-1 w-full">
         {children}
       </div>
       {/* Home indicator */}
