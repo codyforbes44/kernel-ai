@@ -349,14 +349,14 @@ export function Snowfall() {
     }));
   }, []);
 
-  // Deterministic shooting stars
+  // Subtle shooting stars - rare and peaceful
   const shootingStars = useMemo(() => {
-    return Array.from({ length: 4 }, (_, i) => ({
+    return Array.from({ length: 3 }, (_, i) => ({
       id: i,
-      startX: 15 + (i * 22), // Spread across sky
-      startY: 5 + (i * 8) % 20,
-      delay: 8 + i * 12, // Staggered by 12s intervals
-      duration: 1.5 + (i % 2) * 0.5,
+      startX: 10 + (i * 30), // Spread across sky
+      startY: 8 + (i * 6),
+      delay: 15 + i * 25, // Much more rare: 15s, 40s, 65s
+      duration: 2.5 + i * 0.4, // Slower: 2.5s, 2.9s, 3.3s
     }));
   }, []);
 
@@ -365,7 +365,7 @@ export function Snowfall() {
       {/* Santa and reindeer sleigh */}
       <SantaSleigh />
       
-      {/* Shooting stars with comet trail */}
+      {/* Shooting stars - subtle and peaceful */}
       {shootingStars.map((star) => (
         <div
           key={`shooting-${star.id}`}
@@ -373,76 +373,40 @@ export function Snowfall() {
           style={{
             left: `${star.startX}%`,
             top: `${star.startY}%`,
-            animation: `shootingStar ${star.duration}s ease-out infinite`,
+            animation: `shootingStarPeaceful ${star.duration}s ease-in-out infinite`,
             animationDelay: `${star.delay}s`,
           }}
         >
-          {/* Comet head with bright glow */}
+          {/* Soft star head */}
           <div 
-            className="absolute w-3 h-3 rounded-full"
+            className="absolute w-1.5 h-1.5 rounded-full"
             style={{
-              background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(200,220,255,0.9) 40%, rgba(150,180,255,0.4) 100%)',
-              boxShadow: '0 0 8px 3px rgba(255, 255, 255, 0.9), 0 0 20px 8px rgba(180, 200, 255, 0.5), 0 0 30px 12px rgba(100, 150, 255, 0.3)',
+              background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(240,245,255,0.6) 60%, transparent 100%)',
+              boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.5), 0 0 8px 2px rgba(220, 230, 255, 0.25)',
             }}
           />
           
-          {/* Main tail gradient */}
+          {/* Simple elegant tail */}
           <div 
-            className="absolute top-1 -left-24 w-24 h-1.5 origin-right"
+            className="absolute top-0.5 -left-16 w-16 h-0.5 origin-right"
             style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(150, 180, 255, 0.05) 20%, rgba(200, 220, 255, 0.3) 60%, rgba(255, 255, 255, 0.8) 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 40%, rgba(255, 255, 255, 0.4) 100%)',
               transform: 'rotate(-35deg)',
-              borderRadius: '0 4px 4px 0',
+              borderRadius: '0 2px 2px 0',
             }}
           />
           
-          {/* Secondary wider tail glow */}
-          <div 
-            className="absolute top-0 -left-20 w-20 h-3 origin-right"
-            style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(100, 150, 255, 0.02) 30%, rgba(180, 200, 255, 0.1) 70%, rgba(255, 255, 255, 0.2) 100%)',
-              transform: 'rotate(-35deg)',
-              filter: 'blur(2px)',
-            }}
-          />
-          
-          {/* Trailing particles */}
-          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={`particle-${i}`}
-              className="absolute rounded-full"
-              style={{
-                width: `${Math.max(1, 4 - i * 0.5)}px`,
-                height: `${Math.max(1, 4 - i * 0.5)}px`,
-                background: i < 2 
-                  ? 'rgba(255, 255, 255, 0.9)' 
-                  : `rgba(180, 200, 255, ${0.7 - i * 0.1})`,
-                left: `${-8 - i * 8}px`,
-                top: `${4 + i * 5}px`,
-                boxShadow: i < 3 
-                  ? `0 0 ${4 - i}px rgba(255, 255, 255, ${0.6 - i * 0.15})` 
-                  : 'none',
-                animation: `cometParticle ${0.3 + i * 0.1}s ease-out infinite`,
-                animationDelay: `${star.delay + i * 0.05}s`,
-              }}
-            />
-          ))}
-          
-          {/* Sparkle bursts around head */}
+          {/* 3 subtle trailing dots - static, no animation */}
           {[0, 1, 2].map((i) => (
             <div
-              key={`sparkle-${i}`}
-              className="absolute"
+              key={`trail-${i}`}
+              className="absolute rounded-full"
               style={{
-                left: `${-2 + (i - 1) * 4}px`,
-                top: `${-2 + Math.abs(i - 1) * 3}px`,
-                width: '2px',
-                height: '2px',
-                background: 'white',
-                borderRadius: '50%',
-                boxShadow: '0 0 4px 1px rgba(255, 255, 255, 0.8)',
-                animation: `cometSparkle ${0.4 + i * 0.15}s ease-in-out infinite`,
-                animationDelay: `${star.delay + i * 0.1}s`,
+                width: `${2 - i * 0.5}px`,
+                height: `${2 - i * 0.5}px`,
+                background: `rgba(255, 255, 255, ${0.4 - i * 0.12})`,
+                left: `${-6 - i * 5}px`,
+                top: `${2 + i * 3}px`,
               }}
             />
           ))}
