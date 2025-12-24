@@ -934,77 +934,45 @@
 @keyframes auroraWave1 {
   0%, 100% {
     transform: translateX(-5%) scaleY(1);
-    opacity: 0.7;
+    opacity: 0.2;
   }
   33% {
     transform: translateX(3%) scaleY(1.15);
-    opacity: 0.9;
+    opacity: 0.25;
   }
   66% {
     transform: translateX(-2%) scaleY(0.9);
-    opacity: 0.6;
+    opacity: 0.15;
   }
 }
 
 @keyframes auroraWave2 {
   0%, 100% {
     transform: translateX(5%) scaleY(1) skewX(0deg);
-    opacity: 0.6;
+    opacity: 0.15;
   }
   50% {
     transform: translateX(-5%) scaleY(1.2) skewX(2deg);
-    opacity: 0.85;
+    opacity: 0.22;
   }
 }
 
 @keyframes auroraShift {
   0%, 100% {
     transform: translateX(-10%) rotate(0deg);
-    opacity: 0.5;
+    opacity: 0.1;
   }
   25% {
     transform: translateX(0%) rotate(1deg);
-    opacity: 0.7;
+    opacity: 0.15;
   }
   50% {
     transform: translateX(10%) rotate(0deg);
-    opacity: 0.55;
+    opacity: 0.12;
   }
   75% {
     transform: translateX(5%) rotate(-1deg);
-    opacity: 0.75;
-  }
-}
-
-/* Aurora vertical curtain effect */
-@keyframes auroraCurtain {
-  0%, 100% {
-    transform: scaleY(1) translateY(0);
-    opacity: 0.5;
-  }
-  25% {
-    transform: scaleY(1.1) translateY(-2%);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scaleY(0.95) translateY(1%);
-    opacity: 0.4;
-  }
-  75% {
-    transform: scaleY(1.05) translateY(-1%);
-    opacity: 0.6;
-  }
-}
-
-/* Aurora shimmer overlay */
-@keyframes auroraShimmer {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.02);
+    opacity: 0.18;
   }
 }
 
