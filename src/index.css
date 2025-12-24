@@ -496,11 +496,12 @@
   }
 }
 
-/* Snow pile unified cycle: grow (0-60%), hold (60-64%), clear (64-92%), reset (92-100%) */
+/* Snow pile unified cycle: grow (0-60%), hold (60-62%), clear following blower (62-92%), reset (92-100%) */
 @keyframes snowPileCycle {
   0% {
     transform: scaleY(0);
     opacity: 0;
+    clip-path: inset(0 0 0 0);
   }
   4% {
     opacity: 1;
@@ -510,14 +511,41 @@
     opacity: 1;
     clip-path: inset(0 0 0 0);
   }
-  64% {
+  /* Snowblower starts crossing at 62% - snow starts clearing from left */
+  62% {
     transform: scaleY(1);
     opacity: 1;
     clip-path: inset(0 0 0 0);
   }
+  /* Progressive clearing - follows snowblower position */
+  68% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 15%);
+  }
+  74% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 35%);
+  }
+  80% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 55%);
+  }
+  86% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 75%);
+  }
+  91% {
+    transform: scaleY(1);
+    opacity: 1;
+    clip-path: inset(0 0 0 95%);
+  }
   92% {
     transform: scaleY(1);
-    opacity: 0.3;
+    opacity: 0;
     clip-path: inset(0 0 0 100%);
   }
   96% {
