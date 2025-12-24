@@ -3,8 +3,8 @@ import {
   SantaSleigh, 
   Snowman, 
   SnowPile, 
-  Snowblower, 
-  ANIMATION_TIMING,
+  Snowblower,
+  Cabin,
   SNOW_CONFIG 
 } from './christmas';
 
@@ -66,6 +66,9 @@ export function Snowfall() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
+      {/* Cozy cabin in background */}
+      <Cabin />
+      
       {/* Santa and reindeer sleigh */}
       <SantaSleigh />
       
