@@ -1023,6 +1023,127 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_code_redemptions: {
+        Row: {
+          code_id: string
+          id: string
+          ip_address: string | null
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          code_id: string
+          id?: string
+          ip_address?: string | null
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          code_id?: string
+          id?: string
+          ip_address?: string | null
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invite_codes: {
+        Row: {
+          campaign: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          notes: string | null
+          times_used: number
+          type: string
+        }
+        Insert: {
+          campaign?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          notes?: string | null
+          times_used?: number
+          type?: string
+        }
+        Update: {
+          campaign?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          notes?: string | null
+          times_used?: number
+          type?: string
+        }
+        Relationships: []
+      }
+      invite_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          email: string
+          id: string
+          invite_code_id: string | null
+          name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          use_case: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invite_code_id?: string | null
+          name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          use_case: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invite_code_id?: string | null
+          name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          use_case?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_requests_invite_code_id_fkey"
+            columns: ["invite_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_alerts: {
         Row: {
           alert_type: string
@@ -2070,6 +2191,7 @@ export type Database = {
     Functions: {
       check_account_lockout: { Args: { p_email: string }; Returns: Json }
       check_xai_rate_limit: { Args: { p_user_id: string }; Returns: Json }
+      generate_invite_code: { Args: { prefix?: string }; Returns: string }
       generate_subdomain: {
         Args: { project_id: string; project_name: string }
         Returns: string
@@ -2089,6 +2211,11 @@ export type Database = {
         Args: { p_email: string; p_ip_address?: string; p_success: boolean }
         Returns: undefined
       }
+      redeem_invite_code: {
+        Args: { p_code: string; p_ip_address?: string; p_user_id: string }
+        Returns: Json
+      }
+      validate_invite_code: { Args: { p_code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
