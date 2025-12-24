@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
 import { 
   SantaSleigh, 
-  Snowman, 
   SnowPile, 
   Snowblower,
-  Cabin,
+  NorthStar,
   SNOW_CONFIG 
 } from './christmas';
 
@@ -66,8 +65,8 @@ export function Snowfall() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
-      {/* Cozy cabin in background */}
-      <Cabin />
+      {/* Majestic North Star */}
+      <NorthStar />
       
       {/* Santa and reindeer sleigh */}
       <SantaSleigh />
@@ -161,9 +160,6 @@ export function Snowfall() {
       
       {/* Snowblower */}
       <Snowblower />
-      
-      {/* Snowman */}
-      <Snowman />
     </div>
   );
 }

@@ -722,202 +722,6 @@
   }
 }
 
-/* Snowman head tracking the snowblower */
-@keyframes snowmanWatch {
-  /* Idle - looking left (waiting for blower) */
-  0%, 58% {
-    transform: rotate(0deg) translateX(0);
-  }
-  /* Start noticing the blower approaching from left */
-  62% {
-    transform: rotate(-15deg) translateX(-2px);
-  }
-  /* Following as it passes in front */
-  70% {
-    transform: rotate(-8deg) translateX(0);
-  }
-  /* Blower is center/right - head follows */
-  78% {
-    transform: rotate(5deg) translateX(1px);
-  }
-  /* Blower passing on right side */
-  86% {
-    transform: rotate(12deg) translateX(2px);
-  }
-  /* Watching it leave */
-  92% {
-    transform: rotate(8deg) translateX(1px);
-  }
-  /* Return to idle */
-  96%, 100% {
-    transform: rotate(0deg) translateX(0);
-  }
-}
-
-/* Snowman waving arm */
-@keyframes snowmanWave {
-  /* Idle - arm down */
-  0%, 60% {
-    transform: rotate(0deg);
-  }
-  /* Start waving when blower appears */
-  63% {
-    transform: rotate(-25deg);
-  }
-  66% {
-    transform: rotate(-40deg);
-  }
-  69% {
-    transform: rotate(-25deg);
-  }
-  72% {
-    transform: rotate(-45deg);
-  }
-  75% {
-    transform: rotate(-20deg);
-  }
-  78% {
-    transform: rotate(-40deg);
-  }
-  81% {
-    transform: rotate(-25deg);
-  }
-  84% {
-    transform: rotate(-35deg);
-  }
-  87% {
-    transform: rotate(-20deg);
-  }
-  /* Slow down waving */
-  90% {
-    transform: rotate(-10deg);
-  }
-  /* Return to idle */
-  94%, 100% {
-    transform: rotate(0deg);
-  }
-}
-
-/* Snowman eye blink animation */
-@keyframes eyeBlink {
-  0%, 45%, 55%, 100% {
-    transform: scaleY(1);
-  }
-  48%, 52% {
-    transform: scaleY(0.1);
-  }
-}
-
-/* Snowman scarf flutter in wind */
-@keyframes scarfFlutter {
-  0%, 58%, 96%, 100% {
-    transform: rotate(0deg) skewX(0deg);
-  }
-  62% {
-    transform: rotate(3deg) skewX(-2deg);
-  }
-  68% {
-    transform: rotate(-4deg) skewX(3deg);
-  }
-  74% {
-    transform: rotate(5deg) skewX(-3deg);
-  }
-  80% {
-    transform: rotate(-3deg) skewX(2deg);
-  }
-  86% {
-    transform: rotate(4deg) skewX(-2deg);
-  }
-  92% {
-    transform: rotate(-2deg) skewX(1deg);
-  }
-}
-
-/* Snowman body sway */
-@keyframes snowmanSway {
-  0%, 58%, 96%, 100% {
-    transform: translateZ(0) rotate(0deg);
-  }
-  65% {
-    transform: translateZ(0) rotate(-1deg);
-  }
-  72% {
-    transform: translateZ(0) rotate(0.5deg);
-  }
-  79% {
-    transform: translateZ(0) rotate(-0.5deg);
-  }
-  86% {
-    transform: translateZ(0) rotate(0.8deg);
-  }
-  92% {
-    transform: translateZ(0) rotate(-0.3deg);
-  }
-}
-
-/* Hat wobble when excited */
-@keyframes hatWobble {
-  0%, 60%, 94%, 100% {
-    transform: rotate(0deg);
-  }
-  64% {
-    transform: rotate(-3deg);
-  }
-  68% {
-    transform: rotate(4deg);
-  }
-  72% {
-    transform: rotate(-2deg);
-  }
-  76% {
-    transform: rotate(3deg);
-  }
-  80% {
-    transform: rotate(-2deg);
-  }
-  84% {
-    transform: rotate(2deg);
-  }
-  88% {
-    transform: rotate(-1deg);
-  }
-}
-
-/* Snow dusting effect when blower passes */
-@keyframes snowDusting {
-  0%, 58%, 96%, 100% {
-    opacity: 0;
-  }
-  65%, 88% {
-    opacity: 1;
-  }
-}
-
-/* Individual snow dust particles */
-@keyframes snowDustParticle {
-  0% {
-    transform: translateY(0) scale(0);
-    opacity: 0;
-  }
-  20% {
-    transform: translateY(-5px) scale(1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(15px) scale(0.5);
-    opacity: 0;
-  }
-}
-
-/* Mitten wave animation */
-@keyframes mittenWave {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(15deg);
-  }
-}
 
 /* Headlight flicker for snowblower */
 @keyframes headlightFlicker {
@@ -1024,34 +828,47 @@
   }
 }
 
-/* Chimney smoke rising and drifting */
-@keyframes chimneySmoke {
-  0% {
-    transform: translateY(0) translateX(0) scale(0.5);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.6;
-  }
-  50% {
-    transform: translateY(-30px) translateX(var(--smoke-drift, 5px)) scale(1);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translateY(-60px) translateX(calc(var(--smoke-drift, 5px) * 2)) scale(1.5);
-    opacity: 0;
-  }
-}
-
-/* Window light gentle pulse */
-@keyframes windowLightPulse {
+/* North Star pulse animation - gentle breathing glow */
+@keyframes northStarPulse {
   0%, 100% {
-    opacity: 0.3;
+    opacity: 0.8;
     transform: scale(1);
   }
   50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* North Star rotating rays */
+@keyframes northStarRays {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* North Star orbiting sparkle particles */
+@keyframes northStarSparkle {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* North Star lens flare pulsing */
+@keyframes northStarFlare {
+  0%, 100% {
     opacity: 0.5;
-    transform: scale(1.1);
+  }
+  50% {
+    opacity: 0.9;
   }
 }
 

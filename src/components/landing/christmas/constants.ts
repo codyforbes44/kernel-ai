@@ -5,8 +5,6 @@ export const ANIMATION_TIMING = {
   BLOWER_ACTIVE_START: 0.62, // 62% - blower starts crossing
   BLOWER_ACTIVE_END: 0.92,   // 92% - blower exits
   BLOWER_PHASE: 8,         // Duration of blower crossing
-  SNOWMAN_BLINK_INTERVAL: 4, // seconds between blinks
-  SCARF_FLUTTER_INTENSITY: 1.2, // multiplier for wind effect
 } as const;
 
 // Particle configuration - optimized counts
