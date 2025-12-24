@@ -156,6 +156,42 @@ export function HeroBackground() {
         }}
       />
 
+      {/* Cozy fireplace glow - left corner */}
+      <div 
+        className="absolute bottom-0 left-0 w-80 h-64 motion-reduce:hidden"
+        style={{
+          background: 'radial-gradient(ellipse at bottom left, hsl(25 95% 53% / 0.15) 0%, hsl(15 90% 45% / 0.08) 40%, transparent 70%)',
+          animation: 'fireplaceFlicker 3s ease-in-out infinite',
+          filter: 'blur(20px)',
+        }}
+      />
+      <div 
+        className="absolute bottom-0 left-0 w-48 h-40 motion-reduce:hidden"
+        style={{
+          background: 'radial-gradient(ellipse at bottom left, hsl(35 100% 60% / 0.12) 0%, hsl(25 90% 50% / 0.06) 50%, transparent 80%)',
+          animation: 'fireplaceFlicker 2.5s ease-in-out infinite 0.5s',
+          filter: 'blur(15px)',
+        }}
+      />
+
+      {/* Cozy fireplace glow - right corner */}
+      <div 
+        className="absolute bottom-0 right-0 w-80 h-64 motion-reduce:hidden"
+        style={{
+          background: 'radial-gradient(ellipse at bottom right, hsl(25 95% 53% / 0.15) 0%, hsl(15 90% 45% / 0.08) 40%, transparent 70%)',
+          animation: 'fireplaceFlicker 3.5s ease-in-out infinite 0.8s',
+          filter: 'blur(20px)',
+        }}
+      />
+      <div 
+        className="absolute bottom-0 right-0 w-48 h-40 motion-reduce:hidden"
+        style={{
+          background: 'radial-gradient(ellipse at bottom right, hsl(35 100% 60% / 0.12) 0%, hsl(25 90% 50% / 0.06) 50%, transparent 80%)',
+          animation: 'fireplaceFlicker 2s ease-in-out infinite 1.2s',
+          filter: 'blur(15px)',
+        }}
+      />
+
       {/* Festive snowfall overlay */}
       <Snowfall />
     </div>
