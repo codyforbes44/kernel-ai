@@ -7,41 +7,49 @@ import { useChristmasPerformance, scaleParticleCount } from './hooks/useChristma
  * orbiting sparkles, and rotating rays.
  */
 export function NorthStar() {
-  const { particleScale, enableComplexEffects } = useChristmasPerformance();
+  const { particleScale, enableComplexEffects, isSmallScreen, isVerySmallScreen } = useChristmasPerformance();
+
+  // Responsive scaling for small screens
+  const containerScale = isVerySmallScreen ? 0.5 : isSmallScreen ? 0.7 : 1;
+  const containerSize = isVerySmallScreen ? 100 : isSmallScreen ? 140 : 200;
 
   // Generate orbiting sparkle particles
   const sparkles = useMemo(() => {
     const count = scaleParticleCount(PARTICLE_CONFIG.STAR_SPARKLES, particleScale);
+    const radiusScale = isSmallScreen ? 0.7 : 1;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       angle: i * (360 / count),
       delay: i * 0.3,
       size: 2 + (i % 3),
-      orbitRadius: 35 + (i % 3) * 10,
+      orbitRadius: (35 + (i % 3) * 10) * radiusScale,
     }));
-  }, [particleScale]);
+  }, [particleScale, isSmallScreen]);
 
-  // Light ray beams
+  // Light ray beams - reduce on small screens
   const rays = useMemo(() => {
-    const count = scaleParticleCount(PARTICLE_CONFIG.STAR_RAYS, particleScale);
+    const baseCount = isSmallScreen ? Math.ceil(PARTICLE_CONFIG.STAR_RAYS * 0.6) : PARTICLE_CONFIG.STAR_RAYS;
+    const count = scaleParticleCount(baseCount, particleScale);
+    const lengthScale = isSmallScreen ? 0.6 : 1;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       rotation: i * (360 / count),
-      length: i % 2 === 0 ? 120 : 80,
+      length: (i % 2 === 0 ? 120 : 80) * lengthScale,
       width: i % 3 === 0 ? 3 : 2,
       delay: i * 0.15,
     }));
-  }, [particleScale]);
+  }, [particleScale, isSmallScreen]);
 
   return (
     <div 
       className="absolute motion-reduce:hidden"
       style={{
-        top: '8%',
+        top: '6%',
         left: '50%',
-        transform: 'translateX(-50%)',
-        width: '200px',
-        height: '200px',
+        transform: `translateX(-50%) scale(${containerScale})`,
+        transformOrigin: 'top center',
+        width: `${containerSize}px`,
+        height: `${containerSize}px`,
         zIndex: CHRISTMAS_LAYERS.NORTH_STAR,
       }}
       aria-hidden="true"

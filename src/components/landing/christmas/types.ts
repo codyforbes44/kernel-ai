@@ -80,4 +80,6 @@ export interface PerformanceConfig {
   enableComplexEffects: boolean;
   enableShadows: boolean;
   prefersReducedMotion: boolean;
+  isSmallScreen: boolean;
+  isVerySmallScreen: boolean;
 }
