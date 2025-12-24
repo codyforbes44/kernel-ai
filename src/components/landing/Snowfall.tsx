@@ -349,10 +349,51 @@ export function Snowfall() {
     }));
   }, []);
 
+  // Deterministic shooting stars
+  const shootingStars = useMemo(() => {
+    return Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      startX: 15 + (i * 22), // Spread across sky
+      startY: 5 + (i * 8) % 20,
+      delay: 8 + i * 12, // Staggered by 12s intervals
+      duration: 1.5 + (i % 2) * 0.5,
+    }));
+  }, []);
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
       {/* Santa and reindeer sleigh */}
       <SantaSleigh />
+      
+      {/* Shooting stars */}
+      {shootingStars.map((star) => (
+        <div
+          key={`shooting-${star.id}`}
+          className="absolute motion-reduce:hidden"
+          style={{
+            left: `${star.startX}%`,
+            top: `${star.startY}%`,
+            animation: `shootingStar ${star.duration}s ease-out infinite`,
+            animationDelay: `${star.delay}s`,
+          }}
+        >
+          {/* Star head */}
+          <div 
+            className="absolute w-2 h-2 rounded-full bg-white"
+            style={{
+              boxShadow: '0 0 6px 2px rgba(255, 255, 255, 0.8), 0 0 12px 4px rgba(255, 255, 255, 0.4)',
+            }}
+          />
+          {/* Tail streak */}
+          <div 
+            className="absolute top-0.5 -left-16 w-16 h-1 origin-right"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0.6) 100%)',
+              transform: 'rotate(-35deg)',
+            }}
+          />
+        </div>
+      ))}
       
       {/* Twinkling stars with subtle parallax drift */}
       {stars.map((star) => (
