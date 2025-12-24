@@ -4,6 +4,7 @@ import {
   SnowPile, 
   Snowblower,
   NorthStar,
+  Aurora,
   SNOW_CONFIG,
   CHRISTMAS_LAYERS,
 } from './christmas';
@@ -64,6 +65,8 @@ export function Snowfall() {
       style={{ zIndex: CHRISTMAS_LAYERS.STARS }}
       aria-hidden="true"
     >
+      {/* Layer 0: Aurora Borealis (deepest background) */}
+      <Aurora />
       {/* Layer 1: Twinkling stars (background) */}
       {stars.map((star) => (
         <div
