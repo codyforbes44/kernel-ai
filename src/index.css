@@ -452,9 +452,13 @@
   }
 }
 
+/* ========================================
+   CHRISTMAS ANIMATIONS - GPU Optimized
+   ======================================== */
+
 @keyframes snowfall {
   0% {
-    transform: translateY(-10px);
+    transform: translateY(-10px) translateZ(0);
     opacity: 0;
   }
   10% {
@@ -464,7 +468,7 @@
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh);
+    transform: translateY(100vh) translateZ(0);
     opacity: 0;
   }
 }
