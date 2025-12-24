@@ -935,6 +935,95 @@
   }
 }
 
+/* Reindeer head bob while running */
+@keyframes reindeerHeadBob {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-3deg) translateY(-1px);
+  }
+}
+
+/* Reindeer tail wagging */
+@keyframes tailWag {
+  0%, 100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Front legs galloping */
+@keyframes legsFront {
+  0%, 100% {
+    transform: rotate(-15deg);
+  }
+  50% {
+    transform: rotate(20deg);
+  }
+}
+
+/* Back legs galloping (opposite phase) */
+@keyframes legsBack {
+  0%, 100% {
+    transform: rotate(15deg);
+  }
+  50% {
+    transform: rotate(-20deg);
+  }
+}
+
+/* Rudolph's nose glow pulse */
+@keyframes noseGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+/* Sleigh bells ringing */
+@keyframes sleighBellRing {
+  0%, 100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+/* Magic sparkle with rotation */
+@keyframes magicSparkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+/* Bell sound wave floating up */
+@keyframes bellSoundWave {
+  0% {
+    opacity: 0.8;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.6);
+  }
+}
+
 @keyframes twinkle {
   0%, 100% {
     opacity: 0.3;
