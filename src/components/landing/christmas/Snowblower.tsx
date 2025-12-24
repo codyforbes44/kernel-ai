@@ -244,9 +244,11 @@ export function Snowblower() {
             <path d="M49 38 L49 46 M55 35 L55 49 M61 38 L61 46" stroke="#4b5563" strokeWidth="1" />
           </g>
           
-          {/* Headlight */}
-          <circle cx="18" cy="25" r="4" fill="url(#headlightGlow)" style={{ filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.8))' }} />
-          <circle cx="18" cy="25" r="2" fill="#fef9c3" />
+          {/* Headlight with subtle flicker */}
+          <g style={{ animation: 'headlightFlicker 2s ease-in-out infinite' }}>
+            <circle cx="18" cy="25" r="4" fill="url(#headlightGlow)" />
+            <circle cx="18" cy="25" r="2" fill="#fef9c3" />
+          </g>
         </svg>
       </div>
     </div>
