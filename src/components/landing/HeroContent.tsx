@@ -21,8 +21,7 @@ export function HeroContent({ className, prefersReducedMotion = false }: HeroCon
       <HeroEntranceItem>
         <GlowBadge 
           variant="glow" 
-          size="lg" 
-          pulse={!prefersReducedMotion}
+          size="lg"
           icon={<Sparkles className="h-4 w-4" />}
           className="mb-6 md:mb-8"
         >
