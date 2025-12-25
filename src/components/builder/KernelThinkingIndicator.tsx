@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Brain } from 'lucide-react';
+import { Brain, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const DEFAULT_MESSAGES = [
   'Kernel is thinking',
@@ -45,6 +46,7 @@ const API_MESSAGES = [
 
 interface KernelThinkingIndicatorProps {
   prompt?: string;
+  onCancel?: () => void;
 }
 
 function getContextualMessages(prompt?: string): string[] {
@@ -111,7 +113,7 @@ function getContextualMessages(prompt?: string): string[] {
   return DEFAULT_MESSAGES;
 }
 
-export function KernelThinkingIndicator({ prompt }: KernelThinkingIndicatorProps) {
+export function KernelThinkingIndicator({ prompt, onCancel }: KernelThinkingIndicatorProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   
@@ -172,6 +174,18 @@ export function KernelThinkingIndicator({ prompt }: KernelThinkingIndicatorProps
         <span className="text-xs text-muted-foreground/50 animate-in fade-in duration-300">
           {formatTime(elapsedSeconds)}
         </span>
+      )}
+
+      {onCancel && elapsedSeconds >= 5 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+          className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive animate-in fade-in duration-300"
+        >
+          <X className="h-3 w-3 mr-1" />
+          Cancel
+        </Button>
       )}
     </div>
   );
