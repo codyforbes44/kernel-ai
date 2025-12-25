@@ -2,12 +2,117 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { KernelLogoStatic } from "@/components/ui/kernel-logo-static";
 import { Button } from "@/components/ui/button";
-import { Download, Check, Square, Circle, Layers, Image } from "lucide-react";
+import { Download, Check, Square, Circle, Layers, Image, FileCode } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const EXPORT_SIZES = [512, 256, 128, 64] as const;
 type Variant = "square" | "circle";
+
+// SVG template generator
+const generateSVG = (variant: "square" | "circle", transparent: boolean): string => {
+  const isCircle = variant === "circle";
+  const bgColor = transparent ? "none" : "#0a0a0f";
+  const size = 512;
+  const borderRadius = isCircle ? size / 2 : size * 0.15;
+  const inset = isCircle ? size * 0.08 : size * 0.15;
+  
+  if (isCircle) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+  <defs>
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#ffd700"/>
+      <stop offset="100%" style="stop-color:#00d4ff"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="circleClip">
+      <circle cx="${size/2}" cy="${size/2}" r="${size/2}"/>
+    </clipPath>
+  </defs>
+  
+  <g clip-path="url(#circleClip)">
+    <!-- Background -->
+    <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${bgColor}"/>
+    
+    <!-- Outer glow -->
+    <circle cx="${size/2}" cy="${size/2}" r="${size * 0.4}" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.2" filter="url(#glow)"/>
+    
+    <!-- Gradient border circle -->
+    <circle cx="${size/2}" cy="${size/2}" r="${size * 0.38}" fill="none" stroke="url(#borderGradient)" stroke-width="4"/>
+    
+    <!-- Inner background -->
+    <circle cx="${size/2}" cy="${size/2}" r="${size * 0.35}" fill="#0a0a0f"/>
+    
+    <!-- Concentric circles pattern -->
+    <g opacity="0.25" stroke="#00d4ff" fill="none">
+      <circle cx="${size/2}" cy="${size/2}" r="${size * 0.25}" stroke-width="0.6"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${size * 0.18}" stroke-width="0.5"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${size * 0.11}" stroke-width="0.4"/>
+      <circle cx="${size/2}" cy="${size/2}" r="12" fill="#00d4ff"/>
+    </g>
+    
+    <!-- Glyph -->
+    <text x="${size/2}" y="${size * 0.56}" font-family="monospace" font-size="${size * 0.28}" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#glow)">&gt;_</text>
+  </g>
+</svg>`;
+  }
+  
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+  <defs>
+    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#ffd700"/>
+      <stop offset="100%" style="stop-color:#00d4ff"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="${size}" height="${size}" fill="${bgColor}"/>
+  
+  <!-- Outer glow -->
+  <rect x="${size * 0.1}" y="${size * 0.1}" width="${size * 0.8}" height="${size * 0.8}" rx="${borderRadius * 1.2}" ry="${borderRadius * 1.2}" fill="#00d4ff" opacity="0.1" filter="url(#glow)"/>
+  
+  <!-- Gradient border -->
+  <rect x="${inset}" y="${inset}" width="${size - inset * 2}" height="${size - inset * 2}" rx="${borderRadius}" ry="${borderRadius}" fill="none" stroke="url(#borderGradient)" stroke-width="4"/>
+  
+  <!-- Inner background -->
+  <rect x="${inset + 4}" y="${inset + 4}" width="${size - inset * 2 - 8}" height="${size - inset * 2 - 8}" rx="${borderRadius - 4}" ry="${borderRadius - 4}" fill="#0a0a0f"/>
+  
+  <!-- Diamond pattern -->
+  <g opacity="0.25" stroke="#00d4ff" fill="none">
+    <path d="M${size/2} ${size * 0.25} L${size * 0.75} ${size/2} L${size/2} ${size * 0.75} L${size * 0.25} ${size/2} Z" stroke-width="0.8"/>
+    <path d="M${size/2} ${size * 0.35} L${size * 0.65} ${size/2} L${size/2} ${size * 0.65} L${size * 0.35} ${size/2} Z" stroke-width="0.5"/>
+    <circle cx="${size/2}" cy="${size/2}" r="10" fill="#00d4ff"/>
+    <circle cx="${size/2}" cy="${size * 0.25}" r="6" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="${size * 0.75}" cy="${size/2}" r="6" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="${size/2}" cy="${size * 0.75}" r="6" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="${size * 0.25}" cy="${size/2}" r="6" fill="#00d4ff" opacity="0.6"/>
+  </g>
+  
+  <!-- Corner accents -->
+  <path d="M${size * 0.12} ${size * 0.2} L${size * 0.12} ${size * 0.12} L${size * 0.2} ${size * 0.12}" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.3"/>
+  <path d="M${size * 0.88} ${size * 0.2} L${size * 0.88} ${size * 0.12} L${size * 0.8} ${size * 0.12}" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.3"/>
+  <path d="M${size * 0.12} ${size * 0.8} L${size * 0.12} ${size * 0.88} L${size * 0.2} ${size * 0.88}" fill="none" stroke="#ffd700" stroke-width="2" opacity="0.3"/>
+  <path d="M${size * 0.88} ${size * 0.8} L${size * 0.88} ${size * 0.88} L${size * 0.8} ${size * 0.88}" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Glyph -->
+  <text x="${size/2}" y="${size * 0.56}" font-family="monospace" font-size="${size * 0.24}" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#glow)">&gt;_</text>
+</svg>`;
+};
 
 export default function LogoExport() {
   const logoRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -48,6 +153,21 @@ export default function LogoExport() {
     } finally {
       setDownloading(null);
     }
+  };
+
+  const handleDownloadSVG = () => {
+    const svgContent = generateSVG(activeVariant, transparent);
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    
+    const bgSuffix = transparent ? "-transparent" : "";
+    const link = document.createElement("a");
+    link.download = `kernel-logo-${activeVariant}${bgSuffix}.svg`;
+    link.href = url;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    toast.success(`Downloaded ${activeVariant} SVG logo`);
   };
 
   const handleDownloadAll = async () => {
@@ -117,16 +237,59 @@ export default function LogoExport() {
           </div>
         </div>
 
-        {/* Download All Button */}
-        <div className="flex justify-center mb-8">
+        {/* Download Buttons */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
           <Button
             onClick={handleDownloadAll}
             size="lg"
             className="gap-2"
           >
             <Download className="w-5 h-5" />
-            Download All {activeVariant === "circle" ? "Circle" : "Square"} Sizes
+            Download All PNGs
           </Button>
+          <Button
+            onClick={handleDownloadSVG}
+            size="lg"
+            variant="outline"
+            className="gap-2"
+          >
+            <FileCode className="w-5 h-5" />
+            Download SVG
+          </Button>
+        </div>
+
+        {/* SVG Preview */}
+        <div className="mb-8 p-6 rounded-xl border border-border bg-card">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div
+              className={cn(
+                "flex-shrink-0 overflow-hidden",
+                activeVariant === "circle" ? "rounded-full" : "rounded-lg",
+                transparent && "bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImNoZWNrZXJib2FyZCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMyMjIiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzIyMiIvPjxyZWN0IHg9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMzMzMiLz48cmVjdCB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMzMzIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2NoZWNrZXJib2FyZCkiLz48L3N2Zz4=')]"
+              )}
+              style={{ width: 128, height: 128 }}
+              dangerouslySetInnerHTML={{ 
+                __html: generateSVG(activeVariant, transparent).replace('width="512"', 'width="128"').replace('height="512"', 'height="128"')
+              }}
+            />
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                SVG Vector Format
+              </h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Infinitely scalable vector graphics. Perfect for print, large displays, and any size requirement.
+              </p>
+              <Button
+                onClick={handleDownloadSVG}
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+              >
+                <FileCode className="w-4 h-4" />
+                Download SVG
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Size Grid */}
@@ -195,9 +358,13 @@ export default function LogoExport() {
         {/* Usage Tips */}
         <div className="mt-12 p-6 rounded-xl border border-border bg-card/50">
           <h2 className="text-lg font-semibold text-foreground mb-3">
-            Recommended Sizes
+            Recommended Sizes & Formats
           </h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>
+              <span className="font-medium text-foreground">SVG:</span>{" "}
+              Best for web, print, and any size - infinitely scalable
+            </li>
             <li>
               <span className="font-medium text-foreground">512×512:</span>{" "}
               High-res profile images, app icons
