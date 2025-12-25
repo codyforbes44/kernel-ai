@@ -1,22 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
-
-const codeSnippets = [
-  { code: 'const app = kernel.init()', lang: 'ts' },
-  { code: '<Button variant="primary">', lang: 'jsx' },
-  { code: 'await deploy({ env: "prod" })', lang: 'ts' },
-  { code: 'function Component() {', lang: 'tsx' },
-  { code: 'import { AI } from "@kernel"', lang: 'ts' },
-  { code: 'export default App;', lang: 'tsx' },
-  { code: 'const theme = useTheme()', lang: 'ts' },
-  { code: '<Card className="p-4">', lang: 'jsx' },
-];
+import { CODE_SNIPPETS, CODE_BLOCK_CONFIGS } from '@/constants/codeSnippets';
+import { PERSPECTIVE } from '@/constants/depthLayers';
 
 interface CodeBlockProps {
   snippet: { code: string; lang: string };
   position: { top: string; left: string };
   delay: number;
   duration: number;
-  zDepth: number; // Z-axis depth for 3D effect
+  zDepth: number;
 }
 
 function CodeBlock({ snippet, position, delay, duration, zDepth }: CodeBlockProps) {
@@ -42,11 +33,10 @@ function CodeBlock({ snippet, position, delay, duration, zDepth }: CodeBlockProp
   // Z-axis animation - blocks travel through depth
   useEffect(() => {
     if (!visible) {
-      setCurrentZ(zDepth - 30); // Start further back
+      setCurrentZ(zDepth - 30);
       return;
     }
     
-    // Animate forward when visible
     const animateZ = () => {
       setCurrentZ(prev => {
         const target = zDepth + 20;
@@ -59,13 +49,12 @@ function CodeBlock({ snippet, position, delay, duration, zDepth }: CodeBlockProp
     return () => clearInterval(zAnimation);
   }, [visible, zDepth]);
 
-  // Calculate scale and opacity based on Z depth
   const scale = 0.8 + (currentZ + 50) / 100 * 0.4;
   const glowIntensity = visible ? Math.min(1, (currentZ + 50) / 80) : 0;
 
   return (
     <div
-      className={`absolute font-mono text-xs px-3 py-1.5 rounded-md border transition-all`}
+      className="absolute font-mono text-xs px-3 py-1.5 rounded-md border transition-all"
       style={{
         top: position.top,
         left: position.left,
@@ -108,28 +97,18 @@ function CodeBlock({ snippet, position, delay, duration, zDepth }: CodeBlockProp
 }
 
 export function AnimatedCodeBlocks() {
-  // Positions with Z-depth values for 3D layering
-  const blockConfigs = useMemo(() => [
-    { position: { top: '8%', left: '5%' }, zDepth: -40 },
-    { position: { top: '15%', left: '75%' }, zDepth: 20 },
-    { position: { top: '35%', left: '2%' }, zDepth: -20 },
-    { position: { top: '45%', left: '80%' }, zDepth: 35 },
-    { position: { top: '65%', left: '8%' }, zDepth: 10 },
-    { position: { top: '75%', left: '70%' }, zDepth: -30 },
-    { position: { top: '85%', left: '15%' }, zDepth: 25 },
-    { position: { top: '25%', left: '85%' }, zDepth: -10 },
-  ], []);
+  const blockConfigs = useMemo(() => CODE_BLOCK_CONFIGS, []);
 
   return (
     <div 
       className="absolute inset-0 overflow-hidden pointer-events-none"
       style={{ 
-        perspective: '800px',
+        perspective: `${PERSPECTIVE.CODE_BLOCKS}px`,
         perspectiveOrigin: '50% 50%',
         transformStyle: 'preserve-3d',
       }}
     >
-      {codeSnippets.map((snippet, index) => (
+      {CODE_SNIPPETS.map((snippet, index) => (
         <CodeBlock
           key={index}
           snippet={snippet}
