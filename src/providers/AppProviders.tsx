@@ -34,7 +34,7 @@ export function AppProviders({ children }: AppProvidersProps) {
   const providers = useMemo(
     () => [
       { provider: QueryClientProvider, props: { client: queryClient } },
-      { provider: ThemeProvider, props: { attribute: 'class' as const, defaultTheme: 'dark', enableSystem: true } },
+      { provider: ThemeProvider, props: { attribute: 'class' as const, defaultTheme: 'dark', enableSystem: true, themes: ['light', 'dark', 'oled', 'dim', 'system'] } },
       { provider: AuthProvider },
       { provider: TeamAccessProvider },
       { provider: WorkspaceProvider },

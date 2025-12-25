@@ -58,9 +58,10 @@ import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
 import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSettings';
 import { CreditsSettings } from '@/components/settings/CreditsSettings';
-import { SystemInfoCard } from '@/components/settings/SystemInfoCard';
 import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabaseSettings';
 import { PerformanceCard } from '@/components/settings/PerformanceCard';
+import { DisplayModeCard } from '@/components/settings/DisplayModeCard';
+import { PWASettingsCard } from '@/components/settings/PWASettingsCard';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -513,73 +514,19 @@ export default function Settings() {
         {/* External Supabase Connections */}
         <ExternalSupabaseSettings />
 
-        {/* Appearance */}
+        {/* Display Mode */}
+        <DisplayModeCard />
+
+        {/* Accessibility */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              Appearance
+              <Shield className="h-5 w-5" />
+              Accessibility
             </CardTitle>
-            <CardDescription>Customize the look and feel</CardDescription>
+            <CardDescription>Visual adjustments for better readability</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <Label>Theme</Label>
-              <RadioGroup
-                value={theme}
-                onValueChange={setTheme}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-              >
-                <Label
-                  htmlFor="theme-light"
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
-                >
-                  <RadioGroupItem value="light" id="theme-light" className="sr-only" />
-                  <div className="w-10 h-10 rounded-full bg-amber-100 border-2 border-amber-300 flex items-center justify-center">
-                    <Sun className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <span className="text-sm font-medium">Light</span>
-                </Label>
-                <Label
-                  htmlFor="theme-dark"
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
-                >
-                  <RadioGroupItem value="dark" id="theme-dark" className="sr-only" />
-                  <div className="w-10 h-10 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center">
-                    <Moon className="h-5 w-5 text-slate-300" />
-                  </div>
-                  <span className="text-sm font-medium">Dark</span>
-                </Label>
-                <Label
-                  htmlFor="theme-oled"
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
-                >
-                  <RadioGroupItem value="oled" id="theme-oled" className="sr-only" />
-                  <div className="w-10 h-10 rounded-full bg-black border-2 border-primary/50 flex items-center justify-center ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
-                    <Smartphone className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">OLED</span>
-                </Label>
-                <Label
-                  htmlFor="theme-system"
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-muted/50 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:bg-primary/5"
-                >
-                  <RadioGroupItem value="system" id="theme-system" className="sr-only" />
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-100 to-slate-800 border-2 border-muted flex items-center justify-center">
-                    <Monitor className="h-5 w-5 text-foreground" />
-                  </div>
-                  <span className="text-sm font-medium">System</span>
-                </Label>
-              </RadioGroup>
-              <p className="text-xs text-muted-foreground">
-                {theme === 'system' 
-                  ? 'Theme will automatically match your system preferences' 
-                  : theme === 'oled'
-                  ? 'Pure black for OLED displays - saves battery'
-                  : `Using ${theme} theme`}
-              </p>
-            </div>
-            <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="flex items-center gap-2">
@@ -1014,8 +961,8 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* System Information */}
-        <SystemInfoCard />
+        {/* App & Updates */}
+        <PWASettingsCard />
       </main>
 
       <DeleteConfirmDialog
