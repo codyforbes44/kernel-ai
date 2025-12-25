@@ -24,6 +24,9 @@ export interface GeneratedAsset {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  // Video-specific fields
+  duration?: number | null;
+  video_thumbnail_url?: string | null;
 }
 
 export interface GenerateImageOptions {
@@ -33,6 +36,30 @@ export interface GenerateImageOptions {
   projectId?: string;
   editImageUrl?: string;
   editMode?: boolean;
+}
+
+export interface GenerateVideoOptions {
+  prompt: string;
+  model?: 'luma' | 'kling' | 'minimax' | 'stable-video';
+  aspectRatio?: '16:9' | '9:16' | '1:1' | '4:3';
+  duration?: number;
+  sourceImageUrl?: string;
+  projectId?: string;
+}
+
+export interface GenerateAdvancedImageOptions {
+  prompt: string;
+  model?: 'flux-schnell' | 'flux-dev' | 'flux-pro' | 'sdxl';
+  aspectRatio?: string;
+  style?: string;
+  projectId?: string;
+  negativePrompt?: string;
+  guidanceScale?: number;
+  numInferenceSteps?: number;
+  seed?: number;
+  sourceImageUrl?: string;
+  editMode?: 'upscale' | 'variation' | 'inpaint';
+  upscaleScale?: number;
 }
 
 export interface ScreenshotToCodeOptions {
@@ -46,6 +73,7 @@ export function useAIAssets(projectId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [generatingVideo, setGeneratingVideo] = useState(false);
   const [convertingScreenshot, setConvertingScreenshot] = useState(false);
 
   // Fetch all assets for the user
@@ -105,6 +133,102 @@ export function useAIAssets(projectId?: string) {
             projectId: options.projectId || projectId,
             editImageUrl: options.editImageUrl,
             editMode: options.editMode || false,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate image');
+      }
+
+      const data = await response.json();
+      return data.asset as GeneratedAsset;
+    },
+    onSuccess: (asset) => {
+      queryClient.invalidateQueries({ queryKey: ['ai-assets'] });
+      toast.success('Image generated successfully!');
+      return asset;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to generate image');
+    },
+    onSettled: () => {
+      setGeneratingImage(false);
+    },
+  });
+
+  // Generate video mutation
+  const generateVideoMutation = useMutation({
+    mutationFn: async (options: GenerateVideoOptions) => {
+      setGeneratingVideo(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            prompt: options.prompt,
+            model: options.model || 'luma',
+            aspectRatio: options.aspectRatio || '16:9',
+            duration: options.duration || 5,
+            sourceImageUrl: options.sourceImageUrl,
+            projectId: options.projectId || projectId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate video');
+      }
+
+      const data = await response.json();
+      return data.asset as GeneratedAsset;
+    },
+    onSuccess: (asset) => {
+      queryClient.invalidateQueries({ queryKey: ['ai-assets'] });
+      toast.success('Video generated successfully!');
+      return asset;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to generate video');
+    },
+    onSettled: () => {
+      setGeneratingVideo(false);
+    },
+  });
+
+  // Generate advanced image mutation (Replicate models)
+  const generateAdvancedImageMutation = useMutation({
+    mutationFn: async (options: GenerateAdvancedImageOptions) => {
+      setGeneratingImage(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-advanced`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            ...options,
+            projectId: options.projectId || projectId,
           }),
         }
       );
@@ -253,27 +377,34 @@ export function useAIAssets(projectId?: string) {
     }
   };
 
-  // Helper to download image
-  const downloadImage = async (asset: GeneratedAsset) => {
+  // Helper to download asset
+  const downloadAsset = async (asset: GeneratedAsset) => {
     try {
       const response = await fetch(asset.storage_url);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${asset.prompt.slice(0, 30).replace(/\s+/g, '-')}.${asset.mime_type.split('/')[1]}`;
+      const extension = asset.asset_type === 'video' ? 'mp4' : asset.mime_type.split('/')[1];
+      a.download = `${asset.prompt.slice(0, 30).replace(/\s+/g, '-')}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Image downloaded');
+      toast.success(`${asset.asset_type === 'video' ? 'Video' : 'Image'} downloaded`);
     } catch {
-      toast.error('Failed to download image');
+      toast.error('Failed to download asset');
     }
   };
 
+  // Legacy helper (alias for backward compatibility)
+  const downloadImage = downloadAsset;
+
   // Helper to generate image code snippet
   const getImageCodeSnippet = (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg' = 'jsx') => {
+    if (asset.asset_type === 'video') {
+      return `<video src="${asset.storage_url}" controls className="w-full h-auto" />`;
+    }
     switch (format) {
       case 'jsx':
         return `<img src="${asset.storage_url}" alt="${asset.prompt}" className="w-full h-auto" />`;
@@ -286,15 +417,24 @@ export function useAIAssets(projectId?: string) {
     }
   };
 
+  // Computed values
+  const imageAssets = assets.filter((a) => a.asset_type === 'image');
+  const videoAssets = assets.filter((a) => a.asset_type === 'video');
+
   return {
     // State
     assets,
+    imageAssets,
+    videoAssets,
     isLoadingAssets,
     generatingImage,
+    generatingVideo,
     convertingScreenshot,
 
     // Mutations
     generateImage: generateImageMutation.mutateAsync,
+    generateVideo: generateVideoMutation.mutateAsync,
+    generateAdvancedImage: generateAdvancedImageMutation.mutateAsync,
     screenshotToCode: screenshotToCodeMutation.mutateAsync,
     deleteAsset: deleteAssetMutation.mutateAsync,
     toggleFavorite: toggleFavoriteMutation.mutateAsync,
@@ -304,6 +444,7 @@ export function useAIAssets(projectId?: string) {
     refetchAssets,
     copyImageUrl,
     downloadImage,
+    downloadAsset,
     getImageCodeSnippet,
   };
 }

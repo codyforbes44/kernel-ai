@@ -26,6 +26,7 @@ import {
   CheckSquare,
   Square,
   X,
+  Video,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GeneratedAsset } from '@/hooks/useAIAssets';
@@ -332,12 +333,23 @@ function AssetCard({
       )}
 
       <div className="aspect-square" onClick={onSelect}>
-        <img
-          src={asset.storage_url}
-          alt={asset.prompt}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        {asset.asset_type === 'video' ? (
+          <video
+            src={asset.storage_url}
+            className="w-full h-full object-cover"
+            muted
+            loop
+            onMouseEnter={(e) => e.currentTarget.play()}
+            onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+          />
+        ) : (
+          <img
+            src={asset.storage_url}
+            alt={asset.prompt}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        )}
       </div>
 
       {/* Overlay */}
@@ -407,12 +419,16 @@ function AssetListItem({
         </div>
       )}
       <div className="h-16 w-16 rounded-md overflow-hidden shrink-0" onClick={onSelect}>
-        <img
-          src={asset.storage_url}
-          alt={asset.prompt}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        {asset.asset_type === 'video' ? (
+          <video src={asset.storage_url} className="w-full h-full object-cover" muted />
+        ) : (
+          <img
+            src={asset.storage_url}
+            alt={asset.prompt}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        )}
       </div>
 
       <div className="flex-1 min-w-0" onClick={onSelect}>
