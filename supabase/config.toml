@@ -83,3 +83,9 @@ verify_jwt = false
 
 [functions.validate-team-session]
 verify_jwt = false
+
+[functions.firecrawl-scrape]
+verify_jwt = false
+
+[functions.analyze-competitor-url]
+verify_jwt = false

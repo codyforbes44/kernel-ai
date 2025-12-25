@@ -21,6 +21,7 @@ export function MigrationAssistant() {
     setFiles,
     setPastedCode,
     setImportUrl,
+    analyzeImportUrl,
     setShareCode,
     lookupShareCode,
     setProjectDetails,
@@ -71,6 +72,10 @@ export function MigrationAssistant() {
             onFilesChange={setFiles}
             onPastedCodeChange={setPastedCode}
             onImportUrlChange={setImportUrl}
+            onAnalyzeUrl={analyzeImportUrl}
+            urlAnalysis={state.urlAnalysis}
+            isAnalyzingUrl={state.isAnalyzingUrl}
+            urlAnalysisError={state.urlAnalysisError}
             detectionResult={state.detectionResult}
             isAnalyzing={state.isAnalyzing}
             shareCode={state.shareCode}
