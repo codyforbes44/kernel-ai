@@ -11,6 +11,18 @@ const PULSE_CONFIG = {
   glowIntensity: 2.5,
 };
 
+// Floating particles configuration
+const PARTICLE_CONFIG = {
+  count: 60,
+  speedMin: 0.15,
+  speedMax: 0.35,
+  sizeMin: 2,
+  sizeMax: 5,
+  heightMin: 5,
+  heightMax: 40,
+  spreadX: 400,
+};
+
 // Build a perspective grid where vertical lines converge to vanishing point
 // and horizontal lines stay parallel (like the Tron reference image)
 const createPerspectiveGrid = () => {
@@ -238,6 +250,148 @@ function EnergyPulses() {
   );
 }
 
+// Floating Particles component
+function FloatingParticles() {
+  const particlesRef = useRef<THREE.Points>(null);
+  const particleDataRef = useRef<{ velocities: Float32Array; heights: Float32Array; sizes: Float32Array } | null>(null);
+  
+  const gridDepth = 600;
+  const convergeFactor = 0.15;
+  
+  const { positions, colors, sizes, velocities, heights } = useMemo(() => {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const sizes: number[] = [];
+    const velocities: number[] = [];
+    const heights: number[] = [];
+    
+    const cyan = new THREE.Color(COLORS_3D.primary);
+    const accent = new THREE.Color(COLORS_3D.accent);
+    
+    for (let i = 0; i < PARTICLE_CONFIG.count; i++) {
+      // Random x position within spread
+      const x = (Math.random() - 0.5) * PARTICLE_CONFIG.spreadX * 2;
+      
+      // Random progress along depth (0 = near, 1 = horizon)
+      const t = Math.random();
+      const y = t * gridDepth;
+      
+      // Random height above grid
+      const height = PARTICLE_CONFIG.heightMin + Math.random() * (PARTICLE_CONFIG.heightMax - PARTICLE_CONFIG.heightMin);
+      heights.push(height);
+      
+      positions.push(x, y, height);
+      
+      // Mix between cyan and accent color randomly
+      const colorMix = Math.random();
+      const particleColor = cyan.clone().lerp(accent, colorMix * 0.3);
+      const intensity = 0.6 + Math.random() * 0.4;
+      colors.push(particleColor.r * intensity, particleColor.g * intensity, particleColor.b * intensity);
+      
+      // Random size
+      const size = PARTICLE_CONFIG.sizeMin + Math.random() * (PARTICLE_CONFIG.sizeMax - PARTICLE_CONFIG.sizeMin);
+      sizes.push(size);
+      
+      // Random velocity
+      const velocity = PARTICLE_CONFIG.speedMin + Math.random() * (PARTICLE_CONFIG.speedMax - PARTICLE_CONFIG.speedMin);
+      velocities.push(velocity);
+    }
+    
+    return {
+      positions: new Float32Array(positions),
+      colors: new Float32Array(colors),
+      sizes: new Float32Array(sizes),
+      velocities: new Float32Array(velocities),
+      heights: new Float32Array(heights),
+    };
+  }, []);
+  
+  particleDataRef.current = { velocities, heights, sizes };
+  
+  useFrame((state, delta) => {
+    if (!particlesRef.current || !particleDataRef.current) return;
+    
+    const positionAttr = particlesRef.current.geometry.attributes.position;
+    const colorAttr = particlesRef.current.geometry.attributes.color;
+    const positionsArr = positionAttr.array as Float32Array;
+    const colorsArr = colorAttr.array as Float32Array;
+    const { velocities, heights } = particleDataRef.current;
+    
+    const time = state.clock.getElapsedTime();
+    const cyan = new THREE.Color(COLORS_3D.primary);
+    
+    for (let i = 0; i < PARTICLE_CONFIG.count; i++) {
+      const idx = i * 3;
+      
+      // Get current t (progress toward horizon)
+      let t = positionsArr[idx + 1] / gridDepth;
+      
+      // Move toward horizon
+      t += velocities[i] * delta;
+      
+      // Reset when reaching horizon
+      if (t >= 1) {
+        t = 0;
+        // Reset x position
+        positionsArr[idx] = (Math.random() - 0.5) * PARTICLE_CONFIG.spreadX * 2;
+        heights[i] = PARTICLE_CONFIG.heightMin + Math.random() * (PARTICLE_CONFIG.heightMax - PARTICLE_CONFIG.heightMin);
+        velocities[i] = PARTICLE_CONFIG.speedMin + Math.random() * (PARTICLE_CONFIG.speedMax - PARTICLE_CONFIG.speedMin);
+      }
+      
+      // Apply perspective convergence to x
+      const perspectiveScale = 1 - t * (1 - convergeFactor);
+      const originalX = positionsArr[idx] / (1 - (positionsArr[idx + 1] / gridDepth) * (1 - convergeFactor) || 1);
+      
+      // Update position
+      positionsArr[idx] = positionsArr[idx] * 0.998; // Slight x convergence
+      positionsArr[idx + 1] = t * gridDepth;
+      
+      // Gentle floating motion
+      const floatOffset = Math.sin(time * 2 + i * 0.5) * 2;
+      positionsArr[idx + 2] = heights[i] + floatOffset;
+      
+      // Fade out toward horizon, twinkle effect
+      const fadeOut = 1 - Math.pow(t, 1.5);
+      const twinkle = 0.7 + Math.sin(time * 3 + i * 1.7) * 0.3;
+      const intensity = fadeOut * twinkle * 0.8;
+      
+      colorsArr[idx] = cyan.r * intensity;
+      colorsArr[idx + 1] = cyan.g * intensity;
+      colorsArr[idx + 2] = cyan.b * intensity;
+    }
+    
+    positionAttr.needsUpdate = true;
+    colorAttr.needsUpdate = true;
+  });
+  
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={PARTICLE_CONFIG.count}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={PARTICLE_CONFIG.count}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={3}
+        vertexColors
+        transparent
+        opacity={0.8}
+        blending={THREE.AdditiveBlending}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
 export function GridPlane3D() {
   const gridRef = useRef<THREE.LineSegments>(null);
   const horizonRef = useRef<THREE.LineSegments>(null);
@@ -292,7 +446,8 @@ export function GridPlane3D() {
       {/* Energy pulses traveling along grid lines */}
       <EnergyPulses />
       
-      {/* Horizon glow line */}
+      {/* Floating particles above the grid */}
+      <FloatingParticles />
       <group position={[0, 600, 0]}>
         <lineSegments ref={horizonRef} geometry={horizonGeometry}>
           <lineBasicMaterial
