@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key, Bot, Ticket } from 'lucide-react';
+import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key, Bot, Ticket, Newspaper } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -28,7 +28,8 @@ import {
   TeamAccessSettings,
   XAISettingsPanel,
   InviteCodeManagementPanel,
-  InviteRequestsPanel
+  InviteRequestsPanel,
+  NewsletterSubscribersPanel
 } from '@/components/admin';
 
 export default function Admin() {
@@ -147,6 +148,10 @@ export default function Admin() {
               <Mail className="h-4 w-4" />
               Contact
             </TabsTrigger>
+            <TabsTrigger value="newsletter" className="gap-2">
+              <Newspaper className="h-4 w-4" />
+              Newsletter
+            </TabsTrigger>
             <TabsTrigger value="invite-codes" className="gap-2">
               <Ticket className="h-4 w-4" />
               Invite Codes
@@ -256,6 +261,12 @@ export default function Admin() {
           <TabsContent value="contact">
             <AdminPanelWrapper panelName="Contact Submissions">
               <ContactSubmissionsPanel />
+            </AdminPanelWrapper>
+          </TabsContent>
+
+          <TabsContent value="newsletter">
+            <AdminPanelWrapper panelName="Newsletter Subscribers">
+              <NewsletterSubscribersPanel />
             </AdminPanelWrapper>
           </TabsContent>
 
