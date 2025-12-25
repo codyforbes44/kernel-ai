@@ -27,6 +27,8 @@ const pageComponents = {
   Compare: lazy(() => import('@/pages/Compare')),
   Install: lazy(() => import('@/pages/Install')),
   Migrate: lazy(() => import('@/pages/Migrate')),
+  RequestInvite: lazy(() => import('@/pages/RequestInvite')),
+  RedeemInvite: lazy(() => import('@/pages/RedeemInvite')),
   Admin: lazy(() => import('@/pages/Admin')),
   Settings: lazy(() => import('@/pages/Settings')),
   Builder: lazy(() => import('@/pages/Builder')),
@@ -71,6 +73,8 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/compare', component: 'Compare' },
   { path: '/install', component: 'Install' },
   { path: '/migrate', component: 'Migrate' },
+  { path: '/request-invite', component: 'RequestInvite' },
+  { path: '/redeem-invite', component: 'RedeemInvite' },
   { path: '/auth', component: 'Auth' },
   
   // Protected routes (with extra error boundary protection)

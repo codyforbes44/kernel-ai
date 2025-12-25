@@ -179,6 +179,26 @@ export const routes: RouteConfig[] = [
     requiresAuth: false,
     robots: 'allow',
   },
+  {
+    path: '/request-invite',
+    title: 'Request Early Access',
+    description: 'Request an invite code to join the Kernel early access program',
+    changefreq: 'monthly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
+  {
+    path: '/redeem-invite',
+    title: 'Redeem Invite Code',
+    description: 'Enter your invite code to create a Kernel account',
+    changefreq: 'monthly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
   // Protected routes - not included in sitemap, blocked from crawlers
   {
     path: '/assistant',
