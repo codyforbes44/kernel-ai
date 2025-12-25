@@ -13,14 +13,14 @@ const PULSE_CONFIG = {
 
 // Floating particles configuration
 const PARTICLE_CONFIG = {
-  count: 60,
-  speedMin: 0.15,
-  speedMax: 0.35,
+  count: 150,
+  speedMin: 0.12,
+  speedMax: 0.4,
   sizeMin: 2,
-  sizeMax: 5,
+  sizeMax: 6,
   heightMin: 5,
-  heightMax: 40,
-  spreadX: 400,
+  heightMax: 50,
+  spreadX: 500,
 };
 
 // Build a perspective grid where vertical lines converge to vanishing point
@@ -267,6 +267,9 @@ function FloatingParticles() {
     
     const cyan = new THREE.Color(COLORS_3D.primary);
     const accent = new THREE.Color(COLORS_3D.accent);
+    const magenta = new THREE.Color('#ff00ff');
+    const white = new THREE.Color('#ffffff');
+    const purple = new THREE.Color('#8844ff');
     
     for (let i = 0; i < PARTICLE_CONFIG.count; i++) {
       // Random x position within spread
@@ -282,10 +285,27 @@ function FloatingParticles() {
       
       positions.push(x, y, height);
       
-      // Mix between cyan and accent color randomly
-      const colorMix = Math.random();
-      const particleColor = cyan.clone().lerp(accent, colorMix * 0.3);
-      const intensity = 0.6 + Math.random() * 0.4;
+      // Varied color palette - pick from multiple colors
+      const colorChoice = Math.random();
+      let particleColor: THREE.Color;
+      if (colorChoice < 0.4) {
+        // Cyan (primary) - most common
+        particleColor = cyan.clone();
+      } else if (colorChoice < 0.6) {
+        // Cyan to magenta blend
+        particleColor = cyan.clone().lerp(magenta, Math.random() * 0.5);
+      } else if (colorChoice < 0.75) {
+        // Purple accent
+        particleColor = purple.clone().lerp(cyan, Math.random() * 0.3);
+      } else if (colorChoice < 0.9) {
+        // Accent color
+        particleColor = accent.clone().lerp(cyan, Math.random() * 0.4);
+      } else {
+        // Bright white sparkles (rare)
+        particleColor = white.clone().lerp(cyan, 0.3);
+      }
+      
+      const intensity = 0.7 + Math.random() * 0.5;
       colors.push(particleColor.r * intensity, particleColor.g * intensity, particleColor.b * intensity);
       
       // Random size
