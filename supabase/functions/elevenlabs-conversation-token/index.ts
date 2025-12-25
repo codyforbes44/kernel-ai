@@ -31,11 +31,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Requesting conversation token for agent:', agentId);
+    console.log('Requesting signed URL for agent:', agentId);
 
-    // Request an ephemeral token from ElevenLabs
+    // Request a signed URL from ElevenLabs (more reliable than conversation token)
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=${agentId}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
       {
         method: 'GET',
         headers: {
@@ -51,9 +51,15 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('Conversation token generated successfully');
+    console.log('ElevenLabs response:', JSON.stringify(data));
+    
+    // The API returns { signed_url: "wss://..." }
+    if (!data.signed_url) {
+      console.error('No signed_url in response:', data);
+      throw new Error('Invalid response from ElevenLabs: missing signed_url');
+    }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ signedUrl: data.signed_url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

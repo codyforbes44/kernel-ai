@@ -20,6 +20,7 @@ interface UseVoiceAgentReturn {
   disconnect: () => Promise<void>;
   sendMessage: (text: string) => void;
   setVolume: (volume: number) => Promise<void>;
+  retry: () => Promise<void>;
 }
 
 export function useVoiceAgent({ 
@@ -117,25 +118,28 @@ export function useVoiceAgent({
       await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('Microphone permission granted');
 
-      // Get conversation token from edge function
-      console.log('Fetching conversation token...');
+      // Get signed URL from edge function
+      console.log('Fetching signed URL...');
       const { data, error: fnError } = await supabase.functions.invoke(
         'elevenlabs-conversation-token',
         { body: { agentId } }
       );
 
       if (fnError) {
-        throw new Error(fnError.message || 'Failed to get conversation token');
+        console.error('Edge function error:', fnError);
+        throw new Error(fnError.message || 'Failed to get signed URL');
       }
 
-      if (!data?.token) {
-        throw new Error('No token received from server');
+      console.log('Edge function response:', data);
+
+      if (!data?.signedUrl) {
+        console.error('Invalid response data:', data);
+        throw new Error('No signed URL received from server');
       }
 
-      console.log('Starting conversation session...');
+      console.log('Starting conversation session with WebSocket...');
       await conversation.startSession({
-        conversationToken: data.token,
-        connectionType: 'webrtc',
+        signedUrl: data.signedUrl,
       });
     } catch (err) {
       console.error('Failed to connect:', err);
@@ -151,6 +155,13 @@ export function useVoiceAgent({
       });
     }
   }, [agentId, isConnected, conversation, toast]);
+
+  const retry = useCallback(async () => {
+    setError(null);
+    setStatus('idle');
+    isConnectingRef.current = false;
+    await connect();
+  }, [connect]);
 
   const disconnect = useCallback(async () => {
     try {
@@ -181,5 +192,6 @@ export function useVoiceAgent({
     disconnect,
     sendMessage,
     setVolume,
+    retry,
   };
 }

@@ -80,6 +80,7 @@ export function VoiceAgentWidget({
     connect,
     disconnect,
     setVolume: setAgentVolume,
+    retry,
   } = useVoiceAgent({
     agentId,
     onTranscript: (text, isFinal) => {
@@ -236,14 +237,22 @@ export function VoiceAgentWidget({
         />
       </motion.button>
 
-      {/* Error tooltip */}
+      {/* Error tooltip with retry */}
       {error && status === 'error' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute bottom-full mb-2 right-0 bg-destructive text-destructive-foreground text-xs px-3 py-1.5 rounded-lg max-w-48"
+          className="absolute bottom-full mb-2 right-0 bg-destructive text-destructive-foreground text-xs px-3 py-2 rounded-lg max-w-56 space-y-2"
         >
-          {error}
+          <p>{error}</p>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full h-6 text-xs"
+            onClick={retry}
+          >
+            Retry Connection
+          </Button>
         </motion.div>
       )}
     </div>
