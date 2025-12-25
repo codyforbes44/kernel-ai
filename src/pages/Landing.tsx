@@ -18,7 +18,9 @@ import { PlatformComparisonCondensed } from '@/components/pricing/PlatformCompar
 import { ScrollProgressIndicator } from '@/components/landing/ScrollProgressIndicator';
 import { useHeroVisibility } from '@/hooks/useHeroVisibility';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { useVisualEffects } from '@/hooks/useVisualEffects';
 import { HeroContent, ScrollIndicator } from '@/components/landing/HeroContent';
+import { VisualEffectsToggle } from '@/components/ui/visual-effects-toggle';
 import { features } from '@/lib/landing-data';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
@@ -26,6 +28,11 @@ export default function Landing() {
   const ogImageRef = useRef<HTMLDivElement>(null);
   const { heroRef, isVisible: isHeroVisible } = useHeroVisibility();
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { effectsEnabled, toggleEffects } = useVisualEffects();
+  
+  // Disable 3D effects if user prefers reduced motion or manually disabled
+  const show3DEffects = effectsEnabled && !prefersReducedMotion;
+  
   return (
     <PublicLayout>
       {/* Scroll Progress Indicator */}
@@ -55,16 +62,24 @@ export default function Landing() {
         className="relative min-h-[100dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
       >
         {/* 3D Background */}
-        <HeroBackground isVisible={isHeroVisible && !prefersReducedMotion} />
+        <HeroBackground isVisible={isHeroVisible && show3DEffects} />
+        
+        {/* Visual Effects Toggle - positioned in top right of hero */}
+        <div className="absolute top-20 md:top-24 right-4 md:right-6 z-20">
+          <VisualEffectsToggle 
+            enabled={effectsEnabled} 
+            onToggle={toggleEffects} 
+          />
+        </div>
         
         {/* Hero Content - Consolidated component */}
-        <HeroContent prefersReducedMotion={prefersReducedMotion} />
+        <HeroContent prefersReducedMotion={prefersReducedMotion || !effectsEnabled} />
         
         {/* Scroll Indicator - visible on all devices */}
         <ScrollIndicator 
           targetId="social-proof" 
           className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10"
-          prefersReducedMotion={prefersReducedMotion}
+          prefersReducedMotion={prefersReducedMotion || !effectsEnabled}
         />
       </section>
 
