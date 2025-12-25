@@ -1,6 +1,8 @@
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
+import { HoloSection } from "@/components/ui/holo-section";
+import { GlowText } from "@/components/ui/glow-text";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from "@/lib/seo";
 
 export default function Privacy() {
   const lastUpdated = "December 20, 2025";
@@ -19,13 +21,19 @@ export default function Privacy() {
         ]}
       />
 
-      <article className="py-16 px-4">
-        <div className="container mx-auto max-w-3xl">
-          <header className="mb-12">
-            <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
+      <HoloSection variant="gradient" className="py-16 sm:py-24">
+        <div className="container mx-auto max-w-3xl px-4">
+          <header className="text-center">
+            <GlowText as="h1" variant="primary" intensity="medium" className="text-4xl sm:text-5xl font-bold mb-4">
+              Privacy Policy
+            </GlowText>
             <p className="text-muted-foreground">Last updated: {lastUpdated}</p>
           </header>
+        </div>
+      </HoloSection>
 
+      <article className="py-12 px-4">
+        <div className="container mx-auto max-w-3xl">
           <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
             <section>
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>

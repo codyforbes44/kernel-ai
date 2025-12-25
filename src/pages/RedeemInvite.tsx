@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PublicLayout } from '@/components/layout/PublicLayout';
 import { SEO } from '@/components/seo/SEO';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { GlassPanel, GlassPanelContent, GlassPanelHeader, GlassPanelTitle } from '@/components/ui/glass-panel';
+import { GlowText } from '@/components/ui/glow-text';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { PageBackground3D } from '@/components/three/PageBackground3D';
+import { KernelLogo } from '@/components/ui/kernel-logo';
 import { useInviteCode } from '@/hooks/useInviteCode';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { toast } from 'sonner';
 import { 
   Ticket, 
-  ArrowRight, 
+  ArrowRight,
+  ArrowLeft,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  ExternalLink
 } from 'lucide-react';
 
 export default function RedeemInvite() {
@@ -50,145 +54,169 @@ export default function RedeemInvite() {
   };
 
   const handleContinue = () => {
-    // Store the code in session storage for the auth page to use
     sessionStorage.setItem('invite_code', code.trim().toUpperCase());
     navigate('/auth?mode=signup');
   };
 
   if (validated && validationResult) {
     return (
-      <PublicLayout>
+      <div className="relative min-h-screen flex items-center justify-center">
+        <PageBackground3D intensity="low" className="fixed inset-0" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
+        
         <SEO
           title="Code Validated | Kernel"
           description="Your invite code has been validated"
           noIndex
         />
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-          <Card className="max-w-md w-full text-center">
-            <CardHeader>
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-500" />
-              </div>
-              <CardTitle className="text-2xl">Code Validated!</CardTitle>
-              <CardDescription className="text-base">
-                Your invite code is valid. Continue to create your account.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <code className="text-lg font-mono font-bold">{code.toUpperCase()}</code>
-                {validationResult.campaign && (
-                  <Badge variant="secondary" className="ml-2">
-                    {validationResult.campaign}
-                  </Badge>
-                )}
-              </div>
-              
-              <Button className="w-full" onClick={handleContinue}>
-                Create Account
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-              
-              <p className="text-xs text-muted-foreground">
-                The code will be redeemed when you complete signup
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </PublicLayout>
+        
+        <GlassPanel variant="glow" blur="xl" className="relative z-10 max-w-md mx-4 p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center animate-pulse">
+              <CheckCircle2 className="h-8 w-8 text-success" />
+            </div>
+          </div>
+          <GlowText as="h1" variant="primary" intensity="high" className="text-2xl font-bold mb-2">
+            You're In!
+          </GlowText>
+          <p className="text-muted-foreground mb-2">
+            Your invite code is valid. Continue to create your account.
+          </p>
+          
+          <div className="p-4 bg-card/50 rounded-lg border border-primary/20 mb-6">
+            <code className="text-lg font-mono font-bold text-primary">{code.toUpperCase()}</code>
+            {validationResult.campaign && (
+              <HoloBadge variant="secondary" className="ml-2">
+                {validationResult.campaign}
+              </HoloBadge>
+            )}
+          </div>
+          
+          <Button className="w-full gap-2" size="lg" onClick={handleContinue}>
+            Create Account
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+          
+          <p className="text-xs text-muted-foreground mt-4">
+            The code will be redeemed when you complete signup
+          </p>
+        </GlassPanel>
+      </div>
     );
   }
 
   return (
-    <PublicLayout>
+    <div className="relative min-h-screen flex items-center justify-center px-4">
+      <PageBackground3D intensity="low" className="fixed inset-0" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
+      
       <SEO
         title="Enter Invite Code | Kernel"
         description="Enter your invite code to access Kernel"
         noIndex
       />
-      
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Ticket className="h-8 w-8 text-primary" />
+
+      <div className="relative z-10 w-full max-w-md space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <KernelLogo size="xl" glow />
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <GlowText as="h1" variant="gradient" intensity="medium" className="text-3xl font-bold">
+              Enter Invite Code
+            </GlowText>
+            <HoloBadge variant="glow">Beta</HoloBadge>
+          </div>
+          <p className="text-muted-foreground">
+            Kernel is currently invite-only. Enter your code below to get started.
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <GlassPanel variant="glow" blur="xl" scanLine>
+          <GlassPanelHeader>
+            <GlassPanelTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5 text-primary" />
+              Invite Code
+            </GlassPanelTitle>
+          </GlassPanelHeader>
+          <GlassPanelContent>
+            <form onSubmit={handleValidate} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code" className="sr-only">Invite Code</Label>
+                <Input
+                  id="code"
+                  placeholder="KERNEL-XXXX-XXXX"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  className="font-mono text-center text-lg tracking-wider bg-background/50"
+                  autoComplete="off"
+                  autoFocus
+                />
+              </div>
+
+              <Button type="submit" className="w-full gap-2" size="lg" disabled={validating}>
+                {validating ? (
+                  <>
+                    <LoadingSpinner />
+                    Validating...
+                  </>
+                ) : (
+                  <>
+                    Validate Code
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </GlassPanelContent>
+        </GlassPanel>
+
+        {/* Footer */}
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border/50" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
-              Enter Your Invite Code
-            </h1>
-            <p className="text-muted-foreground">
-              Kernel is currently invite-only. Enter your code below to get started.
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Don't have a code?
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full gap-2" asChild>
+              <Link to="/request-invite">
+                <Sparkles className="h-4 w-4" />
+                Request Early Access
+              </Link>
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Or follow us on{' '}
+              <a 
+                href="https://x.com/kernel" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                X <ExternalLink className="h-3 w-3" />
+              </a>
+              {' '}for invite code giveaways
             </p>
           </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <form onSubmit={handleValidate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="code">Invite Code</Label>
-                  <Input
-                    id="code"
-                    placeholder="KERNEL-XXXX-XXXX"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    className="font-mono text-center text-lg tracking-wider"
-                    autoComplete="off"
-                    autoFocus
-                  />
-                </div>
-
-                <Button type="submit" className="w-full" disabled={validating}>
-                  {validating ? (
-                    <>
-                      <LoadingSpinner className="mr-2" />
-                      Validating...
-                    </>
-                  ) : (
-                    <>
-                      Validate Code
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <div className="mt-6 text-center space-y-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Don't have a code?
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/request-invite">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Request Early Access
-                </Link>
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                Or follow us on{' '}
-                <a 
-                  href="https://x.com/kernel" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="underline hover:text-foreground"
-                >
-                  X
-                </a>
-                {' '}for invite code giveaways
-              </p>
-            </div>
-          </div>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
         </div>
       </div>
-    </PublicLayout>
+    </div>
   );
 }
