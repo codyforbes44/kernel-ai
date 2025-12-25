@@ -216,9 +216,9 @@ export default function Landing() {
       <HowItWorksSection />
 
       {/* Features Grid */}
-      <HoloSection variant="gradient" className="py-16 md:py-20 px-4 scroll-mt-16" id="features">
+      <HoloSection variant="gradient" className="py-12 sm:py-16 md:py-20 px-4 scroll-mt-16" id="features">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12 md:mb-16">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
             <GlowBadge variant="glow" className="mb-4">
               <Sparkles className="h-3 w-3 mr-1" />
               Features
@@ -231,17 +231,18 @@ export default function Landing() {
             </p>
           </div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Grid: 1 col mobile, 2 col tablet, 3 col desktop with better gap */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {features.map((feature, index) => (
               <AnimatedFeatureCard 
                 key={feature.title}
-                icon={<feature.icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
+                icon={<feature.icon className="h-5 w-5 text-primary" />}
                 title={feature.title}
                 description={feature.description}
                 animatedBorder={true}
                 borderSpeed={3 + index * 0.5}
                 variant="glow"
-                delay={index * 100}
+                delay={index * 80}
               />
             ))}
           </div>

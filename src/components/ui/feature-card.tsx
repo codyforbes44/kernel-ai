@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const featureCardVariants = cva(
-  "relative rounded-xl backdrop-blur-md transition-all duration-300 group",
+  "relative rounded-xl backdrop-blur-md transition-all duration-300 group touch-manipulation",
   {
     variants: {
       variant: {
@@ -15,6 +15,7 @@ const featureCardVariants = cva(
           "bg-card/50",
           "shadow-[0_0_25px_hsl(var(--primary)/0.15),0_8px_32px_hsl(0_0%_0%/0.25)]",
           "hover:shadow-[0_0_40px_hsl(var(--primary)/0.3),0_8px_32px_hsl(0_0%_0%/0.3)]",
+          "active:shadow-[0_0_30px_hsl(var(--primary)/0.25),0_4px_16px_hsl(0_0%_0%/0.2)]",
         ],
         intense: [
           "bg-card/70",
@@ -24,8 +25,8 @@ const featureCardVariants = cva(
       },
       size: {
         sm: "p-4",
-        default: "p-6",
-        lg: "p-8",
+        default: "p-5 sm:p-6",
+        lg: "p-6 sm:p-8",
       },
     },
     defaultVariants: {
@@ -74,7 +75,7 @@ const FeatureCard = React.forwardRef<HTMLDivElement, FeatureCardProps>(
         ref={ref}
         className={cn(
           featureCardVariants({ variant, size }),
-          hoverScale && "hover:scale-[1.02]",
+          hoverScale && "hover:scale-[1.02] active:scale-[0.98]",
           "overflow-hidden",
           className
         )}
@@ -154,12 +155,12 @@ const FeatureCard = React.forwardRef<HTMLDivElement, FeatureCardProps>(
         {/* Content */}
         <div className="relative z-10">
           {icon && (
-            <div className="h-12 w-12 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center mb-4 shadow-[0_0_15px_hsl(var(--primary)/0.2)] group-hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] group-hover:border-primary/50 transition-all duration-300">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center mb-3 sm:mb-4 shadow-[0_0_15px_hsl(var(--primary)/0.2)] group-hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] group-hover:border-primary/50 transition-all duration-300">
               {icon}
             </div>
           )}
           {title && (
-            <h3 className="font-semibold text-lg mb-2 text-foreground group-hover:text-primary transition-colors duration-300">
+            <h3 className="font-semibold text-base sm:text-lg mb-1.5 sm:mb-2 text-foreground group-hover:text-primary transition-colors duration-300">
               {title}
             </h3>
           )}
