@@ -1,7 +1,15 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COLORS_3D } from '@/constants/depthLayers3D';
+
+// Energy pulse configuration
+const PULSE_CONFIG = {
+  count: 12,
+  speed: 0.4,
+  size: 8,
+  glowIntensity: 2.5,
+};
 
 // Build a perspective grid where vertical lines converge to vanishing point
 // and horizontal lines stay parallel (like the Tron reference image)
@@ -95,6 +103,141 @@ const createHorizonLine = () => {
   return { positions, colors };
 };
 
+// Energy Pulse component
+function EnergyPulses() {
+  const pulsesRef = useRef<THREE.Points>(null);
+  const velocitiesRef = useRef<Float32Array | null>(null);
+  const linesRef = useRef<number[]>([]);
+  
+  const gridWidth = 1200;
+  const gridDepth = 600;
+  const numVerticalLines = 81;
+  const halfLines = Math.floor(numVerticalLines / 2);
+  const convergeFactor = 0.15;
+  
+  const { positions, colors, velocities, lineIndices } = useMemo(() => {
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const velocities: number[] = [];
+    const lineIndices: number[] = [];
+    
+    const cyan = new THREE.Color(COLORS_3D.primary);
+    
+    for (let i = 0; i < PULSE_CONFIG.count; i++) {
+      // Pick a random vertical line
+      const lineIndex = Math.floor(Math.random() * numVerticalLines) - halfLines;
+      lineIndices.push(lineIndex);
+      
+      // Random starting position along the line (0 = bottom, 1 = top/horizon)
+      const t = Math.random();
+      
+      // Calculate x position based on line and progress
+      const xBottom = (lineIndex / halfLines) * (gridWidth / 2);
+      const xTop = xBottom * convergeFactor;
+      const x = xBottom + (xTop - xBottom) * t;
+      const y = t * gridDepth;
+      
+      positions.push(x, y, 0.1); // Slightly in front of grid
+      
+      // Bright cyan color
+      colors.push(cyan.r * PULSE_CONFIG.glowIntensity, cyan.g * PULSE_CONFIG.glowIntensity, cyan.b * PULSE_CONFIG.glowIntensity);
+      
+      // Store velocity (varies slightly per pulse)
+      velocities.push(PULSE_CONFIG.speed * (0.8 + Math.random() * 0.4));
+    }
+    
+    return { 
+      positions: new Float32Array(positions), 
+      colors: new Float32Array(colors),
+      velocities: new Float32Array(velocities),
+      lineIndices
+    };
+  }, []);
+  
+  // Store refs for animation
+  velocitiesRef.current = velocities;
+  linesRef.current = lineIndices;
+  
+  useFrame((_, delta) => {
+    if (!pulsesRef.current || !velocitiesRef.current) return;
+    
+    const positionAttr = pulsesRef.current.geometry.attributes.position;
+    const colorAttr = pulsesRef.current.geometry.attributes.color;
+    const positions = positionAttr.array as Float32Array;
+    const colors = colorAttr.array as Float32Array;
+    const cyan = new THREE.Color(COLORS_3D.primary);
+    
+    for (let i = 0; i < PULSE_CONFIG.count; i++) {
+      const idx = i * 3;
+      const lineIndex = linesRef.current[i];
+      
+      // Get current t (progress along line, 0-1)
+      let t = positions[idx + 1] / gridDepth;
+      
+      // Move toward horizon
+      t += velocitiesRef.current[i] * delta;
+      
+      // Reset when reaching horizon
+      if (t >= 1) {
+        t = 0;
+        // Optionally pick a new random line
+        const newLineIndex = Math.floor(Math.random() * numVerticalLines) - halfLines;
+        linesRef.current[i] = newLineIndex;
+        velocitiesRef.current[i] = PULSE_CONFIG.speed * (0.8 + Math.random() * 0.4);
+      }
+      
+      // Recalculate position based on new t
+      const currentLineIndex = linesRef.current[i];
+      const xBottom = (currentLineIndex / halfLines) * (gridWidth / 2);
+      const xTop = xBottom * convergeFactor;
+      const x = xBottom + (xTop - xBottom) * t;
+      const y = t * gridDepth;
+      
+      positions[idx] = x;
+      positions[idx + 1] = y;
+      
+      // Fade out as approaching horizon, pulse glow
+      const fadeOut = 1 - Math.pow(t, 2);
+      const pulse = 0.8 + Math.sin(t * Math.PI * 4) * 0.2;
+      const intensity = PULSE_CONFIG.glowIntensity * fadeOut * pulse;
+      
+      colors[idx] = cyan.r * intensity;
+      colors[idx + 1] = cyan.g * intensity;
+      colors[idx + 2] = cyan.b * intensity;
+    }
+    
+    positionAttr.needsUpdate = true;
+    colorAttr.needsUpdate = true;
+  });
+  
+  return (
+    <points ref={pulsesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={PULSE_CONFIG.count}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={PULSE_CONFIG.count}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={PULSE_CONFIG.size}
+        vertexColors
+        transparent
+        opacity={0.9}
+        blending={THREE.AdditiveBlending}
+        sizeAttenuation
+      />
+    </points>
+  );
+}
+
 export function GridPlane3D() {
   const gridRef = useRef<THREE.LineSegments>(null);
   const horizonRef = useRef<THREE.LineSegments>(null);
@@ -145,6 +288,9 @@ export function GridPlane3D() {
           blending={THREE.AdditiveBlending}
         />
       </lineSegments>
+      
+      {/* Energy pulses traveling along grid lines */}
+      <EnergyPulses />
       
       {/* Horizon glow line */}
       <group position={[0, 600, 0]}>
