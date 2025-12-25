@@ -1,6 +1,24 @@
+import { useState, useEffect } from 'react';
 import { Brain } from 'lucide-react';
 
 export function KernelThinkingIndicator() {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
   return (
     <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="relative">
@@ -19,6 +37,12 @@ export function KernelThinkingIndicator() {
           />
         ))}
       </div>
+
+      {elapsedSeconds >= 3 && (
+        <span className="text-xs text-muted-foreground/50 animate-in fade-in duration-300">
+          {formatTime(elapsedSeconds)}
+        </span>
+      )}
     </div>
   );
 }
