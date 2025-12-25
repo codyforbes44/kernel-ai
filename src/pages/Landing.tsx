@@ -61,8 +61,46 @@ export default function Landing() {
         id="hero" 
         className="relative min-h-[100dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
       >
-        {/* 3D Background */}
-        <HeroBackground isVisible={isHeroVisible && show3DEffects} />
+        {/* 3D Background or CSS Fallback */}
+        {show3DEffects ? (
+          <HeroBackground isVisible={isHeroVisible} />
+        ) : (
+          <div 
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            aria-hidden="true"
+          >
+            {/* Gradient base layer */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(210 100% 3%) 50%, hsl(195 100% 5%) 100%)'
+              }}
+            />
+            {/* Radial glow from center-bottom */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse 120% 60% at 50% 100%, hsl(var(--primary) / 0.15) 0%, transparent 60%)'
+              }}
+            />
+            {/* Subtle top vignette */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse 100% 50% at 50% 0%, hsl(var(--primary) / 0.05) 0%, transparent 50%)'
+              }}
+            />
+            {/* Grid pattern overlay for texture */}
+            <div 
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: `linear-gradient(hsl(var(--primary) / 0.5) 1px, transparent 1px),
+                                  linear-gradient(90deg, hsl(var(--primary) / 0.5) 1px, transparent 1px)`,
+                backgroundSize: '60px 60px'
+              }}
+            />
+          </div>
+        )}
         
         {/* Visual Effects Toggle - positioned in top right of hero */}
         <div className="absolute top-20 md:top-24 right-4 md:right-6 z-20">
