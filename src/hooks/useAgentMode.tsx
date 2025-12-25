@@ -13,6 +13,7 @@ import {
   type SearchResult,
   type FileListItem,
   type AgentConfig,
+  type StreamingToolCall,
 } from '@/types/agent';
 
 interface UseAgentModeOptions {
@@ -286,7 +287,7 @@ export function useAgentMode({
     const decoder = new TextDecoder();
     let buffer = '';
     let fullContent = '';
-    let toolCalls: AgentToolCall[] = [];
+    let toolCalls: StreamingToolCall[] = [];
     
     try {
       while (true) {
@@ -321,8 +322,7 @@ export function useAgentMode({
                 const existing = toolCalls.find(t => t.id === tc.id);
                 if (existing) {
                   if (tc.function?.arguments) {
-                    (existing as any)._argsBuffer = 
-                      ((existing as any)._argsBuffer || '') + tc.function.arguments;
+                    existing._argsBuffer = (existing._argsBuffer || '') + tc.function.arguments;
                   }
                 } else if (tc.id) {
                   toolCalls.push({
@@ -330,21 +330,19 @@ export function useAgentMode({
                     name: tc.function?.name || '',
                     arguments: {},
                     _argsBuffer: tc.function?.arguments || '',
-                  } as any);
+                  });
                 }
               }
             }
             
             if (choice?.finish_reason === 'tool_calls' || choice?.finish_reason === 'stop') {
-              // Parse accumulated arguments
-              toolCalls = toolCalls.map(tc => ({
+              // Parse accumulated arguments and convert to AgentToolCall
+              const parsedToolCalls: AgentToolCall[] = toolCalls.map(tc => ({
                 id: tc.id,
                 name: tc.name,
-                arguments: (tc as any)._argsBuffer 
-                  ? JSON.parse((tc as any)._argsBuffer) 
-                  : {},
+                arguments: tc._argsBuffer ? JSON.parse(tc._argsBuffer) : {},
               }));
-              onToolCalls(toolCalls);
+              onToolCalls(parsedToolCalls);
             }
           } catch (e) {
             // Ignore JSON parse errors for partial chunks

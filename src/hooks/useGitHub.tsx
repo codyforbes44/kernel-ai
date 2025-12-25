@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { GitHubConnection, ProjectRepo, GitHubCommit, GitHubRepo } from '@/types/github';
+import { 
+  type GitHubConnection, 
+  type ProjectRepo, 
+  type GitHubCommit, 
+  type GitHubRepo,
+  isGitHubConnection,
+  isProjectRepo,
+  isGitHubCommitArray,
+} from '@/types/github';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
@@ -58,7 +66,7 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
         .eq('user_id', user.id)
         .single();
 
-      return data as GitHubConnection | null;
+      return isGitHubConnection(data) ? data : null;
     },
   });
 
@@ -72,7 +80,7 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
         .eq('project_id', projectId)
         .single();
 
-      return data as ProjectRepo | null;
+      return isProjectRepo(data) ? data : null;
     },
     enabled: !!projectId,
   });
@@ -94,7 +102,8 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
       });
 
       const data = await response.json();
-      return (data.commits || []) as GitHubCommit[];
+      const commits = data.commits;
+      return isGitHubCommitArray(commits) ? commits : [];
     },
     enabled: !!projectId && !!repo,
   });
