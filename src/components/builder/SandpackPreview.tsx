@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { useShortcut } from '@/hooks/useKeyboardShortcuts';
 import {
   SandpackProvider,
   SandpackPreview as SandpackPreviewPane,
@@ -461,6 +462,11 @@ export function SandpackPreview({
   const [refreshKey, setRefreshKey] = useState(0);
   const [isVisualEditorActive, setIsVisualEditorActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Viewport switching keyboard shortcuts
+  useShortcut('1', () => setViewport('desktop'), { description: 'Desktop view' });
+  useShortcut('2', () => setViewport('tablet'), { description: 'Tablet view' });
+  useShortcut('3', () => setViewport('mobile'), { description: 'Mobile view' });
 
   const handleToggleFullscreen = () => {
     setIsFullscreen(prev => !prev);
