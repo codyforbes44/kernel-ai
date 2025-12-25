@@ -8,12 +8,12 @@ export const DEPTH_LAYERS_3D = {
   PARTICLES: -80,       // Ambient floating particles (closer than grid)
 } as const;
 
-// Camera configuration - elevated viewpoint for better depth perception
+// Camera configuration - eye-level for forward-looking perspective
 export const CAMERA_CONFIG = {
   FOV: 75,
   NEAR: 0.1,
-  FAR: 3000,
-  POSITION: [0, 30, 120] as [number, number, number],
+  FAR: 2000,
+  POSITION: [0, 0, 50] as [number, number, number],
 } as const;
 
 // Performance tiers based on device capability
