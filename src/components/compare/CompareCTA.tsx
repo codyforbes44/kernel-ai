@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export const CompareCTA = () => {
   return (
@@ -13,10 +15,13 @@ export const CompareCTA = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
             <Button size="lg" asChild className="w-full sm:w-auto">
-              <a href="/auth">Get Started Free</a>
+              <Link to="/request-invite">
+                Request Early Access
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="w-full sm:w-auto">
-              <a href="/pricing">View Pricing</a>
+              <Link to="/redeem-invite">Redeem Invite Code</Link>
             </Button>
           </div>
         </div>

@@ -21,8 +21,9 @@ const routeLabels: Record<string, string> = {
   "settings": "Settings",
   "admin": "Admin",
   "auth": "Sign In",
-  "pricing": "Pricing",
   "contact": "Contact",
+  "request-invite": "Request Access",
+  "redeem-invite": "Redeem Code",
 };
 
 export function Breadcrumbs({ items, className, auto = false }: BreadcrumbsProps) {
