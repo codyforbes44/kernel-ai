@@ -38,6 +38,7 @@ export function useThreePerformance(): PerformanceState {
         
         if (!gl) {
           setTier('LOW');
+          canvas.remove();
           return;
         }
 
@@ -67,6 +68,11 @@ export function useThreePerformance(): PerformanceState {
           setTier('LOW');
         }
 
+        // Properly dispose WebGL context to prevent context exhaustion
+        const loseContext = gl.getExtension('WEBGL_lose_context');
+        if (loseContext) {
+          loseContext.loseContext();
+        }
         canvas.remove();
       } catch {
         setTier('MEDIUM');
