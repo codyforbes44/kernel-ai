@@ -125,19 +125,30 @@ export function useVoiceAgent({
     setError(null);
 
     try {
-      // Some browsers (especially mobile Safari) throw "The operation is insecure" when not in a secure context.
-      if (typeof window !== 'undefined' && !window.isSecureContext) {
+      // Check for HTTPS - be more lenient since isSecureContext can be false in iframes even over HTTPS
+      const isHttps = typeof window !== 'undefined' && (
+        window.location.protocol === 'https:' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+      );
+
+      if (!isHttps) {
         throw new Error('Microphone access requires HTTPS. Please open the secure (https://) version of this site.');
       }
 
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error('Microphone access is not available in this browser. Please use a modern browser over HTTPS.');
+        throw new Error('Microphone access is not available in this browser. Please use a modern browser.');
       }
 
       // Request microphone permission first
       console.log('Requesting microphone permission...');
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('Microphone permission granted');
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('Microphone permission granted');
+      } catch (micError) {
+        // Re-throw with more context
+        throw micError;
+      }
 
       // Get signed URL from edge function with user context
       console.log('Fetching signed URL with context...');
