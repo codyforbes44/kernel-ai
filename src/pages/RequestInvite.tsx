@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { PublicLayout } from '@/components/layout/PublicLayout';
 import { SEO } from '@/components/seo/SEO';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { GlassPanel, GlassPanelContent, GlassPanelHeader, GlassPanelTitle } from '@/components/ui/glass-panel';
+import { HoloSection } from '@/components/ui/holo-section';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { GlowText } from '@/components/ui/glow-text';
+import { PageBackground3D } from '@/components/three/PageBackground3D';
+import { KernelLogo } from '@/components/ui/kernel-logo';
 import { useInviteCode } from '@/hooks/useInviteCode';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { toast } from 'sonner';
 import { 
   Sparkles, 
   ArrowRight, 
+  ArrowLeft,
   CheckCircle2, 
   Users, 
   Zap, 
@@ -35,6 +39,7 @@ const requestSchema = z.object({
 type RequestFormData = z.infer<typeof requestSchema>;
 
 export default function RequestInvite() {
+  const navigate = useNavigate();
   const { submitRequest, submitting } = useInviteCode();
   const [submitted, setSubmitted] = useState(false);
   
@@ -58,110 +63,113 @@ export default function RequestInvite() {
     toast.success('Request submitted!');
   };
 
+  const features = [
+    { icon: Zap, label: "Build 10x Faster", description: "Go from idea to deployed app in minutes" },
+    { icon: Shield, label: "Production Ready", description: "Built-in auth, database, and deployment" },
+    { icon: Users, label: "Join the Community", description: "Connect with other builders" },
+  ];
+
   if (submitted) {
     return (
-      <PublicLayout>
+      <div className="relative min-h-screen flex items-center justify-center">
+        <PageBackground3D intensity="low" className="fixed inset-0" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
+        
         <SEO
           title="Request Submitted | Kernel"
           description="Your early access request has been submitted"
           noIndex
         />
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-          <Card className="max-w-md w-full text-center">
-            <CardHeader>
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-green-500" />
-              </div>
-              <CardTitle className="text-2xl">Request Submitted!</CardTitle>
-              <CardDescription className="text-base">
-                Thank you for your interest in Kernel. We'll review your application and be in touch if you're selected for early access.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                In the meantime, follow us on X for updates and exclusive invite code giveaways.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="outline" asChild>
-                  <a href="https://x.com/kernel" target="_blank" rel="noopener noreferrer">
-                    Follow on X
-                  </a>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <Link to="/">Back to Home</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </PublicLayout>
+        
+        <GlassPanel variant="glow" blur="xl" className="relative z-10 max-w-md mx-4 p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-success" />
+            </div>
+          </div>
+          <GlowText as="h1" variant="primary" intensity="medium" className="text-2xl font-bold mb-2">
+            Request Submitted!
+          </GlowText>
+          <p className="text-muted-foreground mb-6">
+            Thank you for your interest in Kernel. We'll review your application and be in touch if you're selected for early access.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button variant="outline" asChild>
+              <a href="https://x.com/kernel" target="_blank" rel="noopener noreferrer">
+                Follow on X for updates
+              </a>
+            </Button>
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </div>
+        </GlassPanel>
+      </div>
     );
   }
 
   return (
-    <PublicLayout>
+    <div className="relative min-h-screen">
+      <PageBackground3D intensity="low" className="fixed inset-0" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
+      
       <SEO
         title="Request Early Access | Kernel"
         description="Request exclusive early access to Kernel - the AI-powered development platform"
       />
-      
-      <div className="min-h-[calc(100vh-4rem)] py-16 px-4">
-        <div className="container mx-auto max-w-5xl">
+
+      <HoloSection variant="gradient" className="relative z-10 min-h-screen py-8 px-4">
+        {/* Header */}
+        <div className="container max-w-6xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="mb-8 gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+
           <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Left Column - Info */}
+            {/* Left: Info */}
             <div className="space-y-8">
-              <div>
-                <Badge variant="secondary" className="mb-4">
+              <div className="flex items-center gap-3">
+                <KernelLogo size="lg" glow />
+                <HoloBadge variant="glow">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Limited Early Access
-                </Badge>
-                <h1 className="text-4xl font-bold tracking-tight mb-4">
+                </HoloBadge>
+              </div>
+              
+              <div className="space-y-4">
+                <GlowText as="h1" variant="gradient" intensity="medium" className="text-4xl sm:text-5xl font-bold tracking-tight">
                   Get Early Access to Kernel
-                </h1>
+                </GlowText>
                 <p className="text-lg text-muted-foreground">
                   We're opening up Kernel to a select group of early adopters. 
-                  Tell us about yourself and how you plan to use Kernel, and we'll 
-                  consider you for exclusive access.
+                  Tell us about yourself and how you plan to use Kernel.
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Zap className="h-5 w-5 text-primary" />
+                {features.map((feature) => (
+                  <div 
+                    key={feature.label}
+                    className="flex items-start gap-4 p-4 rounded-lg bg-card/30 border border-border/30 backdrop-blur-sm"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <feature.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{feature.label}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">Build 10x Faster</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Go from idea to deployed app in minutes with AI assistance
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Shield className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Production Ready</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Built-in auth, database, and deployment infrastructure
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Join the Community</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Connect with other builders and shape the future of Kernel
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="p-4 bg-muted/50 rounded-lg border">
+              <div className="p-4 bg-card/30 rounded-lg border border-border/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <Ticket className="h-4 w-4 text-primary" />
                   <span className="font-medium">Have an invite code?</span>
@@ -170,7 +178,7 @@ export default function RequestInvite() {
                   If you already have an invite code, you can sign up directly.
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth">
+                  <Link to="/redeem">
                     Enter Invite Code
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Link>
@@ -178,15 +186,15 @@ export default function RequestInvite() {
               </div>
             </div>
 
-            {/* Right Column - Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Access</CardTitle>
-                <CardDescription>
+            {/* Right: Form */}
+            <GlassPanel variant="glow" blur="xl" scanLine>
+              <GlassPanelHeader>
+                <GlassPanelTitle>Request Access</GlassPanelTitle>
+                <p className="text-sm text-muted-foreground">
                   Access is not guaranteed. We review each request individually.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </GlassPanelHeader>
+              <GlassPanelContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
@@ -194,6 +202,7 @@ export default function RequestInvite() {
                       id="name"
                       placeholder="Your name"
                       {...register('name')}
+                      className="bg-background/50"
                     />
                     {errors.name && (
                       <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -207,6 +216,7 @@ export default function RequestInvite() {
                       type="email"
                       placeholder="you@example.com"
                       {...register('email')}
+                      className="bg-background/50"
                     />
                     {errors.email && (
                       <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -220,16 +230,17 @@ export default function RequestInvite() {
                       placeholder="Tell us about what you want to build, your experience level, and why you're excited about Kernel..."
                       rows={5}
                       {...register('use_case')}
+                      className="bg-background/50 resize-none"
                     />
                     {errors.use_case && (
                       <p className="text-sm text-destructive">{errors.use_case.message}</p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Minimum 20 characters. The more detail you provide, the better we can evaluate your request.
+                      Minimum 20 characters. The more detail you provide, the better.
                     </p>
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={submitting}>
+                  <Button type="submit" className="w-full gap-2" disabled={submitting}>
                     {submitting ? (
                       <>
                         <LoadingSpinner className="mr-2" />
@@ -238,27 +249,27 @@ export default function RequestInvite() {
                     ) : (
                       <>
                         Submit Request
-                        <ArrowRight className="h-4 w-4 ml-2" />
+                        <ArrowRight className="h-4 w-4" />
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
                     By submitting, you agree to our{' '}
-                    <Link to="/privacy" className="underline hover:text-foreground">
+                    <Link to="/privacy" className="underline hover:text-primary">
                       Privacy Policy
                     </Link>
                     {' '}and{' '}
-                    <Link to="/terms" className="underline hover:text-foreground">
+                    <Link to="/terms" className="underline hover:text-primary">
                       Terms of Service
                     </Link>
                   </p>
                 </form>
-              </CardContent>
-            </Card>
+              </GlassPanelContent>
+            </GlassPanel>
           </div>
         </div>
-      </div>
-    </PublicLayout>
+      </HoloSection>
+    </div>
   );
 }
