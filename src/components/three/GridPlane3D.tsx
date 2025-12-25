@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COLORS_3D, getScaledPulseConfig, getScaledParticleConfig, getScaledFogSegments } from '@/constants/depthLayers3D';
 import { useAdaptiveQuality } from '@/hooks/useThreePerformance';
-
+import { VanishingPointGlow, LayeredFog } from './VanishingPointGlow';
 // Shared color instances to avoid per-frame allocations
 const sharedColors = {
   cyan: new THREE.Color(COLORS_3D.primary),
@@ -538,6 +538,12 @@ export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlan
       
       {/* Horizon fog for atmospheric depth */}
       <HorizonFog segments={fogSegments} />
+      
+      {/* Vanishing point star glow - Apple Vision inspired */}
+      {canAnimate && <VanishingPointGlow intensity={0.8} pulse godRays />}
+      
+      {/* Layered fog planes for depth */}
+      {canAnimate && <LayeredFog layers={4} opacity={0.08} />}
       
       {/* Horizon glow line */}
       <group position={[0, 600, 0]}>

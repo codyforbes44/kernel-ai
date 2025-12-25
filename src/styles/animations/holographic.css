@@ -93,3 +93,74 @@
     box-shadow: 0 0 20px hsl(var(--primary) / 0.6);
   }
 }
+
+/* visionOS-inspired spatial focus glow */
+@keyframes spatialFocus {
+  0%, 100% {
+    filter: saturate(100%) brightness(100%);
+    box-shadow: 0 0 0 hsl(var(--primary) / 0);
+  }
+  50% {
+    filter: saturate(120%) brightness(110%);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.2);
+  }
+}
+
+/* Depth-aware parallax float */
+@keyframes parallaxFloat {
+  0%, 100% {
+    transform: translateZ(0px) translateY(0);
+  }
+  50% {
+    transform: translateZ(10px) translateY(-5px);
+  }
+}
+
+/* Edge refraction shimmer */
+@keyframes edgeRefraction {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Vanishing point pulse */
+@keyframes vanishingPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+/* God ray rotation */
+@keyframes godRayRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Utility classes */
+.spatial-focus {
+  animation: spatialFocus 3s ease-in-out infinite;
+}
+
+.parallax-float {
+  animation: parallaxFloat 6s ease-in-out infinite;
+}
+
+.edge-refraction {
+  background-size: 200% 200%;
+  animation: edgeRefraction 4s ease-in-out infinite;
+}
