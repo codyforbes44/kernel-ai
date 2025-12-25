@@ -1124,3 +1124,105 @@
   0%, 100% { opacity: 0.1; }
   50% { opacity: 0.6; }
 }
+
+/* ========================================
+   2100-ERA UI ANIMATIONS
+   ======================================== */
+
+/* Scan line animation for holo cards */
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.animate-scan-line {
+  animation: scan-line 3s ease-in-out infinite;
+}
+
+/* Glow pulse for text */
+@keyframes glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Holographic shimmer */
+@keyframes holo-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-holo-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--primary) / 0.1) 25%,
+    hsl(var(--primary) / 0.2) 50%,
+    hsl(var(--primary) / 0.1) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: holo-shimmer 3s ease-in-out infinite;
+}
+
+/* Subtle float animation */
+@keyframes subtle-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-subtle-float {
+  animation: subtle-float 4s ease-in-out infinite;
+}
+
+/* Border glow animation */
+@keyframes border-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.4);
+  }
+}
+
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+/* Mobile-first touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  .touch-feedback:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Reduced motion - disable animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scan-line,
+  .animate-glow-pulse,
+  .animate-holo-shimmer,
+  .animate-subtle-float,
+  .animate-border-glow {
+    animation: none !important;
+  }
+}

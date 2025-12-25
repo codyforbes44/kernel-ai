@@ -68,7 +68,7 @@ const milestones = [
 
 export default function About() {
   return (
-    <PublicLayout>
+    <PublicLayout backgroundIntensity="medium">
       <SEO 
         title={PAGE_SEO.about.title}
         description={PAGE_SEO.about.description}
@@ -82,16 +82,16 @@ export default function About() {
       />
 
       {/* Hero - Mission Statement */}
-      <section className="pt-16 pb-12 px-4 perspective-container">
-        <div className="container mx-auto text-center max-w-4xl preserve-3d">
-          <Badge variant="secondary" className="mb-4">
+      <section className="pt-12 sm:pt-16 pb-8 sm:pb-12 px-4">
+        <div className="container mx-auto text-center max-w-4xl">
+          <Badge variant="secondary" className="mb-4 bg-primary/10 border-primary/30">
             Our Mission
           </Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 depth-layer-front">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
             Empowering developers to{" "}
-            <span className="text-primary">build faster</span>
+            <span className="text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)]">build faster</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto depth-layer-near">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             We're on a mission to democratize software development. By combining 
             cutting-edge AI with intuitive design, we're making it possible for 
             anyone to bring their ideas to life in 2026 and beyond.

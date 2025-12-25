@@ -62,14 +62,27 @@ export function PublicFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border/40 bg-background">
-      <div className="container mx-auto px-4 py-12">
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
+    <footer className="relative border-t border-border/40 bg-background/80 backdrop-blur-sm">
+      {/* Top holographic accent */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      
+      {/* Subtle grid pattern overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
+                           linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }}
+      />
+      
+      <div className="container mx-auto px-4 py-10 sm:py-12 relative z-10">
+        {/* Main Footer Grid - Mobile first */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {/* Brand Column */}
-          <div className="col-span-2">
+          <div className="col-span-2 sm:col-span-3 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <KernelLogo className="w-8 h-8" />
+              <KernelLogo className="w-7 h-7 sm:w-8 sm:h-8" />
               <span className="font-bold text-lg">Kernel</span>
             </div>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">
@@ -83,7 +96,7 @@ export function PublicFooter() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-2.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all border border-transparent hover:border-primary/30"
                   aria-label={social.label}
                 >
                   <social.icon className="h-4 w-4" />
@@ -92,11 +105,11 @@ export function PublicFooter() {
             </div>
           </div>
 
-          {/* Link Columns */}
+          {/* Link Columns - Responsive grid */}
           {footerSections.map((section) => (
-            <div key={section.title}>
-              <h4 className="font-semibold text-sm mb-4">{section.title}</h4>
-              <ul className="space-y-3">
+            <div key={section.title} className="min-w-0">
+              <h4 className="font-semibold text-sm mb-3 sm:mb-4 text-foreground/90">{section.title}</h4>
+              <ul className="space-y-2 sm:space-y-3">
                 {section.links.map((link) => (
                   <li key={link.label}>
                     {link.external ? (
@@ -104,21 +117,21 @@ export function PublicFooter() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
                         {link.label}
                       </a>
                     ) : link.href.startsWith("#") || link.href.startsWith("/#") ? (
                       <a
                         href={link.href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         to={link.href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
                         {link.label}
                       </Link>
@@ -131,27 +144,27 @@ export function PublicFooter() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="pt-6 sm:pt-8 border-t border-border/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <p className="text-sm text-muted-foreground">
               © {currentYear} Kernel. All rights reserved.
             </p>
-            <span className="text-xs text-muted-foreground/60">
+            <span className="text-xs text-muted-foreground/50 font-mono">
               v{APP_VERSION}
             </span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <Link
               to="/privacy"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              Privacy Policy
+              Privacy
             </Link>
             <Link
               to="/terms"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              Terms of Service
+              Terms
             </Link>
           </div>
         </div>

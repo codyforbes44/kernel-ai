@@ -94,7 +94,7 @@ export default function Contact() {
   }));
 
   return (
-    <PublicLayout>
+    <PublicLayout backgroundIntensity="low">
       <SEO 
         title={PAGE_SEO.contact.title}
         description={PAGE_SEO.contact.description}
@@ -110,16 +110,16 @@ export default function Contact() {
       />
 
       {/* Hero Section */}
-      <section className="pt-16 pb-12 px-4">
+      <section className="pt-12 sm:pt-16 pb-8 sm:pb-12 px-4">
         <div className="container mx-auto text-center max-w-3xl">
-          <Badge variant="secondary" className="mb-4">
+          <Badge variant="secondary" className="mb-4 bg-primary/10 border-primary/30">
             <HelpCircle className="h-3 w-3 mr-1" />
             Support Center
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            How can we <span className="text-primary">help</span>?
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 sm:mb-6">
+            How can we <span className="text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)]">help</span>?
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Browse our FAQ for quick answers or get in touch with our support team. 
             We're here to help you succeed with Kernel.
           </p>
