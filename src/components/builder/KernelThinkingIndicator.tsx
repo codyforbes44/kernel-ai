@@ -1,13 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Brain } from 'lucide-react';
 
+const STATUS_MESSAGES = [
+  'Kernel is thinking',
+  'Analyzing your request',
+  'Reviewing files',
+  'Generating code',
+  'Processing context',
+  'Crafting solution',
+];
+
 export function KernelThinkingIndicator() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % STATUS_MESSAGES.length);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -26,7 +44,12 @@ export function KernelThinkingIndicator() {
         <div className="absolute inset-0 h-4 w-4 bg-primary/20 rounded-full blur-md animate-pulse" />
       </div>
       
-      <span className="text-muted-foreground text-sm">Kernel is thinking</span>
+      <span 
+        key={messageIndex}
+        className="text-muted-foreground text-sm animate-in fade-in duration-300"
+      >
+        {STATUS_MESSAGES[messageIndex]}
+      </span>
       
       <div className="flex items-center gap-0.5">
         {[0, 1, 2].map((i) => (
