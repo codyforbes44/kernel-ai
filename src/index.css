@@ -263,7 +263,132 @@
 }
 
 @layer base {
-  * {
+/* ========================================
+   3D DEPTH PERCEPTION SYSTEM
+   ======================================== */
+
+/* Perspective container for 3D depth */
+.perspective-container {
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+}
+
+/* Preserve 3D transforms */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Depth layers with translateZ */
+.depth-layer-far {
+  transform: translateZ(-100px) scale(1.1);
+}
+
+.depth-layer-mid {
+  transform: translateZ(-50px) scale(1.05);
+}
+
+.depth-layer-near {
+  transform: translateZ(0px);
+}
+
+.depth-layer-front {
+  transform: translateZ(50px);
+}
+
+/* Depth hover effect for interactive elements */
+.depth-hover {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  transform-style: preserve-3d;
+}
+
+.depth-hover:hover {
+  transform: translateZ(20px) scale(1.02);
+  box-shadow: 
+    0 20px 40px -15px hsl(var(--primary) / 0.2),
+    0 10px 20px -10px hsl(var(--background) / 0.8);
+}
+
+/* 3D Card tilt effect */
+.depth-card {
+  transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.depth-card:hover {
+  transform: translateZ(30px) rotateX(-2deg) rotateY(2deg);
+  box-shadow: 
+    0 25px 50px -20px hsl(var(--primary) / 0.15),
+    0 15px 30px -15px hsl(var(--background) / 0.9);
+}
+
+/* Floating 3D animation */
+@keyframes float3d {
+  0%, 100% {
+    transform: translateZ(0px) translateY(0px) rotateX(0deg);
+  }
+  25% {
+    transform: translateZ(10px) translateY(-5px) rotateX(1deg);
+  }
+  50% {
+    transform: translateZ(5px) translateY(-10px) rotateX(0deg);
+  }
+  75% {
+    transform: translateZ(15px) translateY(-5px) rotateX(-1deg);
+  }
+}
+
+.float-3d {
+  animation: float3d 8s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* Staggered floating animation */
+.float-3d-1 { animation-delay: 0s; }
+.float-3d-2 { animation-delay: 1s; }
+.float-3d-3 { animation-delay: 2s; }
+.float-3d-4 { animation-delay: 3s; }
+
+/* Depth-aware shadows */
+.depth-shadow-near {
+  box-shadow: 0 8px 24px -6px hsl(var(--foreground) / 0.1);
+}
+
+.depth-shadow-mid {
+  box-shadow: 0 16px 40px -10px hsl(var(--foreground) / 0.15);
+}
+
+.depth-shadow-far {
+  box-shadow: 0 24px 60px -15px hsl(var(--foreground) / 0.2);
+}
+
+/* Reduced motion support for 3D effects */
+@media (prefers-reduced-motion: reduce) {
+  .perspective-container,
+  .preserve-3d,
+  .depth-layer-far,
+  .depth-layer-mid,
+  .depth-layer-near,
+  .depth-layer-front,
+  .depth-hover,
+  .depth-card,
+  .float-3d {
+    transform: none !important;
+    animation: none !important;
+    transition: opacity 0.3s ease-out !important;
+  }
+  
+  .depth-hover:hover,
+  .depth-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+* {
     @apply border-border;
   }
 

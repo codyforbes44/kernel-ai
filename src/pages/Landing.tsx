@@ -82,18 +82,18 @@ export default function Landing() {
       />
 
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16">
+      <section id="hero" className="relative min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16 perspective-container">
         <HeroBackground />
-        <div className="relative container mx-auto text-center max-w-4xl">
+        <div className="relative container mx-auto text-center max-w-4xl preserve-3d">
           <GlowBadge 
             variant="glow" 
             size="lg" 
             pulse 
             icon={<Sparkles className="h-4 w-4" />}
-            className="mb-8 relative z-20"
+            className="mb-8 relative z-20 depth-hover"
           >
             <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
-              <span className="text-sm sm:text-base">Early Access Now Open 🚀</span>
+              <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
               <span className="hidden sm:inline opacity-50">•</span>
               <span className="hidden xs:inline text-sm">
                 Request your invite today
@@ -101,25 +101,25 @@ export default function Landing() {
             </span>
           </GlowBadge>
           
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text">
-            Build Beautiful Apps
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text depth-layer-front">
+            Build the Future
             <br />
-            <span className="text-primary">With AI Assistance</span>
+            <span className="text-primary">With AI at Your Side</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-            From idea to deployment in minutes. Chat with AI, build visually, 
-            and launch your web applications without the complexity.
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed depth-layer-near">
+            Transform ideas into production-ready apps in minutes. 
+            The next generation of AI-powered development starts here.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto px-4 sm:px-0">
-            <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto px-4 sm:px-0 depth-layer-front">
+            <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base depth-hover" asChild>
               <Link to="/request-invite">
-                Request Early Access
+                Start Building in 2026
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base depth-hover" asChild>
               <Link to="/redeem-invite">
                 Have an Invite Code?
               </Link>
@@ -208,22 +208,22 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section id="cta" className="py-20 px-4 scroll-mt-16">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Build Something Amazing?
+      <section id="cta" className="py-20 px-4 scroll-mt-16 perspective-container">
+        <div className="container mx-auto max-w-4xl text-center preserve-3d">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 depth-layer-near">
+            Make 2026 Your Year to Build
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-            Request early access to Kernel and be among the first to experience AI-powered development.
+            Join thousands of developers already building the future with Kernel's AI-powered platform.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="gold" size="lg" className="h-12 px-8 text-base" asChild>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 depth-layer-front">
+            <Button variant="gold" size="lg" className="h-12 px-8 text-base depth-hover" asChild>
               <Link to="/request-invite">
-                Request Early Access
+                Get Started Now
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="gold-outline" className="h-12 px-8 text-base" asChild>
+            <Button size="lg" variant="gold-outline" className="h-12 px-8 text-base depth-hover" asChild>
               <Link to="/redeem-invite">
                 Redeem Invite Code
               </Link>

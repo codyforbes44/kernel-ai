@@ -5,27 +5,27 @@ const steps = [
   {
     icon: MessageSquare,
     step: "01",
-    title: "Describe Your Idea",
-    description: "Tell the AI what you want to build in plain language. No coding experience needed.",
+    title: "Describe Your Vision",
+    description: "Chat naturally with AI about what you want to build. No technical jargon needed.",
   },
   {
     icon: Wand2,
     step: "02",
-    title: "AI Generates Code",
-    description: "Watch as your application comes to life with production-ready React code.",
+    title: "Watch It Come to Life",
+    description: "AI generates production-ready code in real-time as you refine your ideas.",
   },
   {
     icon: Rocket,
     step: "03",
     title: "Deploy Instantly",
-    description: "One click to deploy. Get a live URL and share your creation with the world.",
+    description: "One click to launch. Share your creation with the world in seconds.",
   },
 ];
 
 export function HowItWorksSection() {
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-muted/30 to-background">
-      <div className="container mx-auto max-w-5xl">
+    <section className="py-20 px-4 bg-gradient-to-b from-muted/30 to-background perspective-container">
+      <div className="container mx-auto max-w-5xl preserve-3d">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -40,26 +40,52 @@ export function HowItWorksSection() {
           </p>
         </motion.div>
 
-        <div className="relative">
-          {/* Connection Line */}
-          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2" />
+        <div className="relative preserve-3d">
+          {/* 3D Connection Line */}
+          <div 
+            className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2"
+            style={{ 
+              transform: 'translateZ(-20px) translateY(-50%)',
+            }}
+          />
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-4">
             {steps.map((step, index) => (
               <motion.div
                 key={step.step}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 30, rotateX: -10 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.15 }}
-                className="relative text-center"
+                transition={{ delay: index * 0.15, duration: 0.5 }}
+                whileHover={{ 
+                  y: -10,
+                  rotateX: 5,
+                  scale: 1.02,
+                  transition: { duration: 0.3 }
+                }}
+                className="relative text-center depth-card"
+                style={{ 
+                  transformStyle: 'preserve-3d',
+                  transform: `translateZ(${(2 - index) * -15}px)`,
+                }}
               >
-                {/* Step number badge */}
+                {/* Step number badge with depth glow */}
                 <div className="relative inline-block mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20">
+                  <div 
+                    className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20"
+                    style={{
+                      boxShadow: '0 10px 30px -10px hsl(var(--primary) / 0.3)',
+                    }}
+                  >
                     <step.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                  <span 
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center"
+                    style={{
+                      transform: 'translateZ(10px)',
+                      boxShadow: '0 4px 12px hsl(var(--primary) / 0.4)',
+                    }}
+                  >
                     {index + 1}
                   </span>
                 </div>

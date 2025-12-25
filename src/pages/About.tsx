@@ -54,8 +54,13 @@ const milestones = [
   },
   {
     year: "2025",
-    title: "The Future",
-    description: "Expanding our AI capabilities and building the next generation of developer tools.",
+    title: "Breaking Barriers",
+    description: "Launched advanced AI features and expanded our developer community globally.",
+  },
+  {
+    year: "2026",
+    title: "The Future is Now",
+    description: "Pioneering the next generation of AI-powered development tools and experiences.",
   },
 ];
 
@@ -77,19 +82,19 @@ export default function About() {
       />
 
       {/* Hero - Mission Statement */}
-      <section className="pt-16 pb-12 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
+      <section className="pt-16 pb-12 px-4 perspective-container">
+        <div className="container mx-auto text-center max-w-4xl preserve-3d">
           <Badge variant="secondary" className="mb-4">
             Our Mission
           </Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 depth-layer-front">
             Empowering developers to{" "}
             <span className="text-primary">build faster</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto depth-layer-near">
             We're on a mission to democratize software development. By combining 
             cutting-edge AI with intuitive design, we're making it possible for 
-            anyone to bring their ideas to life.
+            anyone to bring their ideas to life in 2026 and beyond.
           </p>
         </div>
       </section>
@@ -111,16 +116,24 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6 perspective-container">
             {milestones.map((milestone, index) => (
-              <Card key={milestone.year} className="relative overflow-hidden group">
+              <Card 
+                key={milestone.year} 
+                className="relative overflow-hidden group depth-card"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  transform: `translateZ(${index * -10}px)`,
+                }}
+              >
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-primary/20" />
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-primary/10">
                       {index === 0 && <Sparkles className="h-5 w-5 text-primary" />}
                       {index === 1 && <Code2 className="h-5 w-5 text-primary" />}
-                      {index === 2 && <Rocket className="h-5 w-5 text-primary" />}
+                      {index === 2 && <Zap className="h-5 w-5 text-primary" />}
+                      {index === 3 && <Rocket className="h-5 w-5 text-primary" />}
                     </div>
                     <Badge variant="outline">{milestone.year}</Badge>
                   </div>
@@ -150,9 +163,15 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {values.map((value) => (
-              <Card key={value.title} className="group hover:border-primary/50 transition-colors">
+          <div className="grid md:grid-cols-2 gap-6 preserve-3d">
+            {values.map((value, index) => (
+              <Card 
+                key={value.title} 
+                className="group hover:border-primary/50 transition-all depth-hover"
+                style={{
+                  transformStyle: 'preserve-3d',
+                }}
+              >
                 <CardContent className="p-6 flex gap-4">
                   <div className="p-3 rounded-xl bg-primary/10 h-fit shrink-0 group-hover:bg-primary/20 transition-colors">
                     <value.icon className="h-6 w-6 text-primary" />
