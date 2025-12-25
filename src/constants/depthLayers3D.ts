@@ -1,22 +1,13 @@
-// 2100 Era - True 3D World Units for React Three Fiber
-// Z-depth values for immersive WebGL space
+// 2100-Era - Clean 3D World Units for React Three Fiber
+// Z-depth values for stable WebGL space
 
 export const DEPTH_LAYERS_3D = {
   // Deep space layers (far from camera)
   HYPERSPACE: -1000,    // Warp tunnel background effect
-  VOID: -500,           // Deep cosmic void with ray-marched nebulae
+  VOID: -500,           // Deep cosmic void
   NEBULA: -300,         // Volumetric gas clouds
-  STARS: -200,          // Massive instanced star field
   AURORA: -100,         // Animated aurora plane
-  
-  // Mid-range layers
-  PARTICLES: -50,       // GPU particle system
   GRID: -30,            // Infinite perspective grid
-  
-  // Near layers
-  CODE_BLOCKS: 0,       // Floating code panels
-  HOLOGRAPHIC: 20,      // Holographic UI elements
-  PROJECTION: 50,       // Closest projections to camera
 } as const;
 
 // Camera configuration
@@ -30,32 +21,24 @@ export const CAMERA_CONFIG = {
 // Performance tiers based on device capability
 export const PERFORMANCE_TIERS = {
   ULTRA: {
-    particleCount: 10000,
-    starCount: 50000,
     postProcessing: true,
     rayMarching: true,
     bloomIntensity: 1.5,
     chromaticAberration: true,
   },
   HIGH: {
-    particleCount: 5000,
-    starCount: 25000,
     postProcessing: true,
     rayMarching: true,
     bloomIntensity: 1.2,
     chromaticAberration: true,
   },
   MEDIUM: {
-    particleCount: 2000,
-    starCount: 10000,
     postProcessing: true,
     rayMarching: false,
     bloomIntensity: 0.8,
     chromaticAberration: false,
   },
   LOW: {
-    particleCount: 500,
-    starCount: 2000,
     postProcessing: false,
     rayMarching: false,
     bloomIntensity: 0,
@@ -73,16 +56,13 @@ export const COLORS_3D = {
   aurora3: 0x8800ff,          // Purple
   nebula1: 0x1a0033,          // Deep purple
   nebula2: 0x003355,          // Deep blue
-  star: 0xffffff,             // White
   grid: 0x00ffff,             // Cyan
   void: 0x000011,             // Near black
 } as const;
 
 // Animation speeds
 export const ANIMATION_SPEEDS = {
-  particles: 0.0005,
   aurora: 0.001,
-  stars: 0.0001,
   warp: 0.002,
   nebula: 0.0003,
 } as const;
