@@ -76,16 +76,13 @@ export function HeroSkeleton({ className }: HeroSkeletonProps) {
         </div>
       </div>
       
-      {/* Loading indicator */}
-      <div className="relative z-10 flex flex-col items-center gap-4">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+      {/* Subtle loading indicator - no text */}
+      <div className="relative z-10 flex items-center justify-center">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '0ms' }} />
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '150ms' }} />
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '300ms' }} />
         </div>
-        <span className="text-xs text-muted-foreground/60 uppercase tracking-widest">
-          Initializing
-        </span>
       </div>
     </div>
   );

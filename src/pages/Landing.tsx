@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
@@ -15,15 +15,9 @@ import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
-import { HeroEntranceGroup, HeroEntranceItem } from '@/components/landing/HeroEntrance';
 import { ScrollProgressIndicator } from '@/components/landing/ScrollProgressIndicator';
 import { useHeroVisibility } from '@/hooks/useHeroVisibility';
-import { 
-  PerspectiveContainer, 
-  PerspectiveLayer, 
-  GyroscopeUI, 
-  DynamicTextShadow 
-} from '@/components/landing/PerspectiveLayer';
+import { HeroContent, ScrollIndicator } from '@/components/landing/HeroContent';
 import { 
   MessageSquare, 
   Code2, 
@@ -33,7 +27,6 @@ import {
   Users,
   ArrowRight,
   Sparkles,
-  ChevronDown,
 } from 'lucide-react';
 
 const features = [
@@ -72,7 +65,18 @@ const features = [
 export default function Landing() {
   const ogImageRef = useRef<HTMLDivElement>(null);
   const { heroRef, isVisible: isHeroVisible } = useHeroVisibility();
-
+  
+  // Check for reduced motion preference
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
   return (
     <PublicLayout>
       {/* Scroll Progress Indicator */}
@@ -95,117 +99,24 @@ export default function Landing() {
         ]}
       />
 
-      {/* Hero Section - Mobile-first optimized with Apple Vision-inspired spatial depth */}
-      <PerspectiveContainer 
-        perspective={1200} 
-        origin="50% 45%"
+      {/* Hero Section - Simplified hierarchy with accessibility support */}
+      <section 
+        ref={heroRef}
+        id="hero" 
         className="relative min-h-[85dvh] lg:min-h-[90dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
       >
-        <section 
-          ref={heroRef}
-          id="hero" 
-          className="relative w-full flex flex-col items-center justify-center"
-        >
-          <HeroBackground isVisible={isHeroVisible} />
-          
-          {/* Hero Content with multi-layer parallax - elevated above 3D grid */}
-          <HeroEntranceGroup 
-            staggerDelay={0.12}
-            className="relative z-10 container mx-auto text-center max-w-4xl"
-          >
-            {/* Badge at foreground layer - moves most with gyroscope */}
-            <HeroEntranceItem>
-              <GyroscopeUI tiltIntensity={1.2} dynamicShadow>
-                <PerspectiveLayer layer="foreground">
-                  <GlowBadge 
-                    variant="glow" 
-                    size="lg" 
-                    pulse 
-                    icon={<Sparkles className="h-4 w-4" />}
-                    className="mb-6 md:mb-8"
-                  >
-                    <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
-                  </GlowBadge>
-                </PerspectiveLayer>
-              </GyroscopeUI>
-            </HeroEntranceItem>
-            
-            {/* Headline with dynamic text shadows */}
-            <HeroEntranceItem>
-              <PerspectiveLayer layer="near">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
-                  <DynamicTextShadow shadowColor="primary" intensity={1.5}>
-                    <GlowText variant="gradient">
-                      Build the Future
-                    </GlowText>
-                  </DynamicTextShadow>
-                  <br />
-                  <DynamicTextShadow shadowColor="primary" intensity={1.2}>
-                    <span className="text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
-                      With AI at Your Side
-                    </span>
-                  </DynamicTextShadow>
-                </h1>
-              </PerspectiveLayer>
-            </HeroEntranceItem>
-            
-            {/* Description at mid layer - improved mobile readability */}
-            <HeroEntranceItem>
-              <PerspectiveLayer layer="mid">
-                <p className="text-base sm:text-lg md:text-xl text-foreground/80 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-2 drop-shadow-[0_2px_4px_hsl(var(--background))]">
-                  Transform ideas into production-ready apps in minutes. 
-                  The next generation of AI-powered development starts here.
-                </p>
-              </PerspectiveLayer>
-            </HeroEntranceItem>
-            
-            {/* CTA Buttons at foreground - most responsive to gyroscope */}
-            <HeroEntranceItem className="w-full">
-              <GyroscopeUI tiltIntensity={0.8} dynamicShadow>
-                <PerspectiveLayer layer="foreground">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto px-4 sm:px-0 mb-4 sm:mb-0">
-                    <Button 
-                      variant="gold" 
-                      size="lg" 
-                      className="w-full sm:w-auto sm:min-w-[200px] h-14 sm:h-12 text-base font-medium shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
-                      asChild
-                    >
-                      <Link to="/request-invite">
-                        Start Building in 2026
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button 
-                      size="lg" 
-                      variant="gold-outline" 
-                      className="w-full sm:w-auto sm:min-w-[200px] h-14 sm:h-12 text-base font-medium active:scale-95 transition-transform touch-manipulation" 
-                      asChild
-                    >
-                      <Link to="/redeem-invite">
-                        Have an Invite Code?
-                      </Link>
-                    </Button>
-                  </div>
-                </PerspectiveLayer>
-              </GyroscopeUI>
-            </HeroEntranceItem>
-          </HeroEntranceGroup>
-          
-          {/* Scroll Down Indicator - hidden on mobile, visible on desktop */}
-          <PerspectiveLayer layer="ui">
-            <a 
-              href="#social-proof"
-              className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group z-10"
-              aria-label="Scroll to features"
-            >
-              <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                Scroll
-              </span>
-              <ChevronDown className="h-6 w-6 animate-bounce" />
-            </a>
-          </PerspectiveLayer>
-        </section>
-      </PerspectiveContainer>
+        {/* 3D Background */}
+        <HeroBackground isVisible={isHeroVisible && !prefersReducedMotion} />
+        
+        {/* Hero Content - Consolidated component */}
+        <HeroContent prefersReducedMotion={prefersReducedMotion} />
+        
+        {/* Scroll Indicator - visible on all devices */}
+        <ScrollIndicator 
+          targetId="social-proof" 
+          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10"
+        />
+      </section>
 
       {/* Social Proof Section */}
       <div id="social-proof" className="scroll-mt-16">
