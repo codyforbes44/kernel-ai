@@ -46,6 +46,11 @@ export interface AgentToolCall {
   arguments: Record<string, unknown>;
 }
 
+// Internal type for streaming tool call accumulation
+export interface StreamingToolCall extends AgentToolCall {
+  _argsBuffer?: string;
+}
+
 export interface AgentToolResult {
   toolCallId: string;
   tool: AgentToolName;

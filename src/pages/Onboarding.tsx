@@ -67,7 +67,7 @@ export default function Onboarding() {
           reduced_motion: false,
         },
         onboarding_completed: true,
-      } as any);
+      });
 
       toast.success('Welcome aboard! 🎉');
       navigate('/', { replace: true });

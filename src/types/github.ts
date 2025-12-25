@@ -58,3 +58,35 @@ export interface GitHubUser {
   name: string | null;
   email: string | null;
 }
+
+// Type guards for runtime type checking
+export function isGitHubConnection(data: unknown): data is GitHubConnection {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    'github_username' in data &&
+    'github_user_id' in data
+  );
+}
+
+export function isProjectRepo(data: unknown): data is ProjectRepo {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    'repo_full_name' in data &&
+    'project_id' in data
+  );
+}
+
+export function isGitHubCommit(data: unknown): data is GitHubCommit {
+  return (
+    data !== null &&
+    typeof data === 'object' &&
+    'commit_sha' in data &&
+    'direction' in data
+  );
+}
+
+export function isGitHubCommitArray(data: unknown): data is GitHubCommit[] {
+  return Array.isArray(data) && data.every(isGitHubCommit);
+}
