@@ -21,8 +21,8 @@ const createPerspectiveGrid = () => {
   
   const gridWidth = 1200;
   const gridDepth = 600;
-  const numVerticalLines = 81;
-  const numHorizontalLines = 50;
+  const numVerticalLines = 41;
+  const numHorizontalLines = 25;
   
   const cyan = sharedColors.grid.clone();
   const fadedCyan = sharedColors.grid.clone().multiplyScalar(0.3);
@@ -71,7 +71,7 @@ const createHorizonLine = () => {
   const colors: number[] = [];
   
   const width = 1500;
-  const segments = 100;
+  const segments = 50;
   const cyan = sharedColors.cyan;
   
   for (let i = 0; i < segments; i++) {

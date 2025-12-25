@@ -95,8 +95,8 @@ export function VanishingPointGlow({
       {/* God rays emanating from center */}
       {godRays && (
         <group ref={raysRef} position={[0, 0, -5]}>
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i / 12) * Math.PI * 2;
+          {Array.from({ length: 6 }).map((_, i) => {
+            const angle = (i / 6) * Math.PI * 2;
             return (
               <mesh
                 key={i}
@@ -106,7 +106,7 @@ export function VanishingPointGlow({
                 <meshBasicMaterial
                   color={baseColor}
                   transparent
-                  opacity={0.05 * intensity}
+                  opacity={0.03 * intensity}
                   blending={THREE.AdditiveBlending}
                   side={THREE.DoubleSide}
                   depthWrite={false}
@@ -119,11 +119,11 @@ export function VanishingPointGlow({
       
       {/* Outer halo */}
       <mesh position={[0, 0, -2]}>
-        <ringGeometry args={[100, 250, 64]} />
+        <ringGeometry args={[80, 180, 48]} />
         <meshBasicMaterial
           color={baseColor}
           transparent
-          opacity={0.08 * intensity}
+          opacity={0.05 * intensity}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
