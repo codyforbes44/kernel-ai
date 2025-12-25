@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 interface KernelLogoStaticProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: number;
   variant?: "square" | "circle";
+  transparent?: boolean;
 }
 
 /**
@@ -11,7 +12,7 @@ interface KernelLogoStaticProps extends React.HTMLAttributes<HTMLDivElement> {
  * No animations - pure static rendering for clean image capture.
  */
 export const KernelLogoStatic = forwardRef<HTMLDivElement, KernelLogoStaticProps>(
-  ({ size = 512, variant = "square", className, ...props }, ref) => {
+  ({ size = 512, variant = "square", transparent = false, className, ...props }, ref) => {
     const isCircle = variant === "circle";
     const borderWidth = Math.max(2, size * 0.008);
     const borderRadius = isCircle ? size / 2 : size * 0.15;
@@ -27,7 +28,7 @@ export const KernelLogoStatic = forwardRef<HTMLDivElement, KernelLogoStaticProps
         style={{
           width: size,
           height: size,
-          backgroundColor: "#0a0a0f",
+          backgroundColor: transparent ? "transparent" : "#0a0a0f",
           borderRadius: isCircle ? "50%" : 0,
           overflow: "hidden",
         }}
@@ -131,34 +132,6 @@ export const KernelLogoStatic = forwardRef<HTMLDivElement, KernelLogoStaticProps
                 <circle cx="15" cy="50" r="2" fill="#00d4ff" opacity="0.6" />
               </>
             )}
-          </svg>
-          {/* Neural network diamond pattern */}
-          <svg
-            className="absolute inset-0 w-full h-full"
-            viewBox="0 0 100 100"
-            style={{ opacity: 0.25 }}
-          >
-            {/* Diamond shape */}
-            <path
-              d="M50,15 L85,50 L50,85 L15,50 Z"
-              fill="none"
-              stroke="#00d4ff"
-              strokeWidth="0.8"
-            />
-            {/* Inner diamond */}
-            <path
-              d="M50,30 L70,50 L50,70 L30,50 Z"
-              fill="none"
-              stroke="#00d4ff"
-              strokeWidth="0.5"
-            />
-            {/* Center dot */}
-            <circle cx="50" cy="50" r="3" fill="#00d4ff" opacity="0.8" />
-            {/* Corner dots */}
-            <circle cx="50" cy="15" r="2" fill="#00d4ff" opacity="0.6" />
-            <circle cx="85" cy="50" r="2" fill="#00d4ff" opacity="0.6" />
-            <circle cx="50" cy="85" r="2" fill="#00d4ff" opacity="0.6" />
-            <circle cx="15" cy="50" r="2" fill="#00d4ff" opacity="0.6" />
           </svg>
 
           {/* Core glyph */}
