@@ -14,7 +14,7 @@ export function PostProcessingEffects() {
         luminanceSmoothing={0.8}
         mipmapBlur
       />
-      <Vignette darkness={0.5} offset={0.35} />
+      <Vignette darkness={0.6} offset={0.3} />
     </EffectComposer>
   );
 }
