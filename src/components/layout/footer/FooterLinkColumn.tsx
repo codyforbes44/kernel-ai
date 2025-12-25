@@ -8,10 +8,10 @@ interface FooterLinkColumnProps {
 export function FooterLinkColumn({ section }: FooterLinkColumnProps) {
   return (
     <div className="min-w-0">
-      <h4 className="font-semibold text-sm mb-3 sm:mb-4 text-foreground/90">
+      <h4 className="font-semibold text-sm mb-4 text-foreground/90 tracking-wide">
         {section.title}
       </h4>
-      <ul className="space-y-2 sm:space-y-3" role="list">
+      <ul className="space-y-2.5" role="list">
         {section.links.map((link) => (
           <li key={link.label} role="listitem">
             <FooterLink link={link} />
