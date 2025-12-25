@@ -12,24 +12,36 @@
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
+    <filter id="textGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
   
   <!-- Background -->
   <rect width="64" height="64" fill="#0a0a0f"/>
   
   <!-- Gradient border -->
-  <rect x="10" y="10" width="44" height="44" rx="10" ry="10" fill="none" stroke="url(#borderGradient)" stroke-width="2"/>
+  <rect x="8" y="8" width="48" height="48" rx="10" ry="10" fill="none" stroke="url(#borderGradient)" stroke-width="1.5"/>
   
   <!-- Inner background -->
-  <rect x="12" y="12" width="40" height="40" rx="8" ry="8" fill="#0a0a0f"/>
+  <rect x="10" y="10" width="44" height="44" rx="8" ry="8" fill="#0a0a0f"/>
   
-  <!-- Diamond pattern -->
-  <g opacity="0.25" stroke="#00d4ff" fill="none">
-    <path d="M32 18 L46 32 L32 46 L18 32 Z" stroke-width="0.5"/>
-    <path d="M32 24 L40 32 L32 40 L24 32 Z" stroke-width="0.3"/>
+  <!-- Diamond pattern (simplified for small size) -->
+  <g opacity="0.3" stroke="#00d4ff" fill="none">
+    <path d="M32 16 L48 32 L32 48 L16 32 Z" stroke-width="0.5"/>
     <circle cx="32" cy="32" r="2" fill="#00d4ff"/>
   </g>
   
+  <!-- Corner accents -->
+  <path d="M6 14 L6 6 L14 6" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  <path d="M58 14 L58 6 L50 6" fill="none" stroke="#ffd700" stroke-width="1.5" opacity="0.4"/>
+  <path d="M6 50 L6 58 L14 58" fill="none" stroke="#ffd700" stroke-width="1.5" opacity="0.4"/>
+  <path d="M58 50 L58 58 L50 58" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.4"/>
+  
   <!-- Glyph -->
-  <text x="32" y="39" font-family="monospace" font-size="18" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#glow)">&gt;_</text>
+  <text x="32" y="38" font-family="ui-monospace, SFMono-Regular, monospace" font-size="16" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#textGlow)">&gt;_</text>
 </svg>
