@@ -62,6 +62,7 @@ import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabase
 import { PerformanceCard } from '@/components/settings/PerformanceCard';
 import { DisplayModeCard } from '@/components/settings/DisplayModeCard';
 import { PWASettingsCard } from '@/components/settings/PWASettingsCard';
+import { VoiceAgentSettingsCard } from '@/components/settings/VoiceAgentSettingsCard';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -831,6 +832,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Voice Agent */}
+        <VoiceAgentSettingsCard />
 
         {/* Onboarding */}
         <Card>
