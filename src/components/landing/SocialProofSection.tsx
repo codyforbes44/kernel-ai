@@ -12,7 +12,7 @@ const techLogos = [
 
 export function SocialProofSection() {
   return (
-    <HoloSection variant="default" className="py-16 px-4 border-b border-border/40">
+    <HoloSection variant="default" className="py-10 md:py-14 lg:py-16 px-4 border-b border-border/40 scroll-mt-20">
       <div className="container mx-auto max-w-5xl preserve-3d">
         {/* Tech Logos with depth staggering */}
         <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">

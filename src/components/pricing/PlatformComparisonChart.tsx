@@ -255,8 +255,8 @@ export function PlatformComparisonCondensed() {
       >
         <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm min-w-[700px] sm:min-w-[800px]">
           {/* Header - Sticky on scroll */}
-          <div className="grid grid-cols-7 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border">
-            <div className="col-span-1 px-3 sm:px-4 py-3 sm:py-4">
+          <div className="grid grid-cols-8 lg:grid-cols-8 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border">
+            <div className="col-span-2 px-3 sm:px-4 lg:px-5 py-3 sm:py-4">
               <span className="text-xs sm:text-sm font-semibold text-muted-foreground">Feature</span>
             </div>
             {platforms.map((platform) => (
@@ -296,17 +296,17 @@ export function PlatformComparisonCondensed() {
             ))}
           </div>
 
-          {/* Body - Touch friendly rows */}
+          {/* Body - Touch friendly rows with alternating backgrounds */}
           {condensedFeatures.map((feature, idx) => (
             <div
               key={feature.name}
               className={cn(
-                "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0 transition-colors active:bg-primary/10 touch-manipulation",
-                idx % 2 === 0 ? "bg-background" : "bg-muted/10"
+                "grid grid-cols-8 lg:grid-cols-8 items-center border-b border-border/50 last:border-b-0 transition-colors active:bg-primary/10 touch-manipulation",
+                idx % 2 === 0 ? "bg-background" : "bg-muted/20"
               )}
             >
-              <div className="col-span-1 px-3 sm:px-4 py-3 sm:py-3.5">
-                <p className="text-xs sm:text-sm font-medium text-foreground leading-tight">{feature.name}</p>
+              <div className="col-span-2 px-3 sm:px-4 lg:px-5 py-3 sm:py-3.5">
+                <p className="text-xs sm:text-sm lg:text-base font-medium text-foreground leading-tight">{feature.name}</p>
               </div>
               {platforms.map((platform) => (
                 <div

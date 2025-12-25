@@ -77,6 +77,14 @@ export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
         !isVisible && "invisible"
       )}
     >
+      {/* Vignette overlay for better content focus on desktop */}
+      <div 
+        className="absolute inset-0 z-[5] pointer-events-none hidden lg:block"
+        style={{
+          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, hsl(var(--background) / 0.4) 100%)'
+        }}
+      />
+      
       {/* Skeleton loader - fades out when 3D is ready */}
       <div 
         className={cn(
@@ -91,7 +99,9 @@ export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
       <div 
         className={cn(
           "absolute inset-0 transition-opacity duration-700 ease-in",
-          isLoaded ? "opacity-100" : "opacity-0"
+          isLoaded ? "opacity-100" : "opacity-0",
+          // Slightly boost visibility on desktop
+          "lg:brightness-110 lg:contrast-105"
         )}
       >
         <WebGLErrorBoundary>
