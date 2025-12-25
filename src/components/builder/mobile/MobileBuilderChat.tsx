@@ -351,6 +351,18 @@ export function MobileBuilderChat({
     }
   }, []);
 
+  // Escape key to cancel request
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isLoading) {
+        cancelRequest();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isLoading, cancelRequest]);
+
   // Fix errors handler
   const handleFixErrors = useCallback((errorsToFix: CapturedError[]) => {
     const errorDescriptions = errorsToFix.map(e => 
