@@ -31,10 +31,10 @@ export const routes: RouteConfig[] = [
     title: 'Pricing',
     description: 'View pricing plans and features',
     changefreq: 'monthly',
-    priority: 0.9,
-    includeInSitemap: true,
+    priority: 0.3,
+    includeInSitemap: false,
     requiresAuth: false,
-    robots: 'allow',
+    robots: 'noindex',
   },
   {
     path: '/contact',

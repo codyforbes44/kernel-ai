@@ -199,8 +199,8 @@ export default function Landing() {
 
           <div className="text-center mt-8">
             <Button variant="outline" asChild>
-              <Link to="/pricing">
-                See Full Comparison
+              <Link to="/request-invite">
+                Request Early Access
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

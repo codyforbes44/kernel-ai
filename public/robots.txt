@@ -31,7 +31,6 @@ Allow: /
 # Default rules for all other bots
 User-agent: *
 Allow: /
-Allow: /pricing
 Allow: /contact
 Allow: /about
 Allow: /auth
@@ -42,8 +41,11 @@ Allow: /changelog
 Allow: /docs
 Allow: /tutorials
 Allow: /security
+Allow: /request-invite
+Allow: /redeem-invite
 
-# Protected/private routes - disallow crawling
+# Hidden routes - disallow crawling
+Disallow: /pricing
 Disallow: /assistant
 Disallow: /dashboard
 Disallow: /admin

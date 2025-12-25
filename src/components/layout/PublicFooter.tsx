@@ -19,9 +19,15 @@ const footerSections: FooterSection[] = [
     title: "Product",
     links: [
       { label: "Features", href: "/#features" },
-      { label: "Pricing", href: "/pricing" },
       { label: "Changelog", href: "/changelog" },
       { label: "Install App", href: "/install" },
+    ],
+  },
+  {
+    title: "Get Started",
+    links: [
+      { label: "Request Access", href: "/request-invite" },
+      { label: "Redeem Code", href: "/redeem-invite" },
     ],
   },
   {

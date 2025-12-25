@@ -19,7 +19,6 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { label: "Features", href: "/#features", isAnchor: true },
-  { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
@@ -90,8 +89,11 @@ export function PublicHeader() {
           >
             <XLogo className="h-4 w-4" />
           </a>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/redeem-invite">Have a Code?</Link>
+          </Button>
           <Button variant="gold" size="sm" asChild>
-            <Link to="/auth">Sign In</Link>
+            <Link to="/request-invite">Request Access</Link>
           </Button>
         </div>
 
@@ -126,7 +128,12 @@ export function PublicHeader() {
               <div className="border-t border-border my-4" />
               <SheetClose asChild>
                 <Button variant="gold" className="w-full" asChild>
-                  <Link to="/auth">Sign In</Link>
+                  <Link to="/request-invite">Request Early Access</Link>
+                </Button>
+              </SheetClose>
+              <SheetClose asChild>
+                <Button variant="outline" className="w-full mt-2" asChild>
+                  <Link to="/redeem-invite">Have an Invite Code?</Link>
                 </Button>
               </SheetClose>
             </nav>
