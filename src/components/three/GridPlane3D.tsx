@@ -9,9 +9,9 @@ const createPerspectiveGrid = () => {
   const positions: number[] = [];
   const colors: number[] = [];
   
-  const gridWidth = 400;
+  const gridWidth = 1200;
   const gridDepth = 600;
-  const numVerticalLines = 41; // Odd number for center line
+  const numVerticalLines = 81; // Odd number for center line
   const numHorizontalLines = 50;
   
   const cyan = new THREE.Color(COLORS_3D.grid);
@@ -69,7 +69,7 @@ const createHorizonLine = () => {
   const positions: number[] = [];
   const colors: number[] = [];
   
-  const width = 800;
+  const width = 1500;
   const segments = 100;
   const cyan = new THREE.Color(COLORS_3D.primary);
   
@@ -132,7 +132,7 @@ export function GridPlane3D() {
   
   return (
     <group 
-      position={[0, -60, -150]}
+      position={[0, -120, -100]}
       rotation={[-Math.PI * 0.42, 0, 0]} // Tilt away from camera
     >
       {/* Main perspective grid */}
