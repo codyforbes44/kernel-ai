@@ -83,6 +83,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Sync persisted messages to local state
   useEffect(() => {
@@ -207,6 +208,9 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
         contextDocs: knowledgeBase.contextDocs.length > 0 ? knowledgeBase.contextDocs : undefined,
       };
 
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/builder-ai-enhanced`,
         {
@@ -228,6 +232,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
             conversationId,
             knowledgeBase: kbContext,
           }),
+          signal: abortControllerRef.current.signal,
         }
       );
 
@@ -350,23 +355,41 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
         });
       }
     } catch (error) {
-      console.error('AI chat error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
-      
-      // Update error in the assistant message
-      setLocalMessages(prev => prev.map(m => 
-        m.id === assistantId 
-          ? { 
-              ...m, 
-              content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              isStreaming: false,
-            }
-          : m
-      ));
+      // Handle abort separately
+      if (error instanceof Error && error.name === 'AbortError') {
+        setLocalMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { ...m, content: 'Request cancelled.', isStreaming: false }
+            : m
+        ));
+        toast.info('Request cancelled');
+      } else {
+        console.error('AI chat error:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
+        
+        // Update error in the assistant message
+        setLocalMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { 
+                ...m, 
+                content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                isStreaming: false,
+              }
+            : m
+        ));
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   }, [input, isLoading, localMessages, files, conversationId, addMessage, updateTitle, onClearErrors]);
+
+  // Cancel ongoing request
+  const cancelRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }, []);
 
   // Method to fix errors - called from parent
   const handleFixErrors = useCallback((errorsToFix: CapturedError[]) => {
@@ -563,7 +586,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
                     <div className="space-y-2">
                       <div className="bg-muted px-3 py-2 rounded-lg">
                         {message.isStreaming && !message.content ? (
-                          <KernelThinkingIndicator prompt={precedingUserMessage?.content} />
+                          <KernelThinkingIndicator prompt={precedingUserMessage?.content} onCancel={cancelRequest} />
                         ) : message.isStreaming ? (
                         <div>
                           <pre className="whitespace-pre-wrap font-mono text-xs overflow-hidden">

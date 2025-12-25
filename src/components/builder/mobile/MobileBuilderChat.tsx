@@ -101,6 +101,7 @@ export function MobileBuilderChat({
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Sync persisted messages
   useEffect(() => {
@@ -183,6 +184,9 @@ export function MobileBuilderChat({
         contextDocs: knowledgeBase.contextDocs.length > 0 ? knowledgeBase.contextDocs : undefined,
       };
 
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/builder-ai-enhanced`,
         {
@@ -204,6 +208,7 @@ export function MobileBuilderChat({
             conversationId,
             knowledgeBase: kbContext,
           }),
+          signal: abortControllerRef.current.signal,
         }
       );
 
@@ -312,19 +317,39 @@ export function MobileBuilderChat({
         });
       }
     } catch (error) {
-      console.error('AI chat error:', error);
-      hapticFeedback('error');
-      toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
-      
-      setLocalMessages(prev => prev.map(m => 
-        m.id === assistantId 
-          ? { ...m, content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`, isStreaming: false }
-          : m
-      ));
+      // Handle abort separately
+      if (error instanceof Error && error.name === 'AbortError') {
+        setLocalMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { ...m, content: 'Request cancelled.', isStreaming: false }
+            : m
+        ));
+        hapticFeedback('light');
+        toast.info('Request cancelled');
+      } else {
+        console.error('AI chat error:', error);
+        hapticFeedback('error');
+        toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
+        
+        setLocalMessages(prev => prev.map(m => 
+          m.id === assistantId 
+            ? { ...m, content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`, isStreaming: false }
+            : m
+        ));
+      }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   }, [input, isLoading, localMessages, files, conversationId, addMessage, updateTitle, onClearErrors, knowledgeBase]);
+
+  // Cancel ongoing request
+  const cancelRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      hapticFeedback('medium');
+    }
+  }, []);
 
   // Fix errors handler
   const handleFixErrors = useCallback((errorsToFix: CapturedError[]) => {
@@ -492,7 +517,7 @@ export function MobileBuilderChat({
                     <div className="space-y-3">
                       <div className="bg-muted px-4 py-3 rounded-2xl">
                         {message.isStreaming && !message.content ? (
-                          <KernelThinkingIndicator prompt={precedingUserMessage?.content} />
+                          <KernelThinkingIndicator prompt={precedingUserMessage?.content} onCancel={cancelRequest} />
                         ) : message.isStreaming ? (
                         <div>
                           <pre className="whitespace-pre-wrap font-mono text-xs overflow-hidden">
