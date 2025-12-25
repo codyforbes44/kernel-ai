@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COLORS_3D, getScaledPulseConfig, getScaledParticleConfig, getScaledFogSegments } from '@/constants/depthLayers3D';
 import { useAdaptiveQuality } from '@/hooks/useThreePerformance';
-import { VanishingPointGlow, LayeredFog } from './VanishingPointGlow';
+import { VanishingPointGlow } from './VanishingPointGlow';
 // Shared color instances to avoid per-frame allocations
 const sharedColors = {
   cyan: new THREE.Color(COLORS_3D.primary),
@@ -65,35 +65,6 @@ const createPerspectiveGrid = () => {
   return { positions, colors };
 };
 
-// Create horizon glow line
-const createHorizonLine = () => {
-  const positions: number[] = [];
-  const colors: number[] = [];
-  
-  const width = 1500;
-  const segments = 50;
-  const cyan = sharedColors.cyan;
-  
-  for (let i = 0; i < segments; i++) {
-    const t1 = i / segments;
-    const t2 = (i + 1) / segments;
-    const x1 = (t1 - 0.5) * width;
-    const x2 = (t2 - 0.5) * width;
-    
-    positions.push(x1, 0, 0);
-    positions.push(x2, 0, 0);
-    
-    const centerDist1 = Math.abs(t1 - 0.5) * 2;
-    const centerDist2 = Math.abs(t2 - 0.5) * 2;
-    const intensity1 = Math.pow(1 - centerDist1, 2);
-    const intensity2 = Math.pow(1 - centerDist2, 2);
-    
-    colors.push(cyan.r * intensity1, cyan.g * intensity1, cyan.b * intensity1);
-    colors.push(cyan.r * intensity2, cyan.g * intensity2, cyan.b * intensity2);
-  }
-  
-  return { positions, colors };
-};
 
 // Energy Pulse component with performance scaling
 function EnergyPulses({ pulseCount }: { pulseCount: number }) {
@@ -223,68 +194,6 @@ function EnergyPulses({ pulseCount }: { pulseCount: number }) {
   );
 }
 
-// Horizon Fog component with performance scaling
-function HorizonFog({ segments }: { segments: number }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  const geometry = useMemo(() => {
-    const width = 1600;
-    const height = 200;
-    
-    const geo = new THREE.PlaneGeometry(width, height, segments, segments);
-    const colors: number[] = [];
-    
-    const positions = geo.attributes.position.array;
-    const cyan = sharedColors.cyan;
-    
-    for (let i = 0; i < positions.length; i += 3) {
-      const x = positions[i];
-      const y = positions[i + 1];
-      
-      const normalizedY = (y + height / 2) / height;
-      const verticalFade = Math.pow(1 - Math.abs(normalizedY - 0.3) * 1.5, 2);
-      
-      const normalizedX = Math.abs(x) / (width / 2);
-      const horizontalFade = Math.pow(1 - normalizedX, 1.5);
-      
-      const intensity = Math.max(0, verticalFade * horizontalFade * 0.6);
-      
-      colors.push(cyan.r * intensity, cyan.g * intensity, cyan.b * intensity);
-    }
-    
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    
-    return geo;
-  }, [segments]);
-  
-  // Cleanup geometry on unmount
-  useEffect(() => {
-    return () => {
-      geometry.dispose();
-    };
-  }, [geometry]);
-  
-  useFrame(({ clock }) => {
-    if (meshRef.current) {
-      const time = clock.getElapsedTime();
-      const material = meshRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = 0.4 + Math.sin(time * 0.3) * 0.1;
-    }
-  });
-  
-  return (
-    <mesh ref={meshRef} geometry={geometry} position={[0, 580, 5]}>
-      <meshBasicMaterial
-        vertexColors
-        transparent
-        opacity={0.4}
-        blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}
 
 // Floating Particles component with performance scaling
 function FloatingParticles({ particleCount }: { particleCount: number }) {
@@ -438,9 +347,7 @@ interface GridPlane3DProps {
 export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlane3DProps) {
   const groupRef = useRef<THREE.Group>(null);
   const gridRef = useRef<THREE.LineSegments>(null);
-  const horizonRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
-  const horizonMaterialRef = useRef<THREE.LineBasicMaterial>(null);
   
   // Get performance tier for scaling
   const { tier, shouldAnimate } = useAdaptiveQuality();
@@ -451,7 +358,7 @@ export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlan
   // Scale counts based on performance tier
   const pulseConfig = useMemo(() => getScaledPulseConfig(tier), [tier]);
   const particleConfig = useMemo(() => getScaledParticleConfig(tier), [tier]);
-  const fogSegments = useMemo(() => getScaledFogSegments(tier), [tier]);
+  
   
   const gridGeometry = useMemo(() => {
     const { positions, colors } = createPerspectiveGrid();
@@ -461,21 +368,12 @@ export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlan
     return geometry;
   }, []);
   
-  const horizonGeometry = useMemo(() => {
-    const { positions, colors } = createHorizonLine();
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    return geometry;
-  }, []);
-  
-  // Cleanup geometries on unmount
+  // Cleanup geometry on unmount
   useEffect(() => {
     return () => {
       gridGeometry.dispose();
-      horizonGeometry.dispose();
     };
-  }, [gridGeometry, horizonGeometry]);
+  }, [gridGeometry]);
   
   // Target rotation based on gyroscope tilt (subtle effect)
   const targetRotation = useRef({ x: 0, y: 0 });
@@ -491,9 +389,6 @@ export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlan
         materialRef.current.opacity = 0.7 + Math.sin(time * 0.5) * 0.1;
       }
       
-      if (horizonMaterialRef.current) {
-        horizonMaterialRef.current.opacity = 0.8 + Math.sin(time * 0.8) * 0.15;
-      }
     }
     
     // Apply gyroscope-based parallax rotation (subtle, max ±3 degrees)
@@ -536,28 +431,8 @@ export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlan
       {/* Floating particles above the grid */}
       {canAnimate && <FloatingParticles particleCount={particleConfig.count} />}
       
-      {/* Horizon fog for atmospheric depth */}
-      <HorizonFog segments={fogSegments} />
-      
       {/* Vanishing point star glow - Apple Vision inspired */}
       {canAnimate && <VanishingPointGlow intensity={0.8} pulse godRays />}
-      
-      {/* Layered fog planes for depth */}
-      {canAnimate && <LayeredFog layers={4} opacity={0.08} />}
-      
-      {/* Horizon glow line */}
-      <group position={[0, 600, 0]}>
-        <lineSegments ref={horizonRef} geometry={horizonGeometry}>
-          <lineBasicMaterial
-            ref={horizonMaterialRef}
-            vertexColors
-            transparent
-            opacity={0.8}
-            blending={THREE.AdditiveBlending}
-            linewidth={2}
-          />
-        </lineSegments>
-      </group>
     </group>
   );
 }
