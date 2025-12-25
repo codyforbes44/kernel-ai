@@ -94,10 +94,10 @@ export default function Landing() {
             className="mb-8 relative z-20"
           >
             <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
-              <span className="text-sm sm:text-base">Happy Holidays! 🎄</span>
+              <span className="text-sm sm:text-base">Early Access Now Open 🚀</span>
               <span className="hidden sm:inline opacity-50">•</span>
-              <span className="hidden xs:inline">
-                <ChristmasCountdown />
+              <span className="hidden xs:inline text-sm">
+                Request your invite today
               </span>
             </span>
           </GlowBadge>
@@ -115,14 +115,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto px-4 sm:px-0">
             <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
-              <Link to="/auth">
-                Sign In
+              <Link to="/request-invite">
+                Request Early Access
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base" asChild>
-              <Link to="/pricing">
-                View Pricing
+              <Link to="/redeem-invite">
+                Have an Invite Code?
               </Link>
             </Button>
           </div>
@@ -212,21 +212,21 @@ export default function Landing() {
       <section id="cta" className="py-20 px-4 scroll-mt-16">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Get Started?
+            Ready to Build Something Amazing?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-            Create your free account and start building with AI assistance today.
+            Request early access to Kernel and be among the first to experience AI-powered development.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="gold" size="lg" className="h-12 px-8 text-base" asChild>
-              <Link to="/auth">
-                Sign In
+              <Link to="/request-invite">
+                Request Early Access
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="gold-outline" className="h-12 px-8 text-base" asChild>
-              <Link to="/pricing">
-                View Pricing
+              <Link to="/redeem-invite">
+                Redeem Invite Code
               </Link>
             </Button>
           </div>
