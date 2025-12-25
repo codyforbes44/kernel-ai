@@ -2,6 +2,7 @@ import { Component, ReactNode, Suspense, useState, useEffect } from 'react';
 import { Hero3DScene } from '../three/Hero3DScene';
 import { HeroSkeleton } from './HeroSkeleton';
 import { cn } from '@/lib/utils';
+import { useDeviceOrientation } from '@/hooks/useDeviceOrientation';
 
 interface HeroBackgroundProps {
   isVisible?: boolean;
@@ -39,19 +40,34 @@ class WebGLErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundar
   }
 }
 
-// Wrapper to detect when 3D scene is ready
-function Scene3DWithLoadState({ onReady, isPaused }: { onReady: () => void; isPaused: boolean }) {
+// Wrapper to detect when 3D scene is ready and pass gyroscope data
+function Scene3DWithLoadState({ 
+  onReady, 
+  isPaused,
+  tiltX,
+  tiltY,
+}: { 
+  onReady: () => void; 
+  isPaused: boolean;
+  tiltX: number;
+  tiltY: number;
+}) {
   useEffect(() => {
     // Small delay to ensure WebGL context is fully initialized
     const timer = setTimeout(onReady, 100);
     return () => clearTimeout(timer);
   }, [onReady]);
 
-  return <Hero3DScene isPaused={isPaused} />;
+  return <Hero3DScene isPaused={isPaused} tiltX={tiltX} tiltY={tiltY} />;
 }
 
 export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { normalizedTilt, isSupported, isPermissionGranted } = useDeviceOrientation();
+
+  // Only use gyroscope data if supported and granted
+  const tiltX = isSupported && isPermissionGranted ? normalizedTilt.x : 0;
+  const tiltY = isSupported && isPermissionGranted ? normalizedTilt.y : 0;
 
   return (
     <div 
@@ -71,7 +87,7 @@ export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
         <HeroSkeleton />
       </div>
       
-      {/* 3D Scene - paused when not visible */}
+      {/* 3D Scene - paused when not visible, responds to gyroscope */}
       <div 
         className={cn(
           "absolute inset-0 transition-opacity duration-700 ease-in",
@@ -83,6 +99,8 @@ export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
             <Scene3DWithLoadState 
               onReady={() => setIsLoaded(true)} 
               isPaused={!isVisible}
+              tiltX={tiltX}
+              tiltY={tiltY}
             />
           </Suspense>
         </WebGLErrorBoundary>
