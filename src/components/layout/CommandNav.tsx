@@ -38,16 +38,16 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { label: "Home", path: "/", icon: Home, description: "Return to homepage" },
-  { label: "Features", path: "#features", icon: Sparkles, description: "Explore capabilities", isAnchor: true },
-  { label: "How It Works", path: "#how-it-works", icon: Zap, description: "See the workflow", isAnchor: true },
-  { label: "Pricing", path: "#pricing", icon: CreditCard, description: "View plans", isAnchor: true },
+  { label: "How It Works", path: "/how-it-works", icon: Zap, description: "See the workflow" },
+  { label: "Features", path: "/#features", icon: Sparkles, description: "Explore capabilities", isAnchor: true },
+  { label: "Pricing", path: "/pricing", icon: CreditCard, description: "View plans" },
   { label: "About", path: "/about", icon: Info, description: "Learn about Kernel" },
   { label: "Contact", path: "/contact", icon: Mail, description: "Get in touch" },
 ];
 
 const actionItems: NavItem[] = [
-  { label: "Sign In", path: "/login", icon: LogIn, description: "Access your account" },
-  { label: "Request Access", path: "/redeem", icon: UserPlus, description: "Join the waitlist" },
+  { label: "Sign In", path: "/auth", icon: LogIn, description: "Access your account" },
+  { label: "Request Access", path: "/request-invite", icon: UserPlus, description: "Join the waitlist" },
 ];
 
 const socialItems: NavItem[] = [
@@ -153,7 +153,7 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
                     <span className="text-xs text-muted-foreground">{item.description}</span>
                   )}
                 </div>
-                {item.path === "/redeem" && (
+                {item.path === "/request-invite" && (
                   <span className="ml-auto text-xs bg-gold/20 text-gold px-2 py-0.5 rounded-full">
                     New
                   </span>

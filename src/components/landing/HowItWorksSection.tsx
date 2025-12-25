@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { MessageSquare, Wand2, Rocket } from "lucide-react";
+import { MessageSquare, Wand2, Rocket, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { HoloSection } from "@/components/ui/holo-section";
 import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { Button } from "@/components/ui/button";
 
 const steps = [
   {
@@ -27,7 +29,7 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <HoloSection variant="gradient" className="py-20 px-4">
+    <HoloSection id="how-it-works" variant="gradient" className="py-20 px-4">
       <div className="container mx-auto max-w-5xl preserve-3d">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -106,6 +108,22 @@ export function HowItWorksSection() {
               </motion.div>
             ))}
           </div>
+
+          {/* Learn More Link */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="text-center mt-10"
+          >
+            <Button asChild variant="ghost" className="group">
+              <Link to="/how-it-works">
+                Learn more about how Kernel works
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </motion.div>
         </div>
       </div>
     </HoloSection>
