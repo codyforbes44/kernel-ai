@@ -39,6 +39,7 @@ const pageComponents = {
   OGPreview: lazy(() => import('@/pages/OGPreview')),
   HowItWorks: lazy(() => import('@/pages/HowItWorks')),
   LogoExport: lazy(() => import('@/pages/LogoExport')),
+  GenerateAudio: lazy(() => import('@/pages/admin/GenerateAudio')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -92,6 +93,7 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/performance', component: 'Performance', withErrorBoundary: true },
   { path: '/og-preview', component: 'OGPreview' },
   { path: '/logo-export', component: 'LogoExport' },
+  { path: '/admin/generate-audio', component: 'GenerateAudio' },
 ];
 
 function renderRoute(config: AppRouteConfig) {
