@@ -34,8 +34,13 @@ export function useSceneNarration({ narrations }: UseSceneNarrationOptions): Use
     loadedCount.current = 0;
     const totalNarrations = narrations.length;
     
+    if (totalNarrations === 0) {
+      setIsLoaded(true);
+      return;
+    }
+    
     narrations.forEach(({ sceneId, audioUrl }) => {
-      const audio = new Audio(audioUrl);
+      const audio = new Audio();
       audio.volume = 0.8;
       audio.preload = 'auto';
       
@@ -47,20 +52,22 @@ export function useSceneNarration({ narrations }: UseSceneNarrationOptions): Use
       };
 
       audio.addEventListener('canplaythrough', handleLoad, { once: true });
-      audio.addEventListener('error', handleLoad, { once: true }); // Count errors to not block
+      // Silently handle missing files - count as loaded to not block
+      audio.addEventListener('error', handleLoad, { once: true });
 
       audio.addEventListener('ended', () => {
         setCurrentNarrationId(null);
         currentAudio.current = null;
       });
 
+      audio.src = audioUrl;
       audioCache.current.set(sceneId, audio);
     });
 
     // Set loaded after a timeout if files don't exist
     const timeout = setTimeout(() => {
       setIsLoaded(true);
-    }, 1000);
+    }, 500);
 
     return () => {
       clearTimeout(timeout);

@@ -42,12 +42,11 @@ export function useVideoAudio({ audioUrl, duration }: UseVideoAudioOptions): Use
     audio.addEventListener('canplaythrough', () => {
       setIsLoaded(true);
       setError(null);
-      console.log('Audio loaded and ready to play');
     });
 
-    audio.addEventListener('error', (e) => {
-      console.error('Audio load error:', e);
-      setError('Failed to load audio');
+    audio.addEventListener('error', () => {
+      // Silently handle missing audio files - this is expected if files haven't been generated
+      setError(null);
       setIsLoaded(false);
     });
 
