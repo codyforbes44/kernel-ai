@@ -1,7 +1,6 @@
 import { ThreeCanvas } from './ThreeCanvas';
 import { SceneEnvironment } from './SceneEnvironment';
 import { GridPlane3D } from './GridPlane3D';
-import { AmbientParticles } from './AmbientParticles';
 import { PostProcessingEffects } from './PostProcessingEffects';
 
 export function Hero3DScene() {
@@ -9,13 +8,10 @@ export function Hero3DScene() {
     <ThreeCanvas className="z-0">
       <SceneEnvironment />
       
-      {/* Deep perspective grid */}
+      {/* Deep perspective grid with integrated particles */}
       <GridPlane3D />
       
-      {/* Subtle ambient floating particles */}
-      <AmbientParticles />
-      
-      {/* Minimal post-processing */}
+      {/* Performance-scaled post-processing */}
       <PostProcessingEffects />
     </ThreeCanvas>
   );
