@@ -995,6 +995,49 @@
   }
 }
 
+/* Touch target utility class - 44px minimum for WCAG 2.5.5 compliance */
+.touch-target-44 {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Enhanced touch targets for coarse pointer devices */
+@media (pointer: coarse) {
+  .touch-enhanced {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+  
+  /* Increase tap target for small interactive elements */
+  .tap-target::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+}
+
+/* Tablet-specific adjustments (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .tablet\:px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .tablet\:py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
 /* Reduced motion - disable animations */
 @media (prefers-reduced-motion: reduce) {
   .animate-scan-line,
@@ -1004,4 +1047,25 @@
   .animate-border-glow {
     animation: none !important;
   }
+  
+  /* Reduce all transitions to simple fades */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+  }
+}
+
+/* Focus-visible for keyboard navigation */
+.focus-visible-ring:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Safe viewport height for mobile browsers */
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
 }

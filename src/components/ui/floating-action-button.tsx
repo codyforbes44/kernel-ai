@@ -51,7 +51,7 @@ export function FloatingActionButton({
   };
 
   return (
-    <div className={cn("fixed bottom-20 right-4 z-50 safe-area-bottom", className)}>
+    <div className={cn("fixed bottom-24 right-4 z-50 safe-area-bottom", className)}>
       {/* Expandable actions */}
       {expandable && isExpanded && (
         <>
@@ -63,7 +63,7 @@ export function FloatingActionButton({
           />
           
           {/* Action buttons */}
-          <div className="absolute bottom-16 right-0 flex flex-col-reverse gap-3 animate-fade-in">
+          <div className="absolute bottom-20 right-0 flex flex-col-reverse gap-3 animate-fade-in">
             {actions.map((action, index) => (
               <div
                 key={index}
@@ -74,10 +74,10 @@ export function FloatingActionButton({
                   {action.label}
                 </span>
                 <Button
-                  size="icon"
+                  size="icon-touch"
                   variant="secondary"
                   onClick={() => handleActionClick(action)}
-                  className="h-12 w-12 rounded-full shadow-lg"
+                  className="h-12 w-12 min-h-[48px] min-w-[48px] rounded-full shadow-lg"
                   aria-label={action.label}
                 >
                   {action.icon}
@@ -88,13 +88,13 @@ export function FloatingActionButton({
         </>
       )}
 
-      {/* Main FAB */}
+      {/* Main FAB - 56px for primary FAB with 44px minimum touch target */}
       <Button
         size="icon"
         onClick={handleMainClick}
         disabled={disabled}
         className={cn(
-          "h-14 w-14 rounded-full shadow-lg",
+          "h-14 w-14 min-h-[56px] min-w-[56px] rounded-full shadow-lg",
           "bg-primary hover:bg-primary/90 text-primary-foreground",
           "transition-all duration-200 hover:scale-105 active:scale-95",
           disabled && "opacity-50",
