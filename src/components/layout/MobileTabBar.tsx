@@ -60,8 +60,10 @@ export function MobileTabBar() {
       className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-around px-2 z-50 animate-fade-in"
       style={{ 
         paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
-        minHeight: '64px'
+        minHeight: '72px'
       }}
+      role="navigation"
+      aria-label="Main navigation"
     >
       {tabs.map((tab) => {
         const isActive = location.pathname === tab.href;
@@ -73,20 +75,22 @@ export function MobileTabBar() {
             to={tab.href}
             onClick={handleTabClick}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all min-w-[60px]",
+              "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all",
+              "min-w-[64px] min-h-[48px]",
               "active:scale-95 touch-manipulation",
               isActive 
                 ? "text-primary" 
                 : "text-muted-foreground hover:text-foreground"
             )}
+            aria-current={isActive ? "page" : undefined}
           >
             <div className={cn(
-              "relative flex items-center justify-center w-10 h-7 rounded-full transition-colors",
-              isActive && "bg-primary/15"
+              "relative flex items-center justify-center w-10 h-8 rounded-full transition-all",
+              isActive && "bg-primary/15 scale-110"
             )}>
               <Icon className={cn(
                 "h-5 w-5 transition-transform",
-                isActive && "scale-110"
+                isActive && "scale-105"
               )} />
               {isActive ? (
                 <Sparkles className="absolute -top-1 -right-1 h-2.5 w-2.5 text-primary animate-pulse" />
@@ -95,7 +99,7 @@ export function MobileTabBar() {
               )}
             </div>
             <span className={cn(
-              "text-[10px] font-medium",
+              "text-[11px] font-medium",
               isActive && "font-semibold"
             )}>
               {tab.label}
@@ -105,9 +109,9 @@ export function MobileTabBar() {
       })}
 
       {/* Credits Badge */}
-      <div className="flex flex-col items-center justify-center gap-1 py-2 px-2">
+      <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 min-w-[56px] min-h-[48px]">
         <div className={cn(
-          "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+          "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium",
           isLowCredits 
             ? "bg-destructive/15 text-destructive" 
             : "bg-primary/15 text-primary"

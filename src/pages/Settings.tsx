@@ -373,7 +373,7 @@ export default function Settings() {
       />
 
       {/* Content */}
-      <main className="container max-w-3xl mx-auto py-8 px-4 space-y-8">
+      <main className="container max-w-full md:max-w-3xl mx-auto py-6 md:py-8 px-3 md:px-4 space-y-6 md:space-y-8">
         {/* Profile */}
         <Card>
           <CardHeader>
