@@ -15,7 +15,6 @@ import {
   Home,
   Info,
   Mail,
-  CreditCard,
   LogIn,
   UserPlus,
   Clock,
@@ -40,7 +39,6 @@ const mainNavItems: NavItem[] = [
   { label: "Home", path: "/", icon: Home, description: "Return to homepage" },
   { label: "How It Works", path: "/how-it-works", icon: Zap, description: "See the workflow" },
   { label: "Features", path: "/#features", icon: Sparkles, description: "Explore capabilities", isAnchor: true },
-  { label: "Pricing", path: "/pricing", icon: CreditCard, description: "View plans" },
   { label: "About", path: "/about", icon: Info, description: "Learn about Kernel" },
   { label: "Contact", path: "/contact", icon: Mail, description: "Get in touch" },
 ];
