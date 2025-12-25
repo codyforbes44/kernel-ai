@@ -143,7 +143,7 @@ export function InviteCodeManagementPanel() {
               <CardDescription>Generate and manage invite codes for exclusive access</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <RefreshButton onClick={handleRefresh} loading={loading} />
+              <RefreshButton onRefresh={handleRefresh} loading={loading} />
               <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>

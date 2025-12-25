@@ -43,6 +43,7 @@ interface GenerateParams {
   campaign?: string;
   expires_at?: string;
   prefix?: string;
+  [key: string]: unknown;
 }
 
 export function useInviteAdmin() {
