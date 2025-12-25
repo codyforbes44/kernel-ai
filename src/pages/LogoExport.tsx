@@ -2,11 +2,13 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { KernelLogoStatic } from "@/components/ui/kernel-logo-static";
 import { Button } from "@/components/ui/button";
-import { Download, Check, Square, Circle, Layers, Image, FileCode, Maximize, Shrink } from "lucide-react";
+import { Download, Check, Square, Circle, Layers, Image, FileCode, Maximize, Shrink, FileImage } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { generateICOFromSVG, downloadICO, generateFaviconSVG } from "@/lib/favicon-ico-generator";
 
 const EXPORT_SIZES = [512, 256, 180, 128, 64] as const;
+const ICO_SIZES = [16, 32, 48] as const;
 type Variant = "square" | "circle";
 
 // SVG template generator
@@ -133,6 +135,7 @@ export default function LogoExport() {
   const [activeVariant, setActiveVariant] = useState<Variant>("square");
   const [transparent, setTransparent] = useState(false);
   const [padded, setPadded] = useState(false);
+  const [generatingICO, setGeneratingICO] = useState(false);
 
   const getKey = (size: number, variant: Variant, isTransparent: boolean, isPadded: boolean) => 
     `${variant}-${size}-${isTransparent ? "transparent" : "solid"}-${isPadded ? "padded" : "full"}`;
@@ -189,6 +192,27 @@ export default function LogoExport() {
     for (const size of EXPORT_SIZES) {
       await handleDownload(size, activeVariant);
       await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+  };
+
+  const handleDownloadICO = async () => {
+    setGeneratingICO(true);
+    try {
+      // Generate favicon SVG at 48px (the base for scaling)
+      const svg = generateFaviconSVG(48);
+      
+      // Generate ICO with multiple resolutions
+      const icoBlob = await generateICOFromSVG(svg, { sizes: [...ICO_SIZES] });
+      
+      // Download
+      downloadICO(icoBlob, 'favicon.ico');
+      
+      toast.success(`Generated favicon.ico with ${ICO_SIZES.join('×')} resolutions`);
+    } catch (error) {
+      console.error('Failed to generate ICO:', error);
+      toast.error('Failed to generate favicon.ico');
+    } finally {
+      setGeneratingICO(false);
     }
   };
 
@@ -285,6 +309,16 @@ export default function LogoExport() {
           >
             <Download className="w-5 h-5" />
             Download All PNGs
+          </Button>
+          <Button
+            onClick={handleDownloadICO}
+            size="lg"
+            variant="outline"
+            disabled={generatingICO}
+            className="gap-2"
+          >
+            <FileImage className="w-5 h-5" />
+            {generatingICO ? "Generating..." : "Download ICO"}
           </Button>
           <Button
             onClick={handleDownloadSVG}
@@ -459,6 +493,31 @@ export default function LogoExport() {
                 Zoom editing, video thumbnails, social media safe zones, presentations
               </li>
             </ul>
+          </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            <h3 className="text-sm font-semibold text-foreground mb-2">
+              Favicon ICO Generator
+            </h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              The ICO generator creates a multi-resolution favicon file containing:
+            </p>
+            <div className="flex flex-wrap gap-3 mb-3">
+              {ICO_SIZES.map((size) => (
+                <div key={size} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50 border border-border">
+                  <div 
+                    className="rounded overflow-hidden"
+                    style={{ width: size, height: size }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: generateFaviconSVG(size)
+                    }}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground">{size}×{size}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              All sizes are embedded in a single .ico file for maximum browser compatibility.
+            </p>
           </div>
         </div>
       </div>
