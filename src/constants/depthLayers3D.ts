@@ -59,5 +59,35 @@ export const ANIMATION_SPEEDS = {
   grid: 0.001,
 } as const;
 
+// Performance-scaled particle and pulse configurations
+export const getScaledPulseConfig = (tier: PerformanceTier) => {
+  const counts = { ULTRA: 12, HIGH: 10, MEDIUM: 6, LOW: 4 };
+  return {
+    count: counts[tier],
+    speed: 0.4,
+    size: 8,
+    glowIntensity: 2.5,
+  };
+};
+
+export const getScaledParticleConfig = (tier: PerformanceTier) => {
+  const counts = { ULTRA: 150, HIGH: 100, MEDIUM: 50, LOW: 20 };
+  return {
+    count: counts[tier],
+    speedMin: 0.12,
+    speedMax: 0.4,
+    sizeMin: 2,
+    sizeMax: 6,
+    heightMin: 5,
+    heightMax: 50,
+    spreadX: 500,
+  };
+};
+
+export const getScaledFogSegments = (tier: PerformanceTier) => {
+  const segments = { ULTRA: 32, HIGH: 24, MEDIUM: 16, LOW: 8 };
+  return segments[tier];
+};
+
 export type PerformanceTier = keyof typeof PERFORMANCE_TIERS;
 export type DepthLayer3D = keyof typeof DEPTH_LAYERS_3D;
