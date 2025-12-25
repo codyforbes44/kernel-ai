@@ -11,6 +11,7 @@ import {
   RotateCcw, 
   MessageSquarePlus 
 } from 'lucide-react';
+import { KernelThinkingIndicator } from '../KernelThinkingIndicator';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -463,33 +464,36 @@ export function MobileBuilderChat({
           </div>
         ) : (
           <div className="space-y-4">
-            {localMessages.map(message => (
-              <div
-                key={message.id}
-                className={cn(
-                  'text-sm',
-                  message.role === 'user' && 'flex justify-end'
-                )}
-              >
-                {message.role === 'user' ? (
-                  <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl max-w-[85%]">
-                    {message.errorContext && message.errorContext.length > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1">
-                        <RotateCcw className="h-3 w-3" />
-                        Fixing {message.errorContext.length} error{message.errorContext.length > 1 ? 's' : ''}
-                      </div>
-                    )}
-                    {message.content}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="bg-muted px-4 py-3 rounded-2xl">
-                      {message.isStreaming && !message.content ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-muted-foreground">Thinking...</span>
+            {localMessages.map((message, index) => {
+              // Find the preceding user message for context
+              const precedingUserMessage = message.role === 'assistant' 
+                ? localMessages.slice(0, index).reverse().find(m => m.role === 'user')
+                : undefined;
+              
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    'text-sm',
+                    message.role === 'user' && 'flex justify-end'
+                  )}
+                >
+                  {message.role === 'user' ? (
+                    <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl max-w-[85%]">
+                      {message.errorContext && message.errorContext.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1">
+                          <RotateCcw className="h-3 w-3" />
+                          Fixing {message.errorContext.length} error{message.errorContext.length > 1 ? 's' : ''}
                         </div>
-                      ) : message.isStreaming ? (
+                      )}
+                      {message.content}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="bg-muted px-4 py-3 rounded-2xl">
+                        {message.isStreaming && !message.content ? (
+                          <KernelThinkingIndicator prompt={precedingUserMessage?.content} />
+                        ) : message.isStreaming ? (
                         <div>
                           <pre className="whitespace-pre-wrap font-mono text-xs overflow-hidden">
                             {message.content.slice(0, 300)}
@@ -548,7 +552,8 @@ export function MobileBuilderChat({
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </ScrollArea>
