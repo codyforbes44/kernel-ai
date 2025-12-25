@@ -18,7 +18,11 @@ export type AgentStepType =
   | 'list_files'
   | 'apply_changes' 
   | 'verify' 
-  | 'fix_error';
+  | 'fix_error'
+  | 'generate_image'
+  | 'generate_video'
+  | 'upscale_image'
+  | 'controlnet_generate';
 
 export type AgentStepStatus = 'pending' | 'running' | 'complete' | 'error';
 
@@ -38,7 +42,12 @@ export type AgentToolName =
   | 'search_files' 
   | 'list_files' 
   | 'apply_changes' 
-  | 'get_errors';
+  | 'get_errors'
+  // AI Studio tools
+  | 'generate_image'
+  | 'generate_video'
+  | 'upscale_image'
+  | 'controlnet_generate';
 
 export interface AgentToolCall {
   id: string;
@@ -135,6 +144,41 @@ export interface ApplyChangesParams {
   explanation: string;
 }
 
+// AI Studio tool parameters
+export interface GenerateImageParams {
+  prompt: string;
+  style?: string;
+  aspectRatio?: string;
+  negativePrompt?: string;
+  model?: 'flux-schnell' | 'flux-dev' | 'flux-pro' | 'sdxl';
+  seed?: number;
+  guidanceScale?: number;
+  numInferenceSteps?: number;
+}
+
+export interface GenerateVideoParams {
+  prompt: string;
+  model: 'luma' | 'kling' | 'minimax' | 'stable-video';
+  aspectRatio?: string;
+  duration?: number;
+  imageUrl?: string; // For image-to-video
+}
+
+export interface UpscaleImageParams {
+  imageUrl: string;
+  scale: 2 | 4;
+}
+
+export interface ControlNetGenerateParams {
+  prompt: string;
+  referenceImageUrl: string;
+  controlType: 'canny' | 'depth' | 'pose' | 'scribble' | 'softedge';
+  controlStrength?: number;
+  negativePrompt?: string;
+  guidanceScale?: number;
+  numInferenceSteps?: number;
+}
+
 // Agent configuration
 export interface AgentConfig {
   maxIterations: number;
@@ -149,3 +193,12 @@ export const DEFAULT_AGENT_CONFIG: AgentConfig = {
   verboseLogging: true,
   streamResponses: true,
 };
+
+// AI Studio asset types
+export interface GeneratedAssetReference {
+  id: string;
+  type: 'image' | 'video';
+  storageUrl: string;
+  prompt: string;
+  createdAt: Date;
+}

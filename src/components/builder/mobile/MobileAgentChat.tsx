@@ -77,6 +77,10 @@ const stepIconMap: Record<AgentStep['type'], typeof Bot> = {
   apply_changes: Wrench,
   verify: Check,
   fix_error: Bug,
+  generate_image: Wrench,
+  generate_video: Wrench,
+  upscale_image: Wrench,
+  controlnet_generate: Wrench,
 };
 
 function MobileStepItem({ step, isExpanded, onToggle }: { 
