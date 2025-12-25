@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { KernelLogo } from '@/components/ui/kernel-logo';
+import { GlassPanel, GlassPanelContent, GlassPanelHeader } from '@/components/ui/glass-panel';
+import { GlowText } from '@/components/ui/glow-text';
+import { PageBackground3D } from '@/components/three/PageBackground3D';
 import { Sparkles, User, Palette, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -63,9 +65,12 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-lg border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="text-center pb-2">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* 2100-era 3D background */}
+      <PageBackground3D intensity="low" />
+      
+      <GlassPanel variant="glow" blur="lg" className="w-full max-w-lg relative z-10">
+        <GlassPanelHeader className="text-center pb-2">
           <div className="flex justify-center mb-4">
             <KernelLogo className="w-12 h-12" />
           </div>
@@ -79,7 +84,7 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
                   className={cn(
                     "flex items-center justify-center w-8 h-8 rounded-full transition-all",
                     index === currentStep
-                      ? "bg-primary text-primary-foreground scale-110"
+                      ? "bg-primary text-primary-foreground scale-110 shadow-[0_0_15px_hsl(var(--primary)/0.5)]"
                       : index < currentStep
                       ? "bg-primary/20 text-primary"
                       : "bg-muted text-muted-foreground"
@@ -90,8 +95,8 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
               );
             })}
           </div>
-        </CardHeader>
-        <CardContent className="pt-4">
+        </GlassPanelHeader>
+        <GlassPanelContent className="pt-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -144,8 +149,8 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </GlassPanelContent>
+      </GlassPanel>
     </div>
   );
 }
@@ -153,11 +158,13 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
 function WelcomeStep() {
   return (
     <div className="text-center space-y-4">
-      <CardTitle className="text-2xl">Welcome to Kernel</CardTitle>
-      <CardDescription className="text-base">
+      <GlowText as="h2" variant="gradient" intensity="medium" className="text-2xl font-bold">
+        Welcome to Kernel
+      </GlowText>
+      <p className="text-base text-muted-foreground">
         Your AI-powered workspace for building amazing applications. 
         Let's set up your profile in just a few steps.
-      </CardDescription>
+      </p>
       <div className="py-6">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -182,10 +189,12 @@ function ProfileStep({
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <CardTitle className="text-xl">What should we call you?</CardTitle>
-        <CardDescription>
+        <GlowText as="h3" variant="primary" intensity="low" className="text-xl font-semibold mb-1">
+          What should we call you?
+        </GlowText>
+        <p className="text-muted-foreground text-sm">
           This name will be visible in your profile
-        </CardDescription>
+        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="displayName">Display Name</Label>
@@ -217,10 +226,12 @@ function ThemeStep({
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <CardTitle className="text-xl">Choose your theme</CardTitle>
-        <CardDescription>
+        <GlowText as="h3" variant="primary" intensity="low" className="text-xl font-semibold mb-1">
+          Choose your theme
+        </GlowText>
+        <p className="text-muted-foreground text-sm">
           You can always change this later in settings
-        </CardDescription>
+        </p>
       </div>
       <RadioGroup
         value={theme}
@@ -269,14 +280,16 @@ function CompleteStep({ displayName }: { displayName: string }) {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-        className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto"
+        className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto shadow-[0_0_20px_hsl(var(--success)/0.3)]"
       >
-        <CheckCircle2 className="w-8 h-8 text-green-500" />
+        <CheckCircle2 className="w-8 h-8 text-success" />
       </motion.div>
-      <CardTitle className="text-xl">You're all set, {displayName}!</CardTitle>
-      <CardDescription className="text-base">
+      <GlowText as="h3" variant="primary" intensity="medium" className="text-xl font-semibold">
+        You're all set, {displayName}!
+      </GlowText>
+      <p className="text-base text-muted-foreground">
         Your workspace is ready. Start building something amazing with AI assistance.
-      </CardDescription>
+      </p>
       <div className="py-4 space-y-2 text-sm text-muted-foreground">
         <p>✨ Access the AI chat for coding help</p>
         <p>🛠️ Build projects with the visual editor</p>

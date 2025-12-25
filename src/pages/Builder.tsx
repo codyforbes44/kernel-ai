@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { useBuilderProject } from '@/hooks/useBuilderProject';
 import { useAuth } from '@/hooks/useAuth';
 import { useRemixProject } from '@/hooks/useRemixProject';
@@ -96,7 +97,7 @@ export default function Builder() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <SEO
         title={PAGE_SEO.builder.title}
         description={PAGE_SEO.builder.description}
@@ -313,6 +314,6 @@ export default function Builder() {
         onImport={handleImport}
         isImporting={isImporting}
       />
-    </div>
+    </AppLayout>
   );
 }

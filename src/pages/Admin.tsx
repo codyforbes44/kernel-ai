@@ -15,6 +15,7 @@ import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { SEO } from '@/components/seo/SEO';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { PAGE_SEO } from '@/lib/seo';
 import { 
   ContactSubmissionsPanel, 
@@ -95,7 +96,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <SEO
         title={PAGE_SEO.admin.title}
         description={PAGE_SEO.admin.description}
@@ -339,6 +340,6 @@ export default function Admin() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   );
 }

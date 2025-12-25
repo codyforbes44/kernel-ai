@@ -6,8 +6,9 @@ import { Send, HelpCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { HoloBadge } from "@/components/ui/holo-badge";
+import { HoloCard, HoloCardContent, HoloCardHeader, HoloCardTitle, HoloCardDescription } from "@/components/ui/holo-card";
+import { GlowText } from "@/components/ui/glow-text";
 import {
   Form,
   FormControl,
@@ -94,7 +95,7 @@ export default function Contact() {
   }));
 
   return (
-    <PublicLayout backgroundIntensity="low">
+    <PublicLayout backgroundIntensity="medium">
       <SEO 
         title={PAGE_SEO.contact.title}
         description={PAGE_SEO.contact.description}
@@ -112,12 +113,16 @@ export default function Contact() {
       {/* Hero Section */}
       <section className="pt-12 sm:pt-16 pb-8 sm:pb-12 px-4">
         <div className="container mx-auto text-center max-w-3xl">
-          <Badge variant="secondary" className="mb-4 bg-primary/10 border-primary/30">
+          <HoloBadge variant="glow" className="mb-4">
             <HelpCircle className="h-3 w-3 mr-1" />
             Support Center
-          </Badge>
+          </HoloBadge>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 sm:mb-6">
-            How can we <span className="text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.5)]">help</span>?
+            How can we{" "}
+            <GlowText variant="primary" intensity="high" as="span">
+              help
+            </GlowText>
+            ?
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
             Browse our FAQ for quick answers or get in touch with our support team. 
@@ -131,9 +136,9 @@ export default function Contact() {
         <div className="container mx-auto max-w-4xl">
           <div className="grid md:grid-cols-3 gap-4">
             {contactOptions.map((option) => (
-              <Card key={option.title} className="text-center hover:border-primary/50 transition-colors">
-                <CardContent className="pt-6">
-                  <div className="mx-auto mb-3 p-3 rounded-xl bg-primary/10 w-fit">
+              <HoloCard key={option.title} className="text-center" hover>
+                <HoloCardContent className="pt-6">
+                  <div className="mx-auto mb-3 p-3 rounded-xl bg-primary/10 w-fit shadow-[0_0_15px_hsl(var(--primary)/0.2)]">
                     <option.icon className="h-5 w-5 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-1">{option.title}</h3>
@@ -144,8 +149,8 @@ export default function Contact() {
                   >
                     {option.action}
                   </a>
-                </CardContent>
-              </Card>
+                </HoloCardContent>
+              </HoloCard>
             ))}
           </div>
         </div>
@@ -157,22 +162,22 @@ export default function Contact() {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div>
-              <Card>
-                <CardHeader>
+              <HoloCard variant="glow">
+                <HoloCardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Send us a message</CardTitle>
-                      <CardDescription>
+                      <HoloCardTitle>Send us a message</HoloCardTitle>
+                      <HoloCardDescription>
                         Fill out the form below and we'll get back to you as soon as possible.
-                      </CardDescription>
+                      </HoloCardDescription>
                     </div>
-                    <Badge variant="outline" className="flex items-center gap-1 shrink-0">
+                    <HoloBadge variant="default" className="flex items-center gap-1 shrink-0">
                       <Clock className="h-3 w-3" />
                       <span className="text-xs">~24h response</span>
-                    </Badge>
+                    </HoloBadge>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </HoloCardHeader>
+                <HoloCardContent>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       <div className="grid sm:grid-cols-2 gap-4">
@@ -256,13 +261,15 @@ export default function Contact() {
                       </Button>
                     </form>
                   </Form>
-                </CardContent>
-              </Card>
+                </HoloCardContent>
+              </HoloCard>
             </div>
 
             {/* FAQ Accordion */}
             <div>
-              <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+              <GlowText as="h2" variant="primary" intensity="low" className="text-2xl font-bold mb-6">
+                Frequently Asked Questions
+              </GlowText>
               <Accordion type="single" collapsible className="space-y-2">
                 {contactFAQs.slice(0, 8).map((faq, index) => (
                   <AccordionItem 

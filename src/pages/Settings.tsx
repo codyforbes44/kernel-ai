@@ -8,6 +8,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useLiteMode } from '@/hooks/useLiteMode';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/seo/SEO';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { PAGE_SEO } from '@/lib/seo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -355,7 +356,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <SEO
         title={PAGE_SEO.settings.title}
         description={PAGE_SEO.settings.description}
@@ -1039,6 +1040,6 @@ export default function Settings() {
       {showTour && (
         <WelcomeTour forceShow onComplete={() => setShowTour(false)} />
       )}
-    </div>
+    </AppLayout>
   );
 }
