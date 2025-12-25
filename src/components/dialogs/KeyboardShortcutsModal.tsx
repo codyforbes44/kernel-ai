@@ -32,6 +32,14 @@ const shortcuts = [
     ],
   },
   {
+    category: 'Preview',
+    items: [
+      { keys: ['1'], description: 'Desktop view' },
+      { keys: ['2'], description: 'Tablet view' },
+      { keys: ['3'], description: 'Mobile view' },
+    ],
+  },
+  {
     category: 'Editor',
     items: [
       { keys: ['⌘', 'D'], description: 'Toggle dark mode' },
