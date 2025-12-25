@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database, Wand2, Camera } from 'lucide-react';
+import { KernelThinkingIndicator } from './KernelThinkingIndicator';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -556,10 +557,7 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
                   <div className="space-y-2">
                     <div className="bg-muted px-3 py-2 rounded-lg">
                       {message.isStreaming && !message.content ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          <span className="text-muted-foreground">Thinking...</span>
-                        </div>
+                        <KernelThinkingIndicator />
                       ) : message.isStreaming ? (
                         <div>
                           <pre className="whitespace-pre-wrap font-mono text-xs overflow-hidden">
