@@ -52,7 +52,7 @@ export default function Landing() {
       <section 
         ref={heroRef}
         id="hero" 
-        className="relative min-h-[85dvh] lg:min-h-[90dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
+        className="relative min-h-[100dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
       >
         {/* 3D Background */}
         <HeroBackground isVisible={isHeroVisible && !prefersReducedMotion} />
