@@ -1,0 +1,266 @@
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef, useEffect, useMemo } from "react";
+import { MessageSquare, Wand2, Rocket, Eye } from "lucide-react";
+import { useVideoTimeline } from "@/hooks/useVideoTimeline";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { VideoControls } from "./video/VideoControls";
+import { VideoScene } from "./video/VideoScene";
+import { TypingAnimation } from "./video/TypingAnimation";
+import { CodeStreamAnimation } from "./video/CodeStreamAnimation";
+import { DeployAnimation } from "./video/DeployAnimation";
+import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
+import { GlassPanel } from "@/components/ui/glass-panel";
+
+const TOTAL_DURATION = 24; // seconds
+
+const scenes = [
+  { id: "intro", start: 0, end: 4, label: "Intro" },
+  { id: "describe", start: 4, end: 9, label: "Describe", icon: MessageSquare },
+  { id: "generate", start: 9, end: 15, label: "Generate", icon: Wand2 },
+  { id: "deploy", start: 15, end: 20, label: "Deploy", icon: Rocket },
+  { id: "outro", start: 20, end: 24, label: "Complete" },
+];
+
+interface HowItWorksVideoProps {
+  className?: string;
+}
+
+export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: false, amount: 0.5 });
+  const { shouldReduceMotion } = useReducedMotion();
+
+  const {
+    currentTime,
+    isPlaying,
+    progress,
+    play,
+    pause,
+    seek,
+    reset,
+    toggle,
+  } = useVideoTimeline({
+    duration: TOTAL_DURATION,
+    autoPlay: false,
+    loop: false,
+  });
+
+  // Auto-play when in view
+  useEffect(() => {
+    if (isInView && !isPlaying && currentTime === 0 && !shouldReduceMotion) {
+      const timer = setTimeout(play, 500);
+      return () => clearTimeout(timer);
+    }
+    if (!isInView && isPlaying) {
+      pause();
+    }
+  }, [isInView, isPlaying, currentTime, play, pause, shouldReduceMotion]);
+
+  const currentScene = useMemo(() => {
+    return scenes.find(s => currentTime >= s.start && currentTime < s.end)?.id || "intro";
+  }, [currentTime]);
+
+  // Reduced motion fallback
+  if (shouldReduceMotion) {
+    return (
+      <div className={className}>
+        <GlassPanel variant="glow" className="p-6">
+          <div className="flex items-center justify-center gap-6">
+            {scenes.filter(s => s.icon).map((scene) => (
+              <div key={scene.id} className="flex flex-col items-center gap-2">
+                {scene.icon && <scene.icon className="h-8 w-8 text-primary" />}
+                <span className="text-sm text-muted-foreground">{scene.label}</span>
+              </div>
+            ))}
+          </div>
+        </GlassPanel>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className={className}>
+      <GlassPanel variant="glow" className="overflow-hidden">
+        {/* Video Stage */}
+        <div className="relative aspect-video bg-gradient-to-br from-background via-card to-background overflow-hidden">
+          {/* Background Grid */}
+          <div 
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '40px 40px',
+            }}
+          />
+
+          {/* Scene: Intro */}
+          <VideoScene isActive={currentScene === "intro"} className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="flex flex-col items-center gap-4"
+            >
+              <KernelLogoAnimated size="xl" variant="animated" isActive={true} />
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="text-muted-foreground text-lg"
+              >
+                Build apps with AI
+              </motion.p>
+            </motion.div>
+          </VideoScene>
+
+          {/* Scene: Describe */}
+          <VideoScene isActive={currentScene === "describe"} className="absolute inset-0 flex items-center justify-center p-8">
+            <div className="flex items-start gap-6 max-w-lg w-full">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30"
+              >
+                <MessageSquare className="h-6 w-6 text-primary" />
+              </motion.div>
+              <div className="flex-1">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-card/80 backdrop-blur-sm rounded-lg rounded-tl-none p-4 border border-border/50"
+                >
+                  <TypingAnimation
+                    text="Build me a dashboard with charts and a sidebar navigation..."
+                    isActive={currentScene === "describe"}
+                    typingSpeed={40}
+                    className="text-sm md:text-base"
+                  />
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-xs text-muted-foreground mt-2 ml-2"
+                >
+                  Just describe what you want
+                </motion.p>
+              </div>
+            </div>
+          </VideoScene>
+
+          {/* Scene: Generate */}
+          <VideoScene isActive={currentScene === "generate"} className="absolute inset-0 flex items-center justify-center p-8">
+            <div className="flex items-start gap-6 max-w-xl w-full">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="flex-shrink-0 w-12 h-12 rounded-xl bg-gold/20 flex items-center justify-center border border-gold/30"
+              >
+                <Wand2 className="h-6 w-6 text-gold" />
+              </motion.div>
+              <div className="flex-1">
+                <CodeStreamAnimation 
+                  isActive={currentScene === "generate"} 
+                  className="w-full"
+                />
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-xs text-muted-foreground mt-2 ml-2"
+                >
+                  AI writes production-ready code
+                </motion.p>
+              </div>
+            </div>
+          </VideoScene>
+
+          {/* Scene: Deploy */}
+          <VideoScene isActive={currentScene === "deploy"} className="absolute inset-0 flex items-center justify-center p-8">
+            <div className="flex flex-col items-center gap-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center border border-green-500/30"
+              >
+                <Rocket className="h-6 w-6 text-green-400" />
+              </motion.div>
+              <DeployAnimation 
+                isActive={currentScene === "deploy"} 
+              />
+            </div>
+          </VideoScene>
+
+          {/* Scene: Outro */}
+          <VideoScene isActive={currentScene === "outro"} className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="flex flex-col items-center gap-6"
+            >
+              <div className="flex items-center gap-4">
+                {[MessageSquare, Wand2, Rocket].map((Icon, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.15, type: "spring", stiffness: 300 }}
+                    className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20"
+                  >
+                    <Icon className="h-5 w-5 text-primary" />
+                  </motion.div>
+                ))}
+              </div>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-xl font-semibold bg-gradient-to-r from-primary to-gold bg-clip-text text-transparent"
+              >
+                From idea to live app in minutes
+              </motion.p>
+            </motion.div>
+          </VideoScene>
+
+          {/* Progress Indicator Dots */}
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {scenes.filter(s => s.icon).map((scene) => (
+              <motion.button
+                key={scene.id}
+                onClick={() => seek(scene.start)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  currentScene === scene.id 
+                    ? 'bg-primary scale-125' 
+                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                }`}
+                whileHover={{ scale: 1.3 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label={`Go to ${scene.label}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Controls */}
+        <VideoControls
+          isPlaying={isPlaying}
+          progress={progress}
+          currentTime={currentTime}
+          duration={TOTAL_DURATION}
+          onToggle={toggle}
+          onSeek={seek}
+          onReset={reset}
+          className="rounded-none border-t border-border/50 rounded-b-xl"
+        />
+      </GlassPanel>
+    </div>
+  );
+}

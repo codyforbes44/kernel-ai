@@ -5,6 +5,7 @@ import { HoloSection } from "@/components/ui/holo-section";
 import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Button } from "@/components/ui/button";
+import { HowItWorksVideo } from "./HowItWorksVideo";
 
 const steps = [
   {
@@ -109,17 +110,34 @@ export function HowItWorksSection() {
             ))}
           </div>
 
-          {/* Learn More Link */}
+          {/* Video Demo */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
-            className="text-center mt-10"
+            className="mt-12 max-w-3xl mx-auto"
           >
+            <HowItWorksVideo />
+          </motion.div>
+
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8"
+          >
+            <Button asChild size="lg" className="group">
+              <Link to="/request-invite">
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
             <Button asChild variant="ghost" className="group">
               <Link to="/how-it-works">
-                Learn more about how Kernel works
+                Learn More
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
