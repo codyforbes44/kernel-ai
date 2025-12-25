@@ -4,6 +4,8 @@ import { UpdateNotification } from '@/components/pwa/UpdateNotification';
 import { InstallPromptBanner } from '@/components/pwa/InstallPromptBanner';
 import { FloatingInstallButton } from '@/components/pwa/FloatingInstallButton';
 import { CommandPalette } from '@/components/CommandPalette';
+import { VoiceAgentWidget } from '@/components/voice/VoiceAgentWidget';
+import { VoiceAgentProvider, useVoiceAgentConfig } from '@/components/voice/VoiceAgentProvider';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOLEDSuggestion } from '@/hooks/useOLEDSuggestion';
 import { usePageTracking } from '@/hooks/usePageTracking';
@@ -22,12 +24,25 @@ function PreferenceLoaders() {
 }
 
 /**
+ * Voice agent widget that uses config from context
+ */
+function VoiceAgentContainer() {
+  const { config } = useVoiceAgentConfig();
+  
+  if (!config.enabled || !config.agentId) {
+    return null;
+  }
+  
+  return <VoiceAgentWidget agentId={config.agentId} />;
+}
+
+/**
  * Global UI components that appear across the entire application.
  * Includes toasters, PWA components, and command palette.
  */
 export function GlobalComponents() {
   return (
-    <>
+    <VoiceAgentProvider>
       <PreferenceLoaders />
       <Toaster />
       <Sonner />
@@ -35,6 +50,7 @@ export function GlobalComponents() {
       <InstallPromptBanner />
       <FloatingInstallButton />
       <CommandPalette />
-    </>
+      <VoiceAgentContainer />
+    </VoiceAgentProvider>
   );
 }
