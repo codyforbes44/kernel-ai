@@ -22,6 +22,9 @@ const entranceVariants = {
   },
 };
 
+/**
+ * @deprecated Use HeroEntranceGroup with HeroEntranceItem for staggered animations
+ */
 export function HeroEntrance({ children, delay = 0, className }: HeroEntranceProps) {
   return (
     <motion.div

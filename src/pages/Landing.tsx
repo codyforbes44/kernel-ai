@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
@@ -17,66 +17,15 @@ import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
 import { ScrollProgressIndicator } from '@/components/landing/ScrollProgressIndicator';
 import { useHeroVisibility } from '@/hooks/useHeroVisibility';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { HeroContent, ScrollIndicator } from '@/components/landing/HeroContent';
-import { 
-  MessageSquare, 
-  Code2, 
-  Palette, 
-  Zap, 
-  Shield, 
-  Users,
-  ArrowRight,
-  Sparkles,
-} from 'lucide-react';
-
-const features = [
-  {
-    icon: MessageSquare,
-    title: 'AI-Powered Chat',
-    description: 'Have intelligent conversations with context-aware AI that understands your projects and helps you build faster.'
-  },
-  {
-    icon: Code2,
-    title: 'Visual Builder',
-    description: 'Build and preview your applications in real-time with an integrated code editor and live preview.'
-  },
-  {
-    icon: Palette,
-    title: 'Design Systems',
-    description: 'Create and manage design tokens, typography, and color palettes that stay consistent across your projects.'
-  },
-  {
-    icon: Zap,
-    title: 'Instant Deploy',
-    description: 'Deploy your projects with one click. Get a live URL instantly and share your work with the world.'
-  },
-  {
-    icon: Shield,
-    title: 'Secure by Default',
-    description: 'Built-in authentication, row-level security, and encrypted data storage keep your projects safe.'
-  },
-  {
-    icon: Users,
-    title: 'Collaboration Ready',
-    description: 'Work together with your team in shared workspaces. Manage projects and permissions effortlessly.'
-  }
-];
+import { features } from '@/lib/landing-data';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Landing() {
   const ogImageRef = useRef<HTMLDivElement>(null);
   const { heroRef, isVisible: isHeroVisible } = useHeroVisibility();
-  
-  // Check for reduced motion preference
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-    
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  const prefersReducedMotion = usePrefersReducedMotion();
   return (
     <PublicLayout>
       {/* Scroll Progress Indicator */}
@@ -115,6 +64,7 @@ export default function Landing() {
         <ScrollIndicator 
           targetId="social-proof" 
           className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10"
+          prefersReducedMotion={prefersReducedMotion}
         />
       </section>
 

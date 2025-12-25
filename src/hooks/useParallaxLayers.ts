@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDeviceOrientation } from './useDeviceOrientation';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion';
 
 export interface ParallaxLayer {
   /** Transform string for CSS transform property */
@@ -45,7 +46,7 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const prefersReducedMotion = usePrefersReducedMotion();
   
   const rafRef = useRef<number>(0);
   const currentValues = useRef({
@@ -59,16 +60,6 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
   // Detect mobile
   useEffect(() => {
     setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  }, []);
-
-  // Detect reduced motion preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-    
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
   // Scroll tracking with throttled updates
