@@ -11,8 +11,8 @@ export function SceneEnvironment() {
         color={0x6080ff}
       />
       
-      {/* Fog for depth fade */}
-      <fog attach="fog" args={[0x000010, 100, 400]} />
+      {/* Extended fog for deep depth fade */}
+      <fog attach="fog" args={[0x000818, 150, 900]} />
     </>
   );
 }
