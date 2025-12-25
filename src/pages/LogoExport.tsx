@@ -6,7 +6,7 @@ import { Download, Check, Square, Circle, Layers, Image, FileCode } from "lucide
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const EXPORT_SIZES = [512, 256, 128, 64] as const;
+const EXPORT_SIZES = [512, 256, 180, 128, 64] as const;
 type Variant = "square" | "circle";
 
 // SVG template generator
