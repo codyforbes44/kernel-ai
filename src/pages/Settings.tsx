@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import { useVariableHistory } from '@/hooks/useVariableHistory';
 import { useUserPreferences, AI_MODEL_OPTIONS } from '@/hooks/useUserPreferences';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useLiteMode } from '@/hooks/useLiteMode';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/seo/SEO';
 import { PAGE_SEO } from '@/lib/seo';
@@ -48,6 +49,9 @@ import {
   CreditCard,
   Crown,
   ExternalLink,
+  Zap,
+  Battery,
+  Wifi,
 } from 'lucide-react';
 import { WelcomeTour } from '@/components/onboarding/WelcomeTour';
 import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
@@ -55,6 +59,7 @@ import { LoginLocationsSettings } from '@/components/settings/LoginLocationsSett
 import { CreditsSettings } from '@/components/settings/CreditsSettings';
 import { SystemInfoCard } from '@/components/settings/SystemInfoCard';
 import { ExternalSupabaseSettings } from '@/components/settings/ExternalSupabaseSettings';
+import { PerformanceCard } from '@/components/settings/PerformanceCard';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -609,6 +614,9 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Performance / Lite Mode */}
+        <PerformanceCard />
 
         {/* Workflow Preferences */}
         <Card>
