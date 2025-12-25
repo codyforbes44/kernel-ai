@@ -189,6 +189,19 @@ export function MobileAgentChat({
     }
   }, [request]);
 
+  // Escape key to cancel agent
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isRunning) {
+        hapticFeedback('medium');
+        cancelAgent();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isRunning, cancelAgent]);
+
   // Show pending drawer when operations are ready
   useEffect(() => {
     if (session?.pendingOperations && session.pendingOperations.length > 0 && !isRunning) {
