@@ -21,6 +21,10 @@ const stepIconMap: Record<AgentStep['type'], typeof Brain> = {
   apply_changes: Wrench,
   verify: Check,
   fix_error: Bug,
+  generate_image: Wrench,
+  generate_video: Wrench,
+  upscale_image: Wrench,
+  controlnet_generate: Wrench,
 };
 
 const stepColors: Record<AgentStep['type'], string> = {
@@ -31,6 +35,10 @@ const stepColors: Record<AgentStep['type'], string> = {
   apply_changes: 'text-green-500',
   verify: 'text-emerald-500',
   fix_error: 'text-orange-500',
+  generate_image: 'text-pink-500',
+  generate_video: 'text-violet-500',
+  upscale_image: 'text-indigo-500',
+  controlnet_generate: 'text-rose-500',
 };
 
 interface AnimatedStepIconProps {
