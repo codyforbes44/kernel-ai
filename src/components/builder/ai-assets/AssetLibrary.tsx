@@ -7,6 +7,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -27,6 +30,7 @@ import {
   Square,
   X,
   Video,
+  ZoomIn,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GeneratedAsset } from '@/hooks/useAIAssets';
@@ -42,6 +46,7 @@ interface AssetLibraryProps {
   onToggleFavorite: (assetId: string) => void;
   getCodeSnippet: (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg') => string;
   onEditAsset?: (asset: GeneratedAsset) => void;
+  onUpscaleAsset?: (asset: GeneratedAsset, scale: number) => void;
   onBulkDelete?: (assetIds: string[]) => void;
 }
 
@@ -58,6 +63,7 @@ export function AssetLibrary({
   onToggleFavorite,
   getCodeSnippet,
   onEditAsset,
+  onUpscaleAsset,
   onBulkDelete,
 }: AssetLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -260,6 +266,7 @@ export function AssetLibrary({
               onToggleFavorite={() => onToggleFavorite(asset.id)}
               onCopyCode={(format) => handleCopyCode(asset, format)}
               onEdit={onEditAsset ? () => onEditAsset(asset) : undefined}
+              onUpscale={onUpscaleAsset && asset.asset_type === 'image' ? (scale) => onUpscaleAsset(asset, scale) : undefined}
               selectionMode={selectionMode}
               isSelected={selectedIds.has(asset.id)}
             />
@@ -278,6 +285,7 @@ export function AssetLibrary({
               onToggleFavorite={() => onToggleFavorite(asset.id)}
               onCopyCode={(format) => handleCopyCode(asset, format)}
               onEdit={onEditAsset ? () => onEditAsset(asset) : undefined}
+              onUpscale={onUpscaleAsset && asset.asset_type === 'image' ? (scale) => onUpscaleAsset(asset, scale) : undefined}
               selectionMode={selectionMode}
               isSelected={selectedIds.has(asset.id)}
             />
@@ -297,6 +305,7 @@ interface AssetItemProps {
   onToggleFavorite: () => void;
   onCopyCode: (format: 'jsx' | 'img' | 'bg') => void;
   onEdit?: () => void;
+  onUpscale?: (scale: number) => void;
   selectionMode?: boolean;
   isSelected?: boolean;
 }
@@ -310,6 +319,7 @@ function AssetCard({
   onToggleFavorite,
   onCopyCode,
   onEdit,
+  onUpscale,
   selectionMode,
   isSelected,
 }: AssetItemProps) {
@@ -376,7 +386,9 @@ function AssetCard({
             onToggleFavorite={onToggleFavorite}
             onCopyCode={onCopyCode}
             onEdit={onEdit}
+            onUpscale={onUpscale}
             isFavorite={asset.is_favorite}
+            isVideo={asset.asset_type === 'video'}
           />
         </div>
       )}
@@ -398,6 +410,7 @@ function AssetListItem({
   onToggleFavorite,
   onCopyCode,
   onEdit,
+  onUpscale,
   selectionMode,
   isSelected,
 }: AssetItemProps) {
@@ -451,7 +464,9 @@ function AssetListItem({
           onToggleFavorite={onToggleFavorite}
           onCopyCode={onCopyCode}
           onEdit={onEdit}
+          onUpscale={onUpscale}
           isFavorite={asset.is_favorite}
+          isVideo={asset.asset_type === 'video'}
         />
       )}
     </div>
@@ -465,7 +480,9 @@ function AssetActions({
   onToggleFavorite,
   onCopyCode,
   onEdit,
+  onUpscale,
   isFavorite,
+  isVideo,
 }: {
   onCopyUrl: () => void;
   onDownload: () => void;
@@ -473,7 +490,9 @@ function AssetActions({
   onToggleFavorite: () => void;
   onCopyCode: (format: 'jsx' | 'img' | 'bg') => void;
   onEdit?: () => void;
+  onUpscale?: (scale: number) => void;
   isFavorite: boolean;
+  isVideo?: boolean;
 }) {
   return (
     <DropdownMenu>
@@ -488,6 +507,22 @@ function AssetActions({
             <Wand2 className="h-4 w-4 mr-2" />
             Edit with AI
           </DropdownMenuItem>
+        )}
+        {onUpscale && !isVideo && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <ZoomIn className="h-4 w-4 mr-2" />
+              Upscale Image
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => onUpscale(2)}>
+                2x Upscale
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpscale(4)}>
+                4x Upscale
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         )}
         <DropdownMenuItem onClick={onToggleFavorite}>
           <Heart className={cn('h-4 w-4 mr-2', isFavorite && 'fill-current')} />

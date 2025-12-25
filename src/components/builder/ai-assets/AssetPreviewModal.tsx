@@ -7,7 +7,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Download, Trash2, Heart, Code, Check, Wand2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Copy, Download, Trash2, Heart, Code, Check, Wand2, ZoomIn, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import type { GeneratedAsset } from '@/hooks/useAIAssets';
@@ -23,6 +29,8 @@ interface AssetPreviewModalProps {
   onToggleFavorite: (assetId: string) => void;
   getCodeSnippet: (asset: GeneratedAsset, format: 'jsx' | 'img' | 'bg') => string;
   onEditAsset?: (asset: GeneratedAsset) => void;
+  onUpscaleAsset?: (asset: GeneratedAsset, scale: number) => void;
+  isUpscaling?: boolean;
 }
 
 export function AssetPreviewModal({
@@ -35,6 +43,8 @@ export function AssetPreviewModal({
   onToggleFavorite,
   getCodeSnippet,
   onEditAsset,
+  onUpscaleAsset,
+  isUpscaling,
 }: AssetPreviewModalProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -122,7 +132,7 @@ export function AssetPreviewModal({
               </div>
 
               {/* Edit with AI button */}
-              {onEditAsset && (
+              {onEditAsset && asset.asset_type === 'image' && (
                 <Button
                   variant="secondary"
                   className="w-full"
@@ -134,6 +144,31 @@ export function AssetPreviewModal({
                   <Wand2 className="h-4 w-4 mr-2" />
                   Edit with AI
                 </Button>
+              )}
+
+              {/* Upscale button */}
+              {onUpscaleAsset && asset.asset_type === 'image' && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={isUpscaling}
+                    >
+                      <ZoomIn className="h-4 w-4 mr-2" />
+                      {isUpscaling ? 'Upscaling...' : 'Upscale Image'}
+                      <ChevronDown className="h-4 w-4 ml-auto" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-full">
+                    <DropdownMenuItem onClick={() => onUpscaleAsset(asset, 2)}>
+                      2x Upscale (double resolution)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onUpscaleAsset(asset, 4)}>
+                      4x Upscale (quadruple resolution)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
 
