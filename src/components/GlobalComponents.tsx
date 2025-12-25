@@ -6,6 +6,7 @@ import { FloatingInstallButton } from '@/components/pwa/FloatingInstallButton';
 import { CommandPalette } from '@/components/CommandPalette';
 import { VoiceAgentWidget } from '@/components/voice/VoiceAgentWidget';
 import { VoiceAgentProvider, useVoiceAgentConfig } from '@/components/voice/VoiceAgentProvider';
+import { ElevenLabsSettingsProvider, useElevenLabsSettings } from '@/contexts/ElevenLabsSettingsContext';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOLEDSuggestion } from '@/hooks/useOLEDSuggestion';
 import { usePageTracking } from '@/hooks/usePageTracking';
@@ -19,7 +20,7 @@ function PreferenceLoaders() {
   useReducedMotion();
   useOLEDSuggestion();
   usePageTracking();
-  useSessionRefresh(); // Auto-refresh on new user session if update available
+  useSessionRefresh();
   return null;
 }
 
@@ -28,11 +29,11 @@ function PreferenceLoaders() {
  */
 function VoiceAgentContainer() {
   const { config } = useVoiceAgentConfig();
+  const { settings } = useElevenLabsSettings();
   
-  // Default agent ID - can be overridden via config
-  const agentId = config.agentId || 'agent_3601kdbjwad7fnys6r2ye64jmpa9';
+  const agentId = config.agentId || settings.voiceAgent.agentId || 'agent_3601kdbjwad7fnys6r2ye64jmpa9';
   
-  if (!config.enabled) {
+  if (!config.enabled && !settings.voiceAgent.enabled) {
     return null;
   }
   
@@ -41,19 +42,20 @@ function VoiceAgentContainer() {
 
 /**
  * Global UI components that appear across the entire application.
- * Includes toasters, PWA components, and command palette.
  */
 export function GlobalComponents() {
   return (
-    <VoiceAgentProvider>
-      <PreferenceLoaders />
-      <Toaster />
-      <Sonner />
-      <UpdateNotification />
-      <InstallPromptBanner />
-      <FloatingInstallButton />
-      <CommandPalette />
-      <VoiceAgentContainer />
-    </VoiceAgentProvider>
+    <ElevenLabsSettingsProvider>
+      <VoiceAgentProvider>
+        <PreferenceLoaders />
+        <Toaster />
+        <Sonner />
+        <UpdateNotification />
+        <InstallPromptBanner />
+        <FloatingInstallButton />
+        <CommandPalette />
+        <VoiceAgentContainer />
+      </VoiceAgentProvider>
+    </ElevenLabsSettingsProvider>
   );
 }
