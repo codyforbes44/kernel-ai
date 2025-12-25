@@ -21,6 +21,9 @@ import {
   GitBranch,
   MoreHorizontal,
   Reply,
+  Volume2,
+  VolumeX,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MarkdownRenderer } from "./MarkdownRenderer";
@@ -39,6 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTTS } from "@/hooks/useTTS";
 
 // Lazy load DeleteConfirmDialog
 const DeleteConfirmDialog = lazy(() => 
@@ -71,8 +75,17 @@ export const ChatMessage = memo(function ChatMessage({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const isMobile = useIsMobile();
   const haptic = useHaptic();
+  const { speak, stop, isSpeaking, isLoading: ttsLoading } = useTTS();
   const isUser = message.role === "user";
 
+  const handleSpeak = () => {
+    haptic.light();
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(message.content);
+    }
+  };
   // Extract attachments from metadata - memoized for performance
   const attachments: Attachment[] = useMemo(() => 
     (message.metadata as { attachments?: Attachment[] } | null)?.attachments || [],
@@ -155,6 +168,16 @@ export const ChatMessage = memo(function ChatMessage({
         
         {!isUser && (
           <>
+            <DropdownMenuItem onClick={handleSpeak} disabled={ttsLoading} className="gap-2">
+              {ttsLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isSpeaking ? (
+                <VolumeX className="h-4 w-4" />
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+              {ttsLoading ? "Loading..." : isSpeaking ? "Stop" : "Read aloud"}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onRegenerate} className="gap-2">
               <RefreshCw className="h-4 w-4" />
               Regenerate
@@ -359,6 +382,29 @@ export const ChatMessage = memo(function ChatMessage({
 
                 {!isUser && (
                   <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn("h-7 w-7", isSpeaking && "text-primary")}
+                          onClick={handleSpeak}
+                          disabled={ttsLoading}
+                        >
+                          {ttsLoading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : isSpeaking ? (
+                            <VolumeX className="h-3.5 w-3.5" />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {ttsLoading ? "Loading..." : isSpeaking ? "Stop" : "Read aloud"}
+                      </TooltipContent>
+                    </Tooltip>
+
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
