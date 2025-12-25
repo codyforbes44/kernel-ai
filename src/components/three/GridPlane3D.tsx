@@ -250,6 +250,69 @@ function EnergyPulses() {
   );
 }
 
+// Horizon Fog component - creates atmospheric depth
+function HorizonFog() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  const { geometry, colors } = useMemo(() => {
+    // Create a plane that spans the width and extends vertically
+    const width = 1600;
+    const height = 200;
+    const segments = 32;
+    
+    const geometry = new THREE.PlaneGeometry(width, height, segments, segments);
+    const colors: number[] = [];
+    
+    const positions = geometry.attributes.position.array;
+    const cyan = new THREE.Color(COLORS_3D.primary);
+    
+    // Calculate colors based on position
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i];
+      const y = positions[i + 1];
+      
+      // Vertical fade: stronger at center (y=0), fading at top and bottom
+      const normalizedY = (y + height / 2) / height; // 0 at bottom, 1 at top
+      const verticalFade = Math.pow(1 - Math.abs(normalizedY - 0.3) * 1.5, 2);
+      
+      // Horizontal fade: stronger at center, fading at edges
+      const normalizedX = Math.abs(x) / (width / 2);
+      const horizontalFade = Math.pow(1 - normalizedX, 1.5);
+      
+      // Combined intensity
+      const intensity = Math.max(0, verticalFade * horizontalFade * 0.6);
+      
+      colors.push(cyan.r * intensity, cyan.g * intensity, cyan.b * intensity);
+    }
+    
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    
+    return { geometry, colors };
+  }, []);
+  
+  // Subtle pulsing animation
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      const time = clock.getElapsedTime();
+      const material = meshRef.current.material as THREE.MeshBasicMaterial;
+      material.opacity = 0.4 + Math.sin(time * 0.3) * 0.1;
+    }
+  });
+  
+  return (
+    <mesh ref={meshRef} geometry={geometry} position={[0, 580, 5]}>
+      <meshBasicMaterial
+        vertexColors
+        transparent
+        opacity={0.4}
+        blending={THREE.AdditiveBlending}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 // Floating Particles component
 function FloatingParticles() {
   const particlesRef = useRef<THREE.Points>(null);
@@ -468,6 +531,11 @@ export function GridPlane3D() {
       
       {/* Floating particles above the grid */}
       <FloatingParticles />
+      
+      {/* Horizon fog for atmospheric depth */}
+      <HorizonFog />
+      
+      {/* Horizon glow line */}
       <group position={[0, 600, 0]}>
         <lineSegments ref={horizonRef} geometry={horizonGeometry}>
           <lineBasicMaterial
