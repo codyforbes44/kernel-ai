@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useEffect, useMemo } from "react";
-import { MessageSquare, Wand2, Rocket, Eye } from "lucide-react";
+import { MessageSquare, Wand2, Rocket, Play } from "lucide-react";
 import { useVideoTimeline } from "@/hooks/useVideoTimeline";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { VideoControls } from "./video/VideoControls";
@@ -21,6 +21,99 @@ const scenes = [
   { id: "deploy", start: 15, end: 20, label: "Deploy", icon: Rocket },
   { id: "outro", start: 20, end: 24, label: "Complete" },
 ];
+
+// Poster/Thumbnail component
+function VideoPoster({ onPlay }: { onPlay: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute inset-0 z-20 cursor-pointer group"
+      onClick={onPlay}
+    >
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background" />
+      
+      {/* Grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, hsl(var(--primary) / 0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, hsl(var(--primary) / 0.15) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      {/* Radial glow */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'radial-gradient(ellipse at center, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
+        }}
+      />
+
+      {/* Content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
+        {/* Icon row */}
+        <div className="flex items-center gap-3">
+          {[MessageSquare, Wand2, Rocket].map((Icon, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * i }}
+              className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20"
+            >
+              <Icon className="h-5 w-5 text-primary/70" />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Play button */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative"
+        >
+          <div 
+            className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center border border-primary/40 group-hover:bg-primary/30 group-hover:border-primary/60 transition-all duration-300"
+            style={{
+              boxShadow: '0 0 40px hsl(var(--primary) / 0.3)',
+            }}
+          >
+            <Play className="h-8 w-8 text-primary ml-1 group-hover:scale-110 transition-transform" />
+          </div>
+          
+          {/* Pulse ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-primary/30"
+            animate={{ 
+              scale: [1, 1.3, 1.3],
+              opacity: [0.6, 0, 0],
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeOut",
+            }}
+          />
+        </motion.div>
+
+        {/* Title */}
+        <div className="text-center">
+          <p className="text-lg font-medium text-foreground">See how it works</p>
+          <p className="text-sm text-muted-foreground mt-1">Watch the 24-second demo</p>
+        </div>
+      </div>
+
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-card/80 to-transparent" />
+    </motion.div>
+  );
+}
 
 interface HowItWorksVideoProps {
   className?: string;
@@ -46,16 +139,19 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     loop: false,
   });
 
-  // Auto-play when in view
+  const hasStarted = currentTime > 0 || isPlaying;
+
+  // Auto-play when in view (only if user hasn't interacted yet)
   useEffect(() => {
-    if (isInView && !isPlaying && currentTime === 0 && !shouldReduceMotion) {
-      const timer = setTimeout(play, 500);
-      return () => clearTimeout(timer);
-    }
+    // Don't auto-play - let user click the poster
+  }, []);
+
+  // Pause when out of view
+  useEffect(() => {
     if (!isInView && isPlaying) {
       pause();
     }
-  }, [isInView, isPlaying, currentTime, play, pause, shouldReduceMotion]);
+  }, [isInView, isPlaying, pause]);
 
   const currentScene = useMemo(() => {
     return scenes.find(s => currentTime >= s.start && currentTime < s.end)?.id || "intro";
@@ -96,8 +192,11 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
             }}
           />
 
+          {/* Poster - show before video starts */}
+          {!hasStarted && <VideoPoster onPlay={play} />}
+
           {/* Scene: Intro */}
-          <VideoScene isActive={currentScene === "intro"} className="absolute inset-0 flex items-center justify-center">
+          <VideoScene isActive={currentScene === "intro" && hasStarted} className="absolute inset-0 flex items-center justify-center">
             <motion.div
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
