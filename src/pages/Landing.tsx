@@ -99,7 +99,7 @@ export default function Landing() {
       <PerspectiveContainer 
         perspective={1200} 
         origin="50% 40%"
-        className="relative min-h-[100dvh] md:min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-start md:justify-center pt-20 md:pt-0 px-4 scroll-mt-16"
+        className="relative min-h-[100dvh] md:min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16"
       >
         <section 
           ref={heroRef}
@@ -108,10 +108,10 @@ export default function Landing() {
         >
           <HeroBackground isVisible={isHeroVisible} />
           
-          {/* Hero Content with multi-layer parallax */}
+          {/* Hero Content with multi-layer parallax - elevated above 3D grid */}
           <HeroEntranceGroup 
             staggerDelay={0.12}
-            className="relative container mx-auto text-center max-w-4xl mt-4 md:mt-0"
+            className="relative z-10 container mx-auto text-center max-w-4xl"
           >
             {/* Badge at foreground layer - moves most with gyroscope */}
             <HeroEntranceItem>
@@ -122,15 +122,9 @@ export default function Landing() {
                     size="lg" 
                     pulse 
                     icon={<Sparkles className="h-4 w-4" />}
-                    className="mb-6 md:mb-8 relative z-20"
+                    className="mb-6 md:mb-8"
                   >
-                    <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
-                      <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
-                      <span className="hidden sm:inline opacity-50">•</span>
-                      <span className="hidden xs:inline text-sm">
-                        Request your invite today
-                      </span>
-                    </span>
+                    <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
                   </GlowBadge>
                 </PerspectiveLayer>
               </GyroscopeUI>
@@ -155,10 +149,10 @@ export default function Landing() {
               </PerspectiveLayer>
             </HeroEntranceItem>
             
-            {/* Description at mid layer */}
+            {/* Description at mid layer - improved mobile readability */}
             <HeroEntranceItem>
               <PerspectiveLayer layer="mid">
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
+                <p className="text-base sm:text-lg md:text-xl text-foreground/80 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-2 drop-shadow-[0_2px_4px_hsl(var(--background))]">
                   Transform ideas into production-ready apps in minutes. 
                   The next generation of AI-powered development starts here.
                 </p>
@@ -169,11 +163,11 @@ export default function Landing() {
             <HeroEntranceItem className="w-full">
               <GyroscopeUI tiltIntensity={0.8} dynamicShadow>
                 <PerspectiveLayer layer="foreground">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto px-2 sm:px-0">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto px-4 sm:px-0 mb-4 sm:mb-0">
                     <Button 
                       variant="gold" 
                       size="lg" 
-                      className="w-full sm:w-auto sm:min-w-[200px] h-13 sm:h-12 text-base font-medium shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
+                      className="w-full sm:w-auto sm:min-w-[200px] h-14 sm:h-12 text-base font-medium shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
                       asChild
                     >
                       <Link to="/request-invite">
@@ -184,7 +178,7 @@ export default function Landing() {
                     <Button 
                       size="lg" 
                       variant="gold-outline" 
-                      className="w-full sm:w-auto sm:min-w-[200px] h-13 sm:h-12 text-base font-medium active:scale-95 transition-transform touch-manipulation" 
+                      className="w-full sm:w-auto sm:min-w-[200px] h-14 sm:h-12 text-base font-medium active:scale-95 transition-transform touch-manipulation" 
                       asChild
                     >
                       <Link to="/redeem-invite">
@@ -197,17 +191,17 @@ export default function Landing() {
             </HeroEntranceItem>
           </HeroEntranceGroup>
           
-          {/* Scroll Down Indicator at UI layer - subtle parallax */}
+          {/* Scroll Down Indicator - hidden on mobile, visible on desktop */}
           <PerspectiveLayer layer="ui">
             <a 
               href="#social-proof"
-              className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 md:gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group touch-manipulation"
+              className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group z-10"
               aria-label="Scroll to features"
             >
-              <span className="text-xs font-medium opacity-60 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                Swipe up
+              <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                Scroll
               </span>
-              <ChevronDown className="h-5 w-5 md:h-6 md:w-6 animate-bounce" />
+              <ChevronDown className="h-6 w-6 animate-bounce" />
             </a>
           </PerspectiveLayer>
         </section>
