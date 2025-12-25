@@ -16,9 +16,9 @@ export function SocialProofSection() {
       <div className="container mx-auto max-w-5xl preserve-3d">
         {/* Tech Logos with depth staggering */}
         <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
-          <p className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             Built with:
-          </GlowText>
+          </span>
           {techLogos.map((tech, index) => (
             <motion.div
               key={tech.name}

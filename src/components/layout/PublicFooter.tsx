@@ -96,10 +96,10 @@ export function PublicFooter() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-lg bg-primary/5 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all border border-transparent hover:border-primary/30"
+                  className="group relative p-2.5 rounded-lg bg-primary/5 hover:bg-primary/15 text-muted-foreground hover:text-primary transition-all border border-transparent hover:border-primary/40 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
                   aria-label={social.label}
                 >
-                  <social.icon className="h-4 w-4" />
+                  <social.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
                 </a>
               ))}
             </div>

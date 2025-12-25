@@ -83,7 +83,9 @@ export function PublicHeader() {
       <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <KernelLogo className="w-7 h-7 sm:w-8 sm:h-8 transition-transform group-hover:scale-105" />
-          <span className="font-bold text-lg sm:text-xl">Kernel</span>
+          <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]">
+            Kernel
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
