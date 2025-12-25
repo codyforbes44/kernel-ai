@@ -1,70 +1,12 @@
 import { Link } from "react-router-dom";
-import { 
-  Lightbulb, 
-  Zap, 
-  Users, 
-  Heart, 
-  ArrowRight,
-  Rocket,
-  Code2,
-  Sparkles
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
-import { XLogo } from "@/components/ui/x-logo";
-
-const values = [
-  {
-    icon: Lightbulb,
-    title: "Innovation First",
-    description: "We push boundaries to create tools that redefine how developers build software.",
-  },
-  {
-    icon: Zap,
-    title: "Speed Matters",
-    description: "Every feature we build is optimized for developer velocity and productivity.",
-  },
-  {
-    icon: Users,
-    title: "Developer-Centric",
-    description: "Built by developers, for developers. Your workflow is our priority.",
-  },
-  {
-    icon: Heart,
-    title: "Community Driven",
-    description: "We listen, learn, and grow together with our vibrant developer community.",
-  },
-];
-
-const milestones = [
-  {
-    year: "2023",
-    title: "The Spark",
-    description: "Kernel was born from a simple idea: what if AI could truly understand and accelerate the development process?",
-  },
-  {
-    year: "2024",
-    title: "Rapid Growth",
-    description: "Developers joined our platform, building everything from MVPs to production applications.",
-  },
-  {
-    year: "2025",
-    title: "Breaking Barriers",
-    description: "Launched advanced AI features and expanded our developer community globally.",
-  },
-  {
-    year: "2026",
-    title: "The Future is Now",
-    description: "Pioneering the next generation of AI-powered development tools and experiences.",
-  },
-];
-
-// Team section data removed - will be populated with real team data when available
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from "@/lib/seo";
+import { values, milestones } from "@/lib/about-data";
 
 export default function About() {
   return (
@@ -99,7 +41,6 @@ export default function About() {
         </div>
       </section>
 
-
       {/* Story Section */}
       <section className="pb-20 px-4">
         <div className="container mx-auto max-w-5xl">
@@ -116,24 +57,17 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 perspective-container">
+          <div className="grid md:grid-cols-4 gap-6">
             {milestones.map((milestone, index) => (
               <Card 
                 key={milestone.year} 
-                className="relative overflow-hidden group depth-card"
-                style={{
-                  transformStyle: 'preserve-3d',
-                  transform: `translateZ(${index * -10}px)`,
-                }}
+                className="relative overflow-hidden group"
               >
                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-primary/20" />
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-primary/10">
-                      {index === 0 && <Sparkles className="h-5 w-5 text-primary" />}
-                      {index === 1 && <Code2 className="h-5 w-5 text-primary" />}
-                      {index === 2 && <Zap className="h-5 w-5 text-primary" />}
-                      {index === 3 && <Rocket className="h-5 w-5 text-primary" />}
+                      <milestone.icon className="h-5 w-5 text-primary" />
                     </div>
                     <Badge variant="outline">{milestone.year}</Badge>
                   </div>
@@ -163,14 +97,11 @@ export default function About() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 preserve-3d">
-            {values.map((value, index) => (
+          <div className="grid md:grid-cols-2 gap-6">
+            {values.map((value) => (
               <Card 
                 key={value.title} 
-                className="group hover:border-primary/50 transition-all depth-hover"
-                style={{
-                  transformStyle: 'preserve-3d',
-                }}
+                className="group hover:border-primary/50 transition-all"
               >
                 <CardContent className="p-6 flex gap-4">
                   <div className="p-3 rounded-xl bg-primary/10 h-fit shrink-0 group-hover:bg-primary/20 transition-colors">
@@ -188,55 +119,6 @@ export default function About() {
           </div>
         </div>
       </section>
-
-      {/* Team Section - Hidden pending updates */}
-      {/* TODO: Uncomment when team content is ready
-      <section className="pb-20 px-4">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
-              Our Team
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Meet the people behind Kernel
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              A passionate team of engineers, designers, and dreamers united by a 
-              common goal: making development accessible to everyone.
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((member) => (
-              <Card key={member.name} className="group text-center">
-                <CardContent className="p-6">
-                  <Avatar className="h-24 w-24 mx-auto mb-4 ring-2 ring-border group-hover:ring-primary/50 transition-all">
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback>
-                      {member.name.split(" ").map(n => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="font-semibold mb-1">{member.name}</h3>
-                  <p className="text-sm text-primary mb-2">{member.role}</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {member.bio}
-                  </p>
-                  <a
-                    href={member.x}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <XLogo className="h-4 w-4" />
-                    <span>Follow</span>
-                  </a>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-      */}
 
       {/* CTA Section */}
       <section className="pb-20 px-4">
