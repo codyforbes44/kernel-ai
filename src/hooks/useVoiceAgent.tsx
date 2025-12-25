@@ -175,10 +175,9 @@ export function useVoiceAgent({
       }
 
       console.log('Starting conversation session with WebSocket...');
-      // Start session with overrides if provided by the edge function
+      // Start session with signed URL only - overrides must be enabled in ElevenLabs dashboard
       await conversation.startSession({
         signedUrl: data.signedUrl,
-        overrides: data.overrides,
       });
     } catch (err) {
       console.error('Failed to connect:', err);

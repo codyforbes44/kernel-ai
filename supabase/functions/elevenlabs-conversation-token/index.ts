@@ -80,19 +80,12 @@ serve(async (req) => {
       throw new Error('Invalid response from ElevenLabs: missing signed_url');
     }
 
-    // Return signed URL along with conversation configuration
-    // The client will use these overrides when starting the session
+    // Return signed URL along with first message for display purposes
+    // Note: Overrides for prompt/firstMessage require enabling in ElevenLabs dashboard
+    // Since they're not enabled, we just return the signed URL
     return new Response(JSON.stringify({ 
       signedUrl: data.signed_url,
-      overrides: {
-        agent: {
-          prompt: {
-            prompt: systemPrompt,
-          },
-          firstMessage: firstMessage,
-          language: 'en',
-        },
-      },
+      // firstMessage is for client display only - the actual first message comes from ElevenLabs agent config
       firstMessage: firstMessage,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
