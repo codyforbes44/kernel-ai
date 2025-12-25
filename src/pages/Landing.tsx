@@ -282,20 +282,20 @@ export default function Landing() {
         </div>
       </HoloSection>
 
-      {/* CTA Section */}
-      <HoloSection variant="gradient" className="py-16 md:py-20 px-4 scroll-mt-16" id="cta">
+      {/* CTA Section - Mobile optimized */}
+      <HoloSection variant="gradient" className="py-12 sm:py-16 md:py-20 px-4 scroll-mt-16" id="cta">
         <div className="container mx-auto max-w-4xl text-center preserve-3d">
-          <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 depth-layer-near">
+          <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 depth-layer-near px-2">
             Make 2026 Your Year to Build
           </GlowText>
-          <p className="text-muted-foreground text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto px-2">
+          <p className="text-muted-foreground text-base md:text-lg mb-6 sm:mb-8 max-w-xl mx-auto px-4">
             Join thousands of developers already building the future with Kernel's AI-powered platform.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 depth-layer-front px-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 depth-layer-front px-4 sm:px-2">
             <Button 
               variant="gold" 
               size="lg" 
-              className="w-full sm:w-auto h-13 sm:h-12 px-8 text-base font-medium depth-hover shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
+              className="w-full sm:w-auto h-14 sm:h-12 px-6 sm:px-8 text-base font-semibold depth-hover shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation min-w-[200px]" 
               asChild
             >
               <Link to="/request-invite">
@@ -306,7 +306,7 @@ export default function Landing() {
             <Button 
               size="lg" 
               variant="gold-outline" 
-              className="w-full sm:w-auto h-13 sm:h-12 px-8 text-base font-medium depth-hover active:scale-95 transition-transform touch-manipulation" 
+              className="w-full sm:w-auto h-14 sm:h-12 px-6 sm:px-8 text-base font-semibold depth-hover active:scale-95 transition-transform touch-manipulation min-w-[200px]" 
               asChild
             >
               <Link to="/redeem-invite">
