@@ -101,7 +101,7 @@ export default defineConfig(({ mode }) => ({
     mode === "production" && seoFilesPlugin(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png", "offline.html"],
+      includeAssets: ["favicon.svg", "favicon.ico", "robots.txt", "apple-touch-icon.svg", "offline.html"],
       manifest: {
         name: "Kernel",
         short_name: "Kernel",
@@ -114,19 +114,19 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         icons: [
           {
-            src: "/pwa-192x192.png",
+            src: "/pwa-192x192.svg",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/svg+xml",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/pwa-512x512.svg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/svg+xml",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/pwa-512x512.svg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/svg+xml",
             purpose: "any maskable",
           },
         ],

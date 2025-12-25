@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="borderGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff"/>
+      <stop offset="50%" style="stop-color:#ffd700"/>
+      <stop offset="100%" style="stop-color:#00d4ff"/>
+    </linearGradient>
+    <filter id="glow512" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="textGlow512" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background (full for maskable safe zone) -->
+  <rect width="512" height="512" fill="#0a0a0f"/>
+  
+  <!-- Outer glow - positioned for maskable safe zone (inner 80%) -->
+  <rect x="64" y="64" width="384" height="384" rx="64" ry="64" fill="#00d4ff" opacity="0.06" filter="url(#glow512)"/>
+  
+  <!-- Gradient border -->
+  <rect x="80" y="80" width="352" height="352" rx="56" ry="56" fill="none" stroke="url(#borderGradient512)" stroke-width="4"/>
+  
+  <!-- Inner background -->
+  <rect x="88" y="88" width="336" height="336" rx="48" ry="48" fill="#0a0a0f"/>
+  
+  <!-- Diamond neural pattern -->
+  <g opacity="0.3" stroke="#00d4ff" fill="none">
+    <!-- Outer diamond -->
+    <path d="M256 128 L384 256 L256 384 L128 256 Z" stroke-width="1.5"/>
+    <!-- Middle diamond -->
+    <path d="M256 160 L352 256 L256 352 L160 256 Z" stroke-width="1"/>
+    <!-- Inner diamond -->
+    <path d="M256 192 L320 256 L256 320 L192 256 Z" stroke-width="0.75"/>
+    <!-- Center dot -->
+    <circle cx="256" cy="256" r="6" fill="#00d4ff"/>
+    <!-- Corner dots on outer diamond -->
+    <circle cx="256" cy="128" r="4" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="384" cy="256" r="4" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="256" cy="384" r="4" fill="#00d4ff" opacity="0.6"/>
+    <circle cx="128" cy="256" r="4" fill="#00d4ff" opacity="0.6"/>
+    <!-- Mid-points on middle diamond -->
+    <circle cx="304" cy="208" r="2.5" fill="#00d4ff" opacity="0.4"/>
+    <circle cx="304" cy="304" r="2.5" fill="#00d4ff" opacity="0.4"/>
+    <circle cx="208" cy="304" r="2.5" fill="#00d4ff" opacity="0.4"/>
+    <circle cx="208" cy="208" r="2.5" fill="#00d4ff" opacity="0.4"/>
+  </g>
+  
+  <!-- Corner accents -->
+  <path d="M72 108 L72 72 L108 72" fill="none" stroke="#00d4ff" stroke-width="3" opacity="0.4"/>
+  <path d="M440 108 L440 72 L404 72" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.4"/>
+  <path d="M72 404 L72 440 L108 440" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.4"/>
+  <path d="M440 404 L440 440 L404 440" fill="none" stroke="#00d4ff" stroke-width="3" opacity="0.4"/>
+  
+  <!-- Glyph -->
+  <text x="256" y="280" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace" font-size="120" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#textGlow512)">&gt;_</text>
+</svg>
