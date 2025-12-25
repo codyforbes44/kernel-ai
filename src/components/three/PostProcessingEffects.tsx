@@ -8,10 +8,10 @@ export function PostProcessingEffects() {
 
   // Scale bloom intensity based on performance tier
   const bloomIntensity = {
-    ULTRA: 1.2,
-    HIGH: 0.9,
-    MEDIUM: 0.6,
-    LOW: 0.4,
+    ULTRA: 0.9,
+    HIGH: 0.7,
+    MEDIUM: 0.45,
+    LOW: 0.3,
   }[tier];
 
   // Disable vignette on lower tiers for performance

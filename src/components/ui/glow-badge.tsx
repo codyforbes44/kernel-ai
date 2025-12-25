@@ -90,32 +90,32 @@ const glowBadgeVariants = cva(
       {
         pulse: true,
         variant: "primary",
-        className: "animate-[pulse-badge_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-badge_4s_ease-in-out_infinite]",
       },
       {
         pulse: true,
         variant: "glow",
-        className: "animate-[pulse-badge_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-badge_4s_ease-in-out_infinite]",
       },
       {
         pulse: true,
         variant: "success",
-        className: "animate-[pulse-success_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-success_4s_ease-in-out_infinite]",
       },
       {
         pulse: true,
         variant: "destructive",
-        className: "animate-[pulse-destructive_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-destructive_4s_ease-in-out_infinite]",
       },
       {
         pulse: true,
         variant: "gold",
-        className: "animate-[pulse-gold_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-gold_4s_ease-in-out_infinite]",
       },
       {
         pulse: true,
         variant: "premium",
-        className: "animate-[pulse-gold_2s_ease-in-out_infinite]",
+        className: "animate-[pulse-gold_4s_ease-in-out_infinite]",
       },
     ],
     defaultVariants: {

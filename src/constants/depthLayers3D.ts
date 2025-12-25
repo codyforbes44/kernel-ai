@@ -61,23 +61,23 @@ export const ANIMATION_SPEEDS = {
 
 // Performance-scaled particle and pulse configurations
 export const getScaledPulseConfig = (tier: PerformanceTier) => {
-  const counts = { ULTRA: 12, HIGH: 10, MEDIUM: 6, LOW: 4 };
+  const counts = { ULTRA: 6, HIGH: 4, MEDIUM: 3, LOW: 2 };
   return {
     count: counts[tier],
-    speed: 0.4,
-    size: 8,
-    glowIntensity: 2.5,
+    speed: 0.3,
+    size: 6,
+    glowIntensity: 1.5,
   };
 };
 
 export const getScaledParticleConfig = (tier: PerformanceTier) => {
-  const counts = { ULTRA: 150, HIGH: 100, MEDIUM: 50, LOW: 20 };
+  const counts = { ULTRA: 80, HIGH: 50, MEDIUM: 25, LOW: 10 };
   return {
     count: counts[tier],
-    speedMin: 0.12,
-    speedMax: 0.4,
+    speedMin: 0.08,
+    speedMax: 0.25,
     sizeMin: 2,
-    sizeMax: 6,
+    sizeMax: 5,
     heightMin: 5,
     heightMax: 50,
     spreadX: 500,
