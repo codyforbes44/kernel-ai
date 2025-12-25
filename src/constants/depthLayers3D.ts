@@ -2,11 +2,6 @@
 // Z-depth values for stable WebGL space
 
 export const DEPTH_LAYERS_3D = {
-  // Deep space layers (far from camera)
-  HYPERSPACE: -1000,    // Warp tunnel background effect
-  VOID: -500,           // Deep cosmic void
-  NEBULA: -300,         // Volumetric gas clouds
-  AURORA: -100,         // Animated aurora plane
   GRID: -30,            // Infinite perspective grid
 } as const;
 
@@ -51,20 +46,12 @@ export const COLORS_3D = {
   primary: 0x00ffff,          // Cyan
   secondary: 0xff00ff,        // Magenta
   accent: 0x00ff88,           // Neon green
-  aurora1: 0x00ffcc,          // Teal
-  aurora2: 0xff00aa,          // Pink
-  aurora3: 0x8800ff,          // Purple
-  nebula1: 0x1a0033,          // Deep purple
-  nebula2: 0x003355,          // Deep blue
   grid: 0x00ffff,             // Cyan
-  void: 0x000011,             // Near black
 } as const;
 
 // Animation speeds
 export const ANIMATION_SPEEDS = {
-  aurora: 0.001,
-  warp: 0.002,
-  nebula: 0.0003,
+  grid: 0.001,
 } as const;
 
 export type PerformanceTier = keyof typeof PERFORMANCE_TIERS;
