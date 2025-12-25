@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { GlassPanel, GlassPanelContent, GlassPanelHeader } from "@/components/ui/glass-panel";
 import { GlowText } from "@/components/ui/glow-text";
-import { KernelLogo } from "@/components/ui/kernel-logo";
+import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { PageBackground3D } from "@/components/three/PageBackground3D";
 import { cn } from "@/lib/utils";
 
@@ -30,8 +30,8 @@ export function AuthCard({ children, title, description, className }: AuthCardPr
         {/* Logo & Title */}
         <div className="text-center space-y-1.5 sm:space-y-2">
           <div className="inline-flex">
-            <KernelLogo size="lg" glow className="sm:hidden border border-primary/20" />
-            <KernelLogo size="xl" glow className="hidden sm:block border border-primary/20" />
+            <KernelLogoAnimated size="lg" variant="animated" className="sm:hidden" />
+            <KernelLogoAnimated size="xl" variant="animated" className="hidden sm:block" />
           </div>
           <GlowText as="h1" variant="primary" intensity="medium" className="text-xl sm:text-2xl font-bold tracking-tight">
             Kernel
