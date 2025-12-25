@@ -19,6 +19,10 @@ import { toast } from "sonner";
 import { PremiumFeatureCard, PremiumFeatureGrid } from "@/components/ui/premium-feature-card";
 import { PremiumUpgradeModal, usePremiumUpgradeModal } from "@/components/ui/premium-upgrade-modal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { GlowText } from "@/components/ui/glow-text";
+import { HoloBadge } from "@/components/ui/holo-badge";
+import { HoloSection } from "@/components/ui/holo-section";
+import { HoloCard } from "@/components/ui/holo-card";
 
 // FAQ section that loads data asynchronously
 function PricingFAQSection() {
@@ -214,20 +218,20 @@ export default function Pricing() {
       />
 
       {/* Hero Section */}
-      <section className="pt-16 pb-8 px-4">
+      <HoloSection variant="gradient" className="pt-16 pb-8 px-4">
         <div className="container mx-auto text-center max-w-3xl">
-          <Badge variant="secondary" className="mb-4">
+          <HoloBadge variant="glow" className="mb-4">
             Simple, transparent pricing
-          </Badge>
+          </HoloBadge>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-            Choose your <span className="text-primary">Kernel</span> plan
+            Choose your <GlowText variant="primary" intensity="medium">Kernel</GlowText> plan
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Start for free, upgrade as you grow. All plans include our core AI-powered 
             development features with no hidden fees.
           </p>
         </div>
-      </section>
+      </HoloSection>
 
       {/* Billing Toggle */}
       <section className="pb-8 px-4">

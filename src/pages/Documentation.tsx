@@ -17,6 +17,10 @@ import {
 import { Link } from 'react-router-dom';
 import { useDocCategories, useDocSearch, DocArticleData } from '@/hooks/useStaticData';
 import { getDocIcon } from '@/lib/docIcons';
+import { GlowText } from '@/components/ui/glow-text';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { HoloSection } from '@/components/ui/holo-section';
+import { HoloCard, HoloCardHeader, HoloCardContent, HoloCardTitle, HoloCardDescription } from '@/components/ui/holo-card';
 
 const Documentation = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,11 +64,13 @@ const Documentation = () => {
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">
-        <div className="text-center mb-12">
+        <HoloSection variant="gradient" className="text-center mb-12 py-8 -mx-4 px-4">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Book className="h-8 w-8 text-primary" />
+            <Book className="h-8 w-8 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Documentation</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <GlowText variant="gradient" intensity="medium">Documentation</GlowText>
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Everything you need to build amazing applications with Kernel.
           </p>
@@ -74,7 +80,7 @@ const Documentation = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search documentation..." 
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 bg-background/50 backdrop-blur border-primary/20 focus:border-primary/50"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -87,7 +93,7 @@ const Documentation = () => {
               </button>
             )}
           </div>
-        </div>
+        </HoloSection>
 
         {/* Search Results */}
         {isSearching && (
@@ -143,8 +149,8 @@ const Documentation = () => {
 
         {/* Quick start banner - hide when searching */}
         {!isSearching && (
-          <Card className="mb-12 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-            <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
+          <HoloCard variant="glow" hover className="mb-12 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <HoloCardContent className="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-primary/20">
                   <Rocket className="h-6 w-6 text-primary" />
@@ -159,8 +165,8 @@ const Documentation = () => {
                   Quick Start <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
+            </HoloCardContent>
+          </HoloCard>
         )}
 
         {/* Documentation sections grid - hide when searching */}

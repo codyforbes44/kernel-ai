@@ -4,6 +4,10 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles, Zap, Bug, Calendar } from 'lucide-react';
+import { GlowText } from '@/components/ui/glow-text';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { HoloSection } from '@/components/ui/holo-section';
+import { HoloCard, HoloCardHeader, HoloCardContent, HoloCardTitle } from '@/components/ui/holo-card';
 
 interface ChangelogEntry {
   version: string;
@@ -106,37 +110,39 @@ const Changelog = () => {
       />
       
       <div className="container mx-auto px-4 py-16 max-w-4xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Changelog</h1>
+        <HoloSection variant="gradient" className="text-center mb-12 py-8 -mx-4 px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <GlowText variant="gradient" intensity="medium">Changelog</GlowText>
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Track our progress. See the latest features, improvements, and fixes we've shipped.
           </p>
-        </div>
+        </HoloSection>
 
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-8 top-0 bottom-0 w-px bg-border hidden md:block" />
+          <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-primary/50 via-primary/20 to-transparent hidden md:block" />
 
           <div className="space-y-8">
             {changelog.map((entry, index) => (
-              <Card key={entry.version} className="relative md:ml-16">
+              <HoloCard key={entry.version} variant={index === 0 ? 'glow' : 'bordered'} hover className="relative md:ml-16">
                 {/* Timeline dot */}
-                <div className="absolute -left-[4.5rem] top-6 w-4 h-4 rounded-full bg-primary border-4 border-background hidden md:block" />
+                <div className="absolute -left-[4.5rem] top-6 w-4 h-4 rounded-full bg-primary border-4 border-background shadow-[0_0_8px_hsl(var(--primary)/0.5)] hidden md:block" />
                 
-                <CardHeader>
+                <HoloCardHeader>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <CardTitle className="text-2xl">v{entry.version}</CardTitle>
-                    <Badge variant="outline" className="flex items-center gap-1.5">
+                    <HoloCardTitle className="text-2xl">v{entry.version}</HoloCardTitle>
+                    <HoloBadge variant="secondary" className="flex items-center gap-1.5">
                       <Calendar className="h-3 w-3" />
                       {entry.date}
-                    </Badge>
+                    </HoloBadge>
                     {index === 0 && (
-                      <Badge className="bg-primary text-primary-foreground">Latest</Badge>
+                      <HoloBadge variant="glow">Latest</HoloBadge>
                     )}
                   </div>
-                </CardHeader>
+                </HoloCardHeader>
                 
-                <CardContent>
+                <HoloCardContent>
                   <ul className="space-y-3">
                     {entry.changes.map((change, changeIndex) => (
                       <li key={changeIndex} className="flex items-start gap-3">
@@ -148,8 +154,8 @@ const Changelog = () => {
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
+                </HoloCardContent>
+              </HoloCard>
             ))}
           </div>
         </div>
