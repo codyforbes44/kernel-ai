@@ -248,8 +248,66 @@
     --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.6);
   }
 
+  /* Dim Mode - Warmer, reduced brightness for night reading */
+  .dim {
+    --background: 30 8% 6%;
+    --foreground: 35 15% 85%;
+
+    --card: 30 8% 9%;
+    --card-foreground: 35 15% 85%;
+
+    --popover: 30 8% 9%;
+    --popover-foreground: 35 15% 85%;
+
+    --primary: 175 60% 45%;
+    --primary-foreground: 30 8% 6%;
+
+    --secondary: 30 10% 14%;
+    --secondary-foreground: 35 15% 85%;
+
+    --muted: 30 10% 16%;
+    --muted-foreground: 35 10% 50%;
+
+    --accent: 175 50% 35%;
+    --accent-foreground: 35 15% 85%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 35 15% 85%;
+
+    --success: 150 60% 35%;
+    --success-foreground: 35 15% 85%;
+
+    --warning: 40 80% 45%;
+    --warning-foreground: 30 8% 6%;
+
+    --gold: 45 70% 50%;
+    --gold-foreground: 30 8% 6%;
+
+    --border: 30 10% 20%;
+    --input: 30 10% 20%;
+    --ring: 175 60% 45%;
+
+    --sidebar-background: 30 10% 4%;
+    --sidebar-foreground: 35 12% 70%;
+    --sidebar-primary: 175 60% 45%;
+    --sidebar-primary-foreground: 30 8% 6%;
+    --sidebar-accent: 30 8% 12%;
+    --sidebar-accent-foreground: 35 15% 85%;
+    --sidebar-border: 30 10% 16%;
+    --sidebar-ring: 175 60% 45%;
+
+    --code-background: 30 10% 5%;
+    --code-border: 30 10% 16%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(175 60% 45%), hsl(185 50% 35%));
+    --gradient-subtle: linear-gradient(180deg, hsl(30 8% 9%), hsl(30 8% 6%));
+    --shadow-glow: 0 0 20px hsl(175 60% 45% / 0.25);
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.5);
+  }
+
   /* High contrast mode simplifications */
-  .high-contrast * {
+  .high-contrast *,
+  .high-contrast.dark * {
     text-shadow: none !important;
     box-shadow: none !important;
   }
