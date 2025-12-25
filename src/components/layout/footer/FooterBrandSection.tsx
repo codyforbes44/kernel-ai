@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { socialLinks } from "@/lib/footer-data";
+import { NewsletterForm } from "./NewsletterForm";
 
 interface FooterBrandSectionProps {
   className?: string;
@@ -16,8 +17,17 @@ export function FooterBrandSection({ className }: FooterBrandSectionProps) {
       <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
         Build beautiful web applications with AI assistance. From idea to deployment in minutes.
       </p>
+      
+      {/* Newsletter Signup */}
+      <div className="space-y-2 pt-1">
+        <p className="text-xs text-muted-foreground/80 font-medium">
+          Get updates on new features
+        </p>
+        <NewsletterForm />
+      </div>
+      
       {/* Social Links */}
-      <nav aria-label="Social media links" className="flex items-center gap-2.5 pt-1">
+      <nav aria-label="Social media links" className="flex items-center gap-2.5 pt-2">
         {socialLinks.map((social) => (
           <a
             key={social.label}
