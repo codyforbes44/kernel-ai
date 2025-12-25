@@ -5,10 +5,20 @@ import { useToast } from '@/hooks/use-toast';
 
 export type VoiceAgentStatus = 'idle' | 'connecting' | 'connected' | 'speaking' | 'listening' | 'error';
 
+export interface VoiceAgentUserContext {
+  isNewUser?: boolean;
+  hasActiveProject?: boolean;
+  projectName?: string;
+  userName?: string;
+  currentPage?: string;
+}
+
 interface UseVoiceAgentOptions {
   agentId: string;
+  userContext?: VoiceAgentUserContext;
   onMessage?: (message: any) => void;
   onTranscript?: (text: string, isFinal: boolean) => void;
+  onFirstMessage?: (message: string) => void;
 }
 
 interface UseVoiceAgentReturn {
@@ -25,8 +35,10 @@ interface UseVoiceAgentReturn {
 
 export function useVoiceAgent({ 
   agentId, 
+  userContext,
   onMessage, 
-  onTranscript 
+  onTranscript,
+  onFirstMessage,
 }: UseVoiceAgentOptions): UseVoiceAgentReturn {
   const { toast } = useToast();
   const [status, setStatus] = useState<VoiceAgentStatus>('idle');
@@ -127,11 +139,11 @@ export function useVoiceAgent({
       await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log('Microphone permission granted');
 
-      // Get signed URL from edge function
-      console.log('Fetching signed URL...');
+      // Get signed URL from edge function with user context
+      console.log('Fetching signed URL with context...');
       const { data, error: fnError } = await supabase.functions.invoke(
         'elevenlabs-conversation-token',
-        { body: { agentId } }
+        { body: { agentId, userContext } }
       );
 
       if (fnError) {
@@ -146,9 +158,16 @@ export function useVoiceAgent({
         throw new Error('No signed URL received from server');
       }
 
+      // Notify about the first message if callback provided
+      if (data.firstMessage && onFirstMessage) {
+        onFirstMessage(data.firstMessage);
+      }
+
       console.log('Starting conversation session with WebSocket...');
+      // Start session with overrides if provided by the edge function
       await conversation.startSession({
         signedUrl: data.signedUrl,
+        overrides: data.overrides,
       });
     } catch (err) {
       console.error('Failed to connect:', err);
