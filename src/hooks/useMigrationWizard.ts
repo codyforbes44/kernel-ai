@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult, SupabaseDetection, detectSupabaseConfig } from '@/lib/migration-data';
+import { MigrationPlatform, ImportMethod, detectPlatformFromFiles, quickDetectPlatform, DetectionResult, SupabaseDetection, detectSupabaseConfig, migrationPlatforms } from '@/lib/migration-data';
 import { isValidLovableUrl, extractProjectId } from '@/lib/lovable-url';
 import { templateSharingService, SharedTemplate } from '@/services/templateSharingService';
-
+import { firecrawlApi, ProjectAnalysis } from '@/lib/api/firecrawl';
 export interface SupabaseCredentials {
   url: string;
   anonKey: string;
@@ -61,6 +61,10 @@ export interface MigrationState {
   supabaseConnectionValid: boolean;
   skipSupabaseConnection: boolean;
   isTestingSupabaseConnection: boolean;
+  // URL analysis
+  urlAnalysis: ProjectAnalysis | null;
+  isAnalyzingUrl: boolean;
+  urlAnalysisError: string | null;
 }
 
 const initialState: MigrationState = {
@@ -91,6 +95,9 @@ const initialState: MigrationState = {
   supabaseConnectionValid: false,
   skipSupabaseConnection: false,
   isTestingSupabaseConnection: false,
+  urlAnalysis: null,
+  isAnalyzingUrl: false,
+  urlAnalysisError: null,
 };
 
 export function useMigrationWizard() {
@@ -152,7 +159,56 @@ export function useMigrationWizard() {
   }, []);
 
   const setImportUrl = useCallback((url: string) => {
-    setState(prev => ({ ...prev, importUrl: url }));
+    setState(prev => ({ 
+      ...prev, 
+      importUrl: url,
+      // Reset analysis when URL changes
+      urlAnalysis: null,
+      urlAnalysisError: null,
+    }));
+  }, []);
+
+  const analyzeImportUrl = useCallback(async (url: string) => {
+    if (!url.trim()) return;
+    
+    setState(prev => ({ ...prev, isAnalyzingUrl: true, urlAnalysisError: null }));
+    
+    try {
+      const result = await firecrawlApi.analyzeCompetitorUrl(url);
+      
+      if (result.success && result.data) {
+        // Find matching platform from analysis
+        let matchedPlatform: MigrationPlatform | null = null;
+        if (result.data.platform) {
+          matchedPlatform = migrationPlatforms.find(
+            p => p.name.toLowerCase().includes(result.data!.platform!.toLowerCase()) ||
+                 result.data!.platform!.toLowerCase().includes(p.name.toLowerCase())
+          ) || null;
+        }
+        
+        setState(prev => ({
+          ...prev,
+          isAnalyzingUrl: false,
+          urlAnalysis: result.data!,
+          projectName: prev.projectName || result.data!.suggestedProjectName,
+          projectDescription: prev.projectDescription || result.data!.description,
+          detectedFramework: result.data!.framework || prev.detectedFramework,
+          selectedPlatform: matchedPlatform || prev.selectedPlatform,
+        }));
+      } else {
+        setState(prev => ({
+          ...prev,
+          isAnalyzingUrl: false,
+          urlAnalysisError: result.error || 'Failed to analyze URL',
+        }));
+      }
+    } catch {
+      setState(prev => ({
+        ...prev,
+        isAnalyzingUrl: false,
+        urlAnalysisError: 'Failed to analyze URL. Make sure Firecrawl is connected.',
+      }));
+    }
   }, []);
 
   const setShareCode = useCallback((code: string) => {
@@ -339,6 +395,7 @@ export function useMigrationWizard() {
     setFiles,
     setPastedCode,
     setImportUrl,
+    analyzeImportUrl,
     setShareCode,
     lookupShareCode,
     setProjectDetails,

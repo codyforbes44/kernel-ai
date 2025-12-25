@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ImportMethod, MigrationPlatform, DetectionResult } from '@/lib/migration-data';
 import { ShareCodeData } from '@/hooks/useMigrationWizard';
+import { ProjectAnalysis } from '@/lib/api/firecrawl';
 import { cn } from '@/lib/utils';
-import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2, Sparkles, Files, Settings, Palette, Share2, ExternalLink, FileText } from 'lucide-react';
+import { Upload, FileCode, FolderOpen, Link, Github, Check, AlertCircle, Loader2, Sparkles, Files, Settings, Palette, Share2, ExternalLink, FileText, Globe, Database, Lock, Zap, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +21,10 @@ interface FileUploadStepProps {
   onFilesChange: (files: File[]) => void;
   onPastedCodeChange: (code: string) => void;
   onImportUrlChange: (url: string) => void;
+  onAnalyzeUrl?: (url: string) => void;
+  urlAnalysis?: ProjectAnalysis | null;
+  isAnalyzingUrl?: boolean;
+  urlAnalysisError?: string | null;
   detectionResult?: DetectionResult | null;
   isAnalyzing?: boolean;
   shareCode?: string;
@@ -41,6 +46,10 @@ export function FileUploadStep({
   onFilesChange,
   onPastedCodeChange,
   onImportUrlChange,
+  onAnalyzeUrl,
+  urlAnalysis,
+  isAnalyzingUrl,
+  urlAnalysisError,
   detectionResult,
   isAnalyzing,
   shareCode = '',
@@ -257,33 +266,165 @@ export function FileUploadStep({
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold">Enter Project URL</h2>
           <p className="text-muted-foreground">
-            Paste the URL of your {platform.name} project
+            Paste the URL of your {platform.name} project to analyze and import
           </p>
         </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-xl mx-auto"
+          className="max-w-xl mx-auto space-y-4"
         >
-          <div className="relative">
-            <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              value={importUrl}
-              onChange={(e) => onImportUrlChange(e.target.value)}
-              placeholder={platform.urlPattern ? `e.g., https://${platform.id}.dev/...` : 'https://...'}
-              className="pl-10"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                value={importUrl}
+                onChange={(e) => onImportUrlChange(e.target.value)}
+                placeholder={platform.urlPattern ? `e.g., https://${platform.id}.dev/...` : 'https://...'}
+                className="pl-10"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && importUrl.trim() && onAnalyzeUrl) {
+                    onAnalyzeUrl(importUrl);
+                  }
+                }}
+              />
+            </div>
+            {onAnalyzeUrl && (
+              <Button 
+                onClick={() => onAnalyzeUrl(importUrl)}
+                disabled={!importUrl.trim() || isAnalyzingUrl}
+                variant="secondary"
+              >
+                {isAnalyzingUrl ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Analyze
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
-          {importUrl && !platform.urlPattern?.test(importUrl) && platform.urlPattern && (
+          {importUrl && !platform.urlPattern?.test(importUrl) && platform.urlPattern && !urlAnalysis && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-3 flex items-center gap-2 text-sm text-amber-500"
+              className="flex items-center gap-2 text-sm text-amber-500"
             >
               <AlertCircle className="w-4 h-4" />
               This doesn't look like a valid {platform.name} URL
+            </motion.div>
+          )}
+
+          {urlAnalysisError && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-2 text-sm text-destructive"
+            >
+              <AlertCircle className="w-4 h-4" />
+              {urlAnalysisError}
+            </motion.div>
+          )}
+
+          {/* URL Analysis Results */}
+          {urlAnalysis && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-lg border border-primary/50 bg-primary/5 space-y-4"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Globe className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium">{urlAnalysis.suggestedProjectName}</h4>
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {urlAnalysis.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Detection badges */}
+              <div className="flex flex-wrap gap-2">
+                {urlAnalysis.platform && (
+                  <Badge variant={urlAnalysis.platformConfidence === 'high' ? 'default' : 'secondary'}>
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {urlAnalysis.platform}
+                  </Badge>
+                )}
+                {urlAnalysis.framework && (
+                  <Badge variant="outline">
+                    <FileCode className="w-3 h-3 mr-1" />
+                    {urlAnalysis.framework}
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  {urlAnalysis.pageType}
+                </Badge>
+              </div>
+
+              {/* Tech Stack */}
+              {urlAnalysis.techStack.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">Tech Stack</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {urlAnalysis.techStack.map((tech) => (
+                      <Badge key={tech} variant="secondary" className="text-xs">
+                        {tech}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Features */}
+              {urlAnalysis.features.length > 0 && (
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">Detected Features</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {urlAnalysis.features.slice(0, 6).map((feature) => (
+                      <Badge key={feature} variant="outline" className="text-xs">
+                        {feature}
+                      </Badge>
+                    ))}
+                    {urlAnalysis.features.length > 6 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{urlAnalysis.features.length - 6} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Capabilities */}
+              <div className="flex gap-4 pt-2 border-t border-border/50">
+                {urlAnalysis.hasDatabase && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Database className="w-3.5 h-3.5 text-primary" />
+                    Database
+                  </div>
+                )}
+                {urlAnalysis.hasAuth && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Lock className="w-3.5 h-3.5 text-primary" />
+                    Authentication
+                  </div>
+                )}
+                {urlAnalysis.hasAPI && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Zap className="w-3.5 h-3.5 text-primary" />
+                    API Integration
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </motion.div>
