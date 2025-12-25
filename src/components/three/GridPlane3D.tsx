@@ -431,9 +431,12 @@ function FloatingParticles({ particleCount }: { particleCount: number }) {
 
 interface GridPlane3DProps {
   isPaused?: boolean;
+  tiltX?: number; // -1 to 1 for gyroscope left/right tilt
+  tiltY?: number; // -1 to 1 for gyroscope forward/back tilt
 }
 
-export function GridPlane3D({ isPaused = false }: GridPlane3DProps) {
+export function GridPlane3D({ isPaused = false, tiltX = 0, tiltY = 0 }: GridPlane3DProps) {
+  const groupRef = useRef<THREE.Group>(null);
   const gridRef = useRef<THREE.LineSegments>(null);
   const horizonRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
@@ -474,23 +477,45 @@ export function GridPlane3D({ isPaused = false }: GridPlane3DProps) {
     };
   }, [gridGeometry, horizonGeometry]);
   
-  // Subtle animation - skip if reduced motion or paused
+  // Target rotation based on gyroscope tilt (subtle effect)
+  const targetRotation = useRef({ x: 0, y: 0 });
+  const currentRotation = useRef({ x: 0, y: 0 });
+  
+  // Subtle animation + gyroscope parallax
   useFrame(({ clock }) => {
-    if (!canAnimate) return;
-    
     const time = clock.getElapsedTime();
     
-    if (materialRef.current) {
-      materialRef.current.opacity = 0.7 + Math.sin(time * 0.5) * 0.1;
+    // Update material opacity animations
+    if (canAnimate) {
+      if (materialRef.current) {
+        materialRef.current.opacity = 0.7 + Math.sin(time * 0.5) * 0.1;
+      }
+      
+      if (horizonMaterialRef.current) {
+        horizonMaterialRef.current.opacity = 0.8 + Math.sin(time * 0.8) * 0.15;
+      }
     }
     
-    if (horizonMaterialRef.current) {
-      horizonMaterialRef.current.opacity = 0.8 + Math.sin(time * 0.8) * 0.15;
+    // Apply gyroscope-based parallax rotation (subtle, max ±3 degrees)
+    if (groupRef.current) {
+      const maxTilt = 0.05; // ~3 degrees in radians
+      targetRotation.current.x = tiltY * maxTilt;
+      targetRotation.current.y = tiltX * maxTilt;
+      
+      // Smooth lerp to target rotation
+      const lerpFactor = 0.05;
+      currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * lerpFactor;
+      currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * lerpFactor;
+      
+      // Base rotation + gyroscope offset
+      groupRef.current.rotation.x = -Math.PI * 0.42 + currentRotation.current.x;
+      groupRef.current.rotation.y = currentRotation.current.y;
     }
   });
   
   return (
     <group 
+      ref={groupRef}
       position={[0, -120, -100]}
       rotation={[-Math.PI * 0.42, 0, 0]}
     >
