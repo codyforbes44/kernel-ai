@@ -17,6 +17,10 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { GlowText } from '@/components/ui/glow-text';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { HoloSection } from '@/components/ui/holo-section';
+import { HoloCard, HoloCardHeader, HoloCardContent, HoloCardTitle } from '@/components/ui/holo-card';
 
 const securityFeatures = [
   {
@@ -76,34 +80,38 @@ const Security = () => {
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">
         {/* Hero */}
-        <div className="text-center mb-16">
+        <HoloSection variant="gradient" className="text-center mb-16 py-8 -mx-4 px-4">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="h-8 w-8 text-primary" />
+            <Shield className="h-8 w-8 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Security at Kernel</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Security at <GlowText variant="primary" intensity="medium">Kernel</GlowText>
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Your security is our top priority. Learn about the measures we take to protect your data and applications.
           </p>
-        </div>
+        </HoloSection>
 
         {/* Security features */}
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold text-center mb-8">Security Features</h2>
+          <h2 className="text-2xl font-semibold text-center mb-8">
+            <GlowText variant="gradient" intensity="low">Security Features</GlowText>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {securityFeatures.map((feature, index) => (
-              <Card key={index}>
-                <CardHeader>
+              <HoloCard key={index} variant="bordered" hover>
+                <HoloCardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
                       <feature.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <HoloCardTitle className="text-lg">{feature.title}</HoloCardTitle>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </HoloCardHeader>
+                <HoloCardContent>
                   <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+                </HoloCardContent>
+              </HoloCard>
             ))}
           </div>
         </section>

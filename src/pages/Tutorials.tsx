@@ -19,6 +19,10 @@ import {
   Palette,
   Zap,
 } from 'lucide-react';
+import { GlowText } from '@/components/ui/glow-text';
+import { HoloBadge } from '@/components/ui/holo-badge';
+import { HoloSection } from '@/components/ui/holo-section';
+import { HoloCard, HoloCardHeader, HoloCardContent, HoloCardTitle, HoloCardDescription } from '@/components/ui/holo-card';
 
 // Icon mapping from string name to component
 const iconMap: Record<string, React.ElementType> = {
@@ -41,18 +45,18 @@ const TutorialCard = ({ tutorial }: { tutorial: TutorialData }) => {
   
   return (
     <Link to={`/tutorials/${tutorial.slug}`}>
-      <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
-        <CardHeader>
+      <HoloCard variant="bordered" hover className="cursor-pointer group h-full">
+        <HoloCardHeader>
           <div className="flex items-start justify-between gap-2">
-            <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+            <div className="p-2 rounded-lg bg-primary/10">
               <IconComponent className="h-5 w-5 text-primary" />
             </div>
             <div className="flex items-center gap-2">
               {tutorial.popular && (
-                <Badge variant="outline" className="gap-1">
+                <HoloBadge variant="gold" className="gap-1">
                   <Star className="h-3 w-3 fill-gold text-gold" />
                   Popular
-                </Badge>
+                </HoloBadge>
               )}
               {tutorial.type === 'video' ? (
                 <Play className="h-4 w-4 text-muted-foreground" />
@@ -61,12 +65,12 @@ const TutorialCard = ({ tutorial }: { tutorial: TutorialData }) => {
               )}
             </div>
           </div>
-          <CardTitle className="text-lg group-hover:text-primary transition-colors">
+          <HoloCardTitle className="text-lg group-hover:text-primary transition-colors">
             {tutorial.title}
-          </CardTitle>
-          <CardDescription>{tutorial.description}</CardDescription>
-        </CardHeader>
-        <CardContent>
+          </HoloCardTitle>
+          <HoloCardDescription>{tutorial.description}</HoloCardDescription>
+        </HoloCardHeader>
+        <HoloCardContent>
           <div className="flex items-center justify-between">
             <Badge className={difficultyColors[tutorial.difficulty]}>
               {tutorial.difficulty}
@@ -76,8 +80,8 @@ const TutorialCard = ({ tutorial }: { tutorial: TutorialData }) => {
               {tutorial.duration}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </HoloCardContent>
+      </HoloCard>
     </Link>
   );
 };
@@ -148,18 +152,20 @@ const Tutorials = () => {
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Tutorials</h1>
+        <HoloSection variant="gradient" className="text-center mb-12 py-8 -mx-4 px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <GlowText variant="gradient" intensity="medium">Tutorials</GlowText>
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Learn to build amazing applications with step-by-step guides and video tutorials.
           </p>
-        </div>
+        </HoloSection>
 
         {/* Popular tutorials banner */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <Star className="h-5 w-5 fill-gold text-gold" />
-            Popular Tutorials
+            <Star className="h-5 w-5 fill-gold text-gold drop-shadow-[0_0_6px_hsl(var(--gold)/0.5)]" />
+            <GlowText variant="gold" intensity="low">Popular Tutorials</GlowText>
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {isLoading ? (
