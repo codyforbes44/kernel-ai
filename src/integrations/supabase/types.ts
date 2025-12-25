@@ -868,6 +868,7 @@ export type Database = {
           aspect_ratio: string | null
           asset_type: string
           created_at: string
+          duration: number | null
           file_size: number | null
           height: number | null
           id: string
@@ -883,12 +884,14 @@ export type Database = {
           thumbnail_url: string | null
           updated_at: string
           user_id: string
+          video_thumbnail_url: string | null
           width: number | null
         }
         Insert: {
           aspect_ratio?: string | null
           asset_type?: string
           created_at?: string
+          duration?: number | null
           file_size?: number | null
           height?: number | null
           id?: string
@@ -904,12 +907,14 @@ export type Database = {
           thumbnail_url?: string | null
           updated_at?: string
           user_id: string
+          video_thumbnail_url?: string | null
           width?: number | null
         }
         Update: {
           aspect_ratio?: string | null
           asset_type?: string
           created_at?: string
+          duration?: number | null
           file_size?: number | null
           height?: number | null
           id?: string
@@ -925,6 +930,7 @@ export type Database = {
           thumbnail_url?: string | null
           updated_at?: string
           user_id?: string
+          video_thumbnail_url?: string | null
           width?: number | null
         }
         Relationships: [
