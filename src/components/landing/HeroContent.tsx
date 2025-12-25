@@ -89,11 +89,6 @@ export function HeroContent({ className, prefersReducedMotion = false }: HeroCon
 interface ScrollIndicatorProps {
   targetId: string;
   className?: string;
-}
-
-interface ScrollIndicatorProps {
-  targetId: string;
-  className?: string;
   prefersReducedMotion?: boolean;
 }
 

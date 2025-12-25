@@ -22,26 +22,6 @@ const entranceVariants = {
   },
 };
 
-/**
- * @deprecated Use HeroEntranceGroup with HeroEntranceItem for staggered animations
- */
-export function HeroEntrance({ children, delay = 0, className }: HeroEntranceProps) {
-  return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={entranceVariants}
-      transition={{ 
-        delay,
-        duration: 0.6,
-        ease: customEasing,
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 // Staggered container for multiple children
 export function HeroEntranceGroup({ 
