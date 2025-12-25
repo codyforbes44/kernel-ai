@@ -27,6 +27,16 @@ export const routes: RouteConfig[] = [
     robots: 'allow',
   },
   {
+    path: '/how-it-works',
+    title: 'How It Works',
+    description: 'Learn how Kernel transforms your ideas into production-ready applications through AI-powered development',
+    changefreq: 'monthly',
+    priority: 0.9,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
+  {
     path: '/pricing',
     title: 'Pricing',
     description: 'View pricing plans and features',

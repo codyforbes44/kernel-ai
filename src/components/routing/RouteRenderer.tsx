@@ -37,6 +37,7 @@ const pageComponents = {
   Onboarding: lazy(() => import('@/pages/Onboarding')),
   Performance: lazy(() => import('@/pages/Performance')),
   OGPreview: lazy(() => import('@/pages/OGPreview')),
+  HowItWorks: lazy(() => import('@/pages/HowItWorks')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -58,6 +59,7 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/', component: 'Landing', eager: true },
   
   // Public routes
+  { path: '/how-it-works', component: 'HowItWorks' },
   { path: '/pricing', component: 'Pricing' },
   { path: '/contact', component: 'Contact' },
   { path: '/about', component: 'About' },
