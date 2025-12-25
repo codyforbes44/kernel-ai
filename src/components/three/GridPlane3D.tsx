@@ -283,10 +283,14 @@ export function GridPlane3D() {
     return positions;
   }, []);
 
+  // Position grid at bottom of viewport - y offset moves it down, rotation tilts toward viewer
+  const gridY = -120;  // Push down to bottom of viewport
+  const gridRotation = Math.PI / 2.8; // Tilted perspective toward viewer
+
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[0, gridY, 0]}>
       {/* Main grid layer */}
-      <group position={[0, 0, DEPTH_LAYERS_3D.GRID]} rotation={[Math.PI / 2.3, 0, 0]}>
+      <group position={[0, 0, DEPTH_LAYERS_3D.GRID]} rotation={[gridRotation, 0, 0]}>
         <lineSegments geometry={gridGeometry}>
           <lineBasicMaterial
             ref={(ref) => { if (ref) materialRefs.current[0] = ref; }}
@@ -300,7 +304,7 @@ export function GridPlane3D() {
       </group>
 
       {/* Speed lines layer */}
-      <group position={[0, 0, DEPTH_LAYERS_3D.GRID - 20]} rotation={[Math.PI / 2.3, 0, 0]}>
+      <group position={[0, 0, DEPTH_LAYERS_3D.GRID - 20]} rotation={[gridRotation, 0, 0]}>
         <lineSegments geometry={speedLinesGeometry}>
           <lineBasicMaterial
             ref={(ref) => { if (ref) materialRefs.current[1] = ref; }}
@@ -314,7 +318,7 @@ export function GridPlane3D() {
       </group>
 
       {/* Central energy disc */}
-      <group position={[0, 0, DEPTH_LAYERS_3D.GRID + 10]} rotation={[Math.PI / 2.3, 0, 0]}>
+      <group position={[0, 0, DEPTH_LAYERS_3D.GRID + 10]} rotation={[gridRotation, 0, 0]}>
         <lineSegments geometry={discGeometry}>
           <lineBasicMaterial
             ref={(ref) => { if (ref) materialRefs.current[2] = ref; }}
@@ -329,7 +333,7 @@ export function GridPlane3D() {
       </group>
 
       {/* Horizon ring */}
-      <group position={[0, 0, DEPTH_LAYERS_3D.GRID_FAR]} rotation={[Math.PI / 2.3, 0, 0]}>
+      <group position={[0, 0, DEPTH_LAYERS_3D.GRID_FAR]} rotation={[gridRotation, 0, 0]}>
         <lineSegments geometry={horizonGeometry}>
           <lineBasicMaterial
             ref={(ref) => { if (ref) materialRefs.current[3] = ref; }}
@@ -343,7 +347,7 @@ export function GridPlane3D() {
       </group>
 
       {/* Tron energy pulses traveling along grid */}
-      <group position={[0, 0, DEPTH_LAYERS_3D.GRID]} rotation={[Math.PI / 2.3, 0, 0]}>
+      <group position={[0, 0, DEPTH_LAYERS_3D.GRID]} rotation={[gridRotation, 0, 0]}>
         {pulsePositions.map((pulse, index) => (
           <TronPulse
             key={index}
