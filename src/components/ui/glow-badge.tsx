@@ -61,6 +61,14 @@ const glowBadgeVariants = cva(
           "hover:shadow-[0_0_20px_hsl(var(--gold)/0.5)]",
           "hover:border-gold/80",
         ],
+        beta: [
+          "bg-gradient-to-r from-violet-500/15 to-blue-500/10 backdrop-blur-sm",
+          "border-violet-400/50",
+          "text-violet-300",
+          "shadow-[0_0_15px_hsl(270_60%_60%/0.3)]",
+          "hover:shadow-[0_0_20px_hsl(270_60%_60%/0.4)]",
+          "hover:border-violet-400/70",
+        ],
         outline: [
           "bg-transparent",
           "border-primary/30",
