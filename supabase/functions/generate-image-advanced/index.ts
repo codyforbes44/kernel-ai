@@ -20,8 +20,11 @@ interface GenerationRequest {
   seed?: number;
   // Image editing
   sourceImageUrl?: string;
-  editMode?: "upscale" | "variation" | "inpaint";
+  editMode?: "upscale" | "variation" | "inpaint" | "controlnet";
   upscaleScale?: number;
+  // ControlNet options
+  controlnetType?: "canny" | "depth" | "pose" | "scribble" | "softedge";
+  controlnetStrength?: number;
 }
 
 const ASPECT_RATIO_TO_SIZE: Record<string, { width: number; height: number }> = {
@@ -80,9 +83,11 @@ serve(async (req) => {
       sourceImageUrl,
       editMode,
       upscaleScale = 2,
+      controlnetType = "canny",
+      controlnetStrength = 0.8,
     } = body;
 
-    console.log("[generate-image-advanced] Request:", { model, editMode, aspectRatio, hasSourceImage: !!sourceImageUrl });
+    console.log("[generate-image-advanced] Request:", { model, editMode, aspectRatio, hasSourceImage: !!sourceImageUrl, controlnetType });
 
     const replicate = new Replicate({ auth: REPLICATE_API_KEY });
 
@@ -104,6 +109,45 @@ serve(async (req) => {
       
       console.log("[generate-image-advanced] Upscale complete");
     } 
+    // Handle ControlNet generation
+    else if (editMode === "controlnet" && sourceImageUrl) {
+      if (!prompt) {
+        return new Response(JSON.stringify({ error: "Prompt is required for ControlNet generation" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Map ControlNet types to Replicate models
+      const controlnetModels: Record<string, string> = {
+        canny: "jagilley/controlnet-canny:aff48af9c68d162388d230a2ab003f68d2638d88307bdaf1c2f1ac95079c9613",
+        depth: "jagilley/controlnet-depth:922c7bb67b87ec32cbc2fd11b1d5f94f0ba4f5519c4dbd02856f0b65a9473e5f",
+        pose: "jagilley/controlnet-pose:0304f7f774ba7341ef754231f794b1ba3d129e3c46af3022241325ae0c50fb99",
+        scribble: "jagilley/controlnet-scribble:435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117",
+        softedge: "jagilley/controlnet-hough:854e8727697a057c525cdb45ab037f64ecca770a1769cc52287c2e56f55d0b78",
+      };
+
+      selectedModel = controlnetModels[controlnetType] || controlnetModels.canny;
+      
+      console.log("[generate-image-advanced] Using ControlNet model:", selectedModel, "type:", controlnetType);
+
+      output = await replicate.run(selectedModel, {
+        input: {
+          image: sourceImageUrl,
+          prompt: prompt,
+          num_samples: "1",
+          image_resolution: "512",
+          ddim_steps: numInferenceSteps || 20,
+          scale: guidanceScale || 9,
+          a_prompt: "best quality, extremely detailed",
+          n_prompt: negativePrompt || "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality",
+          eta: 0,
+          ...(seed !== undefined && { seed }),
+        },
+      });
+      
+      console.log("[generate-image-advanced] ControlNet generation complete");
+    }
     // Handle variation (img2img)
     else if (editMode === "variation" && sourceImageUrl) {
       selectedModel = "black-forest-labs/flux-dev";
@@ -263,6 +307,8 @@ serve(async (req) => {
           guidance_scale: guidanceScale,
           num_inference_steps: numInferenceSteps,
           seed,
+          controlnet_type: editMode === "controlnet" ? controlnetType : null,
+          controlnet_strength: editMode === "controlnet" ? controlnetStrength : null,
         },
       })
       .select()

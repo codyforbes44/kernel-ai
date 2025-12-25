@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, ImageIcon, Code2, Library, Video, Wand2 } from 'lucide-react';
+import { Sparkles, ImageIcon, Code2, Library, Video, Wand2, Scan } from 'lucide-react';
 import { useAIAssets, GeneratedAsset } from '@/hooks/useAIAssets';
 import {
   ImageGenerationForm,
   AdvancedImageForm,
+  ControlNetForm,
   ScreenshotToUI,
   AssetLibrary,
   AssetPreviewModal,
@@ -17,11 +18,11 @@ import { VideoGenerationForm } from './ai-assets/VideoGenerationForm';
 interface AIAssetsPanelProps {
   projectId?: string;
   onInsertCode?: (code: string) => void;
-  initialTab?: 'generate' | 'advanced' | 'video' | 'screenshot' | 'library';
+  initialTab?: 'generate' | 'advanced' | 'controlnet' | 'video' | 'screenshot' | 'library';
 }
 
 export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate' }: AIAssetsPanelProps) {
-  const [activeTab, setActiveTab] = useState<'generate' | 'advanced' | 'video' | 'screenshot' | 'library'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'generate' | 'advanced' | 'controlnet' | 'video' | 'screenshot' | 'library'>(initialTab);
   const [selectedAsset, setSelectedAsset] = useState<GeneratedAsset | null>(null);
   const [editingAsset, setEditingAsset] = useState<GeneratedAsset | null>(null);
   const [isEditingImage, setIsEditingImage] = useState(false);
@@ -101,6 +102,31 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
     setActiveTab('library');
   };
 
+  const handleGenerateControlNet = async (options: {
+    prompt: string;
+    negativePrompt?: string;
+    controlnetType: string;
+    controlnetStrength: number;
+    sourceImageUrl: string;
+    guidanceScale?: number;
+    numInferenceSteps?: number;
+    seed?: number;
+  }) => {
+    await generateAdvancedImage({
+      prompt: options.prompt,
+      negativePrompt: options.negativePrompt,
+      sourceImageUrl: options.sourceImageUrl,
+      editMode: 'controlnet',
+      controlnetType: options.controlnetType as 'canny' | 'depth' | 'pose' | 'scribble' | 'softedge',
+      controlnetStrength: options.controlnetStrength,
+      guidanceScale: options.guidanceScale,
+      numInferenceSteps: options.numInferenceSteps,
+      seed: options.seed,
+      projectId,
+    });
+    setActiveTab('library');
+  };
+
   const handleScreenshotToCode = async (options: {
     imageUrl?: string;
     imageBase64?: string;
@@ -150,26 +176,30 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-          <TabsList className="w-full grid grid-cols-5">
+          <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="generate" className="gap-1 text-xs px-1">
               <ImageIcon className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Quick</span>
+              <span className="hidden xl:inline">Quick</span>
             </TabsTrigger>
             <TabsTrigger value="advanced" className="gap-1 text-xs px-1">
               <Wand2 className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Pro</span>
+              <span className="hidden xl:inline">Pro</span>
+            </TabsTrigger>
+            <TabsTrigger value="controlnet" className="gap-1 text-xs px-1">
+              <Scan className="h-3.5 w-3.5" />
+              <span className="hidden xl:inline">Ctrl</span>
             </TabsTrigger>
             <TabsTrigger value="video" className="gap-1 text-xs px-1">
               <Video className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Video</span>
+              <span className="hidden xl:inline">Vid</span>
             </TabsTrigger>
             <TabsTrigger value="screenshot" className="gap-1 text-xs px-1">
               <Code2 className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Code</span>
+              <span className="hidden xl:inline">Code</span>
             </TabsTrigger>
             <TabsTrigger value="library" className="gap-1 text-xs px-1">
               <Library className="h-3.5 w-3.5" />
-              <span className="hidden lg:inline">Lib</span>
+              <span className="hidden xl:inline">Lib</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -188,6 +218,13 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
           {activeTab === 'advanced' && (
             <AdvancedImageForm
               onGenerate={handleGenerateAdvancedImage}
+              isGenerating={generatingImage}
+            />
+          )}
+
+          {activeTab === 'controlnet' && (
+            <ControlNetForm
+              onGenerate={handleGenerateControlNet}
               isGenerating={generatingImage}
             />
           )}
