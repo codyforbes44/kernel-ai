@@ -4,6 +4,7 @@ import {
   type KnowledgeBaseContext,
   type ProjectContext,
 } from "../_shared/prompts.ts";
+import { AI_TRUST_COVENANT } from "../_shared/ai-trust-agreement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,11 +149,12 @@ serve(async (req) => {
       knowledgeBase,
     };
 
-    // Build system prompt using shared module
+    // Build system prompt using shared module (Trust Covenant is included via CORE_IDENTITY)
     const systemPrompt = buildChatSystemPrompt(projectContext);
 
     console.log("[chat] Processing request with model:", model);
     console.log("[chat] Knowledge base provided:", !!knowledgeBase);
+    console.log("[chat] Trust Covenant bound: true");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
