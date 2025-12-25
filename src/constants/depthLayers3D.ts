@@ -2,7 +2,9 @@
 // Z-depth values for stable WebGL space
 
 export const DEPTH_LAYERS_3D = {
-  GRID: -30,            // Infinite perspective grid
+  GRID: -150,           // Deep infinite perspective grid
+  GRID_MID: -300,       // Mid-depth layer
+  GRID_FAR: -500,       // Far horizon layer
 } as const;
 
 // Camera configuration
