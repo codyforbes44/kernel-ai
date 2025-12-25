@@ -43,7 +43,11 @@ export default function RequestInvite() {
   });
 
   const onSubmit = async (data: RequestFormData) => {
-    const result = await submitRequest(data);
+    const result = await submitRequest({
+      name: data.name,
+      email: data.email,
+      use_case: data.use_case
+    });
     
     if (result.error) {
       toast.error(result.error);

@@ -117,7 +117,7 @@ export function InviteRequestsPanel() {
               <CardDescription>Review and manage access requests from potential users</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <RefreshButton onClick={handleRefresh} loading={loading} />
+              <RefreshButton onRefresh={handleRefresh} loading={loading} />
             </div>
           </div>
         </CardHeader>
