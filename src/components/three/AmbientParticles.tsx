@@ -102,8 +102,8 @@ export function AmbientParticles() {
   });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
+    <points ref={pointsRef} key={`ambient-particles-${particleCount}`}>
+      <bufferGeometry key={`ambient-geo-${particleCount}`}>
         <bufferAttribute
           attach="attributes-position"
           count={particleCount}

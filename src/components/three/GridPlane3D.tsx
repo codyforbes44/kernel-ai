@@ -167,8 +167,8 @@ function EnergyPulses({ pulseCount }: { pulseCount: number }) {
   });
   
   return (
-    <points ref={pulsesRef}>
-      <bufferGeometry>
+    <points ref={pulsesRef} key={`energy-pulses-${count}`}>
+      <bufferGeometry key={`pulses-geo-${count}`}>
         <bufferAttribute
           attach="attributes-position"
           count={count}
@@ -311,8 +311,8 @@ function FloatingParticles({ particleCount }: { particleCount: number }) {
   });
   
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
+    <points ref={particlesRef} key={`floating-particles-${count}`}>
+      <bufferGeometry key={`floating-geo-${count}`}>
         <bufferAttribute
           attach="attributes-position"
           count={count}
