@@ -88,6 +88,16 @@ export function AuroraPlane3D() {
   const materialRef = useRef<THREE.ShaderMaterial & { uTime: number }>(null);
   const { shouldAnimate } = useAdaptiveQuality();
 
+  // Memoize material to prevent recreation on every render
+  const material = useMemo(() => {
+    const mat = new AuroraShaderMaterial();
+    mat.transparent = true;
+    mat.side = THREE.DoubleSide;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+    return mat;
+  }, []);
+
   useFrame(({ clock }) => {
     if (!shouldAnimate || !materialRef.current) return;
     materialRef.current.uTime = clock.getElapsedTime() * 0.5;
@@ -101,13 +111,9 @@ export function AuroraPlane3D() {
     >
       <planeGeometry args={[600, 300, 128, 64]} />
       <primitive
-        object={new AuroraShaderMaterial()}
+        object={material}
         ref={materialRef}
         attach="material"
-        transparent
-        side={THREE.DoubleSide}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
       />
     </mesh>
   );

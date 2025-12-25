@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, X, ChevronDown, ChevronUp, Sparkles, Heart, Zap, Triangle, Code2, MousePointer2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
+import { GlowBadge } from "@/components/ui/glow-badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { platforms, platformFeatures, type PlatformFeature } from "@/lib/pricing-data";
@@ -30,7 +30,7 @@ const categories: Category[] = [
 function FeatureValue({ value, isKernel = false }: { value: boolean | string; isKernel?: boolean }) {
   if (typeof value === "boolean") {
     return value ? (
-      <Check className={cn("h-5 w-5 mx-auto", isKernel ? "text-primary" : "text-emerald-500")} />
+      <Check className={cn("h-5 w-5 mx-auto", isKernel ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" : "text-emerald-500")} />
     ) : (
       <X className="h-5 w-5 text-muted-foreground/30 mx-auto" />
     );
@@ -81,7 +81,7 @@ function CategorySection({
               <div
                 key={feature.name}
                 className={cn(
-                  "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0",
+                  "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0 transition-colors hover:bg-primary/5",
                   idx % 2 === 0 ? "bg-background" : "bg-muted/10"
                 )}
               >
@@ -97,7 +97,7 @@ function CategorySection({
                   <div
                     key={platform.id}
                     className={cn(
-                      "col-span-1 py-3 text-center",
+                      "col-span-1 py-3 text-center transition-colors",
                       platform.isHighlighted && "bg-primary/5"
                     )}
                   >
@@ -160,7 +160,7 @@ export function PlatformComparisonChart() {
       {/* Table Container */}
       <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
         {/* Header */}
-        <div className="grid grid-cols-7 bg-muted/50 border-b border-border sticky top-0 z-10">
+        <div className="grid grid-cols-7 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border sticky top-0 z-10">
           <div className="col-span-1 px-4 py-4">
             <span className="text-sm font-semibold text-muted-foreground">Feature</span>
           </div>
@@ -173,18 +173,19 @@ export function PlatformComparisonChart() {
               )}
             >
               {platform.isHighlighted && (
-                <Badge 
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-0.5 shadow-lg"
+                <GlowBadge 
+                  variant="glow"
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5 shadow-lg"
                 >
                   <Sparkles className="h-3 w-3 mr-1" />
                   Us
-                </Badge>
+                </GlowBadge>
               )}
               <div className="flex flex-col items-center gap-1.5">
                 <div className={cn(
-                  "p-1.5 rounded-lg",
+                  "p-1.5 rounded-lg transition-all",
                   platform.isHighlighted 
-                    ? "bg-primary/20 text-primary" 
+                    ? "bg-primary/20 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]" 
                     : "bg-muted text-muted-foreground"
                 )}>
                   {platformIcons[platform.id]}
@@ -249,7 +250,7 @@ export function PlatformComparisonCondensed() {
     >
       <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm min-w-[800px]">
         {/* Header */}
-        <div className="grid grid-cols-7 bg-muted/50 border-b border-border">
+        <div className="grid grid-cols-7 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border">
           <div className="col-span-1 px-4 py-4">
             <span className="text-sm font-semibold text-muted-foreground">Feature</span>
           </div>
@@ -262,18 +263,19 @@ export function PlatformComparisonCondensed() {
               )}
             >
               {platform.isHighlighted && (
-                <Badge 
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-2 py-0.5"
+                <GlowBadge 
+                  variant="glow"
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5"
                 >
                   <Sparkles className="h-3 w-3 mr-1" />
                   Us
-                </Badge>
+                </GlowBadge>
               )}
               <div className="flex flex-col items-center gap-1.5">
                 <div className={cn(
-                  "p-1.5 rounded-lg",
+                  "p-1.5 rounded-lg transition-all",
                   platform.isHighlighted 
-                    ? "bg-primary/20 text-primary" 
+                    ? "bg-primary/20 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]" 
                     : "bg-muted text-muted-foreground"
                 )}>
                   {platformIcons[platform.id]}
@@ -294,7 +296,7 @@ export function PlatformComparisonCondensed() {
           <div
             key={feature.name}
             className={cn(
-              "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0",
+              "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0 transition-colors hover:bg-primary/5",
               idx % 2 === 0 ? "bg-background" : "bg-muted/10"
             )}
           >
@@ -305,7 +307,7 @@ export function PlatformComparisonCondensed() {
               <div
                 key={platform.id}
                 className={cn(
-                  "col-span-1 py-3 text-center",
+                  "col-span-1 py-3 text-center transition-colors",
                   platform.isHighlighted && "bg-primary/5"
                 )}
               >

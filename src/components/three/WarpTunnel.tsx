@@ -89,6 +89,16 @@ export function WarpTunnel() {
   const materialRef = useRef<THREE.ShaderMaterial & { uTime: number }>(null);
   const { shouldAnimate, enableRayMarching } = useAdaptiveQuality();
 
+  // Memoize material to prevent recreation on every render
+  const material = useMemo(() => {
+    const mat = new WarpShaderMaterial();
+    mat.transparent = true;
+    mat.side = THREE.BackSide;
+    mat.depthWrite = false;
+    mat.blending = THREE.AdditiveBlending;
+    return mat;
+  }, []);
+
   useFrame(({ clock }) => {
     if (!shouldAnimate || !materialRef.current) return;
     materialRef.current.uTime = clock.getElapsedTime();
@@ -104,13 +114,9 @@ export function WarpTunnel() {
     >
       <cylinderGeometry args={[500, 200, 1000, 64, 1, true]} />
       <primitive
-        object={new WarpShaderMaterial()}
+        object={material}
         ref={materialRef}
         attach="material"
-        transparent
-        side={THREE.BackSide}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
       />
     </mesh>
   );
