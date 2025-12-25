@@ -23,7 +23,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +34,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useTemplates } from '@/hooks/useTemplates';
 import { templateService } from '@/services/templateService';
+import { hapticFeedback } from '@/hooks/useHaptic';
+import { AnimatedStepIcon, ThoughtBubble, StepProgressIndicator } from './AgentStepAnimation';
 import type { AgentSession, AgentStep, AgentStatus } from '@/types/agent';
 
 interface AgentPanelProps {
@@ -78,31 +79,62 @@ function StepItem({ step, isExpanded, onToggle }: {
   const isError = step.status === 'error';
   
   return (
-    <div className="border-l-2 border-border pl-4 py-2 relative">
+    <motion.div 
+      className="border-l-2 border-border pl-4 py-2 relative"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Timeline dot with animation */}
       <div 
-        className="absolute -left-[9px] top-3 w-4 h-4 rounded-full bg-background border-2 border-border flex items-center justify-center"
+        className="absolute -left-[9px] top-3 w-4 h-4 rounded-full bg-background border-2 border-border flex items-center justify-center overflow-hidden"
       >
         {isRunning ? (
-          <Loader2 className="w-2.5 h-2.5 text-primary animate-spin" />
+          <motion.div
+            className="w-full h-full bg-primary/20 flex items-center justify-center"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            <Loader2 className="w-2.5 h-2.5 text-primary animate-spin" />
+          </motion.div>
         ) : isComplete ? (
-          <Check className="w-2.5 h-2.5 text-green-500" />
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500 }}
+          >
+            <Check className="w-2.5 h-2.5 text-green-500" />
+          </motion.div>
         ) : isError ? (
-          <AlertCircle className="w-2.5 h-2.5 text-destructive" />
+          <motion.div
+            animate={{ x: [0, -1, 1, -1, 1, 0] }}
+            transition={{ duration: 0.3 }}
+          >
+            <AlertCircle className="w-2.5 h-2.5 text-destructive" />
+          </motion.div>
         ) : (
           <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
         )}
       </div>
       
       <button 
-        onClick={onToggle}
-        className="w-full text-left flex items-center gap-2 hover:bg-accent/50 rounded px-2 py-1 -ml-2"
+        onClick={() => {
+          hapticFeedback('light');
+          onToggle();
+        }}
+        className="w-full text-left flex items-center gap-2 hover:bg-accent/50 rounded px-2 py-1 -ml-2 transition-colors"
       >
         {step.detail ? (
           isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />
         ) : (
           <div className="w-3" />
         )}
-        <Icon className={cn("w-4 h-4", isRunning && "animate-pulse")} />
+        <Icon className={cn(
+          "w-4 h-4 transition-all",
+          isRunning && "text-primary animate-pulse",
+          isComplete && "text-green-500",
+          isError && "text-destructive"
+        )} />
         <span className="text-sm flex-1 truncate">{step.description}</span>
         {step.duration && (
           <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -126,7 +158,7 @@ function StepItem({ step, isExpanded, onToggle }: {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
@@ -146,10 +178,6 @@ export function AgentPanel({
   const status = session?.status || 'idle';
   const config = statusConfig[status];
   const StatusIcon = config.icon;
-  
-  const progress = session 
-    ? (session.iterationCount / session.maxIterations) * 100 
-    : 0;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -174,6 +202,7 @@ export function AgentPanel({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (request.trim() && !isRunning) {
+      hapticFeedback('medium');
       onStart(request.trim());
       setRequest('');
     }
@@ -183,6 +212,7 @@ export function AgentPanel({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (request.trim() && !isRunning) {
+        hapticFeedback('medium');
         onStart(request.trim());
         setRequest('');
       }
@@ -190,6 +220,7 @@ export function AgentPanel({
   };
 
   const handleSelectTemplate = async (template: typeof templates[0]) => {
+    hapticFeedback('light');
     // Check if template has variables
     const variables = templateService.extractVariables(template.content);
     if (variables.length > 0) {
@@ -212,6 +243,9 @@ export function AgentPanel({
       return next;
     });
   };
+
+  const completedSteps = session?.steps.filter(s => s.status === 'complete').length || 0;
+  const totalSteps = session?.steps.length || 0;
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -236,27 +270,41 @@ export function AgentPanel({
         </div>
         
         {session && (
-          <Button variant="ghost" size="sm" onClick={onClear}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              hapticFeedback('light');
+              onClear();
+            }}
+          >
             Clear
           </Button>
         )}
       </div>
       
-      {/* Status Bar */}
+      {/* Status Bar with enhanced progress */}
       {session && (
         <div className="px-4 py-3 border-b bg-muted/30">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-3">
+            <motion.div 
+              className="flex items-center gap-2"
+              key={status}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
               <StatusIcon className={cn("w-4 h-4", config.color, isRunning && "animate-spin")} />
               <span className={cn("text-sm font-medium", config.color)}>
                 {config.label}
               </span>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              Iteration {session.iterationCount}/{session.maxIterations}
-            </span>
+            </motion.div>
           </div>
-          <Progress value={progress} className="h-1" />
+          <StepProgressIndicator
+            currentStep={completedSteps}
+            totalSteps={totalSteps}
+            maxIterations={session.maxIterations}
+            iterationCount={session.iterationCount}
+          />
         </div>
       )}
       
@@ -264,21 +312,37 @@ export function AgentPanel({
       <ScrollArea className="flex-1">
         <div className="p-4">
           {!session ? (
-            <div className="text-center py-8">
-              <Bot className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <motion.div 
+              className="text-center py-8"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative inline-block mb-4">
+                <Bot className="w-12 h-12 text-muted-foreground" />
+                <motion.div
+                  className="absolute -inset-2 rounded-full bg-primary/10"
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+              </div>
               <h3 className="font-medium mb-2">AI Agent Mode</h3>
               <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                 Let the agent autonomously explore, plan, and implement complex changes 
                 with self-correcting capabilities.
               </p>
-            </div>
+            </motion.div>
           ) : (
             <div className="space-y-2">
               {/* Original Request */}
-              <div className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20">
+              <motion.div 
+                className="mb-4 p-3 bg-primary/5 rounded-lg border border-primary/20"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
                 <span className="text-xs font-medium text-primary">Task:</span>
                 <p className="text-sm mt-1">{session.originalRequest}</p>
-              </div>
+              </motion.div>
               
               {/* Steps Timeline */}
               <div className="space-y-0">
@@ -292,51 +356,80 @@ export function AgentPanel({
                 ))}
               </div>
               
-              {/* Thinking display */}
-              {session.thinking && isRunning && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Brain className="w-4 h-4 text-primary animate-pulse" />
-                    <span className="text-xs font-medium">Thinking...</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {session.thinking}
-                  </p>
-                </div>
-              )}
+              {/* Enhanced Thinking display */}
+              <AnimatePresence>
+                {session.thinking && isRunning && (
+                  <motion.div
+                    className="mt-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <ThoughtBubble thought={session.thinking} isActive={isRunning} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               {/* Pending Operations */}
-              {session.pendingOperations.length > 0 && (
-                <div className="mt-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                      {session.pendingOperations.length} pending change(s)
-                    </span>
-                    <Button size="sm" onClick={onApplyChanges}>
-                      Apply All
-                    </Button>
-                  </div>
-                  <div className="space-y-1">
-                    {session.pendingOperations.map((op, i) => (
-                      <div key={i} className="text-xs flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {op.type}
-                        </Badge>
-                        <span className="truncate">{op.path}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <AnimatePresence>
+                {session.pendingOperations.length > 0 && (
+                  <motion.div 
+                    className="mt-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/20"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                        {session.pendingOperations.length} pending change(s)
+                      </span>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          hapticFeedback('success');
+                          onApplyChanges();
+                        }}
+                      >
+                        Apply All
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      {session.pendingOperations.map((op, i) => (
+                        <motion.div 
+                          key={i} 
+                          className="text-xs flex items-center gap-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                        >
+                          <Badge variant="outline" className="text-xs">
+                            {op.type}
+                          </Badge>
+                          <span className="truncate">{op.path}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               {/* Applied Operations */}
-              {session.appliedOperations.length > 0 && (
-                <div className="mt-4 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                  <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                    {session.appliedOperations.length} change(s) applied
-                  </span>
-                </div>
-              )}
+              <AnimatePresence>
+                {session.appliedOperations.length > 0 && (
+                  <motion.div 
+                    className="mt-4 p-3 bg-green-500/10 rounded-lg border border-green-500/20"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        {session.appliedOperations.length} change(s) applied
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>
@@ -357,7 +450,14 @@ export function AgentPanel({
               rows={1}
             />
             {isRunning ? (
-              <Button type="button" variant="destructive" onClick={onCancel}>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => {
+                  hapticFeedback('warning');
+                  onCancel();
+                }}
+              >
                 <Square className="w-4 h-4 mr-1" />
                 Stop
               </Button>
