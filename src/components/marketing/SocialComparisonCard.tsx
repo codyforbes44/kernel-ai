@@ -1,7 +1,7 @@
-import { Check, X } from "lucide-react";
+import { Check, X, Crown, AlertTriangle } from "lucide-react";
 import { KernelLogo } from "@/components/ui/kernel-logo";
 import { platforms } from "@/lib/pricing-data";
-import { COMPARE_SOCIAL_FEATURES } from "@/lib/compare-data";
+import { COMPARE_SOCIAL_FEATURES, COMPETITOR_COVERAGE, EXCLUSIVE_FEATURES } from "@/lib/compare-data";
 import { FeatureValue } from "@/components/compare/FeatureValue";
 import { cn } from "@/lib/utils";
 
@@ -35,21 +35,31 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
       />
 
       <div className="relative flex flex-col p-4 md:p-6 lg:p-8">
-        {/* Header */}
+        {/* Header with 100% Badge */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
           <div className="flex items-center gap-2 md:gap-3">
             <KernelLogo size="md" glow className="md:hidden" />
             <KernelLogo size="lg" glow className="hidden md:block" />
             <div>
-              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-foreground tracking-tight">
-                Kernel vs The Competition
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-foreground tracking-tight">
+                  Kernel vs The Competition
+                </h1>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] md:text-xs font-bold">
+                  <Crown className="w-3 h-3" />
+                  100%
+                </span>
+              </div>
               <p className="text-xs md:text-sm text-muted-foreground">
-                The complete AI-powered development platform
+                The <span className="text-primary font-semibold">only</span> platform with complete feature coverage
               </p>
             </div>
           </div>
           <div className="text-right hidden sm:block">
+            <div className="flex items-center gap-1.5 text-amber-400 text-[10px] md:text-xs">
+              <AlertTriangle className="w-3 h-3" />
+              <span>Others miss 27-83%</span>
+            </div>
             <p className="text-xs text-muted-foreground">kernel.dev</p>
           </div>
         </div>
@@ -81,42 +91,88 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
 
           {/* Features */}
           <div className="flex-1 flex flex-col gap-1 lg:gap-1.5">
-            {COMPARE_SOCIAL_FEATURES.map((feature, index) => (
-              <div
-                key={feature.name}
-                className={cn(
-                  "grid grid-cols-7 gap-1.5 lg:gap-2 items-center py-2 lg:py-2.5 px-2 lg:px-3 rounded-lg transition-colors",
-                  index % 2 === 0 ? "bg-muted/20" : "bg-transparent"
-                )}
-              >
-                <div className="col-span-1">
-                  <span className="text-xs lg:text-sm font-medium text-foreground">
-                    {feature.name}
-                  </span>
+            {COMPARE_SOCIAL_FEATURES.map((feature, index) => {
+              const isExclusive = EXCLUSIVE_FEATURES.includes(feature.name as typeof EXCLUSIVE_FEATURES[number]);
+              return (
+                <div
+                  key={feature.name}
+                  className={cn(
+                    "grid grid-cols-7 gap-1.5 lg:gap-2 items-center py-2 lg:py-2.5 px-2 lg:px-3 rounded-lg transition-colors",
+                    index % 2 === 0 ? "bg-muted/20" : "bg-transparent",
+                    isExclusive && "ring-1 ring-primary/30 bg-primary/5"
+                  )}
+                >
+                  <div className="col-span-1 flex items-center gap-1.5">
+                    <span className={cn(
+                      "text-xs lg:text-sm font-medium",
+                      isExclusive ? "text-primary" : "text-foreground"
+                    )}>
+                      {feature.name}
+                    </span>
+                    {isExclusive && (
+                      <span className="text-[8px] lg:text-[9px] font-bold text-primary bg-primary/20 px-1 py-0.5 rounded uppercase">
+                        Exclusive
+                      </span>
+                    )}
+                  </div>
+                  {platforms.map((platform) => {
+                    const key = platform.name.toLowerCase() as PlatformKey;
+                    return (
+                      <FeatureValue 
+                        key={platform.name} 
+                        value={feature[key]} 
+                        size="sm"
+                      />
+                    );
+                  })}
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Coverage Summary Bar */}
+          <div className="mt-4 pt-3 border-t border-border/30">
+            <div className="flex items-center justify-between gap-2 text-[10px] lg:text-xs">
+              <span className="text-muted-foreground font-medium">Feature Coverage:</span>
+              <div className="flex items-center gap-3 lg:gap-4">
                 {platforms.map((platform) => {
-                  const key = platform.name.toLowerCase() as PlatformKey;
+                  const key = platform.name.toLowerCase() as keyof typeof COMPETITOR_COVERAGE;
+                  const coverage = COMPETITOR_COVERAGE[key];
                   return (
-                    <FeatureValue 
-                      key={platform.name} 
-                      value={feature[key]} 
-                      size="sm"
-                    />
+                    <div key={platform.name} className="flex items-center gap-1">
+                      <span className={cn(
+                        "font-semibold",
+                        platform.name === "Kernel" ? "text-emerald-400" : "text-muted-foreground"
+                      )}>
+                        {platform.name}:
+                      </span>
+                      <span className={cn(
+                        "font-bold",
+                        coverage.score === 100 ? "text-emerald-400" : 
+                        coverage.score >= 60 ? "text-amber-400" : "text-red-400"
+                      )}>
+                        {coverage.score}%
+                      </span>
+                    </div>
                   );
                 })}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        {/* Mobile: Condensed summary */}
+        {/* Mobile: Enhanced coverage summary */}
         <div className="md:hidden">
+          {/* 100% Badge for mobile */}
+          <div className="flex items-center justify-center gap-2 mb-4 py-2 px-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+            <Crown className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm font-bold text-emerald-400">Kernel: 100% Feature Coverage</span>
+          </div>
+
           <div className="grid grid-cols-2 gap-2 mb-4">
             {platforms.slice(0, 4).map((platform) => {
-              const kernelWins = COMPARE_SOCIAL_FEATURES.filter(f => {
-                const key = platform.name.toLowerCase() as PlatformKey;
-                return f.kernel === true && f[key] !== true;
-              }).length;
+              const key = platform.name.toLowerCase() as keyof typeof COMPETITOR_COVERAGE;
+              const coverage = COMPETITOR_COVERAGE[key];
               
               return (
                 <div
@@ -129,21 +185,40 @@ export const SocialComparisonCard = ({ className }: SocialComparisonCardProps) =
                   )}
                 >
                   <span className={cn(
-                    "text-sm font-semibold block mb-1",
+                    "text-sm font-semibold block",
                     platform.name === "Kernel" ? "text-primary" : "text-muted-foreground"
                   )}>
                     {platform.name}
                   </span>
-                  {platform.name === "Kernel" ? (
-                    <span className="text-xs text-emerald-400">100% coverage</span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">
-                      +{kernelWins} Kernel advantages
+                  <span className={cn(
+                    "text-lg font-bold block",
+                    coverage.score === 100 ? "text-emerald-400" : 
+                    coverage.score >= 60 ? "text-amber-400" : "text-red-400"
+                  )}>
+                    {coverage.score}%
+                  </span>
+                  {platform.name !== "Kernel" && coverage.missing > 0 && (
+                    <span className="text-[10px] text-red-400/80">
+                      Missing {coverage.missing} features
                     </span>
                   )}
                 </div>
               );
             })}
+          </div>
+
+          {/* Exclusive features callout */}
+          <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 mb-4">
+            <p className="text-xs text-primary font-semibold mb-1.5 flex items-center gap-1">
+              <Crown className="w-3 h-3" /> Kernel Exclusives:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {EXCLUSIVE_FEATURES.map((feature) => (
+                <span key={feature} className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                  {feature}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
