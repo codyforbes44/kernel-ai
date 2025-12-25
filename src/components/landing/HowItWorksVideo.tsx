@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, useState, useCallback } from "react";
 import { MessageSquare, Wand2, Rocket, Play } from "lucide-react";
 import { useVideoTimeline } from "@/hooks/useVideoTimeline";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useVideoAudio } from "@/hooks/useVideoAudio";
 import { VideoControls } from "./video/VideoControls";
 import { VideoScene } from "./video/VideoScene";
 import { TypingAnimation } from "./video/TypingAnimation";
@@ -11,6 +12,7 @@ import { CodeStreamAnimation } from "./video/CodeStreamAnimation";
 import { DeployAnimation } from "./video/DeployAnimation";
 import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { GlassPanel } from "@/components/ui/glass-panel";
+import { supabase } from "@/integrations/supabase/client";
 
 const TOTAL_DURATION = 24; // seconds
 
@@ -123,6 +125,9 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: false, amount: 0.5 });
   const { shouldReduceMotion } = useReducedMotion();
+  
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   const {
     currentTime,
@@ -139,7 +144,77 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     loop: false,
   });
 
+  // Audio hook for synchronized playback
+  const {
+    isLoaded: audioLoaded,
+    isMuted,
+    volume,
+    toggleMute,
+    setVolume,
+    syncWithTimeline,
+    reset: resetAudio,
+  } = useVideoAudio({
+    audioUrl: audioUrl || undefined,
+    duration: TOTAL_DURATION,
+  });
+
   const hasStarted = currentTime > 0 || isPlaying;
+
+  // Generate ambient audio on first play
+  const generateAudio = useCallback(async () => {
+    if (audioUrl || isGeneratingAudio) return;
+    
+    setIsGeneratingAudio(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-music`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            prompt: 'Ambient electronic tech music, building progression, modern futuristic sound, cinematic, soft intro building to confident peak then resolving, suitable for product demo video',
+            duration: TOTAL_DURATION,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Audio generation failed: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+      console.log('Audio generated successfully');
+    } catch (error) {
+      console.error('Failed to generate audio:', error);
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  }, [audioUrl, isGeneratingAudio]);
+
+  // Sync audio with video timeline
+  useEffect(() => {
+    if (audioLoaded) {
+      syncWithTimeline(currentTime, isPlaying);
+    }
+  }, [currentTime, isPlaying, audioLoaded, syncWithTimeline]);
+
+  // Handle play with audio generation
+  const handlePlay = useCallback(() => {
+    generateAudio();
+    play();
+  }, [generateAudio, play]);
+
+  // Handle reset
+  const handleReset = useCallback(() => {
+    reset();
+    resetAudio();
+  }, [reset, resetAudio]);
 
   // Auto-play when in view (only if user hasn't interacted yet)
   useEffect(() => {
@@ -193,7 +268,7 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
           />
 
           {/* Poster - show before video starts */}
-          {!hasStarted && <VideoPoster onPlay={play} />}
+          {!hasStarted && <VideoPoster onPlay={handlePlay} />}
 
           {/* Scene: Intro */}
           <VideoScene isActive={currentScene === "intro" && hasStarted} className="absolute inset-0 flex items-center justify-center">
@@ -356,7 +431,12 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
           duration={TOTAL_DURATION}
           onToggle={toggle}
           onSeek={seek}
-          onReset={reset}
+          onReset={handleReset}
+          hasAudio={!!audioUrl}
+          isMuted={isMuted}
+          volume={volume}
+          onToggleMute={toggleMute}
+          onVolumeChange={setVolume}
           className="rounded-none border-t border-border/50 rounded-b-xl"
         />
       </GlassPanel>
