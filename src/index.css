@@ -596,74 +596,8 @@
 }
 
 /* ========================================
-   AMBIENT ANIMATIONS
+   UTILITY ANIMATIONS
    ======================================== */
-
-@keyframes auroraWave1 {
-  0%, 100% {
-    transform: translateX(-5%) scaleY(1);
-    opacity: 0.2;
-  }
-  33% {
-    transform: translateX(3%) scaleY(1.15);
-    opacity: 0.25;
-  }
-  66% {
-    transform: translateX(-2%) scaleY(0.9);
-    opacity: 0.15;
-  }
-}
-
-@keyframes auroraWave2 {
-  0%, 100% {
-    transform: translateX(5%) scaleY(1) skewX(0deg);
-    opacity: 0.15;
-  }
-  50% {
-    transform: translateX(-5%) scaleY(1.2) skewX(2deg);
-    opacity: 0.22;
-  }
-}
-
-@keyframes auroraShift {
-  0%, 100% {
-    transform: translateX(-10%) rotate(0deg);
-    opacity: 0.1;
-  }
-  25% {
-    transform: translateX(0%) rotate(1deg);
-    opacity: 0.15;
-  }
-  50% {
-    transform: translateX(10%) rotate(0deg);
-    opacity: 0.12;
-  }
-  75% {
-    transform: translateX(5%) rotate(-1deg);
-    opacity: 0.18;
-  }
-}
-
-/* 2100-Era Depth Animations */
-@keyframes flareGlow {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.5);
-  }
-}
-
-@keyframes gridFlow {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 0 60px;
-  }
-}
 
 @keyframes fadeIn {
   from { opacity: 0; }
