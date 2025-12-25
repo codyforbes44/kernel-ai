@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
 import { Code2, Eye, Layers, Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { HoloCard, HoloCardContent } from "@/components/ui/holo-card";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { GlowText } from "@/components/ui/glow-text";
+import { HoloSection } from "@/components/ui/holo-section";
 
 const features = [
   {
@@ -27,7 +30,7 @@ const features = [
 
 export function ProductShowcase() {
   return (
-    <section className="py-20 px-4 bg-muted/20 perspective-container overflow-hidden">
+    <HoloSection variant="default" className="py-20 px-4 overflow-hidden bg-muted/20">
       <div className="container mx-auto max-w-6xl preserve-3d">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -35,9 +38,9 @@ export function ProductShowcase() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <GlowText as="h2" variant="gradient" className="text-3xl md:text-4xl font-bold mb-4">
             Powerful Development Environment
-          </h2>
+          </GlowText>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Everything you need to build modern web applications in 2026
           </p>
@@ -58,19 +61,36 @@ export function ProductShowcase() {
             }}
             style={{ transformStyle: 'preserve-3d' }}
           >
-            <Card className="overflow-hidden border-border/50 bg-background/50 backdrop-blur depth-card">
+            <HoloCard variant="bordered" className="overflow-hidden">
               {/* Window Header */}
-              <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50">
-                <div className="flex gap-1.5">
+              <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50 relative">
+                {/* Scanline effect */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-30"
+                  style={{
+                    background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(var(--primary) / 0.03) 2px, hsl(var(--primary) / 0.03) 4px)',
+                  }}
+                />
+                <div className="flex gap-1.5 relative z-10">
                   <div className="w-3 h-3 rounded-full bg-destructive/60" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                   <div className="w-3 h-3 rounded-full bg-green-500/60" />
                 </div>
-                <span className="text-xs text-muted-foreground ml-2">Kernel Builder — 2026</span>
+                <span className="text-xs text-muted-foreground ml-2 relative z-10">
+                  Kernel Builder — 2026
+                </span>
               </div>
               
               {/* Mock Content */}
-              <div className="grid grid-cols-3 min-h-[300px]">
+              <div className="grid grid-cols-3 min-h-[300px] relative">
+                {/* Scanline overlay */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-20 z-10"
+                  style={{
+                    background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(var(--primary) / 0.02) 2px, hsl(var(--primary) / 0.02) 4px)',
+                  }}
+                />
+                
                 {/* File Explorer */}
                 <div className="border-r border-border/50 p-3 bg-muted/20">
                   <p className="text-xs text-muted-foreground mb-2 font-medium">FILES</p>
@@ -96,7 +116,7 @@ export function ProductShowcase() {
                   </div>
                 </div>
               </div>
-            </Card>
+            </HoloCard>
           </motion.div>
 
           {/* Feature Cards with staggered depth */}
@@ -119,9 +139,14 @@ export function ProductShowcase() {
                   transform: `translateZ(${index * 10}px)`,
                 }}
               >
-                <Card className="p-4 hover:border-primary/30 transition-all h-full depth-hover bg-card/80 backdrop-blur-sm">
+                <GlassPanel variant="glow" className="p-4 h-full">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
+                    <div 
+                      className="p-2 rounded-lg bg-primary/10 border border-primary/20"
+                      style={{
+                        boxShadow: '0 0 15px hsl(var(--primary) / 0.2)',
+                      }}
+                    >
                       <feature.icon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -129,12 +154,12 @@ export function ProductShowcase() {
                       <p className="text-xs text-muted-foreground">{feature.description}</p>
                     </div>
                   </div>
-                </Card>
+                </GlassPanel>
               </motion.div>
             ))}
           </div>
         </div>
       </div>
-    </section>
+    </HoloSection>
   );
 }

@@ -161,6 +161,15 @@ export function CosmicVoid() {
   const materialRef = useRef<THREE.ShaderMaterial & { uTime: number }>(null);
   const { enableRayMarching, shouldAnimate } = useAdaptiveQuality();
 
+  // Memoize material to prevent recreation on every render
+  const material = useMemo(() => {
+    const mat = new NebulaShaderMaterial();
+    mat.transparent = true;
+    mat.side = THREE.BackSide;
+    mat.depthWrite = false;
+    return mat;
+  }, []);
+
   useFrame(({ clock }) => {
     if (!shouldAnimate || !materialRef.current) return;
     materialRef.current.uTime = clock.getElapsedTime();
@@ -189,12 +198,9 @@ export function CosmicVoid() {
     <mesh ref={meshRef} position={[0, 0, DEPTH_LAYERS_3D.VOID]}>
       <sphereGeometry args={[400, 64, 64]} />
       <primitive
-        object={new NebulaShaderMaterial()}
+        object={material}
         ref={materialRef}
         attach="material"
-        transparent
-        side={THREE.BackSide}
-        depthWrite={false}
       />
     </mesh>
   );
