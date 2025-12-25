@@ -1,6 +1,4 @@
-import { EffectComposer, Bloom, ChromaticAberration, Vignette, Noise } from '@react-three/postprocessing';
-import { BlendFunction } from 'postprocessing';
-import * as THREE from 'three';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { useAdaptiveQuality } from '@/hooks/useThreePerformance';
 
 export function PostProcessingEffects() {
@@ -11,21 +9,12 @@ export function PostProcessingEffects() {
   return (
     <EffectComposer multisampling={0}>
       <Bloom
-        intensity={settings.bloomIntensity}
-        luminanceThreshold={0.2}
+        intensity={settings.bloomIntensity * 0.8}
+        luminanceThreshold={0.3}
         luminanceSmoothing={0.9}
         mipmapBlur
       />
-      {settings.chromaticAberration && (
-        <ChromaticAberration
-          blendFunction={BlendFunction.NORMAL}
-          offset={new THREE.Vector2(0.002, 0.002)}
-          radialModulation={true}
-          modulationOffset={0.5}
-        />
-      )}
-      <Vignette darkness={0.5} offset={0.3} />
-      <Noise opacity={0.03} blendFunction={BlendFunction.OVERLAY} />
+      <Vignette darkness={0.4} offset={0.4} />
     </EffectComposer>
   );
 }
