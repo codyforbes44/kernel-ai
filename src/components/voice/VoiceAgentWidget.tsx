@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Volume2, VolumeX, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useVoiceAgent, VoiceAgentStatus } from '@/hooks/useVoiceAgent';
+import { useVoiceAgent, VoiceAgentStatus, VoiceAgentUserContext } from '@/hooks/useVoiceAgent';
+import { useLocation } from 'react-router-dom';
 
 interface VoiceAgentWidgetProps {
   agentId: string;
   className?: string;
   position?: 'bottom-right' | 'bottom-left' | 'bottom-center';
+  userName?: string;
+  isNewUser?: boolean;
+  hasActiveProject?: boolean;
+  projectName?: string;
 }
 
 const statusConfig: Record<VoiceAgentStatus, { 
@@ -65,12 +71,29 @@ const positionClasses = {
 export function VoiceAgentWidget({ 
   agentId, 
   className,
-  position = 'bottom-right' 
+  position = 'bottom-right',
+  userName,
+  isNewUser = false,
+  hasActiveProject = false,
+  projectName,
 }: VoiceAgentWidgetProps) {
+  const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
-  const [transcript, setTranscript] = useState<string>('');
+  const [conversationHistory, setConversationHistory] = useState<Array<{
+    role: 'user' | 'agent';
+    text: string;
+  }>>([]);
+
+  // Build user context for the voice agent
+  const userContext: VoiceAgentUserContext = useMemo(() => ({
+    isNewUser,
+    hasActiveProject,
+    projectName,
+    userName,
+    currentPage: location.pathname,
+  }), [isNewUser, hasActiveProject, projectName, userName, location.pathname]);
 
   const {
     status,
@@ -83,12 +106,26 @@ export function VoiceAgentWidget({
     retry,
   } = useVoiceAgent({
     agentId,
+    userContext,
     onTranscript: (text, isFinal) => {
-      if (isFinal) {
-        setTranscript(text);
-        // Clear transcript after a delay
-        setTimeout(() => setTranscript(''), 5000);
+      if (isFinal && text) {
+        // Determine if this is user or agent based on context
+        // Agent responses come after speaking state
+        setConversationHistory(prev => {
+          const lastEntry = prev[prev.length - 1];
+          // Avoid duplicates
+          if (lastEntry?.text === text) return prev;
+          
+          return [...prev, { 
+            role: isSpeaking ? 'agent' : 'user', 
+            text 
+          }];
+        });
       }
+    },
+    onFirstMessage: (message) => {
+      // Add the first message from the agent to conversation history
+      setConversationHistory([{ role: 'agent', text: message }]);
     },
   });
 
@@ -106,6 +143,7 @@ export function VoiceAgentWidget({
   const handleDisconnect = async () => {
     await disconnect();
     setIsExpanded(false);
+    setConversationHistory([]);
   };
 
   const handleVolumeChange = async (value: number[]) => {
@@ -151,15 +189,30 @@ export function VoiceAgentWidget({
               </Button>
             </div>
 
-            {/* Transcript */}
-            {transcript && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground"
-              >
-                "{transcript}"
-              </motion.div>
+            {/* Conversation History */}
+            {conversationHistory.length > 0 && (
+              <ScrollArea className="h-32 rounded-lg border border-border bg-muted/30">
+                <div className="p-3 space-y-2">
+                  {conversationHistory.slice(-5).map((entry, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        "text-xs rounded-lg p-2",
+                        entry.role === 'agent' 
+                          ? "bg-primary/10 text-foreground" 
+                          : "bg-muted text-muted-foreground ml-4"
+                      )}
+                    >
+                      <span className="font-medium text-[10px] uppercase tracking-wider opacity-60">
+                        {entry.role === 'agent' ? 'Kernel' : 'You'}
+                      </span>
+                      <p className="mt-0.5">{entry.text}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
 
             {/* Volume Control */}
