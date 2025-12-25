@@ -5,9 +5,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface VoiceSettings {
+  stability?: number;
+  similarity_boost?: number;
+  style?: number;
+  use_speaker_boost?: boolean;
+  speed?: number;
+}
+
 interface TTSRequest {
   text: string;
   voiceId?: string;
+  model?: 'eleven_turbo_v2_5' | 'eleven_multilingual_v2';
+  outputFormat?: 'mp3_44100_128' | 'mp3_22050_32';
+  voiceSettings?: VoiceSettings;
 }
 
 serve(async (req) => {
@@ -27,7 +38,13 @@ serve(async (req) => {
       );
     }
 
-    const { text, voiceId = 'JBFqnCBsd6RMkjVDRZzb' }: TTSRequest = await req.json();
+    const { 
+      text, 
+      voiceId = 'JBFqnCBsd6RMkjVDRZzb',
+      model = 'eleven_turbo_v2_5',
+      outputFormat = 'mp3_44100_128',
+      voiceSettings = {}
+    }: TTSRequest = await req.json();
 
     if (!text || text.trim().length === 0) {
       return new Response(
@@ -39,7 +56,29 @@ serve(async (req) => {
     // Truncate very long text to avoid API limits
     const truncatedText = text.slice(0, 5000);
 
-    console.log(`Generating TTS for ${truncatedText.length} chars with voice ${voiceId}`);
+    // Merge with defaults
+    const finalVoiceSettings = {
+      stability: voiceSettings.stability ?? 0.5,
+      similarity_boost: voiceSettings.similarity_boost ?? 0.75,
+      style: voiceSettings.style ?? 0.3,
+      use_speaker_boost: voiceSettings.use_speaker_boost ?? true,
+    };
+
+    console.log(`Generating TTS for ${truncatedText.length} chars with voice ${voiceId}, model ${model}`);
+
+    const requestBody: Record<string, unknown> = {
+      text: truncatedText,
+      model_id: model,
+      output_format: outputFormat,
+      voice_settings: finalVoiceSettings,
+    };
+
+    // Add speed if provided (not all models support it)
+    if (voiceSettings.speed !== undefined && voiceSettings.speed !== 1.0) {
+      // Speed is handled differently in the API - it's part of generation config
+      // For now we'll include it in the voice_settings as some models support it
+      (requestBody.voice_settings as Record<string, unknown>).speed = voiceSettings.speed;
+    }
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
@@ -49,17 +88,7 @@ serve(async (req) => {
           'xi-api-key': ELEVENLABS_API_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          text: truncatedText,
-          model_id: 'eleven_turbo_v2_5',
-          output_format: 'mp3_44100_128',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.3,
-            use_speaker_boost: true,
-          },
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
