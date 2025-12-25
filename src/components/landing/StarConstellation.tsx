@@ -1,7 +1,16 @@
-import { useMemo, memo } from 'react';
-import { useChristmasPerformance } from './christmas/hooks/useChristmasPerformance';
-import { STAR_COLORS, PERSPECTIVE_CONFIG } from './christmas/constants';
-import type { StarColor, ConstellationDetail } from './christmas/types';
+import { useMemo, memo, useState, useEffect } from 'react';
+
+// Star color definitions
+const STAR_COLORS: Record<string, string> = {
+  'white': 'hsl(200, 20%, 95%)',
+  'blue-white': 'hsl(210, 60%, 85%)',
+  'cyan': 'hsl(185, 80%, 75%)',
+  'gold': 'hsl(45, 100%, 70%)',
+  'red-orange': 'hsl(15, 80%, 60%)',
+};
+
+type StarColor = keyof typeof STAR_COLORS;
+type ConstellationDetail = 'full' | 'simplified' | 'minimal';
 
 interface Star {
   x: number;
@@ -40,6 +49,40 @@ interface ConstellationData {
   stars: ConstellationStar[];
   lines: ConstellationLine[];
   nebulae?: Nebula[];
+}
+
+// Simple performance hook to detect screen size
+function usePerformance() {
+  const [state, setState] = useState({
+    isSmallScreen: false,
+    isVerySmallScreen: false,
+  });
+
+  useEffect(() => {
+    const updateSize = () => {
+      const width = window.innerWidth;
+      setState({
+        isSmallScreen: width < 768,
+        isVerySmallScreen: width < 480,
+      });
+    };
+    
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  const constellationDetail: ConstellationDetail = state.isVerySmallScreen 
+    ? 'minimal' 
+    : state.isSmallScreen 
+      ? 'simplified' 
+      : 'full';
+
+  return {
+    ...state,
+    constellationDetail,
+    maxStarGlow: state.isSmallScreen ? 2 : 3,
+  };
 }
 
 // Classic constellation patterns with enhanced star data
@@ -430,8 +473,7 @@ interface StarConstellationProps {
 }
 
 export function StarConstellation({ scrollY }: StarConstellationProps) {
-  const performanceConfig = useChristmasPerformance();
-  const { constellationDetail, isSmallScreen, isVerySmallScreen, maxStarGlow } = performanceConfig;
+  const { constellationDetail, isSmallScreen, isVerySmallScreen, maxStarGlow } = usePerformance();
   
   const slowParallax = scrollY * 0.3;
   const mediumParallax = scrollY * 0.5;

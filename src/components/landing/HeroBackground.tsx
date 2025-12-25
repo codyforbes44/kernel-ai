@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { GradientMesh } from './GradientMesh';
 import { ParticleField } from './ParticleField';
 import { AnimatedCodeBlocks } from './AnimatedCodeBlocks';
-import { Snowfall } from './Snowfall';
 import { StarConstellation } from './StarConstellation';
 
 export function HeroBackground() {
@@ -130,10 +129,6 @@ export function HeroBackground() {
           opacity: 0.4,
         }}
       />
-
-
-      {/* Festive snowfall overlay */}
-      <Snowfall />
     </div>
   );
 }

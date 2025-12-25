@@ -14,7 +14,6 @@ import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
-import { ChristmasCountdown } from '@/components/landing/christmas';
 import { 
   MessageSquare, 
   Code2, 
