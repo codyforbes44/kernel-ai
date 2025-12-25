@@ -1,4 +1,4 @@
-import { useRef, Suspense } from 'react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
@@ -15,7 +15,6 @@ import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
-import { KernelLogo3D } from '@/components/three/KernelLogo3D';
 import { 
   MessageSquare, 
   Code2, 
@@ -86,23 +85,13 @@ export default function Landing() {
       {/* Hero Section */}
       <section id="hero" className="relative min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16 perspective-container">
         <HeroBackground />
-        
-        {/* 3D Logo - Centered above content */}
-        <div className="relative z-10 mb-4 md:mb-6">
-          <Suspense fallback={
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-primary/10 animate-pulse" />
-          }>
-            <KernelLogo3D className="w-32 h-32 md:w-48 md:h-48 lg:w-56 lg:h-56" />
-          </Suspense>
-        </div>
-        
         <div className="relative container mx-auto text-center max-w-4xl preserve-3d">
           <GlowBadge 
             variant="glow" 
             size="lg" 
             pulse 
             icon={<Sparkles className="h-4 w-4" />}
-            className="mb-6 relative z-20 depth-hover"
+            className="mb-8 relative z-20 depth-hover"
           >
             <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
               <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>

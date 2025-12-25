@@ -1,9 +1,8 @@
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, Command as CommandIcon } from "lucide-react";
 import { XLogo } from "@/components/ui/x-logo";
 import { Button } from "@/components/ui/button";
-import { KernelLogoMini3D } from "@/components/three/KernelLogoMini3D";
 import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { CommandNav } from "@/components/layout/CommandNav";
 import { useCommandNav } from "@/hooks/useCommandNav";
@@ -32,20 +31,13 @@ const navLinks: NavLink[] = [
 export function PublicHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [isLogoHovered, setIsLogoHovered] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isOpen: commandOpen, toggle: toggleCommand, close: closeCommand } = useCommandNav();
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setScrolled(scrollY > 20);
-      
-      // Calculate scroll progress (0-1) over first 500px of scroll
-      const progress = Math.min(scrollY / 500, 1);
-      setScrollProgress(progress);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -100,50 +92,16 @@ export function PublicHeader() {
         
         <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
           {/* Logo - Opens Command Nav */}
-          <div 
-            className="flex items-center gap-3"
-            onMouseEnter={() => setIsLogoHovered(true)}
-            onMouseLeave={() => setIsLogoHovered(false)}
-          >
-            {/* 3D Logo on desktop, fallback to animated on mobile/low-power */}
-            <div className="hidden sm:block">
-              <Suspense fallback={
-                <KernelLogoAnimated
-                  size="md"
-                  variant="animated"
-                  isActive={commandOpen}
-                  onClick={handleCommandClick}
-                  className="cursor-pointer"
-                />
-              }>
-                <KernelLogoMini3D
-                  className="w-10 h-10"
-                  scrollProgress={scrollProgress}
-                  isHovered={isLogoHovered}
-                  isActive={commandOpen}
-                  onClick={handleCommandClick}
-                />
-              </Suspense>
-            </div>
-            
-            {/* Mobile fallback - 2D animated logo */}
-            <div className="sm:hidden">
-              <KernelLogoAnimated
-                size="md"
-                variant="animated"
-                isActive={commandOpen}
-                onClick={handleCommandClick}
-                className="cursor-pointer"
-              />
-            </div>
-            
+          <div className="flex items-center gap-3">
+            <KernelLogoAnimated
+              size="md"
+              variant="animated"
+              isActive={commandOpen}
+              onClick={handleCommandClick}
+              className="cursor-pointer"
+            />
             <Link to="/" className="group flex items-center">
-              <span 
-                className={cn(
-                  "font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite] transition-all duration-300",
-                  scrolled && "drop-shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
-                )}
-              >
+              <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]">
                 Kernel
               </span>
             </Link>
