@@ -5,6 +5,7 @@ export const DEPTH_LAYERS_3D = {
   GRID: -150,           // Deep infinite perspective grid
   GRID_MID: -300,       // Mid-depth layer
   GRID_FAR: -500,       // Far horizon layer
+  PARTICLES: -80,       // Ambient floating particles (closer than grid)
 } as const;
 
 // Camera configuration
