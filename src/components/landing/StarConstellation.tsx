@@ -1,12 +1,13 @@
 import { useMemo, memo, useState, useEffect } from 'react';
 
-// Star color definitions
+// Kernel-themed star colors - using brand primary/accent colors
 const STAR_COLORS: Record<string, string> = {
   'white': 'hsl(200, 20%, 95%)',
-  'blue-white': 'hsl(210, 60%, 85%)',
-  'cyan': 'hsl(185, 80%, 75%)',
+  'primary': 'hsl(var(--primary))',
+  'accent': 'hsl(185, 80%, 65%)',
   'gold': 'hsl(45, 100%, 70%)',
-  'red-orange': 'hsl(15, 80%, 60%)',
+  'innovation': 'hsl(280, 70%, 70%)',
+  'energy': 'hsl(15, 90%, 65%)',
 };
 
 type StarColor = keyof typeof STAR_COLORS;
@@ -24,8 +25,10 @@ interface Star {
 interface ConstellationStar extends Star {
   id: string;
   name?: string;
+  label?: string; // Kernel feature label
   color: StarColor;
   points: 4 | 6 | 8;
+  hasSpark?: boolean; // Enable spark effect
 }
 
 interface ConstellationLine {
@@ -46,6 +49,7 @@ interface Nebula {
 interface ConstellationData {
   name: string;
   displayName: string;
+  kernelTheme: string; // Kernel feature theme
   stars: ConstellationStar[];
   lines: ConstellationLine[];
   nebulae?: Nebula[];
@@ -85,76 +89,85 @@ function usePerformance() {
   };
 }
 
-// Classic constellation patterns with enhanced star data
+// Kernel-branded constellation patterns representing core capabilities
 const CONSTELLATIONS: ConstellationData[] = [
   {
-    name: 'orion',
-    displayName: 'Orion',
+    name: 'creation',
+    displayName: 'Creation',
+    kernelTheme: 'Build & Create',
     stars: [
-      { id: 'alnitak', x: 40, y: 50, size: 2.5, brightness: 0.9, twinkleSpeed: 4, twinkleDelay: 0, color: 'blue-white', points: 6 },
-      { id: 'alnilam', x: 50, y: 52, size: 3, brightness: 1, twinkleSpeed: 3.5, twinkleDelay: 0.5, name: 'Alnilam', color: 'blue-white', points: 8 },
-      { id: 'mintaka', x: 60, y: 50, size: 2.5, brightness: 0.85, twinkleSpeed: 4.5, twinkleDelay: 1, color: 'blue-white', points: 6 },
-      { id: 'betelgeuse', x: 25, y: 25, size: 4, brightness: 1, twinkleSpeed: 3, twinkleDelay: 0.3, name: 'Betelgeuse', color: 'red-orange', points: 8 },
-      { id: 'bellatrix', x: 75, y: 28, size: 3, brightness: 0.9, twinkleSpeed: 3.2, twinkleDelay: 0.7, name: 'Bellatrix', color: 'blue-white', points: 6 },
-      { id: 'rigel', x: 70, y: 85, size: 4, brightness: 1, twinkleSpeed: 2.8, twinkleDelay: 0.2, name: 'Rigel', color: 'blue-white', points: 8 },
-      { id: 'saiph', x: 30, y: 82, size: 3, brightness: 0.8, twinkleSpeed: 4, twinkleDelay: 0.9, color: 'blue-white', points: 6 },
-      { id: 'sword1', x: 48, y: 60, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
-      { id: 'sword2', x: 50, y: 65, size: 2, brightness: 0.6, twinkleSpeed: 4.5, twinkleDelay: 0.8, color: 'cyan', points: 4 },
-      { id: 'sword3', x: 52, y: 70, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.5, color: 'white', points: 4 },
+      { id: 'idea', x: 40, y: 50, size: 2.5, brightness: 0.9, twinkleSpeed: 4, twinkleDelay: 0, color: 'accent', points: 6, label: 'Idea' },
+      { id: 'design', x: 50, y: 52, size: 3.5, brightness: 1, twinkleSpeed: 3.5, twinkleDelay: 0.5, name: 'Design', color: 'primary', points: 8, hasSpark: true, label: 'Design' },
+      { id: 'prototype', x: 60, y: 50, size: 2.5, brightness: 0.85, twinkleSpeed: 4.5, twinkleDelay: 1, color: 'accent', points: 6, label: 'Prototype' },
+      { id: 'innovate', x: 25, y: 25, size: 4, brightness: 1, twinkleSpeed: 3, twinkleDelay: 0.3, name: 'Innovate', color: 'innovation', points: 8, hasSpark: true, label: 'Innovate' },
+      { id: 'iterate', x: 75, y: 28, size: 3, brightness: 0.9, twinkleSpeed: 3.2, twinkleDelay: 0.7, name: 'Iterate', color: 'accent', points: 6, label: 'Iterate' },
+      { id: 'launch', x: 70, y: 85, size: 4, brightness: 1, twinkleSpeed: 2.8, twinkleDelay: 0.2, name: 'Launch', color: 'primary', points: 8, hasSpark: true, label: 'Launch' },
+      { id: 'scale', x: 30, y: 82, size: 3, brightness: 0.8, twinkleSpeed: 4, twinkleDelay: 0.9, color: 'accent', points: 6, label: 'Scale' },
+      { id: 'spark1', x: 48, y: 60, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
+      { id: 'spark2', x: 50, y: 65, size: 2, brightness: 0.6, twinkleSpeed: 4.5, twinkleDelay: 0.8, color: 'gold', points: 4 },
+      { id: 'spark3', x: 52, y: 70, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.5, color: 'white', points: 4 },
     ],
     lines: [
-      { from: 'alnitak', to: 'alnilam' },
-      { from: 'alnilam', to: 'mintaka' },
-      { from: 'betelgeuse', to: 'alnitak' },
-      { from: 'bellatrix', to: 'mintaka' },
-      { from: 'alnitak', to: 'saiph' },
-      { from: 'mintaka', to: 'rigel' },
-      { from: 'alnilam', to: 'sword1' },
-      { from: 'sword1', to: 'sword2' },
-      { from: 'sword2', to: 'sword3' },
+      { from: 'idea', to: 'design' },
+      { from: 'design', to: 'prototype' },
+      { from: 'innovate', to: 'idea' },
+      { from: 'iterate', to: 'prototype' },
+      { from: 'idea', to: 'scale' },
+      { from: 'prototype', to: 'launch' },
+      { from: 'design', to: 'spark1' },
+      { from: 'spark1', to: 'spark2' },
+      { from: 'spark2', to: 'spark3' },
     ],
     nebulae: [
-      { x: 48, y: 64, width: 20, height: 24, rotation: -15, opacity: 0.05, color: 'hsl(280, 60%, 60%)' },
+      { x: 48, y: 64, width: 24, height: 28, rotation: -15, opacity: 0.08, color: 'hsl(var(--primary))' },
     ],
   },
   {
-    name: 'ursaMajor',
-    displayName: 'Ursa Major',
+    name: 'development',
+    displayName: 'Development',
+    kernelTheme: 'Code & Deploy',
     stars: [
-      { id: 'dubhe', x: 10, y: 20, size: 3, brightness: 0.95, twinkleSpeed: 3.5, twinkleDelay: 0, name: 'Dubhe', color: 'gold', points: 8 },
-      { id: 'merak', x: 10, y: 45, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.4, name: 'Merak', color: 'white', points: 6 },
-      { id: 'phecda', x: 30, y: 55, size: 2.5, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.8, color: 'white', points: 6 },
-      { id: 'megrez', x: 45, y: 45, size: 2.2, brightness: 0.7, twinkleSpeed: 4.5, twinkleDelay: 0.2, color: 'white', points: 4 },
-      { id: 'alioth', x: 60, y: 40, size: 2.8, brightness: 0.9, twinkleSpeed: 3.8, twinkleDelay: 0.6, name: 'Alioth', color: 'white', points: 6 },
-      { id: 'mizar', x: 75, y: 35, size: 2.8, brightness: 0.85, twinkleSpeed: 3.5, twinkleDelay: 1, name: 'Mizar', color: 'white', points: 6 },
-      { id: 'alcor', x: 77, y: 33, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'white', points: 4 },
-      { id: 'alkaid', x: 90, y: 25, size: 3, brightness: 0.95, twinkleSpeed: 3.2, twinkleDelay: 0.3, name: 'Alkaid', color: 'blue-white', points: 8 },
+      { id: 'code', x: 10, y: 20, size: 3, brightness: 0.95, twinkleSpeed: 3.5, twinkleDelay: 0, name: 'Code', color: 'primary', points: 8, hasSpark: true, label: 'Code' },
+      { id: 'test', x: 10, y: 45, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.4, name: 'Test', color: 'accent', points: 6, label: 'Test' },
+      { id: 'build', x: 30, y: 55, size: 2.5, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.8, color: 'white', points: 6, label: 'Build' },
+      { id: 'review', x: 45, y: 45, size: 2.2, brightness: 0.7, twinkleSpeed: 4.5, twinkleDelay: 0.2, color: 'white', points: 4, label: 'Review' },
+      { id: 'merge', x: 60, y: 40, size: 2.8, brightness: 0.9, twinkleSpeed: 3.8, twinkleDelay: 0.6, name: 'Merge', color: 'accent', points: 6, label: 'Merge' },
+      { id: 'deploy', x: 75, y: 35, size: 3.2, brightness: 0.95, twinkleSpeed: 3.5, twinkleDelay: 1, name: 'Deploy', color: 'primary', points: 8, hasSpark: true, label: 'Deploy' },
+      { id: 'monitor', x: 77, y: 33, size: 1.5, brightness: 0.5, twinkleSpeed: 5, twinkleDelay: 1.2, color: 'gold', points: 4 },
+      { id: 'ship', x: 90, y: 25, size: 3.5, brightness: 1, twinkleSpeed: 3.2, twinkleDelay: 0.3, name: 'Ship', color: 'energy', points: 8, hasSpark: true, label: 'Ship' },
     ],
     lines: [
-      { from: 'dubhe', to: 'merak' },
-      { from: 'merak', to: 'phecda' },
-      { from: 'phecda', to: 'megrez' },
-      { from: 'megrez', to: 'dubhe' },
-      { from: 'megrez', to: 'alioth' },
-      { from: 'alioth', to: 'mizar' },
-      { from: 'mizar', to: 'alkaid' },
+      { from: 'code', to: 'test' },
+      { from: 'test', to: 'build' },
+      { from: 'build', to: 'review' },
+      { from: 'review', to: 'code' },
+      { from: 'review', to: 'merge' },
+      { from: 'merge', to: 'deploy' },
+      { from: 'deploy', to: 'ship' },
+    ],
+    nebulae: [
+      { x: 55, y: 38, width: 30, height: 20, rotation: 10, opacity: 0.06, color: 'hsl(185, 80%, 65%)' },
     ],
   },
   {
-    name: 'cassiopeia',
-    displayName: 'Cassiopeia',
+    name: 'intelligence',
+    displayName: 'Intelligence',
+    kernelTheme: 'AI & Automation',
     stars: [
-      { id: 'schedar', x: 10, y: 40, size: 3, brightness: 0.95, twinkleSpeed: 3.3, twinkleDelay: 0, name: 'Schedar', color: 'gold', points: 8 },
-      { id: 'caph', x: 25, y: 20, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.5, name: 'Caph', color: 'white', points: 6 },
-      { id: 'gamma', x: 50, y: 50, size: 2.8, brightness: 0.9, twinkleSpeed: 3.5, twinkleDelay: 0.2, name: 'Navi', color: 'blue-white', points: 8 },
-      { id: 'ruchbah', x: 75, y: 25, size: 2.5, brightness: 0.8, twinkleSpeed: 4.2, twinkleDelay: 0.7, color: 'white', points: 6 },
-      { id: 'segin', x: 90, y: 45, size: 2.8, brightness: 0.85, twinkleSpeed: 3.8, twinkleDelay: 0.4, name: 'Segin', color: 'blue-white', points: 6 },
+      { id: 'learn', x: 10, y: 40, size: 3, brightness: 0.95, twinkleSpeed: 3.3, twinkleDelay: 0, name: 'Learn', color: 'innovation', points: 8, hasSpark: true, label: 'Learn' },
+      { id: 'analyze', x: 25, y: 20, size: 2.8, brightness: 0.85, twinkleSpeed: 4, twinkleDelay: 0.5, name: 'Analyze', color: 'accent', points: 6, label: 'Analyze' },
+      { id: 'predict', x: 50, y: 50, size: 3.5, brightness: 1, twinkleSpeed: 3.5, twinkleDelay: 0.2, name: 'Predict', color: 'primary', points: 8, hasSpark: true, label: 'Predict' },
+      { id: 'automate', x: 75, y: 25, size: 2.8, brightness: 0.9, twinkleSpeed: 4.2, twinkleDelay: 0.7, name: 'Automate', color: 'accent', points: 6, label: 'Automate' },
+      { id: 'optimize', x: 90, y: 45, size: 3, brightness: 0.95, twinkleSpeed: 3.8, twinkleDelay: 0.4, name: 'Optimize', color: 'gold', points: 8, hasSpark: true, label: 'Optimize' },
     ],
     lines: [
-      { from: 'schedar', to: 'caph' },
-      { from: 'caph', to: 'gamma' },
-      { from: 'gamma', to: 'ruchbah' },
-      { from: 'ruchbah', to: 'segin' },
+      { from: 'learn', to: 'analyze' },
+      { from: 'analyze', to: 'predict' },
+      { from: 'predict', to: 'automate' },
+      { from: 'automate', to: 'optimize' },
+    ],
+    nebulae: [
+      { x: 50, y: 35, width: 40, height: 25, rotation: -5, opacity: 0.07, color: 'hsl(280, 70%, 70%)' },
     ],
   },
 ];
@@ -175,7 +188,76 @@ function getStarPath(points: number, outerRadius: number, innerRadius: number): 
   return path.join(' ');
 }
 
-// Multi-point detailed star component - simplified for mobile
+// Spark effect component for bright stars
+const SparkEffect = memo(function SparkEffect({ 
+  size, 
+  color, 
+  delay 
+}: { 
+  size: number; 
+  color: string; 
+  delay: number;
+}) {
+  return (
+    <div
+      className="absolute pointer-events-none"
+      style={{
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: size * 8,
+        height: size * 8,
+      }}
+    >
+      {/* Radial spark pulse */}
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: `radial-gradient(circle, ${color.includes('var') ? `hsl(${color.replace('hsl(', '').replace(')', '')} / 0.6)` : color.replace(')', ' / 0.6)')}, transparent 60%)`,
+          animation: `sparkPulse 4s ease-in-out infinite`,
+          animationDelay: `${delay}s`,
+        }}
+      />
+      {/* Cross spark lines */}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        style={{
+          animation: `sparkRotate 8s linear infinite`,
+          animationDelay: `${delay}s`,
+        }}
+      >
+        <line
+          x1="50%"
+          y1="15%"
+          x2="50%"
+          y2="85%"
+          stroke={color}
+          strokeWidth="0.5"
+          opacity="0.4"
+          style={{
+            animation: `sparkFade 4s ease-in-out infinite`,
+            animationDelay: `${delay}s`,
+          }}
+        />
+        <line
+          x1="15%"
+          y1="50%"
+          x2="85%"
+          y2="50%"
+          stroke={color}
+          strokeWidth="0.5"
+          opacity="0.4"
+          style={{
+            animation: `sparkFade 4s ease-in-out infinite`,
+            animationDelay: `${delay + 0.5}s`,
+          }}
+        />
+      </svg>
+    </div>
+  );
+});
+
+// Multi-point detailed star component with Kernel branding
 const DetailedStar = memo(function DetailedStar({ 
   star, 
   showLabel,
@@ -190,8 +272,9 @@ const DetailedStar = memo(function DetailedStar({
   const innerRadius = star.size * 0.4;
   const viewBoxSize = outerRadius * 2;
   
-  // Diffraction spikes only for bright stars on desktop
+  // Diffraction spikes and spark effects only for bright stars on desktop
   const hasDiffraction = !simplified && star.brightness >= 0.9 && star.points === 8;
+  const showSpark = !simplified && star.hasSpark;
   
   return (
     <div
@@ -202,16 +285,25 @@ const DetailedStar = memo(function DetailedStar({
         transform: 'translate(-50%, -50%)',
       }}
     >
-      {/* Outer glow - reduced on mobile */}
+      {/* Spark effect for key Kernel stars */}
+      {showSpark && (
+        <SparkEffect 
+          size={star.size} 
+          color={colorValue} 
+          delay={star.twinkleDelay} 
+        />
+      )}
+      
+      {/* Outer glow - enhanced with brand colors */}
       <div
         className="absolute rounded-full"
         style={{
-          width: star.size * (simplified ? 4 : 5),
-          height: star.size * (simplified ? 4 : 5),
+          width: star.size * (simplified ? 4 : 6),
+          height: star.size * (simplified ? 4 : 6),
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle, ${colorValue.replace(')', ' / 0.25)')}, transparent 70%)`,
+          background: `radial-gradient(circle, ${colorValue.includes('var') ? `hsl(${colorValue.replace('hsl(', '').replace(')', '')} / 0.3)` : colorValue.replace(')', ' / 0.3)')}, transparent 70%)`,
           animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
           animationDelay: `${star.twinkleDelay}s`,
         }}
@@ -227,12 +319,14 @@ const DetailedStar = memo(function DetailedStar({
             left: '50%',
             top: '50%',
             transform: 'translate(-50%, -50%)',
-            opacity: 0.3,
+            opacity: 0.4,
           }}
           viewBox="0 0 100 100"
         >
-          <line x1="0" y1="50" x2="100" y2="50" stroke={colorValue} strokeWidth="0.5" opacity="0.5" />
-          <line x1="50" y1="0" x2="50" y2="100" stroke={colorValue} strokeWidth="0.5" opacity="0.5" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke={colorValue} strokeWidth="0.5" opacity="0.6" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke={colorValue} strokeWidth="0.5" opacity="0.6" />
+          <line x1="15" y1="15" x2="85" y2="85" stroke={colorValue} strokeWidth="0.3" opacity="0.3" />
+          <line x1="85" y1="15" x2="15" y2="85" stroke={colorValue} strokeWidth="0.3" opacity="0.3" />
         </svg>
       )}
       
@@ -245,7 +339,7 @@ const DetailedStar = memo(function DetailedStar({
         style={{
           animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
           animationDelay: `${star.twinkleDelay}s`,
-          filter: simplified ? undefined : `drop-shadow(0 0 ${star.size * 0.8}px ${colorValue})`,
+          filter: simplified ? undefined : `drop-shadow(0 0 ${star.size}px ${colorValue})`,
         }}
       >
         <defs>
@@ -268,25 +362,26 @@ const DetailedStar = memo(function DetailedStar({
         />
       </svg>
       
-      {/* Star label - hidden on mobile */}
-      {showLabel && star.name && (
+      {/* Kernel feature label - shows on desktop for key stars */}
+      {showLabel && star.label && (
         <div
-          className="absolute whitespace-nowrap text-[7px] font-light tracking-wider opacity-35 pointer-events-none"
+          className="absolute whitespace-nowrap text-[8px] font-medium tracking-wider opacity-50 pointer-events-none uppercase"
           style={{
             left: '50%',
-            top: `${viewBoxSize + 3}px`,
+            top: `${viewBoxSize + 4}px`,
             transform: 'translateX(-50%)',
             color: colorValue,
+            textShadow: `0 0 8px ${colorValue}`,
           }}
         >
-          {star.name}
+          {star.label}
         </div>
       )}
     </div>
   );
 });
 
-// Nebula component - simplified/hidden on mobile
+// Nebula component with Kernel brand colors
 const NebulaCloud = memo(function NebulaCloud({ nebula, simplified }: { nebula: Nebula; simplified: boolean }) {
   if (simplified) return null;
   
@@ -300,7 +395,7 @@ const NebulaCloud = memo(function NebulaCloud({ nebula, simplified }: { nebula: 
         height: nebula.height,
         transform: `translate(-50%, -50%) rotate(${nebula.rotation}deg)`,
         background: `radial-gradient(ellipse, ${nebula.color.replace(')', ` / ${nebula.opacity})`)}, transparent 70%)`,
-        filter: 'blur(4px)',
+        filter: 'blur(6px)',
         animation: 'constellationPulse 12s ease-in-out infinite',
       }}
     />
@@ -308,7 +403,7 @@ const NebulaCloud = memo(function NebulaCloud({ nebula, simplified }: { nebula: 
 });
 
 interface ConstellationProps {
-  name: 'orion' | 'ursaMajor' | 'cassiopeia';
+  name: 'creation' | 'development' | 'intelligence';
   className?: string;
   width: number;
   height: number;
@@ -345,18 +440,18 @@ const Constellation = memo(function Constellation({
 
   return (
     <div className={`absolute pointer-events-none ${className}`} style={{ width, height }}>
-      {/* Nebulae (background) */}
+      {/* Nebulae (background) with brand colors */}
       {showNebulaEffects && data.nebulae?.map((nebula, i) => (
         <NebulaCloud key={`nebula-${i}`} nebula={nebula} simplified={simplified} />
       ))}
       
-      {/* Connection lines */}
+      {/* Connection lines with gradient */}
       <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
         <defs>
           <linearGradient id={`line-gradient-${name}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.04" />
-            <stop offset="50%" stopColor="hsl(185, 80%, 70%)" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="hsl(45, 100%, 70%)" stopOpacity="0.04" />
+            <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.06" />
+            <stop offset="50%" stopColor="hsl(185, 80%, 65%)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.06" />
           </linearGradient>
         </defs>
         {data.lines.map((line, i) => {
@@ -383,16 +478,16 @@ const Constellation = memo(function Constellation({
                 y1={`${from.y}%`}
                 x2={`${to.x}%`}
                 y2={`${to.y}%`}
-                stroke="hsl(185, 80%, 75%)"
-                strokeWidth="0.4"
-                opacity="0.15"
+                stroke="hsl(var(--primary))"
+                strokeWidth="0.5"
+                opacity="0.2"
               />
             </g>
           );
         })}
       </svg>
 
-      {/* Detailed stars */}
+      {/* Detailed stars with Kernel branding */}
       {visibleStars.map((star) => (
         <DetailedStar 
           key={star.id} 
@@ -402,12 +497,13 @@ const Constellation = memo(function Constellation({
         />
       ))}
       
-      {/* Constellation name label - desktop only */}
+      {/* Kernel theme label - desktop only */}
       {showStarLabels && (
         <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 text-[9px] font-light tracking-[0.25em] uppercase opacity-20 text-cyan-300"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 text-[9px] font-light tracking-[0.3em] uppercase opacity-25"
+          style={{ color: 'hsl(var(--primary))' }}
         >
-          {data.displayName}
+          {data.kernelTheme}
         </div>
       )}
     </div>
@@ -419,19 +515,19 @@ interface BackgroundStarsProps {
   maxGlow?: number;
 }
 
-export function BackgroundStars({ count = 40, maxGlow = 3 }: BackgroundStarsProps) {
+export function BackgroundStars({ count = 50, maxGlow = 3 }: BackgroundStarsProps) {
   const stars = useMemo(() => {
     return Array.from({ length: count }, (_, i) => {
       const rand = Math.random();
       const points = rand < 0.7 ? 4 : rand < 0.9 ? 6 : 8;
-      const color: StarColor = rand < 0.75 ? 'white' : rand < 0.9 ? 'blue-white' : 'gold';
+      const color: StarColor = rand < 0.6 ? 'white' : rand < 0.8 ? 'accent' : rand < 0.95 ? 'primary' : 'gold';
       
       return {
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 60,
-        size: Math.min(0.6 + Math.random() * 1.4, 2), // Capped at 2px
-        opacity: 0.12 + Math.random() * 0.28,
+        size: Math.min(0.6 + Math.random() * 1.6, 2.2),
+        opacity: 0.15 + Math.random() * 0.35,
         twinkleSpeed: 5 + Math.random() * 10,
         twinkleDelay: Math.random() * 5,
         points,
@@ -457,7 +553,7 @@ export function BackgroundStars({ count = 40, maxGlow = 3 }: BackgroundStarsProp
               opacity: star.opacity,
               backgroundColor: colorValue,
               borderRadius: '50%',
-              boxShadow: `0 0 ${glowSize}px ${colorValue.replace(')', ' / 0.4)')}`,
+              boxShadow: `0 0 ${glowSize}px ${colorValue.includes('var') ? `hsl(var(--primary) / 0.5)` : colorValue.replace(')', ' / 0.5)')}`,
               animation: `starTwinkle ${star.twinkleSpeed}s ease-in-out infinite`,
               animationDelay: `${star.twinkleDelay}s`,
             }}
@@ -486,71 +582,77 @@ export function StarConstellation({ scrollY }: StarConstellationProps) {
     return { width: baseWidth, height: baseHeight };
   };
   
-  const orionSize = getConstellationSize(140, 180);
-  const ursaSize = getConstellationSize(200, 100);
-  const cassiopeiaSize = getConstellationSize(180, 80);
+  const creationSize = getConstellationSize(150, 190);
+  const developmentSize = getConstellationSize(210, 110);
+  const intelligenceSize = getConstellationSize(190, 90);
   
   // Background star count based on screen size
-  const bgStarCount = isVerySmallScreen ? 15 : isSmallScreen ? 25 : 45;
+  const bgStarCount = isVerySmallScreen ? 20 : isSmallScreen ? 35 : 60;
 
   return (
     <>
-      {/* Background star field - NO container blur */}
+      {/* Background star field with Kernel colors */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{ 
-          transform: `translateY(${slowParallax * 0.5}px)`,
+          transform: `translateY(${slowParallax * 0.3}px)`,
         }}
       >
-        <BackgroundStars 
-          count={bgStarCount} 
-          maxGlow={maxStarGlow}
-        />
+        <BackgroundStars count={bgStarCount} maxGlow={maxStarGlow} />
       </div>
 
-      {/* Cassiopeia - slow parallax (furthest) */}
-      <div 
-        className="absolute top-[3%] left-[30%] opacity-45"
-        style={{ 
-          transform: `translateY(${slowParallax}px)`,
+      {/* Intelligence constellation - top right (AI & Automation) */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          right: isSmallScreen ? '2%' : '8%',
+          top: isSmallScreen ? '8%' : '12%',
+          transform: `translateY(${slowParallax * 0.4}px)`,
+          opacity: 0.85,
         }}
       >
-        <Constellation 
-          name="cassiopeia" 
-          width={cassiopeiaSize.width} 
-          height={cassiopeiaSize.height}
+        <Constellation
+          name="intelligence"
+          width={intelligenceSize.width}
+          height={intelligenceSize.height}
           detailLevel={constellationDetail}
           showLabels={!isSmallScreen}
         />
       </div>
 
-      {/* Ursa Major - medium parallax */}
-      <div 
-        className="absolute top-[8%] right-[5%] opacity-55"
-        style={{ 
-          transform: `translateY(${mediumParallax * 0.6}px)`,
+      {/* Development constellation - top left (Code & Deploy) */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: isSmallScreen ? '3%' : '5%',
+          top: isSmallScreen ? '15%' : '20%',
+          transform: `translateY(${mediumParallax * 0.3}px)`,
+          opacity: 0.75,
         }}
       >
-        <Constellation 
-          name="ursaMajor" 
-          width={ursaSize.width} 
-          height={ursaSize.height}
+        <Constellation
+          name="development"
+          width={developmentSize.width}
+          height={developmentSize.height}
           detailLevel={constellationDetail}
           showLabels={!isSmallScreen}
         />
       </div>
 
-      {/* Orion - fast parallax (closest) */}
-      <div 
-        className="absolute top-[12%] left-[5%] opacity-65"
-        style={{ 
-          transform: `translateY(${fastParallax * 0.4}px)`,
+      {/* Creation constellation - center bottom (Build & Create) */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          right: isSmallScreen ? '15%' : '25%',
+          bottom: isSmallScreen ? '20%' : '15%',
+          transform: `translateY(${fastParallax * 0.2}px)`,
+          opacity: 0.9,
         }}
       >
-        <Constellation 
-          name="orion" 
-          width={orionSize.width} 
-          height={orionSize.height}
+        <Constellation
+          name="creation"
+          width={creationSize.width}
+          height={creationSize.height}
           detailLevel={constellationDetail}
           showLabels={!isSmallScreen}
         />
