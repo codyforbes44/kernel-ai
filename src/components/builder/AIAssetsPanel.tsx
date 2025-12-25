@@ -34,9 +34,11 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
     generatingImage,
     generatingVideo,
     convertingScreenshot,
+    upscalingImage,
     generateImage,
     generateVideo,
     generateAdvancedImage,
+    upscaleImage,
     screenshotToCode,
     deleteAsset,
     toggleFavorite,
@@ -216,6 +218,7 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
               onToggleFavorite={toggleFavorite}
               getCodeSnippet={getImageCodeSnippet}
               onEditAsset={handleOpenEditModal}
+              onUpscaleAsset={(asset, scale) => upscaleImage({ sourceImageUrl: asset.storage_url, scale, projectId })}
             />
           )}
         </div>
@@ -232,6 +235,8 @@ export function AIAssetsPanel({ projectId, onInsertCode, initialTab = 'generate'
         onToggleFavorite={toggleFavorite}
         getCodeSnippet={getImageCodeSnippet}
         onEditAsset={handleOpenEditModal}
+        onUpscaleAsset={(asset, scale) => upscaleImage({ sourceImageUrl: asset.storage_url, scale, projectId })}
+        isUpscaling={upscalingImage}
       />
 
       {/* Edit Modal */}

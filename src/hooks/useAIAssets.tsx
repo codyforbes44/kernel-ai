@@ -75,6 +75,7 @@ export function useAIAssets(projectId?: string) {
   const [generatingImage, setGeneratingImage] = useState(false);
   const [generatingVideo, setGeneratingVideo] = useState(false);
   const [convertingScreenshot, setConvertingScreenshot] = useState(false);
+  const [upscalingImage, setUpscalingImage] = useState(false);
 
   // Fetch all assets for the user
   const {
@@ -254,7 +255,54 @@ export function useAIAssets(projectId?: string) {
     },
   });
 
-  // Screenshot to code mutation
+  // Upscale image mutation
+  const upscaleImageMutation = useMutation({
+    mutationFn: async ({ sourceImageUrl, scale, projectId: pId }: { sourceImageUrl: string; scale: number; projectId?: string }) => {
+      setUpscalingImage(true);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-image-advanced`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            prompt: 'upscaled image',
+            sourceImageUrl,
+            editMode: 'upscale',
+            upscaleScale: scale,
+            projectId: pId || projectId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upscale image');
+      }
+
+      const data = await response.json();
+      return data.asset as GeneratedAsset;
+    },
+    onSuccess: (asset) => {
+      queryClient.invalidateQueries({ queryKey: ['ai-assets'] });
+      toast.success(`Image upscaled ${asset.metadata?.upscaleScale || 2}x successfully!`);
+      return asset;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to upscale image');
+    },
+    onSettled: () => {
+      setUpscalingImage(false);
+    },
+  });
   const screenshotToCodeMutation = useMutation({
     mutationFn: async (options: ScreenshotToCodeOptions) => {
       setConvertingScreenshot(true);
@@ -430,11 +478,13 @@ export function useAIAssets(projectId?: string) {
     generatingImage,
     generatingVideo,
     convertingScreenshot,
+    upscalingImage,
 
     // Mutations
     generateImage: generateImageMutation.mutateAsync,
     generateVideo: generateVideoMutation.mutateAsync,
     generateAdvancedImage: generateAdvancedImageMutation.mutateAsync,
+    upscaleImage: upscaleImageMutation.mutateAsync,
     screenshotToCode: screenshotToCodeMutation.mutateAsync,
     deleteAsset: deleteAssetMutation.mutateAsync,
     toggleFavorite: toggleFavoriteMutation.mutateAsync,
