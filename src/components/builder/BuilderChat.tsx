@@ -391,6 +391,17 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
     }
   }, []);
 
+  // Escape key to cancel request
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isLoading) {
+        cancelRequest();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isLoading, cancelRequest]);
   // Method to fix errors - called from parent
   const handleFixErrors = useCallback((errorsToFix: CapturedError[]) => {
     const errorDescriptions = errorsToFix.map(e => 
