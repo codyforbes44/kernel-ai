@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GlowBadge } from '@/components/ui/glow-badge';
 import { GlowText } from '@/components/ui/glow-text';
 import { HeroEntranceGroup, HeroEntranceItem } from '@/components/landing/HeroEntrance';
+import { KernelCoreAnimation } from '@/components/brand/KernelCoreAnimation';
 import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -17,15 +18,26 @@ export function HeroContent({ className, prefersReducedMotion = false }: HeroCon
       staggerDelay={prefersReducedMotion ? 0 : 0.1}
       className={cn("relative z-10 container mx-auto text-center max-w-4xl", className)}
     >
+      {/* Kernel Core Animation - Main Visual Element */}
+      <HeroEntranceItem className="mb-6 md:mb-8">
+        <div className="flex justify-center">
+          <KernelCoreAnimation 
+            size="lg" 
+            showNodes={true}
+            isPaused={prefersReducedMotion}
+          />
+        </div>
+      </HeroEntranceItem>
+
       {/* Badge */}
       <HeroEntranceItem>
         <GlowBadge 
           variant="glow" 
           size="lg"
           icon={<Sparkles className="h-4 w-4" />}
-          className="mb-6 md:mb-8"
+          className="mb-4 md:mb-6"
         >
-          <span className="text-sm sm:text-base">Next-Gen AI Development Platform</span>
+          <span className="text-sm sm:text-base">The Core That Powers Your Vision</span>
         </GlowBadge>
       </HeroEntranceItem>
       
