@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { KernelLogoStatic } from "@/components/ui/kernel-logo-static";
 import { Button } from "@/components/ui/button";
-import { Download, Check, Square, Circle } from "lucide-react";
+import { Download, Check, Square, Circle, Layers, Image } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -14,11 +14,13 @@ export default function LogoExport() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloaded, setDownloaded] = useState<Set<string>>(new Set());
   const [activeVariant, setActiveVariant] = useState<Variant>("square");
+  const [transparent, setTransparent] = useState(false);
 
-  const getKey = (size: number, variant: Variant) => `${variant}-${size}`;
+  const getKey = (size: number, variant: Variant, isTransparent: boolean) => 
+    `${variant}-${size}-${isTransparent ? "transparent" : "solid"}`;
 
   const handleDownload = async (size: number, variant: Variant) => {
-    const key = getKey(size, variant);
+    const key = getKey(size, variant, transparent);
     const element = logoRefs.current[key];
     if (!element) return;
 
@@ -29,16 +31,17 @@ export default function LogoExport() {
         cacheBust: true,
         pixelRatio: 1,
         quality: 1,
-        backgroundColor: "#0a0a0f",
+        backgroundColor: transparent ? undefined : "#0a0a0f",
       });
 
+      const bgSuffix = transparent ? "-transparent" : "";
       const link = document.createElement("a");
-      link.download = `kernel-logo-${variant}-${size}x${size}.png`;
+      link.download = `kernel-logo-${variant}${bgSuffix}-${size}x${size}.png`;
       link.href = dataUrl;
       link.click();
 
       setDownloaded((prev) => new Set([...prev, key]));
-      toast.success(`Downloaded ${size}×${size} ${variant} logo`);
+      toast.success(`Downloaded ${size}×${size} ${variant}${transparent ? " (transparent)" : ""} logo`);
     } catch (error) {
       console.error("Failed to download logo:", error);
       toast.error("Failed to download logo");
@@ -67,26 +70,51 @@ export default function LogoExport() {
           </p>
         </div>
 
-        {/* Variant Toggle */}
-        <div className="flex justify-center gap-2 mb-8">
-          <Button
-            variant={activeVariant === "square" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveVariant("square")}
-            className="gap-2"
-          >
-            <Square className="w-4 h-4" />
-            Square
-          </Button>
-          <Button
-            variant={activeVariant === "circle" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActiveVariant("circle")}
-            className="gap-2"
-          >
-            <Circle className="w-4 h-4" />
-            Circle
-          </Button>
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+          {/* Variant Toggle */}
+          <div className="flex justify-center gap-2">
+            <Button
+              variant={activeVariant === "square" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveVariant("square")}
+              className="gap-2"
+            >
+              <Square className="w-4 h-4" />
+              Square
+            </Button>
+            <Button
+              variant={activeVariant === "circle" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveVariant("circle")}
+              className="gap-2"
+            >
+              <Circle className="w-4 h-4" />
+              Circle
+            </Button>
+          </div>
+
+          {/* Background Toggle */}
+          <div className="flex justify-center gap-2">
+            <Button
+              variant={!transparent ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTransparent(false)}
+              className="gap-2"
+            >
+              <Image className="w-4 h-4" />
+              Solid BG
+            </Button>
+            <Button
+              variant={transparent ? "default" : "outline"}
+              size="sm"
+              onClick={() => setTransparent(true)}
+              className="gap-2"
+            >
+              <Layers className="w-4 h-4" />
+              Transparent
+            </Button>
+          </div>
         </div>
 
         {/* Download All Button */}
@@ -104,7 +132,7 @@ export default function LogoExport() {
         {/* Size Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {EXPORT_SIZES.map((size) => {
-            const key = getKey(size, activeVariant);
+            const key = getKey(size, activeVariant, transparent);
             return (
               <div
                 key={key}
@@ -112,14 +140,15 @@ export default function LogoExport() {
               >
                 {/* Size Label */}
                 <div className="text-sm font-medium text-muted-foreground mb-4">
-                  {size} × {size}px
+                  {size} × {size}px {transparent && "(transparent)"}
                 </div>
 
                 {/* Logo Preview (scaled for display) */}
                 <div
                   className={cn(
-                    "mb-4 overflow-hidden shadow-lg",
-                    activeVariant === "circle" ? "rounded-full" : "rounded-lg"
+                    "mb-4 overflow-hidden shadow-lg relative",
+                    activeVariant === "circle" ? "rounded-full" : "rounded-lg",
+                    transparent && "bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImNoZWNrZXJib2FyZCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMyMjIiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzIyMiIvPjxyZWN0IHg9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMzMzMiLz48cmVjdCB5PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMzMzIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2NoZWNrZXJib2FyZCkiLz48L3N2Zz4=')]"
                   )}
                   style={{
                     transform: size > 256 ? `scale(${256 / size})` : "none",
@@ -134,6 +163,7 @@ export default function LogoExport() {
                     }}
                     size={size}
                     variant={activeVariant}
+                    transparent={transparent}
                   />
                 </div>
 
@@ -187,7 +217,7 @@ export default function LogoExport() {
           </ul>
           <div className="mt-4 pt-4 border-t border-border">
             <h3 className="text-sm font-semibold text-foreground mb-2">
-              When to use each variant
+              When to use each option
             </h3>
             <ul className="space-y-1 text-sm text-muted-foreground">
               <li>
@@ -197,6 +227,14 @@ export default function LogoExport() {
               <li>
                 <span className="font-medium text-foreground">Circle:</span>{" "}
                 Twitter/X, Instagram, platforms that crop to circles
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Solid BG:</span>{" "}
+                Most social profiles, where the logo stands alone
+              </li>
+              <li>
+                <span className="font-medium text-foreground">Transparent:</span>{" "}
+                Overlays, watermarks, custom backgrounds
               </li>
             </ul>
           </div>
