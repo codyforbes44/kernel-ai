@@ -58,8 +58,10 @@ export interface GenerateAdvancedImageOptions {
   numInferenceSteps?: number;
   seed?: number;
   sourceImageUrl?: string;
-  editMode?: 'upscale' | 'variation' | 'inpaint';
+  editMode?: 'upscale' | 'variation' | 'inpaint' | 'controlnet';
   upscaleScale?: number;
+  controlnetType?: 'canny' | 'depth' | 'pose' | 'scribble' | 'softedge';
+  controlnetStrength?: number;
 }
 
 export interface ScreenshotToCodeOptions {
