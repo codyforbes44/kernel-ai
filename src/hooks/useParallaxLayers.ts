@@ -45,6 +45,7 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   
   const rafRef = useRef<number>(0);
   const currentValues = useRef({
@@ -58,6 +59,16 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
   // Detect mobile
   useEffect(() => {
     setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  }, []);
+
+  // Detect reduced motion preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
   // Scroll tracking with throttled updates
@@ -124,18 +135,32 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
 
   // Calculate layer transforms based on depth
   const getLayer = useCallback((layerDepth: number = depth): ParallaxLayer => {
+    // Return static values if reduced motion is preferred
+    if (prefersReducedMotion) {
+      return {
+        transform: 'none',
+        translateX: 0,
+        translateY: 0,
+        translateZ: layerDepth,
+        rotateX: 0,
+        rotateY: 0,
+        scale: 1,
+        opacity: 1,
+      };
+    }
+
     const values = currentValues.current;
     
     // Depth factor: deeper layers (negative z) move less, closer layers move more
     const depthFactor = 1 + layerDepth * 0.01;
     
-    // Gyroscope-based tilt (mobile)
-    const gyroX = values.tiltX * 15 * tiltStrength * depthFactor;
-    const gyroY = values.tiltY * 15 * tiltStrength * depthFactor;
+    // Gyroscope-based tilt (mobile) - reduced intensity
+    const gyroX = values.tiltX * 10 * tiltStrength * depthFactor;
+    const gyroY = values.tiltY * 10 * tiltStrength * depthFactor;
     
-    // Mouse-based parallax (desktop)
-    const mouseOffsetX = !isMobile ? values.mouseX * 20 * mouseStrength * depthFactor : 0;
-    const mouseOffsetY = !isMobile ? values.mouseY * 20 * mouseStrength * depthFactor : 0;
+    // Mouse-based parallax (desktop) - reduced intensity
+    const mouseOffsetX = !isMobile ? values.mouseX * 15 * mouseStrength * depthFactor : 0;
+    const mouseOffsetY = !isMobile ? values.mouseY * 15 * mouseStrength * depthFactor : 0;
     
     // Scroll-based transforms
     const scrollOffsetY = values.scrollY * 50 * scrollStrength * depthFactor;
@@ -147,8 +172,8 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
     const translateZ = layerDepth;
     
     // Rotation based on tilt (subtle)
-    const rotateX = values.tiltY * 3 * tiltStrength;
-    const rotateY = values.tiltX * 3 * tiltStrength;
+    const rotateX = values.tiltY * 2 * tiltStrength;
+    const rotateY = values.tiltX * 2 * tiltStrength;
     
     // Opacity fades based on scroll
     const opacity = Math.max(0.3, 1 - values.scrollY * 0.5);
@@ -170,7 +195,7 @@ export function useParallaxLayers(config: ParallaxConfig = {}) {
       scale: scrollScale,
       opacity,
     };
-  }, [depth, tiltStrength, scrollStrength, mouseStrength, isMobile]);
+  }, [depth, tiltStrength, scrollStrength, mouseStrength, isMobile, prefersReducedMotion]);
 
   // Predefined layer presets
   const layers = {

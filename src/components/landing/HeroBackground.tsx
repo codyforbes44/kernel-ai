@@ -85,20 +85,20 @@ export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
         }}
       />
       
-      {/* Skeleton loader - fades out when 3D is ready */}
+      {/* Skeleton loader - faster fade out */}
       <div 
         className={cn(
-          "absolute inset-0 z-10 transition-opacity duration-1000 ease-out",
+          "absolute inset-0 z-10 transition-opacity duration-500 ease-out",
           isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
         )}
       >
         <HeroSkeleton />
       </div>
       
-      {/* 3D Scene - paused when not visible, responds to gyroscope */}
+      {/* 3D Scene - paused when not visible, faster fade in */}
       <div 
         className={cn(
-          "absolute inset-0 transition-opacity duration-700 ease-in",
+          "absolute inset-0 transition-opacity duration-400 ease-in",
           isLoaded ? "opacity-100" : "opacity-0",
           // Slightly boost visibility on desktop
           "lg:brightness-110 lg:contrast-105"
