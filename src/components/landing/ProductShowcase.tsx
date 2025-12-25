@@ -27,8 +27,8 @@ const features = [
 
 export function ProductShowcase() {
   return (
-    <section className="py-20 px-4 bg-muted/20">
-      <div className="container mx-auto max-w-6xl">
+    <section className="py-20 px-4 bg-muted/20 perspective-container overflow-hidden">
+      <div className="container mx-auto max-w-6xl preserve-3d">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -39,18 +39,26 @@ export function ProductShowcase() {
             Powerful Development Environment
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Everything you need to build modern web applications
+            Everything you need to build modern web applications in 2026
           </p>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* Mock IDE Screenshot */}
+          {/* Mock IDE Screenshot with 3D perspective */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, x: -30, rotateY: -10 }}
+            whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            whileHover={{ 
+              rotateY: 5, 
+              rotateX: -2,
+              scale: 1.02,
+              transition: { duration: 0.3 } 
+            }}
+            style={{ transformStyle: 'preserve-3d' }}
           >
-            <Card className="overflow-hidden border-border/50 bg-background/50 backdrop-blur">
+            <Card className="overflow-hidden border-border/50 bg-background/50 backdrop-blur depth-card">
               {/* Window Header */}
               <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50">
                 <div className="flex gap-1.5">
@@ -58,7 +66,7 @@ export function ProductShowcase() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                   <div className="w-3 h-3 rounded-full bg-green-500/60" />
                 </div>
-                <span className="text-xs text-muted-foreground ml-2">Kernel Builder</span>
+                <span className="text-xs text-muted-foreground ml-2">Kernel Builder — 2026</span>
               </div>
               
               {/* Mock Content */}
@@ -81,7 +89,7 @@ export function ProductShowcase() {
                     <p><span className="text-purple-400">export function</span> <span className="text-blue-400">Hero</span>() {"{"}</p>
                     <p className="pl-4"><span className="text-purple-400">return</span> (</p>
                     <p className="pl-8"><span className="text-green-400">&lt;div&gt;</span></p>
-                    <p className="pl-12 text-amber-400">"Hello World"</p>
+                    <p className="pl-12 text-amber-400">"Build 2026"</p>
                     <p className="pl-8"><span className="text-green-400">&lt;/div&gt;</span></p>
                     <p className="pl-4">);</p>
                     <p>{"}"}</p>
@@ -91,17 +99,27 @@ export function ProductShowcase() {
             </Card>
           </motion.div>
 
-          {/* Feature Cards */}
-          <div className="grid sm:grid-cols-2 gap-4">
+          {/* Feature Cards with staggered depth */}
+          <div className="grid sm:grid-cols-2 gap-4 preserve-3d">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20, z: -50 }}
+                whileInView={{ opacity: 1, y: 0, z: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.1, duration: 0.4 }}
+                whileHover={{ 
+                  y: -8,
+                  scale: 1.03,
+                  transition: { duration: 0.2 }
+                }}
+                className={`float-3d-${(index % 4) + 1}`}
+                style={{ 
+                  transformStyle: 'preserve-3d',
+                  transform: `translateZ(${index * 10}px)`,
+                }}
               >
-                <Card className="p-4 hover:border-primary/30 transition-colors h-full">
+                <Card className="p-4 hover:border-primary/30 transition-all h-full depth-hover bg-card/80 backdrop-blur-sm">
                   <div className="flex items-start gap-3">
                     <div className="p-2 rounded-lg bg-primary/10">
                       <feature.icon className="h-5 w-5 text-primary" />

@@ -16,10 +16,10 @@ export const SEO_CONFIG = {
 // Per-page SEO configuration
 export const PAGE_SEO = {
   landing: {
-    title: 'Build Apps with AI',
-    description: 'Create beautiful web applications with AI-powered assistance. From idea to deployment in minutes with intelligent chat, visual builder, and instant deploy.',
+    title: 'Build the Future with AI | 2026',
+    description: 'Transform ideas into production-ready apps in minutes. The next generation of AI-powered development with intelligent chat, visual builder, and instant deployment.',
     ogImage: '/og-image.png',
-    keywords: ['AI development', 'web builder', 'no-code', 'app builder', 'AI assistant', 'visual editor'] as string[],
+    keywords: ['AI development 2026', 'web builder', 'no-code', 'app builder', 'AI assistant', 'visual editor', 'future of coding'] as string[],
   },
   home: {
     title: 'AI Assistant',
@@ -221,7 +221,7 @@ export const getProductSchema = (siteUrl: string) => ({
     "price": "0",
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
-    "priceValidUntil": "2025-12-31"
+    "priceValidUntil": "2026-12-31"
   }
   // Note: aggregateRating removed - will be added when real reviews are collected
 });
