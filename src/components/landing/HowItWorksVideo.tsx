@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef, useEffect, useMemo, useState, useCallback } from "react";
+import { useRef, useEffect, useMemo, useCallback } from "react";
 import { MessageSquare, Wand2, Rocket, Play } from "lucide-react";
 import { useVideoTimeline } from "@/hooks/useVideoTimeline";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -24,33 +24,15 @@ const scenes = [
   { id: "outro", start: 20, end: 24, label: "Complete" },
 ];
 
-// Scene narration scripts
+// Static audio file paths
+const BACKGROUND_MUSIC_URL = "/audio/background-music.mp3";
+
 const sceneNarrations = [
-  { 
-    sceneId: "intro", 
-    text: "Welcome to Kernel. Your AI Development OS.",
-    startTime: 0 
-  },
-  { 
-    sceneId: "describe", 
-    text: "Simply describe what you want to build in plain English.",
-    startTime: 4 
-  },
-  { 
-    sceneId: "generate", 
-    text: "Watch as AI writes production-ready code in real time.",
-    startTime: 9 
-  },
-  { 
-    sceneId: "deploy", 
-    text: "Deploy instantly with a single click. No configuration needed.",
-    startTime: 15 
-  },
-  { 
-    sceneId: "outro", 
-    text: "From idea to live app in minutes. That's Kernel.",
-    startTime: 20 
-  },
+  { sceneId: "intro", audioUrl: "/audio/narration-intro.mp3" },
+  { sceneId: "describe", audioUrl: "/audio/narration-describe.mp3" },
+  { sceneId: "generate", audioUrl: "/audio/narration-generate.mp3" },
+  { sceneId: "deploy", audioUrl: "/audio/narration-deploy.mp3" },
+  { sceneId: "outro", audioUrl: "/audio/narration-complete.mp3" },
 ];
 
 // Poster/Thumbnail component
@@ -154,9 +136,6 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: false, amount: 0.5 });
   const { shouldReduceMotion } = useReducedMotion();
-  
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   const {
     currentTime,
@@ -173,7 +152,7 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     loop: false,
   });
 
-  // Audio hook for synchronized background music
+  // Audio hook for synchronized background music (static file)
   const {
     isLoaded: audioLoaded,
     isMuted: musicMuted,
@@ -183,66 +162,27 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     syncWithTimeline,
     reset: resetAudio,
   } = useVideoAudio({
-    audioUrl: audioUrl || undefined,
+    audioUrl: BACKGROUND_MUSIC_URL,
     duration: TOTAL_DURATION,
   });
 
-  // Scene narration hook
+  // Scene narration hook (static files)
   const {
-    isLoading: narrationLoading,
-    isReady: narrationReady,
+    isLoaded: narrationLoaded,
     isMuted: narrationMuted,
-    preloadNarrations,
-    playNarrationForScene,
-    stopNarration,
+    playForScene,
+    stopAll: stopNarration,
     toggleMute: toggleNarrationMute,
     reset: resetNarration,
   } = useSceneNarration({
     narrations: sceneNarrations,
-    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George - clear, professional voice
   });
 
+  const hasAudio = audioLoaded || narrationLoaded;
   const hasStarted = currentTime > 0 || isPlaying;
 
   // Track previous scene to detect scene changes
   const prevSceneRef = useRef<string | null>(null);
-
-  // Generate ambient audio on first play
-  const generateAudio = useCallback(async () => {
-    if (audioUrl || isGeneratingAudio) return;
-    
-    setIsGeneratingAudio(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-music`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt: 'Ambient electronic tech music, building progression, modern futuristic sound, cinematic, soft intro building to confident peak then resolving, suitable for product demo video',
-            duration: TOTAL_DURATION,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Audio generation failed: ${response.status}`);
-      }
-
-      const audioBlob = await response.blob();
-      const url = URL.createObjectURL(audioBlob);
-      setAudioUrl(url);
-      console.log('Audio generated successfully');
-    } catch (error) {
-      console.error('Failed to generate audio:', error);
-    } finally {
-      setIsGeneratingAudio(false);
-    }
-  }, [audioUrl, isGeneratingAudio]);
 
   // Sync audio with video timeline
   useEffect(() => {
@@ -251,27 +191,20 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     }
   }, [currentTime, isPlaying, audioLoaded, syncWithTimeline]);
 
-  // Calculate current scene first (used by narration effect)
+  // Calculate current scene
   const currentScene = useMemo(() => {
     return scenes.find(s => currentTime >= s.start && currentTime < s.end)?.id || "intro";
   }, [currentTime]);
 
   // Play narration when scene changes
   useEffect(() => {
-    if (!isPlaying || !narrationReady) return;
+    if (!isPlaying) return;
     
     if (currentScene !== prevSceneRef.current) {
       prevSceneRef.current = currentScene;
-      playNarrationForScene(currentScene);
+      playForScene(currentScene);
     }
-  }, [currentScene, isPlaying, narrationReady, playNarrationForScene]);
-
-  // Handle play with audio generation and narration preload
-  const handlePlay = useCallback(() => {
-    generateAudio();
-    preloadNarrations();
-    play();
-  }, [generateAudio, preloadNarrations, play]);
+  }, [currentScene, isPlaying, playForScene]);
 
   // Handle reset
   const handleReset = useCallback(() => {
@@ -295,6 +228,13 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
       pause();
     }
   }, [isInView, isPlaying, pause]);
+
+  // Stop narration when paused
+  useEffect(() => {
+    if (!isPlaying) {
+      stopNarration();
+    }
+  }, [isPlaying, stopNarration]);
 
   // Reduced motion fallback
   if (shouldReduceMotion) {
@@ -332,7 +272,7 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
           />
 
           {/* Poster - show before video starts */}
-          {!hasStarted && <VideoPoster onPlay={handlePlay} />}
+          {!hasStarted && <VideoPoster onPlay={play} />}
 
           {/* Scene: Intro */}
           <VideoScene isActive={currentScene === "intro" && hasStarted} className="absolute inset-0 flex items-center justify-center">
@@ -479,7 +419,7 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
                     ? 'bg-primary scale-125' 
                     : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
-                whileHover={{ scale: 1.3 }}
+                whileHover={{ scale: 1.5 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label={`Go to ${scene.label}`}
               />
@@ -490,18 +430,17 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
         {/* Controls */}
         <VideoControls
           isPlaying={isPlaying}
-          progress={progress}
           currentTime={currentTime}
           duration={TOTAL_DURATION}
+          progress={progress}
+          isMuted={isMuted}
+          volume={volume}
+          hasAudio={hasAudio}
           onToggle={toggle}
           onSeek={seek}
           onReset={handleReset}
-          hasAudio={!!audioUrl || narrationReady}
-          isMuted={isMuted}
-          volume={volume}
           onToggleMute={handleToggleMute}
           onVolumeChange={setVolume}
-          className="rounded-none border-t border-border/50 rounded-b-xl"
         />
       </GlassPanel>
     </div>
