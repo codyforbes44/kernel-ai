@@ -5,6 +5,7 @@ import { MessageSquare, Wand2, Rocket, Play } from "lucide-react";
 import { useVideoTimeline } from "@/hooks/useVideoTimeline";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useVideoAudio } from "@/hooks/useVideoAudio";
+import { useSceneNarration } from "@/hooks/useSceneNarration";
 import { VideoControls } from "./video/VideoControls";
 import { VideoScene } from "./video/VideoScene";
 import { TypingAnimation } from "./video/TypingAnimation";
@@ -12,7 +13,6 @@ import { CodeStreamAnimation } from "./video/CodeStreamAnimation";
 import { DeployAnimation } from "./video/DeployAnimation";
 import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { GlassPanel } from "@/components/ui/glass-panel";
-import { supabase } from "@/integrations/supabase/client";
 
 const TOTAL_DURATION = 24; // seconds
 
@@ -22,6 +22,35 @@ const scenes = [
   { id: "generate", start: 9, end: 15, label: "Generate", icon: Wand2 },
   { id: "deploy", start: 15, end: 20, label: "Deploy", icon: Rocket },
   { id: "outro", start: 20, end: 24, label: "Complete" },
+];
+
+// Scene narration scripts
+const sceneNarrations = [
+  { 
+    sceneId: "intro", 
+    text: "Welcome to Kernel. Your AI Development OS.",
+    startTime: 0 
+  },
+  { 
+    sceneId: "describe", 
+    text: "Simply describe what you want to build in plain English.",
+    startTime: 4 
+  },
+  { 
+    sceneId: "generate", 
+    text: "Watch as AI writes production-ready code in real time.",
+    startTime: 9 
+  },
+  { 
+    sceneId: "deploy", 
+    text: "Deploy instantly with a single click. No configuration needed.",
+    startTime: 15 
+  },
+  { 
+    sceneId: "outro", 
+    text: "From idea to live app in minutes. That's Kernel.",
+    startTime: 20 
+  },
 ];
 
 // Poster/Thumbnail component
@@ -144,12 +173,12 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     loop: false,
   });
 
-  // Audio hook for synchronized playback
+  // Audio hook for synchronized background music
   const {
     isLoaded: audioLoaded,
-    isMuted,
+    isMuted: musicMuted,
     volume,
-    toggleMute,
+    toggleMute: toggleMusicMute,
     setVolume,
     syncWithTimeline,
     reset: resetAudio,
@@ -158,7 +187,25 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     duration: TOTAL_DURATION,
   });
 
+  // Scene narration hook
+  const {
+    isLoading: narrationLoading,
+    isReady: narrationReady,
+    isMuted: narrationMuted,
+    preloadNarrations,
+    playNarrationForScene,
+    stopNarration,
+    toggleMute: toggleNarrationMute,
+    reset: resetNarration,
+  } = useSceneNarration({
+    narrations: sceneNarrations,
+    voiceId: 'JBFqnCBsd6RMkjVDRZzb', // George - clear, professional voice
+  });
+
   const hasStarted = currentTime > 0 || isPlaying;
+
+  // Track previous scene to detect scene changes
+  const prevSceneRef = useRef<string | null>(null);
 
   // Generate ambient audio on first play
   const generateAudio = useCallback(async () => {
@@ -204,22 +251,43 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     }
   }, [currentTime, isPlaying, audioLoaded, syncWithTimeline]);
 
-  // Handle play with audio generation
+  // Calculate current scene first (used by narration effect)
+  const currentScene = useMemo(() => {
+    return scenes.find(s => currentTime >= s.start && currentTime < s.end)?.id || "intro";
+  }, [currentTime]);
+
+  // Play narration when scene changes
+  useEffect(() => {
+    if (!isPlaying || !narrationReady) return;
+    
+    if (currentScene !== prevSceneRef.current) {
+      prevSceneRef.current = currentScene;
+      playNarrationForScene(currentScene);
+    }
+  }, [currentScene, isPlaying, narrationReady, playNarrationForScene]);
+
+  // Handle play with audio generation and narration preload
   const handlePlay = useCallback(() => {
     generateAudio();
+    preloadNarrations();
     play();
-  }, [generateAudio, play]);
+  }, [generateAudio, preloadNarrations, play]);
 
   // Handle reset
   const handleReset = useCallback(() => {
     reset();
     resetAudio();
-  }, [reset, resetAudio]);
+    resetNarration();
+    prevSceneRef.current = null;
+  }, [reset, resetAudio, resetNarration]);
 
-  // Auto-play when in view (only if user hasn't interacted yet)
-  useEffect(() => {
-    // Don't auto-play - let user click the poster
-  }, []);
+  // Combined mute toggle (mutes both music and narration)
+  const handleToggleMute = useCallback(() => {
+    toggleMusicMute();
+    toggleNarrationMute();
+  }, [toggleMusicMute, toggleNarrationMute]);
+
+  const isMuted = musicMuted && narrationMuted;
 
   // Pause when out of view
   useEffect(() => {
@@ -227,10 +295,6 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
       pause();
     }
   }, [isInView, isPlaying, pause]);
-
-  const currentScene = useMemo(() => {
-    return scenes.find(s => currentTime >= s.start && currentTime < s.end)?.id || "intro";
-  }, [currentTime]);
 
   // Reduced motion fallback
   if (shouldReduceMotion) {
@@ -432,10 +496,10 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
           onToggle={toggle}
           onSeek={seek}
           onReset={handleReset}
-          hasAudio={!!audioUrl}
+          hasAudio={!!audioUrl || narrationReady}
           isMuted={isMuted}
           volume={volume}
-          onToggleMute={toggleMute}
+          onToggleMute={handleToggleMute}
           onVolumeChange={setVolume}
           className="rounded-none border-t border-border/50 rounded-b-xl"
         />
