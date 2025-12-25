@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Command as CommandIcon } from "lucide-react";
 import { XLogo } from "@/components/ui/x-logo";
@@ -10,16 +10,25 @@ import { hapticFeedback } from "@/hooks/useHaptic";
 import { cn } from "@/lib/utils";
 
 export function PublicHeader() {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const { isOpen: commandOpen, toggle: toggleCommand, close: closeCommand } = useCommandNav();
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrollY(window.scrollY);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Calculate scroll-based styles
+  const scrolled = scrollY > 20;
+  
+  // Progressive blur that intensifies as you scroll (max at 100px)
+  const blurAmount = useMemo(() => {
+    const progress = Math.min(scrollY / 100, 1);
+    return Math.round(8 + progress * 12); // 8px to 20px blur
+  }, [scrollY]);
 
   const handleCommandClick = () => {
     hapticFeedback("light");
@@ -31,23 +40,34 @@ export function PublicHeader() {
       <header 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          "border-b",
+          "border-b safe-area-top",
           scrolled 
-            ? "border-border/60 bg-background/90 backdrop-blur-xl shadow-lg shadow-background/50" 
-            : "border-transparent bg-transparent backdrop-blur-sm"
+            ? "border-border/60 shadow-lg shadow-background/50" 
+            : "border-transparent"
         )}
+        style={{
+          backdropFilter: `blur(${blurAmount}px)`,
+          WebkitBackdropFilter: `blur(${blurAmount}px)`,
+          backgroundColor: scrolled 
+            ? `hsl(var(--background) / ${Math.min(0.85 + scrollY / 500, 0.95)})`
+            : 'transparent',
+        }}
       >
-        {/* Holographic accent line */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-60" />
+        {/* Holographic accent line - intensifies on scroll */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent transition-opacity duration-300"
+          style={{ opacity: scrolled ? 0.8 : 0.4 }}
+        />
         
-        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
+        {/* Mobile-optimized: reduced height (48px vs 56px) */}
+        <div className="container mx-auto px-4 h-12 sm:h-14 md:h-16 flex items-center justify-between">
           {/* Logo - Opens Command Nav */}
           <KernelLogoAnimated
             size="md"
             variant="animated"
             isActive={commandOpen}
             onClick={handleCommandClick}
-            className="cursor-pointer"
+            className="cursor-pointer touch-manipulation active:scale-95 transition-transform"
           />
 
           {/* Desktop Navigation - Minimal with Command Trigger */}
@@ -88,19 +108,25 @@ export function PublicHeader() {
             </Button>
           </nav>
 
-          {/* Mobile Navigation - Single Command trigger */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Navigation - Larger touch targets */}
+          <div className="flex md:hidden items-center gap-1.5">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleCommandClick}
-              className="text-muted-foreground h-10 w-10"
+              className="text-muted-foreground h-10 w-10 touch-manipulation active:scale-90 transition-transform"
               aria-label="Open menu"
             >
               <CommandIcon className="h-5 w-5" />
             </Button>
             
-            <Button variant="gold" size="sm" className="shadow-sm shadow-gold/20" asChild>
+            {/* More prominent CTA with pulse effect */}
+            <Button 
+              variant="gold" 
+              size="sm" 
+              className="shadow-sm shadow-gold/20 touch-manipulation active:scale-95 transition-transform h-9 px-3 text-sm font-medium" 
+              asChild
+            >
               <Link to="/request-invite">Get Access</Link>
             </Button>
           </div>

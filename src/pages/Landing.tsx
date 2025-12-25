@@ -15,6 +15,9 @@ import { HomepageOGImage } from '@/components/marketing/HomepageOGImage';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ProductShowcase } from '@/components/landing/ProductShowcase';
 import { PlatformComparisonCondensed } from '@/components/pricing/PlatformComparisonChart';
+import { HeroEntranceGroup, HeroEntranceItem } from '@/components/landing/HeroEntrance';
+import { ScrollProgressIndicator } from '@/components/landing/ScrollProgressIndicator';
+import { useHeroVisibility } from '@/hooks/useHeroVisibility';
 import { 
   MessageSquare, 
   Code2, 
@@ -62,9 +65,13 @@ const features = [
 
 export default function Landing() {
   const ogImageRef = useRef<HTMLDivElement>(null);
+  const { heroRef, isVisible: isHeroVisible } = useHeroVisibility();
 
   return (
     <PublicLayout>
+      {/* Scroll Progress Indicator */}
+      <ScrollProgressIndicator />
+
       {/* Hidden OG Image Component for Dynamic Generation */}
       <div className="fixed left-[-9999px] top-0 pointer-events-none">
         <HomepageOGImage ref={ogImageRef} />
@@ -82,62 +89,92 @@ export default function Landing() {
         ]}
       />
 
-      {/* Hero Section */}
-      <section id="hero" className="relative min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16 perspective-container">
-        <HeroBackground />
-        <div className="relative container mx-auto text-center max-w-4xl preserve-3d">
-          <GlowBadge 
-            variant="glow" 
-            size="lg" 
-            pulse 
-            icon={<Sparkles className="h-4 w-4" />}
-            className="mb-8 relative z-20 depth-hover"
-          >
-            <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
-              <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
-              <span className="hidden sm:inline opacity-50">•</span>
-              <span className="hidden xs:inline text-sm">
-                Request your invite today
-              </span>
-            </span>
-          </GlowBadge>
-          
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 depth-layer-front">
-            <GlowText variant="gradient">
-              Build the Future
-            </GlowText>
-            <br />
-            <span className="text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">With AI at Your Side</span>
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed depth-layer-near">
-            Transform ideas into production-ready apps in minutes. 
-            The next generation of AI-powered development starts here.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto px-4 sm:px-0 depth-layer-front">
-            <Button variant="gold" size="lg" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base depth-hover shadow-lg shadow-gold/20" asChild>
-              <Link to="/request-invite">
-                Start Building in 2026
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="gold-outline" className="w-full sm:w-auto sm:min-w-[180px] h-12 text-base depth-hover" asChild>
-              <Link to="/redeem-invite">
-                Have an Invite Code?
-              </Link>
-            </Button>
-          </div>
-        </div>
+      {/* Hero Section - Mobile-first optimized */}
+      <section 
+        ref={heroRef}
+        id="hero" 
+        className="relative min-h-[100dvh] md:min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-start md:justify-center pt-20 md:pt-0 px-4 scroll-mt-16 perspective-container"
+      >
+        <HeroBackground isVisible={isHeroVisible} />
         
-        {/* Scroll Down Indicator */}
+        {/* Hero Content - positioned higher on mobile for thumb zone */}
+        <HeroEntranceGroup 
+          staggerDelay={0.12}
+          className="relative container mx-auto text-center max-w-4xl preserve-3d mt-4 md:mt-0"
+        >
+          <HeroEntranceItem>
+            <GlowBadge 
+              variant="glow" 
+              size="lg" 
+              pulse 
+              icon={<Sparkles className="h-4 w-4" />}
+              className="mb-6 md:mb-8 relative z-20 depth-hover"
+            >
+              <span className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
+                <span className="text-sm sm:text-base">2026: Build Smarter, Ship Faster 🚀</span>
+                <span className="hidden sm:inline opacity-50">•</span>
+                <span className="hidden xs:inline text-sm">
+                  Request your invite today
+                </span>
+              </span>
+            </GlowBadge>
+          </HeroEntranceItem>
+          
+          <HeroEntranceItem>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 md:mb-6 depth-layer-front leading-tight">
+              <GlowText variant="gradient">
+                Build the Future
+              </GlowText>
+              <br />
+              <span className="text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]">With AI at Your Side</span>
+            </h1>
+          </HeroEntranceItem>
+          
+          <HeroEntranceItem>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed depth-layer-near px-2">
+              Transform ideas into production-ready apps in minutes. 
+              The next generation of AI-powered development starts here.
+            </p>
+          </HeroEntranceItem>
+          
+          {/* CTA Buttons - larger touch targets on mobile */}
+          <HeroEntranceItem className="w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto px-2 sm:px-0 depth-layer-front">
+              <Button 
+                variant="gold" 
+                size="lg" 
+                className="w-full sm:w-auto sm:min-w-[200px] h-13 sm:h-12 text-base font-medium depth-hover shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
+                asChild
+              >
+                <Link to="/request-invite">
+                  Start Building in 2026
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button 
+                size="lg" 
+                variant="gold-outline" 
+                className="w-full sm:w-auto sm:min-w-[200px] h-13 sm:h-12 text-base font-medium depth-hover active:scale-95 transition-transform touch-manipulation" 
+                asChild
+              >
+                <Link to="/redeem-invite">
+                  Have an Invite Code?
+                </Link>
+              </Button>
+            </div>
+          </HeroEntranceItem>
+        </HeroEntranceGroup>
+        
+        {/* Scroll Down Indicator - with swipe hint on mobile */}
         <a 
           href="#social-proof"
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group"
+          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 md:gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer group touch-manipulation"
           aria-label="Scroll to features"
         >
-          <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">Scroll</span>
-          <ChevronDown className="h-6 w-6 animate-bounce" />
+          <span className="text-xs font-medium opacity-60 md:opacity-0 group-hover:opacity-100 transition-opacity">
+            Swipe up
+          </span>
+          <ChevronDown className="h-5 w-5 md:h-6 md:w-6 animate-bounce" />
         </a>
       </section>
 
@@ -150,26 +187,26 @@ export default function Landing() {
       <HowItWorksSection />
 
       {/* Features Grid */}
-      <HoloSection variant="gradient" className="py-20 px-4 scroll-mt-16" id="features">
+      <HoloSection variant="gradient" className="py-16 md:py-20 px-4 scroll-mt-16" id="features">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 md:mb-16">
             <GlowBadge variant="glow" className="mb-4">
               <Sparkles className="h-3 w-3 mr-1" />
               Features
             </GlowBadge>
-            <GlowText as="h2" variant="gradient" className="text-3xl md:text-4xl font-bold mb-4">
+            <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
               Everything You Need to Build
             </GlowText>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-2">
               A complete platform for creating, managing, and deploying web applications with AI at your side.
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {features.map((feature, index) => (
               <AnimatedFeatureCard 
                 key={feature.title}
-                icon={<feature.icon className="h-6 w-6 text-primary" />}
+                icon={<feature.icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
                 title={feature.title}
                 description={feature.description}
                 animatedBorder={true}
@@ -186,17 +223,17 @@ export default function Landing() {
       <ProductShowcase />
 
       {/* Platform Comparison Section */}
-      <HoloSection variant="glow" className="py-20 px-4 scroll-mt-16" id="comparison">
+      <HoloSection variant="glow" className="py-16 md:py-20 px-4 scroll-mt-16" id="comparison">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 md:mb-12">
             <GlowBadge variant="gold" className="mb-4">
               <Sparkles className="h-3 w-3 mr-1" />
               Why Choose Kernel
             </GlowBadge>
-            <GlowText as="h2" variant="gradient" className="text-3xl md:text-4xl font-bold mb-4">
+            <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
               How We Stack Up
             </GlowText>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-2">
               See why developers choose Kernel over other AI platforms.
               We offer the most complete solution for modern development.
             </p>
@@ -204,8 +241,8 @@ export default function Landing() {
 
           <PlatformComparisonCondensed />
 
-          <div className="text-center mt-8">
-            <Button variant="gold-outline" asChild>
+          <div className="text-center mt-6 md:mt-8">
+            <Button variant="gold-outline" className="active:scale-95 transition-transform touch-manipulation" asChild>
               <Link to="/request-invite">
                 Request Early Access
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -216,22 +253,32 @@ export default function Landing() {
       </HoloSection>
 
       {/* CTA Section */}
-      <HoloSection variant="gradient" className="py-20 px-4 scroll-mt-16" id="cta">
+      <HoloSection variant="gradient" className="py-16 md:py-20 px-4 scroll-mt-16" id="cta">
         <div className="container mx-auto max-w-4xl text-center preserve-3d">
-          <GlowText as="h2" variant="gradient" className="text-3xl md:text-4xl font-bold mb-4 depth-layer-near">
+          <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 depth-layer-near">
             Make 2026 Your Year to Build
           </GlowText>
-          <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
+          <p className="text-muted-foreground text-base md:text-lg mb-6 md:mb-8 max-w-xl mx-auto px-2">
             Join thousands of developers already building the future with Kernel's AI-powered platform.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 depth-layer-front">
-            <Button variant="gold" size="lg" className="h-12 px-8 text-base depth-hover shadow-lg shadow-gold/20" asChild>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 depth-layer-front px-2">
+            <Button 
+              variant="gold" 
+              size="lg" 
+              className="w-full sm:w-auto h-13 sm:h-12 px-8 text-base font-medium depth-hover shadow-lg shadow-gold/20 active:scale-95 transition-transform touch-manipulation" 
+              asChild
+            >
               <Link to="/request-invite">
                 Get Started Now
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="gold-outline" className="h-12 px-8 text-base depth-hover" asChild>
+            <Button 
+              size="lg" 
+              variant="gold-outline" 
+              className="w-full sm:w-auto h-13 sm:h-12 px-8 text-base font-medium depth-hover active:scale-95 transition-transform touch-manipulation" 
+              asChild
+            >
               <Link to="/redeem-invite">
                 Redeem Invite Code
               </Link>

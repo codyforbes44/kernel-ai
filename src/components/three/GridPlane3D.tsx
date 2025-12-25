@@ -429,7 +429,11 @@ function FloatingParticles({ particleCount }: { particleCount: number }) {
   );
 }
 
-export function GridPlane3D() {
+interface GridPlane3DProps {
+  isPaused?: boolean;
+}
+
+export function GridPlane3D({ isPaused = false }: GridPlane3DProps) {
   const gridRef = useRef<THREE.LineSegments>(null);
   const horizonRef = useRef<THREE.LineSegments>(null);
   const materialRef = useRef<THREE.LineBasicMaterial>(null);
@@ -437,6 +441,9 @@ export function GridPlane3D() {
   
   // Get performance tier for scaling
   const { tier, shouldAnimate } = useAdaptiveQuality();
+  
+  // Don't animate if paused
+  const canAnimate = shouldAnimate && !isPaused;
   
   // Scale counts based on performance tier
   const pulseConfig = useMemo(() => getScaledPulseConfig(tier), [tier]);
@@ -467,9 +474,9 @@ export function GridPlane3D() {
     };
   }, [gridGeometry, horizonGeometry]);
   
-  // Subtle animation - skip if reduced motion
+  // Subtle animation - skip if reduced motion or paused
   useFrame(({ clock }) => {
-    if (!shouldAnimate) return;
+    if (!canAnimate) return;
     
     const time = clock.getElapsedTime();
     
@@ -499,10 +506,10 @@ export function GridPlane3D() {
       </lineSegments>
       
       {/* Energy pulses traveling along grid lines */}
-      {shouldAnimate && <EnergyPulses pulseCount={pulseConfig.count} />}
+      {canAnimate && <EnergyPulses pulseCount={pulseConfig.count} />}
       
       {/* Floating particles above the grid */}
-      {shouldAnimate && <FloatingParticles particleCount={particleConfig.count} />}
+      {canAnimate && <FloatingParticles particleCount={particleConfig.count} />}
       
       {/* Horizon fog for atmospheric depth */}
       <HorizonFog segments={fogSegments} />
