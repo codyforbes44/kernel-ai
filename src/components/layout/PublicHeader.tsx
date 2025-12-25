@@ -59,15 +59,15 @@ export function PublicHeader() {
           style={{ opacity: scrolled ? 0.8 : 0.4 }}
         />
         
-        {/* Mobile-optimized: reduced height (48px vs 56px) */}
-        <div className="container mx-auto px-4 h-12 sm:h-14 md:h-16 flex items-center justify-between">
-          {/* Logo - Opens Command Nav */}
+        {/* Mobile-optimized: taller for better touch (56px mobile, 56px tablet, 64px desktop) */}
+        <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-14 md:h-16 flex items-center justify-between">
+          {/* Logo - Opens Command Nav with proper touch target */}
           <KernelLogoAnimated
             size="md"
             variant="animated"
             isActive={commandOpen}
             onClick={handleCommandClick}
-            className="cursor-pointer touch-manipulation active:scale-95 transition-transform"
+            className="cursor-pointer touch-manipulation active:scale-95 transition-transform min-w-[44px] min-h-[44px] flex items-center justify-center -ml-1"
           />
 
           {/* Desktop Navigation - Minimal with Command Trigger */}
@@ -108,23 +108,23 @@ export function PublicHeader() {
             </Button>
           </nav>
 
-          {/* Mobile Navigation - Larger touch targets */}
-          <div className="flex md:hidden items-center gap-1.5">
+          {/* Mobile Navigation - 44px minimum touch targets per Apple HIG */}
+          <div className="flex md:hidden items-center gap-2">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-touch"
               onClick={handleCommandClick}
-              className="text-muted-foreground h-10 w-10 touch-manipulation active:scale-90 transition-transform"
+              className="text-muted-foreground touch-manipulation active:scale-90 transition-transform"
               aria-label="Open menu"
             >
               <CommandIcon className="h-5 w-5" />
             </Button>
             
-            {/* More prominent CTA with pulse effect */}
+            {/* More prominent CTA with proper mobile sizing */}
             <Button 
               variant="gold" 
-              size="sm" 
-              className="shadow-sm shadow-gold/20 touch-manipulation active:scale-95 transition-transform h-9 px-3 text-sm font-medium" 
+              size="default" 
+              className="shadow-sm shadow-gold/20 touch-manipulation active:scale-95 transition-transform h-11 px-4 text-sm font-semibold min-w-[100px]" 
               asChild
             >
               <Link to="/request-invite">Get Access</Link>
