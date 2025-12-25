@@ -98,8 +98,8 @@ export default function Landing() {
       {/* Hero Section - Mobile-first optimized with Apple Vision-inspired spatial depth */}
       <PerspectiveContainer 
         perspective={1200} 
-        origin="50% 40%"
-        className="relative min-h-[100dvh] md:min-h-[calc(100dvh-4rem)] flex flex-col items-center justify-center px-4 scroll-mt-16"
+        origin="50% 45%"
+        className="relative min-h-[85dvh] lg:min-h-[90dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
       >
         <section 
           ref={heroRef}
