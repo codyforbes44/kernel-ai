@@ -223,7 +223,7 @@ export function PlatformComparisonChart() {
   );
 }
 
-// Condensed version for Landing page
+// Condensed version for Landing page - Mobile optimized
 export function PlatformComparisonCondensed() {
   const highlightedFeatures = [
     "AI Chat Assistant",
@@ -246,80 +246,93 @@ export function PlatformComparisonCondensed() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
       transition={{ duration: 0.5 }}
-      className="w-full overflow-x-auto"
+      className="w-full"
     >
-      <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm min-w-[800px]">
-        {/* Header */}
-        <div className="grid grid-cols-7 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border">
-          <div className="col-span-1 px-4 py-4">
-            <span className="text-sm font-semibold text-muted-foreground">Feature</span>
-          </div>
-          {platforms.map((platform) => (
-            <div
-              key={platform.id}
-              className={cn(
-                "col-span-1 px-2 py-4 text-center relative",
-                platform.isHighlighted && "bg-primary/10"
-              )}
-            >
-              {platform.isHighlighted && (
-                <GlowBadge 
-                  variant="glow"
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5"
-                >
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Us
-                </GlowBadge>
-              )}
-              <div className="flex flex-col items-center gap-1.5">
-                <div className={cn(
-                  "p-1.5 rounded-lg transition-all",
-                  platform.isHighlighted 
-                    ? "bg-primary/20 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]" 
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {platformIcons[platform.id]}
-                </div>
-                <span className={cn(
-                  "font-semibold text-sm",
-                  platform.isHighlighted ? "text-primary" : "text-foreground"
-                )}>
-                  {platform.name}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Body */}
-        {condensedFeatures.map((feature, idx) => (
-          <div
-            key={feature.name}
-            className={cn(
-              "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0 transition-colors hover:bg-primary/5",
-              idx % 2 === 0 ? "bg-background" : "bg-muted/10"
-            )}
-          >
-            <div className="col-span-1 px-4 py-3">
-              <p className="text-sm font-medium text-foreground">{feature.name}</p>
+      {/* Mobile scroll container with momentum scrolling */}
+      <div 
+        className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 touch-pan-x scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="border border-border rounded-xl overflow-hidden bg-card shadow-sm min-w-[700px] sm:min-w-[800px]">
+          {/* Header - Sticky on scroll */}
+          <div className="grid grid-cols-7 bg-gradient-to-r from-muted/50 via-muted/70 to-muted/50 border-b border-border">
+            <div className="col-span-1 px-3 sm:px-4 py-3 sm:py-4">
+              <span className="text-xs sm:text-sm font-semibold text-muted-foreground">Feature</span>
             </div>
             {platforms.map((platform) => (
               <div
                 key={platform.id}
                 className={cn(
-                  "col-span-1 py-3 text-center transition-colors",
-                  platform.isHighlighted && "bg-primary/5"
+                  "col-span-1 px-1 sm:px-2 py-3 sm:py-4 text-center relative",
+                  platform.isHighlighted && "bg-primary/10"
                 )}
               >
-                <FeatureValue 
-                  value={feature[platform.id as keyof PlatformFeature] as boolean | string}
-                  isKernel={platform.isHighlighted}
-                />
+                {platform.isHighlighted && (
+                  <GlowBadge 
+                    variant="glow"
+                    className="absolute -top-2 sm:-top-3 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5"
+                  >
+                    <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                    Us
+                  </GlowBadge>
+                )}
+                <div className="flex flex-col items-center gap-1 sm:gap-1.5">
+                  <div className={cn(
+                    "p-1 sm:p-1.5 rounded-lg transition-all",
+                    platform.isHighlighted 
+                      ? "bg-primary/20 text-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {platformIcons[platform.id]}
+                  </div>
+                  <span className={cn(
+                    "font-semibold text-[10px] sm:text-sm leading-tight",
+                    platform.isHighlighted ? "text-primary" : "text-foreground"
+                  )}>
+                    {platform.name}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
-        ))}
+
+          {/* Body - Touch friendly rows */}
+          {condensedFeatures.map((feature, idx) => (
+            <div
+              key={feature.name}
+              className={cn(
+                "grid grid-cols-7 items-center border-b border-border/50 last:border-b-0 transition-colors active:bg-primary/10 touch-manipulation",
+                idx % 2 === 0 ? "bg-background" : "bg-muted/10"
+              )}
+            >
+              <div className="col-span-1 px-3 sm:px-4 py-3 sm:py-3.5">
+                <p className="text-xs sm:text-sm font-medium text-foreground leading-tight">{feature.name}</p>
+              </div>
+              {platforms.map((platform) => (
+                <div
+                  key={platform.id}
+                  className={cn(
+                    "col-span-1 py-3 sm:py-3.5 text-center transition-colors",
+                    platform.isHighlighted && "bg-primary/5"
+                  )}
+                >
+                  <FeatureValue 
+                    value={feature[platform.id as keyof PlatformFeature] as boolean | string}
+                    isKernel={platform.isHighlighted}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
+      
+      {/* Mobile scroll hint with animation */}
+      <p className="text-xs text-muted-foreground text-center mt-3 sm:hidden flex items-center justify-center gap-2">
+        <span className="animate-pulse">←</span>
+        <span>Swipe to compare</span>
+        <span className="animate-pulse">→</span>
+      </p>
     </motion.div>
   );
 }
