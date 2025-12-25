@@ -1,38 +1,16 @@
-import { useState, useCallback, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, Command as CommandIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Command as CommandIcon } from "lucide-react";
 import { XLogo } from "@/components/ui/x-logo";
 import { Button } from "@/components/ui/button";
 import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { CommandNav } from "@/components/layout/CommandNav";
 import { useCommandNav } from "@/hooks/useCommandNav";
 import { hapticFeedback } from "@/hooks/useHaptic";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-interface NavLink {
-  label: string;
-  href: string;
-  isAnchor?: boolean;
-}
-
-const navLinks: NavLink[] = [
-  { label: "Features", href: "/#features", isAnchor: true },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
-
 export function PublicHeader() {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
   const { isOpen: commandOpen, toggle: toggleCommand, close: closeCommand } = useCommandNav();
 
   useEffect(() => {
@@ -42,34 +20,6 @@ export function PublicHeader() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const scrollToSection = useCallback((href: string) => {
-    const anchor = href.split("#")[1];
-    const isOnLandingPage = location.pathname === "/";
-
-    if (isOnLandingPage && anchor) {
-      const element = document.getElementById(anchor);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    } else if (anchor) {
-      navigate("/");
-      setTimeout(() => {
-        const element = document.getElementById(anchor);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    }
-  }, [location.pathname, navigate]);
-
-  const handleNavClick = (e: React.MouseEvent, link: NavLink) => {
-    if (link.isAnchor) {
-      e.preventDefault();
-      scrollToSection(link.href);
-      setIsOpen(false);
-    }
-  };
 
   const handleCommandClick = () => {
     hapticFeedback("light");
@@ -138,67 +88,21 @@ export function PublicHeader() {
             </Button>
           </nav>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Single Command trigger */}
           <div className="flex md:hidden items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={handleCommandClick}
-              className="text-muted-foreground"
+              className="text-muted-foreground h-10 w-10"
+              aria-label="Open menu"
             >
               <CommandIcon className="h-5 w-5" />
             </Button>
-
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10" aria-label="Open menu">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent 
-                side="right" 
-                className="w-[300px] border-l border-primary/20 bg-background/95 backdrop-blur-xl"
-              >
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                {/* Mobile holographic accent */}
-                <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-primary/50 via-primary/20 to-transparent" />
-                
-                <nav className="flex flex-col gap-2 mt-8">
-                  {navLinks.map((link) => (
-                    <a
-                      key={link.href}
-                      href={link.href}
-                      onClick={(e) => handleNavClick(e, link)}
-                      className="text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-lg hover:bg-primary/5 cursor-pointer"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-                  <a
-                    href="https://x.com/kernel_cool"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-lg font-medium text-foreground hover:text-primary transition-colors py-3 px-4 rounded-lg hover:bg-primary/5"
-                  >
-                    <XLogo className="h-5 w-5" />
-                    Follow on X
-                  </a>
-                  
-                  <div className="border-t border-border/40 my-4" />
-                  
-                  <SheetClose asChild>
-                    <Button variant="gold" className="w-full h-12 text-base" asChild>
-                      <Link to="/request-invite">Request Early Access</Link>
-                    </Button>
-                  </SheetClose>
-                  <SheetClose asChild>
-                    <Button variant="outline" className="w-full h-12 text-base mt-2 border-border/60" asChild>
-                      <Link to="/redeem-invite">Have an Invite Code?</Link>
-                    </Button>
-                  </SheetClose>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            
+            <Button variant="gold" size="sm" className="shadow-sm shadow-gold/20" asChild>
+              <Link to="/request-invite">Get Access</Link>
+            </Button>
           </div>
         </div>
       </header>
