@@ -132,22 +132,11 @@ export function useThreePerformance(): PerformanceState {
 export function useAdaptiveQuality() {
   const { tier, settings, reducedMotion } = useThreePerformance();
   
-  const getParticleCount = useCallback((baseCount: number) => {
-    const multiplier = {
-      ULTRA: 1,
-      HIGH: 0.5,
-      MEDIUM: 0.2,
-      LOW: 0.05,
-    }[tier];
-    return Math.floor(baseCount * multiplier);
-  }, [tier]);
-
   const shouldAnimate = !reducedMotion;
   
   return {
     tier,
     settings,
-    getParticleCount,
     shouldAnimate,
     enablePostProcessing: settings.postProcessing,
     enableRayMarching: settings.rayMarching,
