@@ -1,0 +1,8 @@
+# Audio assets directory
+# Place the following files here:
+# - background-music.mp3 (24s ambient tech music)
+# - narration-intro.mp3 ("Welcome to Kernel. Your AI Development OS.")
+# - narration-describe.mp3 ("Simply describe what you want to build...")
+# - narration-generate.mp3 ("Watch as AI transforms your vision...")
+# - narration-deploy.mp3 ("Deploy instantly to production...")
+# - narration-complete.mp3 ("Your application is live...")

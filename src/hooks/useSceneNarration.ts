@@ -1,159 +1,79 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface SceneNarration {
   sceneId: string;
-  text: string;
-  startTime: number;
+  audioUrl: string;
 }
 
 interface UseSceneNarrationOptions {
   narrations: SceneNarration[];
-  voiceId?: string;
 }
 
 interface UseSceneNarrationReturn {
-  isLoading: boolean;
-  isReady: boolean;
+  isLoaded: boolean;
   isMuted: boolean;
   currentNarrationId: string | null;
-  preloadNarrations: () => Promise<void>;
-  playNarrationForScene: (sceneId: string) => void;
-  stopNarration: () => void;
+  playForScene: (sceneId: string) => void;
+  stopAll: () => void;
   toggleMute: () => void;
   reset: () => void;
 }
 
-export function useSceneNarration({ 
-  narrations, 
-  voiceId = 'JBFqnCBsd6RMkjVDRZzb' // George voice - clear, professional
-}: UseSceneNarrationOptions): UseSceneNarrationReturn {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isReady, setIsReady] = useState(false);
+export function useSceneNarration({ narrations }: UseSceneNarrationOptions): UseSceneNarrationReturn {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentNarrationId, setCurrentNarrationId] = useState<string | null>(null);
   
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const currentAudio = useRef<HTMLAudioElement | null>(null);
   const playedScenes = useRef<Set<string>>(new Set());
+  const loadedCount = useRef(0);
 
-  // Cleanup on unmount
+  // Pre-load all narration audio files
   useEffect(() => {
+    loadedCount.current = 0;
+    const totalNarrations = narrations.length;
+    
+    narrations.forEach(({ sceneId, audioUrl }) => {
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.8;
+      audio.preload = 'auto';
+      
+      const handleLoad = () => {
+        loadedCount.current++;
+        if (loadedCount.current >= totalNarrations) {
+          setIsLoaded(true);
+        }
+      };
+
+      audio.addEventListener('canplaythrough', handleLoad, { once: true });
+      audio.addEventListener('error', handleLoad, { once: true }); // Count errors to not block
+
+      audio.addEventListener('ended', () => {
+        setCurrentNarrationId(null);
+        currentAudio.current = null;
+      });
+
+      audioCache.current.set(sceneId, audio);
+    });
+
+    // Set loaded after a timeout if files don't exist
+    const timeout = setTimeout(() => {
+      setIsLoaded(true);
+    }, 1000);
+
     return () => {
+      clearTimeout(timeout);
       audioCache.current.forEach(audio => {
         audio.pause();
         audio.src = '';
       });
       audioCache.current.clear();
     };
-  }, []);
+  }, [narrations]);
 
-  // Generate TTS for a single narration
-  const generateNarration = useCallback(async (narration: SceneNarration): Promise<HTMLAudioElement | null> => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            text: narration.text,
-            voiceId,
-            model: 'eleven_turbo_v2_5',
-            voiceSettings: {
-              stability: 0.6,
-              similarity_boost: 0.8,
-              style: 0.2,
-              speed: 1.0,
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`TTS failed: ${response.status}`);
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.preload = 'auto';
-      
-      return new Promise((resolve) => {
-        audio.addEventListener('canplaythrough', () => resolve(audio), { once: true });
-        audio.addEventListener('error', () => resolve(null), { once: true });
-      });
-    } catch (error) {
-      console.error(`Failed to generate narration for ${narration.sceneId}:`, error);
-      return null;
-    }
-  }, [voiceId]);
-
-  // Preload all narrations
-  const preloadNarrations = useCallback(async () => {
-    if (isReady || isLoading) return;
-    
-    setIsLoading(true);
-    console.log('Preloading narrations...');
-
-    try {
-      // Generate all narrations in parallel
-      const results = await Promise.all(
-        narrations.map(async (narration) => {
-          const audio = await generateNarration(narration);
-          return { sceneId: narration.sceneId, audio };
-        })
-      );
-
-      // Cache successful results
-      results.forEach(({ sceneId, audio }) => {
-        if (audio) {
-          audioCache.current.set(sceneId, audio);
-        }
-      });
-
-      setIsReady(audioCache.current.size > 0);
-      console.log(`Loaded ${audioCache.current.size}/${narrations.length} narrations`);
-    } catch (error) {
-      console.error('Failed to preload narrations:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [narrations, generateNarration, isReady, isLoading]);
-
-  // Play narration for a specific scene
-  const playNarrationForScene = useCallback((sceneId: string) => {
-    if (isMuted || playedScenes.current.has(sceneId)) return;
-
-    const audio = audioCache.current.get(sceneId);
-    if (!audio) return;
-
-    // Stop any current narration
-    if (currentAudio.current) {
-      currentAudio.current.pause();
-      currentAudio.current.currentTime = 0;
-    }
-
-    // Play new narration
-    audio.currentTime = 0;
-    audio.play().catch(err => console.error('Narration play error:', err));
-    
-    currentAudio.current = audio;
-    setCurrentNarrationId(sceneId);
-    playedScenes.current.add(sceneId);
-
-    // Clear current narration when done
-    audio.onended = () => {
-      setCurrentNarrationId(null);
-      currentAudio.current = null;
-    };
-  }, [isMuted]);
-
-  // Stop current narration
-  const stopNarration = useCallback(() => {
+  // Stop all narrations
+  const stopAll = useCallback(() => {
     if (currentAudio.current) {
       currentAudio.current.pause();
       currentAudio.current.currentTime = 0;
@@ -161,6 +81,25 @@ export function useSceneNarration({
     }
     setCurrentNarrationId(null);
   }, []);
+
+  // Play narration for a specific scene
+  const playForScene = useCallback((sceneId: string) => {
+    if (isMuted || playedScenes.current.has(sceneId)) return;
+
+    const audio = audioCache.current.get(sceneId);
+    if (!audio || audio.readyState < 2) return;
+
+    // Stop any current narration
+    stopAll();
+
+    // Play new narration
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+    
+    currentAudio.current = audio;
+    setCurrentNarrationId(sceneId);
+    playedScenes.current.add(sceneId);
+  }, [isMuted, stopAll]);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
@@ -175,18 +114,16 @@ export function useSceneNarration({
 
   // Reset all state
   const reset = useCallback(() => {
-    stopNarration();
+    stopAll();
     playedScenes.current.clear();
-  }, [stopNarration]);
+  }, [stopAll]);
 
   return {
-    isLoading,
-    isReady,
+    isLoaded,
     isMuted,
     currentNarrationId,
-    preloadNarrations,
-    playNarrationForScene,
-    stopNarration,
+    playForScene,
+    stopAll,
     toggleMute,
     reset,
   };
