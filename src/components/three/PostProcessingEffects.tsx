@@ -9,12 +9,12 @@ export function PostProcessingEffects() {
   return (
     <EffectComposer multisampling={0}>
       <Bloom
-        intensity={0.6}
-        luminanceThreshold={0.3}
-        luminanceSmoothing={0.9}
+        intensity={0.9}
+        luminanceThreshold={0.2}
+        luminanceSmoothing={0.8}
         mipmapBlur
       />
-      <Vignette darkness={0.4} offset={0.4} />
+      <Vignette darkness={0.5} offset={0.35} />
     </EffectComposer>
   );
 }

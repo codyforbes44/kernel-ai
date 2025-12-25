@@ -44,12 +44,14 @@ export const PERFORMANCE_TIERS = {
   },
 } as const;
 
-// Color palette for 2100-era effects (in Three.js hex format)
+// Color palette for Tron-era effects (in Three.js hex format)
 export const COLORS_3D = {
-  primary: 0x00ffff,          // Cyan
-  secondary: 0xff00ff,        // Magenta
+  primary: 0x00ffff,          // Electric Cyan
+  secondary: 0xff6600,        // Tron Orange (classic antagonist color)
   accent: 0x00ff88,           // Neon green
-  grid: 0x00ffff,             // Cyan
+  grid: 0x00d4ff,             // Bright cyan
+  pulse: 0x00ffff,            // Pulse effect color
+  trail: 0xff3300,            // Energy trail color
 } as const;
 
 // Animation speeds
