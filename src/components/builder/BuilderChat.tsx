@@ -1,15 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database, Wand2, Camera } from 'lucide-react';
+import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database, Wand2, Camera, ListPlus } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { KernelThinkingIndicator } from './KernelThinkingIndicator';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useBuilderConversation, type BuilderMessage } from '@/hooks/useBuilderConversation';
 import { useSchemaGenerator, isSchemaRequest } from '@/hooks/useSchemaGenerator';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
+import { usePromptQueue } from '@/hooks/usePromptQueue';
 import { SchemaPreview, type GeneratedSchema } from './SchemaPreview';
+import { PromptQueuePanel } from './PromptQueuePanel';
 import type { ProjectFile } from '@/types/builder';
 import type { CapturedError } from './ErrorCapture';
 
@@ -76,6 +80,21 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
 
   const { isGenerating, generateSchema } = useSchemaGenerator();
   const { knowledgeBase } = useKnowledgeBase(projectId);
+  const {
+    queue,
+    isPaused,
+    isProcessing: isQueueProcessing,
+    currentIndex: queueCurrentIndex,
+    addPrompt,
+    removePrompt,
+    reorderPrompts,
+    clearQueue,
+    togglePause,
+    startProcessing,
+    advanceQueue,
+    stopProcessing,
+    getCurrentPrompt,
+  } = usePromptQueue();
 
   const [localMessages, setLocalMessages] = useState<ExtendedBuilderMessage[]>([]);
   const [input, setInput] = useState('');
@@ -98,6 +117,32 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [localMessages]);
+
+  // Process queue when processing is active and not loading
+  useEffect(() => {
+    if (isQueueProcessing && !isPaused && !isLoading) {
+      const currentPrompt = getCurrentPrompt();
+      if (currentPrompt) {
+        // Send the current prompt
+        sendMessage(currentPrompt.content);
+      }
+    }
+  }, [isQueueProcessing, isPaused, isLoading, getCurrentPrompt]);
+
+  // Advance queue after message completes
+  const prevIsLoading = useRef(isLoading);
+  useEffect(() => {
+    // When loading transitions from true to false while queue is processing
+    if (prevIsLoading.current && !isLoading && isQueueProcessing && !isPaused) {
+      // Remove the processed prompt and advance
+      const currentPrompt = getCurrentPrompt();
+      if (currentPrompt) {
+        removePrompt(currentPrompt.id);
+      }
+      advanceQueue();
+    }
+    prevIsLoading.current = isLoading;
+  }, [isLoading, isQueueProcessing, isPaused, getCurrentPrompt, removePrompt, advanceQueue]);
 
   const sendMessage = useCallback(async (customContent?: string, errorContext?: CapturedError[]) => {
     const messageContent = customContent || input.trim();
@@ -447,9 +492,38 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
     // Don't interfere with IME composition (for Chinese, Japanese, Korean input)
     if (e.nativeEvent.isComposing) return;
     
+    // Ctrl/Cmd + Shift + Enter to send all queued
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
+      e.preventDefault();
+      if (queue.length > 0) {
+        startProcessing();
+        toast.success('Processing queue...');
+      }
+      return;
+    }
+    
+    // Ctrl/Cmd + Enter to add to queue
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+      e.preventDefault();
+      if (input.trim()) {
+        addPrompt(input.trim());
+        setInput('');
+        toast.success('Added to queue');
+      }
+      return;
+    }
+    
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
+    }
+  };
+
+  const handleAddToQueue = () => {
+    if (input.trim()) {
+      addPrompt(input.trim());
+      setInput('');
+      toast.success('Added to queue');
     }
   };
 
@@ -675,6 +749,25 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
         )}
       </ScrollArea>
 
+      {/* Queue Panel */}
+      <AnimatePresence>
+        {queue.length > 0 && (
+          <div className="px-3 pt-3">
+            <PromptQueuePanel
+              queue={queue}
+              isPaused={isPaused}
+              isProcessing={isQueueProcessing}
+              currentIndex={queueCurrentIndex}
+              onReorder={reorderPrompts}
+              onRemove={removePrompt}
+              onClear={clearQueue}
+              onTogglePause={togglePause}
+              onStartProcessing={startProcessing}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Input */}
       <div className="p-3 border-t border-border">
         <div className="relative">
@@ -684,21 +777,44 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe what you want to build..."
-            className="min-h-[60px] max-h-[120px] resize-none pr-12 text-sm"
+            className="min-h-[60px] max-h-[120px] resize-none pr-20 text-sm"
             disabled={isLoading}
           />
-          <Button
-            size="icon"
-            className="absolute right-2 bottom-2 h-8 w-8"
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="absolute right-2 bottom-2 flex items-center gap-1">
+            {/* Add to queue button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleAddToQueue}
+                    disabled={!input.trim() || isLoading}
+                  >
+                    <ListPlus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">Add to queue (Ctrl+Enter)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            {/* Send button */}
+            <Button
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
