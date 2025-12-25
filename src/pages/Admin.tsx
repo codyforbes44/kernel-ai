@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key, Bot } from 'lucide-react';
+import { Users, MessageSquare, Shield, Mail, Cpu, MapPin, Eye, Key, Bot, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Message } from '@/types/database';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -25,7 +25,9 @@ import {
   VisitorAnalyticsPanel,
   AdminPanelWrapper,
   TeamAccessSettings,
-  XAISettingsPanel
+  XAISettingsPanel,
+  InviteCodeManagementPanel,
+  InviteRequestsPanel
 } from '@/components/admin';
 
 export default function Admin() {
@@ -144,6 +146,10 @@ export default function Admin() {
               <Mail className="h-4 w-4" />
               Contact
             </TabsTrigger>
+            <TabsTrigger value="invite-codes" className="gap-2">
+              <Ticket className="h-4 w-4" />
+              Invite Codes
+            </TabsTrigger>
             <TabsTrigger value="team-access" className="gap-2">
               <Key className="h-4 w-4" />
               Team Access
@@ -250,6 +256,25 @@ export default function Admin() {
             <AdminPanelWrapper panelName="Contact Submissions">
               <ContactSubmissionsPanel />
             </AdminPanelWrapper>
+          </TabsContent>
+
+          <TabsContent value="invite-codes">
+            <Tabs defaultValue="codes" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="codes">Manage Codes</TabsTrigger>
+                <TabsTrigger value="requests">Requests</TabsTrigger>
+              </TabsList>
+              <TabsContent value="codes">
+                <AdminPanelWrapper panelName="Invite Codes">
+                  <InviteCodeManagementPanel />
+                </AdminPanelWrapper>
+              </TabsContent>
+              <TabsContent value="requests">
+                <AdminPanelWrapper panelName="Invite Requests">
+                  <InviteRequestsPanel />
+                </AdminPanelWrapper>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="team-access">

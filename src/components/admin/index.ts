@@ -11,3 +11,5 @@ export { AdminPanelWrapper } from './AdminPanelWrapper';
 export { EmptyState } from './EmptyState';
 export { TeamAccessSettings } from './TeamAccessSettings';
 export { XAISettingsPanel } from './XAISettingsPanel';
+export { InviteCodeManagementPanel } from './InviteCodeManagementPanel';
+export { InviteRequestsPanel } from './InviteRequestsPanel';
