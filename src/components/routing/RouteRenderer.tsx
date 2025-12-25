@@ -38,6 +38,7 @@ const pageComponents = {
   Performance: lazy(() => import('@/pages/Performance')),
   OGPreview: lazy(() => import('@/pages/OGPreview')),
   HowItWorks: lazy(() => import('@/pages/HowItWorks')),
+  LogoExport: lazy(() => import('@/pages/LogoExport')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -90,6 +91,7 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/seo', component: 'SEODashboard', withErrorBoundary: true },
   { path: '/performance', component: 'Performance', withErrorBoundary: true },
   { path: '/og-preview', component: 'OGPreview' },
+  { path: '/logo-export', component: 'LogoExport' },
 ];
 
 function renderRoute(config: AppRouteConfig) {
