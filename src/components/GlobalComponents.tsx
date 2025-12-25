@@ -29,11 +29,14 @@ function PreferenceLoaders() {
 function VoiceAgentContainer() {
   const { config } = useVoiceAgentConfig();
   
-  if (!config.enabled || !config.agentId) {
+  // Default agent ID - can be overridden via config
+  const agentId = config.agentId || 'agent_3601kdbjwad7fnys6r2ye64jmpa9';
+  
+  if (!config.enabled) {
     return null;
   }
   
-  return <VoiceAgentWidget agentId={config.agentId} />;
+  return <VoiceAgentWidget agentId={agentId} />;
 }
 
 /**
