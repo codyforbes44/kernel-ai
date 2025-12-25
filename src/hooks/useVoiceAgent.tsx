@@ -113,6 +113,15 @@ export function useVoiceAgent({
     setError(null);
 
     try {
+      // Some browsers (especially mobile Safari) throw "The operation is insecure" when not in a secure context.
+      if (typeof window !== 'undefined' && !window.isSecureContext) {
+        throw new Error('Microphone access requires HTTPS. Please open the secure (https://) version of this site.');
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Microphone access is not available in this browser. Please use a modern browser over HTTPS.');
+      }
+
       // Request microphone permission first
       console.log('Requesting microphone permission...');
       await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -143,11 +152,30 @@ export function useVoiceAgent({
       });
     } catch (err) {
       console.error('Failed to connect:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect';
+
+      const errorMessage = (() => {
+        const msg = err instanceof Error ? err.message : String(err ?? 'Failed to connect');
+        const domErr = err instanceof DOMException ? err : null;
+
+        if (domErr?.name === 'NotAllowedError') {
+          return 'Microphone permission was blocked. Please allow microphone access and try again.';
+        }
+
+        if (domErr?.name === 'NotFoundError') {
+          return 'No microphone was found. Please connect a microphone and try again.';
+        }
+
+        if (domErr?.name === 'SecurityError' || msg === 'The operation is insecure.') {
+          return 'Microphone access requires HTTPS. Please open the secure (https://) version of this site.';
+        }
+
+        return msg;
+      })();
+
       setError(errorMessage);
       setStatus('error');
       isConnectingRef.current = false;
-      
+
       toast({
         title: 'Connection Failed',
         description: errorMessage,
