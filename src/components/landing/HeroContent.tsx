@@ -91,7 +91,13 @@ interface ScrollIndicatorProps {
   className?: string;
 }
 
-export function ScrollIndicator({ targetId, className }: ScrollIndicatorProps) {
+interface ScrollIndicatorProps {
+  targetId: string;
+  className?: string;
+  prefersReducedMotion?: boolean;
+}
+
+export function ScrollIndicator({ targetId, className, prefersReducedMotion = false }: ScrollIndicatorProps) {
   return (
     <a 
       href={`#${targetId}`}
@@ -104,7 +110,7 @@ export function ScrollIndicator({ targetId, className }: ScrollIndicatorProps) {
       <span className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">
         Scroll
       </span>
-      <ChevronDown className="h-5 w-5 animate-bounce" />
+      <ChevronDown className={cn("h-5 w-5", !prefersReducedMotion && "animate-bounce")} />
     </a>
   );
 }
