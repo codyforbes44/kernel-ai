@@ -135,13 +135,14 @@ export default function Landing() {
           <div className="text-center mb-10 sm:mb-12 md:mb-16">
             <GlowBadge variant="glow" className="mb-4">
               <Sparkles className="h-3 w-3 mr-1" />
-              Features
+              Core Capabilities
             </GlowBadge>
             <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Everything You Need to Build
+              Everything Powered by One Core
             </GlowText>
             <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-2">
-              A complete platform for creating, managing, and deploying web applications with AI at your side.
+              Like an OS powers your computer, Kernel powers your entire development workflow — 
+              AI, data, UI, and deployment unified under one intelligent system.
             </p>
           </div>
           
@@ -172,14 +173,14 @@ export default function Landing() {
           <div className="text-center mb-10 md:mb-12">
             <GlowBadge variant="gold" className="mb-4">
               <Sparkles className="h-3 w-3 mr-1" />
-              Why Choose Kernel
+              Why Kernel
             </GlowBadge>
             <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              How We Stack Up
+              The Only OS You Need
             </GlowText>
             <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto px-2">
-              See why developers choose Kernel over other AI platforms.
-              We offer the most complete solution for modern development.
+              Other tools handle one piece. Kernel powers everything — the complete operating 
+              system for AI-native development.
             </p>
           </div>
 
@@ -200,10 +201,10 @@ export default function Landing() {
       <HoloSection variant="gradient" className="py-12 sm:py-16 md:py-20 px-4 scroll-mt-16" id="cta">
         <div className="container mx-auto max-w-4xl text-center preserve-3d">
           <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 depth-layer-near px-2">
-            Make 2026 Your Year to Build
+            Boot Into the Future
           </GlowText>
           <p className="text-muted-foreground text-base md:text-lg mb-6 sm:mb-8 max-w-xl mx-auto px-4">
-            Join thousands of developers already building the future with Kernel's AI-powered platform.
+            Join thousands of developers running on Kernel — the AI Development OS that powers everything you build.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 depth-layer-front px-4 sm:px-2">
             <Button 

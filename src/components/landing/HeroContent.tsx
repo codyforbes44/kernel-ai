@@ -41,24 +41,24 @@ export function HeroContent({ className, prefersReducedMotion = false }: HeroCon
         </GlowBadge>
       </HeroEntranceItem>
       
-      {/* Headline - Clear value proposition */}
+      {/* Headline - AI Development OS positioning */}
       <HeroEntranceItem>
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 md:mb-6 leading-tight">
           <GlowText variant="gradient">
-            AI-Powered App Development
+            Your AI Development OS
           </GlowText>
           <br />
           <span className="text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.4)]">
-            Ship in Minutes, Not Months
+            One Core. Everything Powered.
           </span>
         </h1>
       </HeroEntranceItem>
       
-      {/* Description - Clear and concise */}
+      {/* Description - OS metaphor */}
       <HeroEntranceItem>
         <p className="text-base sm:text-lg md:text-xl text-foreground/80 mb-8 md:mb-10 max-w-2xl mx-auto leading-relaxed px-4 sm:px-2">
-          Transform ideas into production-ready apps with AI that understands your vision. 
-          No complex setup. Just describe what you want and start building.
+          Kernel is the operating system for modern development. AI, databases, UI, APIs, 
+          auth, and deployment — all powered by one intelligent core. From idea to production in minutes.
         </p>
       </HeroEntranceItem>
       

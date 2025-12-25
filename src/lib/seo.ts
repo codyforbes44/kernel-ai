@@ -2,8 +2,8 @@
 export const SEO_CONFIG = {
   siteName: 'Kernel',
   siteUrl: typeof window !== 'undefined' ? window.location.origin : 'https://kernel.cool',
-  defaultTitle: 'Kernel - AI Development Platform',
-  defaultDescription: 'Build beautiful web applications with AI-powered assistance. Features intelligent chat, visual builder, design systems, and instant deployment.',
+  defaultTitle: 'Kernel - Your AI Development OS',
+  defaultDescription: 'The operating system for AI-powered development. Kernel is the core that powers your vision — from idea to production in minutes.',
   defaultOgImage: '/og-images/default.png',
   twitterHandle: '@KernelDev',
   locale: 'en_US',
@@ -16,10 +16,10 @@ export const SEO_CONFIG = {
 // Per-page SEO configuration
 export const PAGE_SEO = {
   landing: {
-    title: 'Build the Future with AI | 2026',
-    description: 'Transform ideas into production-ready apps in minutes. The next generation of AI-powered development with intelligent chat, visual builder, and instant deployment.',
+    title: 'Kernel - Your AI Development OS | The Core That Powers Everything',
+    description: 'Kernel is the operating system for modern development. One platform that powers AI, databases, UI, APIs, auth, and deployment. From idea to production in minutes.',
     ogImage: '/og-image.png',
-    keywords: ['AI development 2026', 'web builder', 'no-code', 'app builder', 'AI assistant', 'visual editor', 'future of coding'] as string[],
+    keywords: ['AI development OS', 'AI operating system', 'development platform', 'app builder', 'AI-powered development', 'full-stack AI', 'kernel dev'] as string[],
   },
   home: {
     title: 'AI Assistant',
