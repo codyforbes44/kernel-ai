@@ -81,47 +81,10 @@ const glowBadgeVariants = cva(
         default: "px-3 py-1 text-xs",
         lg: "px-4 py-1.5 text-sm",
       },
-      pulse: {
-        true: "",
-        false: "",
-      },
     },
-    compoundVariants: [
-      {
-        pulse: true,
-        variant: "primary",
-        className: "animate-[pulse-badge_4s_ease-in-out_infinite]",
-      },
-      {
-        pulse: true,
-        variant: "glow",
-        className: "animate-[pulse-badge_4s_ease-in-out_infinite]",
-      },
-      {
-        pulse: true,
-        variant: "success",
-        className: "animate-[pulse-success_4s_ease-in-out_infinite]",
-      },
-      {
-        pulse: true,
-        variant: "destructive",
-        className: "animate-[pulse-destructive_4s_ease-in-out_infinite]",
-      },
-      {
-        pulse: true,
-        variant: "gold",
-        className: "animate-[pulse-gold_4s_ease-in-out_infinite]",
-      },
-      {
-        pulse: true,
-        variant: "premium",
-        className: "animate-[pulse-gold_4s_ease-in-out_infinite]",
-      },
-    ],
     defaultVariants: {
       variant: "default",
       size: "default",
-      pulse: false,
     },
   }
 );
@@ -139,7 +102,7 @@ export interface GlowBadgeProps
 
 const GlowBadge = React.forwardRef<HTMLDivElement, GlowBadgeProps>(
   (
-    { className, variant, size, pulse, dot, dotVariant = "primary", icon, children, ...props },
+    { className, variant, size, dot, dotVariant = "primary", icon, children, ...props },
     ref
   ) => {
     const dotColors = {
@@ -153,59 +116,19 @@ const GlowBadge = React.forwardRef<HTMLDivElement, GlowBadgeProps>(
     return (
       <div
         ref={ref}
-        className={cn(glowBadgeVariants({ variant, size, pulse }), className)}
+        className={cn(glowBadgeVariants({ variant, size }), className)}
         {...props}
       >
         {dot && (
           <span
             className={cn(
               "h-1.5 w-1.5 rounded-full",
-              dotColors[dotVariant],
-              pulse && "animate-pulse"
+              dotColors[dotVariant]
             )}
           />
         )}
         {icon && <span className="shrink-0">{icon}</span>}
         {children}
-
-        <style>{`
-          @keyframes pulse-badge {
-            0%, 100% { 
-              box-shadow: 0 0 15px hsl(var(--primary) / 0.3);
-              border-color: hsl(var(--primary) / 0.5);
-            }
-            50% { 
-              box-shadow: 0 0 25px hsl(var(--primary) / 0.5);
-              border-color: hsl(var(--primary) / 0.7);
-            }
-          }
-          @keyframes pulse-success {
-            0%, 100% { 
-              box-shadow: 0 0 12px hsl(var(--success) / 0.2);
-            }
-            50% { 
-              box-shadow: 0 0 20px hsl(var(--success) / 0.4);
-            }
-          }
-          @keyframes pulse-destructive {
-            0%, 100% { 
-              box-shadow: 0 0 12px hsl(var(--destructive) / 0.2);
-            }
-            50% { 
-              box-shadow: 0 0 20px hsl(var(--destructive) / 0.4);
-            }
-          }
-          @keyframes pulse-gold {
-            0%, 100% { 
-              box-shadow: 0 0 12px hsl(var(--gold) / 0.3);
-              border-color: hsl(var(--gold) / 0.5);
-            }
-            50% { 
-              box-shadow: 0 0 20px hsl(var(--gold) / 0.5);
-              border-color: hsl(var(--gold) / 0.8);
-            }
-          }
-        `}</style>
       </div>
     );
   }
