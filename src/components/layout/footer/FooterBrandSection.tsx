@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { KernelLogo } from "@/components/ui/kernel-logo";
+import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
 import { socialLinks } from "@/lib/footer-data";
 import { NewsletterForm } from "./NewsletterForm";
 
@@ -11,7 +11,7 @@ export function FooterBrandSection({ className }: FooterBrandSectionProps) {
   return (
     <div className={cn("space-y-5", className)}>
       <div className="flex items-center gap-2.5">
-        <KernelLogo className="w-8 h-8" />
+        <KernelLogoAnimated size="sm" variant="minimal" />
         <span className="font-bold text-lg tracking-tight">Kernel</span>
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
