@@ -9,6 +9,7 @@ import {
   CompareCTA,
   RadarChartSection,
 } from "@/components/compare";
+import { ExclusiveFeatureCallouts } from "@/components/compare/ExclusiveFeatureCallouts";
 import { useCompareExports } from "@/hooks/useCompareExports";
 
 const Compare = () => {
@@ -42,6 +43,7 @@ const Compare = () => {
       <div className="min-h-screen bg-background">
         <CompareHero exports={exports} />
         <RadarChartSection />
+        <ExclusiveFeatureCallouts />
         <FeatureComparisonTable />
         <CompareCTA />
       </div>
