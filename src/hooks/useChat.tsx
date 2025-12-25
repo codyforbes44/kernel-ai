@@ -6,10 +6,71 @@ import { useRateLimiter } from './useDebounce';
 import { format } from 'date-fns';
 import { AI_MODELS, MAX_CONTEXT_MESSAGES } from '@/lib/constants';
 import type { AIModel } from '@/lib/constants';
+import type { KnowledgeBase } from '@/types/knowledge-base';
 
 // Re-export for backwards compatibility
 export { AI_MODELS } from '@/lib/constants';
 export type { AIModel } from '@/lib/constants';
+
+// Knowledge base context for AI
+interface KnowledgeBaseContext {
+  instructions?: string;
+  techStack?: Array<{
+    name: string;
+    version?: string;
+    notes?: string;
+  }>;
+  conventions?: {
+    componentNaming?: string;
+    fileNaming?: string;
+    stateManagement?: string;
+    styling?: string;
+    customRules?: string[];
+  };
+  contextDocs?: Array<{
+    title: string;
+    content: string;
+    type: 'reference' | 'example' | 'api-doc';
+  }>;
+}
+
+// Helper to convert KnowledgeBase to KnowledgeBaseContext for API
+function formatKnowledgeBaseForAPI(kb?: KnowledgeBase): KnowledgeBaseContext | undefined {
+  if (!kb) return undefined;
+  
+  const hasContent = 
+    kb.instructions?.trim() || 
+    kb.techStack?.length > 0 || 
+    kb.conventions?.componentNaming || 
+    kb.conventions?.fileNaming ||
+    kb.conventions?.stateManagement ||
+    kb.conventions?.styling ||
+    kb.conventions?.customRules?.length ||
+    kb.contextDocs?.length > 0;
+  
+  if (!hasContent) return undefined;
+  
+  return {
+    instructions: kb.instructions || undefined,
+    techStack: kb.techStack?.map(t => ({
+      name: t.name,
+      version: t.version,
+      notes: t.notes,
+    })),
+    conventions: {
+      componentNaming: kb.conventions?.componentNaming || undefined,
+      fileNaming: kb.conventions?.fileNaming || undefined,
+      stateManagement: kb.conventions?.stateManagement || undefined,
+      styling: kb.conventions?.styling || undefined,
+      customRules: kb.conventions?.customRules?.length ? kb.conventions.customRules : undefined,
+    },
+    contextDocs: kb.contextDocs?.map(d => ({
+      title: d.title,
+      content: d.content,
+      type: d.type,
+    })),
+  };
+}
 
 // Helper to track usage analytics
 async function trackUsage(userId: string, messagesSent: number = 0, tokensUsed: number = 0) {
@@ -62,7 +123,7 @@ export function useChat() {
   const sendMessage = useCallback(async (
     content: string, 
     conversationId: string,
-    projectContext?: { url: string | null; name: string | null },
+    projectContext?: { url: string | null; name: string | null; knowledgeBase?: KnowledgeBase },
     attachments?: Array<{ name: string; size: number; type: string; url: string; path: string }>
   ) => {
     if (!user) return null;
@@ -117,6 +178,9 @@ export function useChat() {
       }));
 
     try {
+      // Format knowledge base for API
+      const knowledgeBaseContext = formatKnowledgeBaseForAPI(projectContext?.knowledgeBase);
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: 'POST',
         headers: {
@@ -128,6 +192,7 @@ export function useChat() {
           model: selectedModel,
           lovableProjectUrl: projectContext?.url,
           lovableProjectName: projectContext?.name,
+          knowledgeBase: knowledgeBaseContext,
         }),
         signal: abortControllerRef.current.signal,
       });

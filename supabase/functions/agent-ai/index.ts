@@ -1,4 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  buildAgentSystemPrompt,
+  type KnowledgeBaseContext,
+  type ProjectContext,
+} from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -154,60 +159,6 @@ const AGENT_TOOLS = [
   }
 ];
 
-const SYSTEM_PROMPT = `You are an AI Agent with multi-step reasoning capabilities for code generation and modification. You work autonomously to understand codebases and make changes.
-
-## Your Capabilities
-
-You have access to these tools:
-1. **read_file**: Read a file's complete content to understand it
-2. **search_files**: Search for patterns across the codebase
-3. **list_files**: List project files to understand structure
-4. **apply_changes**: Create, update, or delete files
-5. **get_errors**: Check for build/runtime errors after changes
-
-## Workflow
-
-For complex tasks, follow this workflow:
-
-1. **UNDERSTAND**: First explore the codebase
-   - Use list_files to see project structure
-   - Use search_files to find relevant code
-   - Use read_file to understand specific files
-
-2. **PLAN**: Think through your approach
-   - Consider what files need to change
-   - Plan the order of changes
-   - Identify potential issues
-
-3. **IMPLEMENT**: Apply your changes
-   - Use apply_changes with all necessary operations
-   - Include clear explanations for each change
-
-4. **VERIFY**: Check your work
-   - Use get_errors to check for problems
-   - If errors exist, analyze and fix them
-
-## Rules
-
-1. **Always explore before changing**: Read relevant files before modifying them
-2. **Make complete changes**: Include all necessary imports, types, and related updates
-3. **Explain your thinking**: Use clear reasoning in your responses
-4. **Self-correct**: If you find errors, fix them automatically (up to 5 iterations)
-5. **Follow existing patterns**: Match the code style in the project
-6. **Use TypeScript properly**: Include proper types and interfaces
-7. **Keep components focused**: Create small, reusable components
-
-## Response Format
-
-Always structure your responses with:
-1. **Thinking**: Explain what you're doing and why
-2. **Actions**: Call appropriate tools
-3. **Summary**: After changes, summarize what was done
-
-When you have completed all changes successfully, end with "AGENT_COMPLETE" to signal you're done.
-
-If you cannot complete the task or need user input, explain what's blocking you.`;
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -220,13 +171,26 @@ serve(async (req) => {
       errors,
       toolResults,
       iterationCount = 0,
-      maxIterations = 5 
+      maxIterations = 5,
+      knowledgeBase,
+      projectName,
+      projectUrl,
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    // Build project context for system prompt
+    const projectContext: ProjectContext = {
+      name: projectName,
+      url: projectUrl,
+      knowledgeBase: knowledgeBase as KnowledgeBaseContext | undefined,
+    };
+
+    // Build system prompt using shared module
+    const systemPrompt = buildAgentSystemPrompt(projectContext);
 
     // Build file context summary
     const fileList = (files as FileContext[]).map(f => f.path).join('\n');
@@ -264,8 +228,9 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Agent iteration ${iterationCount}/${maxIterations}`);
-    console.log(`Messages: ${apiMessages.length}, Tools: ${AGENT_TOOLS.length}`);
+    console.log(`[agent-ai] Iteration ${iterationCount}/${maxIterations}`);
+    console.log(`[agent-ai] Messages: ${apiMessages.length}, Tools: ${AGENT_TOOLS.length}`);
+    console.log(`[agent-ai] Knowledge base provided: ${!!knowledgeBase}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -276,7 +241,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           ...apiMessages,
         ],
         tools: AGENT_TOOLS,

@@ -1,4 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  buildChatSystemPrompt,
+  type KnowledgeBaseContext,
+  type ProjectContext,
+} from "../_shared/prompts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,6 +41,7 @@ interface ChatRequest {
   model?: string;
   lovableProjectUrl?: string;
   lovableProjectName?: string;
+  knowledgeBase?: KnowledgeBaseContext;
 }
 
 function validateChatRequest(body: unknown): { valid: true; data: ChatRequest } | { valid: false; error: string } {
@@ -43,7 +49,7 @@ function validateChatRequest(body: unknown): { valid: true; data: ChatRequest } 
     return { valid: false, error: "Invalid request body" };
   }
 
-  const { messages, model, lovableProjectUrl, lovableProjectName } = body as Record<string, unknown>;
+  const { messages, model, lovableProjectUrl, lovableProjectName, knowledgeBase } = body as Record<string, unknown>;
 
   // Validate messages array
   if (!Array.isArray(messages)) {
@@ -105,6 +111,7 @@ function validateChatRequest(body: unknown): { valid: true; data: ChatRequest } 
       model: selectedModel,
       lovableProjectUrl: typeof lovableProjectUrl === "string" ? lovableProjectUrl : undefined,
       lovableProjectName: typeof lovableProjectName === "string" ? sanitizeString(lovableProjectName, 200) : undefined,
+      knowledgeBase: knowledgeBase as KnowledgeBaseContext | undefined,
     },
   };
 }
@@ -127,39 +134,25 @@ serve(async (req) => {
       );
     }
 
-    const { messages, model, lovableProjectUrl, lovableProjectName } = validation.data;
+    const { messages, model, lovableProjectUrl, lovableProjectName, knowledgeBase } = validation.data;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    let projectContext = "";
-    if (lovableProjectUrl && lovableProjectName) {
-      projectContext = `\n\nThe user is currently working on a project named "${lovableProjectName}".
-Project URL: ${lovableProjectUrl}
-When providing assistance, consider this project context. If the user asks about their project, you can reference this URL.`;
-    }
+    // Build project context
+    const projectContext: ProjectContext = {
+      url: lovableProjectUrl,
+      name: lovableProjectName,
+      knowledgeBase,
+    };
 
-    const systemPrompt = `You are Kernel AI, an intelligent development assistant designed to help developers build applications faster.
+    // Build system prompt using shared module
+    const systemPrompt = buildChatSystemPrompt(projectContext);
 
-Your expertise includes:
-- React, TypeScript, Tailwind CSS, and Vite
-- Supabase (database, auth, edge functions, storage)
-- Shadcn/UI components
-- Modern development patterns and best practices
-
-Guidelines:
-- Provide concise, actionable responses
-- Include code examples with proper syntax highlighting
-- Use markdown formatting for structure
-- When showing code, always specify the language for syntax highlighting
-- Suggest optimizations and best practices
-- Be direct and efficient - the user is an expert
-
-When asked about features, reference official documentation patterns.
-When debugging, ask clarifying questions if needed.
-Format your responses with clear sections using headers when appropriate.${projectContext}`;
+    console.log("[chat] Processing request with model:", model);
+    console.log("[chat] Knowledge base provided:", !!knowledgeBase);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
