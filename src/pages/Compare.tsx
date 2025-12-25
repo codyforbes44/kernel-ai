@@ -10,7 +10,11 @@ import {
   RadarChartSection,
 } from "@/components/compare";
 import { ExclusiveFeatureCallouts } from "@/components/compare/ExclusiveFeatureCallouts";
+import { CompetitorSwitchSection } from "@/components/compare/CompetitorSwitchSection";
+import { SocialProofBanner } from "@/components/compare/SocialProofBanner";
+import { AnimatedCoverageCounter } from "@/components/compare/AnimatedCoverageCounter";
 import { useCompareExports } from "@/hooks/useCompareExports";
+import { HoloSection } from "@/components/ui/holo-section";
 
 const Compare = () => {
   const ogImageRef = useRef<HTMLDivElement>(null);
@@ -42,8 +46,18 @@ const Compare = () => {
 
       <div className="min-h-screen bg-background">
         <CompareHero exports={exports} />
+        
+        {/* Animated Coverage Counter Section */}
+        <HoloSection variant="default" className="py-12 md:py-16">
+          <div className="container px-4 md:px-6">
+            <AnimatedCoverageCounter />
+          </div>
+        </HoloSection>
+
+        <SocialProofBanner />
         <RadarChartSection />
         <ExclusiveFeatureCallouts />
+        <CompetitorSwitchSection />
         <FeatureComparisonTable />
         <CompareCTA />
       </div>
