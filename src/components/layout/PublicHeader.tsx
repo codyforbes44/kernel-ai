@@ -92,20 +92,13 @@ export function PublicHeader() {
         
         <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
           {/* Logo - Opens Command Nav */}
-          <div className="flex items-center gap-3">
-            <KernelLogoAnimated
-              size="md"
-              variant="animated"
-              isActive={commandOpen}
-              onClick={handleCommandClick}
-              className="cursor-pointer"
-            />
-            <Link to="/" className="group flex items-center">
-              <span className="font-bold text-lg sm:text-xl bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]">
-                Kernel
-              </span>
-            </Link>
-          </div>
+          <KernelLogoAnimated
+            size="md"
+            variant="animated"
+            isActive={commandOpen}
+            onClick={handleCommandClick}
+            className="cursor-pointer"
+          />
 
           {/* Desktop Navigation - Minimal with Command Trigger */}
           <nav className="hidden md:flex items-center gap-2">

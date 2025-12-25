@@ -57,11 +57,6 @@ export function TopNavBar() {
             onClick={handleCommandClick}
             className="cursor-pointer"
           />
-          <Link to="/assistant" className="hover:opacity-80 transition-opacity">
-            <span className="font-semibold text-sm hidden sm:inline bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent bg-[length:200%_100%] animate-[shimmer_3s_ease-in-out_infinite]">
-              Kernel
-            </span>
-          </Link>
         </div>
 
         {/* Navigation Links */}
