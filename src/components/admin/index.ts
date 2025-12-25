@@ -4,6 +4,7 @@ export { AIUsagePanel } from './AIUsagePanel';
 export { LoginLocationsPanel } from './LoginLocationsPanel';
 export { VisitorAnalyticsPanel } from './VisitorAnalyticsPanel';
 export { ContactSubmissionsPanel } from './ContactSubmissionsPanel';
+export { NewsletterSubscribersPanel } from './NewsletterSubscribersPanel';
 export { DateRangeFilterSelect } from './DateRangeFilter';
 export { ExportButton } from './ExportButton';
 export { RefreshButton } from './RefreshButton';
