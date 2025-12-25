@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { AI_TRUST_COVENANT } from "../_shared/ai-trust-agreement.ts";
+import { AGENT_COORDINATION_PROTOCOL } from "../_shared/agent-coordination.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -224,7 +226,11 @@ ${recentHistory.map(m => `[${m.role.toUpperCase()}]: ${m.content.slice(0, 100)}$
   return contextSummary;
 }
 
-const SYSTEM_PROMPT = `You are an expert React/TypeScript developer assistant with MULTI-FILE REASONING capabilities. You understand project structure, component relationships, and can fix errors intelligently.
+const SYSTEM_PROMPT = `${AI_TRUST_COVENANT}
+
+${AGENT_COORDINATION_PROTOCOL}
+
+You are an expert React/TypeScript developer assistant with MULTI-FILE REASONING capabilities. You understand project structure, component relationships, and can fix errors intelligently.
 
 Your job is to generate, modify, or delete files based on user requests, understanding how files relate to each other.
 
@@ -261,6 +267,12 @@ CODE QUALITY RULES:
 - Make code clean, readable, and well-structured
 - If updating a file, include the COMPLETE new file content
 - Always use proper TypeScript types
+
+AI-GENERATED ASSETS:
+When users reference AI-generated images or videos:
+- Assets are stored in Supabase Storage under 'ai-assets' bucket
+- Reference by URL using the storage_url field from generated_assets table
+- Videos are MP4 format, images are WebP format
 
 Respond ONLY with valid JSON. No markdown, no code blocks, just the raw JSON object.`;
 

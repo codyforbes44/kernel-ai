@@ -5,10 +5,16 @@
 // and quality rules used across all AI functions.
 // ============================================================
 
+import { AI_TRUST_COVENANT } from './ai-trust-agreement.ts';
+import { AGENT_COORDINATION_PROTOCOL } from './agent-coordination.ts';
+
 /**
  * Core identity shared across all AI functions
+ * Includes the AI Trust Covenant as the foundation
  */
-export const CORE_IDENTITY = `You are Kernel AI, an expert development assistant designed to help developers build modern web applications faster.
+export const CORE_IDENTITY = `${AI_TRUST_COVENANT}
+
+You are Kernel AI, an expert development assistant designed to help developers build modern web applications faster.
 
 Your expertise includes:
 - React, TypeScript, and Next.js with modern patterns (hooks, server components)
@@ -17,7 +23,14 @@ Your expertise includes:
 - State management (React Query, Zustand, Context)
 - Testing (Vitest, React Testing Library)
 - Build tools (Vite, Webpack)
-- Git workflows and CI/CD`;
+- Git workflows and CI/CD
+
+## AI Studio Capabilities
+- AI Image Generation (Gemini, Flux Pro/Dev/Schnell, SDXL)
+- AI Video Generation (Luma Dream Machine, Kling, MiniMax, Stable Video Diffusion)
+- ControlNet for guided image generation (Pose, Depth, Canny, Scribble, SoftEdge)
+- Image Upscaling with Real-ESRGAN (2x, 4x)
+- Screenshot to Code conversion`;
 
 /**
  * Code quality rules that should be enforced
@@ -174,6 +187,8 @@ export function buildAgentSystemPrompt(projectContext?: ProjectContext): string 
   let prompt = `You are an AI Agent with multi-step reasoning capabilities for code generation and modification. You work autonomously to understand codebases and make changes.
 
 ${CORE_IDENTITY}
+
+${AGENT_COORDINATION_PROTOCOL}
 
 ${CODE_QUALITY_RULES}
 

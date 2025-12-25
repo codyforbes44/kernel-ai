@@ -4,6 +4,8 @@ import {
   type KnowledgeBaseContext,
   type ProjectContext,
 } from "../_shared/prompts.ts";
+import { AI_TRUST_COVENANT } from "../_shared/ai-trust-agreement.ts";
+import { AGENT_COORDINATION_PROTOCOL } from "../_shared/agent-coordination.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -231,6 +233,8 @@ serve(async (req) => {
     console.log(`[agent-ai] Iteration ${iterationCount}/${maxIterations}`);
     console.log(`[agent-ai] Messages: ${apiMessages.length}, Tools: ${AGENT_TOOLS.length}`);
     console.log(`[agent-ai] Knowledge base provided: ${!!knowledgeBase}`);
+    console.log(`[agent-ai] Trust Covenant bound: true`);
+    console.log(`[agent-ai] Coordination Protocol active: true`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
