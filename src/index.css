@@ -1127,3 +1127,35 @@
   height: 100vh;
   height: 100dvh;
 }
+
+/* Mobile-first touch utilities */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Larger button height for mobile touch targets (52px) */
+.h-13 {
+  height: 3.25rem;
+}
+
+/* Skip to content link for accessibility */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 2px solid hsl(var(--primary));
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* Focus glow for interactive elements */
+.focus-glow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary)), 0 0 20px hsl(var(--primary) / 0.4);
+}

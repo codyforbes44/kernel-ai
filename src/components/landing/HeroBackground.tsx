@@ -3,6 +3,10 @@ import { Hero3DScene } from '../three/Hero3DScene';
 import { HeroSkeleton } from './HeroSkeleton';
 import { cn } from '@/lib/utils';
 
+interface HeroBackgroundProps {
+  isVisible?: boolean;
+}
+
 // Error boundary for graceful WebGL fallback
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -36,41 +40,50 @@ class WebGLErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundar
 }
 
 // Wrapper to detect when 3D scene is ready
-function Scene3DWithLoadState({ onReady }: { onReady: () => void }) {
+function Scene3DWithLoadState({ onReady, isPaused }: { onReady: () => void; isPaused: boolean }) {
   useEffect(() => {
     // Small delay to ensure WebGL context is fully initialized
     const timer = setTimeout(onReady, 100);
     return () => clearTimeout(timer);
   }, [onReady]);
 
-  return <Hero3DScene />;
+  return <Hero3DScene isPaused={isPaused} />;
 }
 
-export function HeroBackground() {
+export function HeroBackground({ isVisible = true }: HeroBackgroundProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div 
+      className={cn(
+        "absolute inset-0 overflow-hidden pointer-events-none",
+        // Hide from GPU when not visible to save battery
+        !isVisible && "invisible"
+      )}
+    >
       {/* Skeleton loader - fades out when 3D is ready */}
       <div 
         className={cn(
-          "absolute inset-0 z-10 transition-opacity duration-700 ease-out",
+          "absolute inset-0 z-10 transition-opacity duration-1000 ease-out",
           isLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
         )}
       >
         <HeroSkeleton />
       </div>
       
-      {/* 3D Scene */}
+      {/* 3D Scene - paused when not visible */}
       <div 
         className={cn(
-          "absolute inset-0 transition-opacity duration-500 ease-in",
+          "absolute inset-0 transition-opacity duration-700 ease-in",
           isLoaded ? "opacity-100" : "opacity-0"
         )}
       >
         <WebGLErrorBoundary>
           <Suspense fallback={null}>
-            <Scene3DWithLoadState onReady={() => setIsLoaded(true)} />
+            <Scene3DWithLoadState 
+              onReady={() => setIsLoaded(true)} 
+              isPaused={!isVisible}
+            />
           </Suspense>
         </WebGLErrorBoundary>
       </div>
