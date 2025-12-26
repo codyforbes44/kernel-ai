@@ -73,6 +73,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
     activeTabId,
     activeFile,
     isLoading,
+    isFileContentLoading,
     openFile,
     closeTab,
     setActiveTabId,
@@ -312,33 +313,42 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
               onSaveFile={saveFile}
             />
             {activeFile ? (
-              <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
-                <CollaborativeMonacoEditor
-                  ref={editorRef}
-                  value={getFileContent(activeFile.id)}
-                  language={activeFile.language || 'plaintext'}
-                  onChange={(value) => updateLocalContent(activeFile.id, value)}
-                  onSave={handleSave}
-                  path={activeFile.path}
-                  collaborators={collaborators}
-                  currentFilePath={activeFile.path}
-                  onCursorChange={trackCursor}
-                  onSelectionChange={trackSelection}
-                  onTyping={trackTyping}
-                />
-                {/* Typing Indicator */}
-                {typingCollaborators.length > 0 && (
-                  <div className="absolute bottom-4 left-4 z-10">
-                    <TypingIndicator
-                      typingUsers={typingCollaborators.map(c => ({
-                        id: c.userId,
-                        displayName: c.displayName,
-                        color: c.color,
-                      }))}
-                    />
+              isFileContentLoading(activeFile.id) ? (
+                <div className="flex-1 flex items-center justify-center text-muted-foreground bg-[hsl(var(--code-background))]">
+                  <div className="text-center">
+                    <div className="h-8 w-8 mx-auto mb-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <p className="text-sm">Loading file content...</p>
                   </div>
-                )}
-              </EditorErrorBoundary>
+                </div>
+              ) : (
+                <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
+                  <CollaborativeMonacoEditor
+                    ref={editorRef}
+                    value={getFileContent(activeFile.id) ?? ''}
+                    language={activeFile.language || 'plaintext'}
+                    onChange={(value) => updateLocalContent(activeFile.id, value)}
+                    onSave={handleSave}
+                    path={activeFile.path}
+                    collaborators={collaborators}
+                    currentFilePath={activeFile.path}
+                    onCursorChange={trackCursor}
+                    onSelectionChange={trackSelection}
+                    onTyping={trackTyping}
+                  />
+                  {/* Typing Indicator */}
+                  {typingCollaborators.length > 0 && (
+                    <div className="absolute bottom-4 left-4 z-10">
+                      <TypingIndicator
+                        typingUsers={typingCollaborators.map(c => ({
+                          id: c.userId,
+                          displayName: c.displayName,
+                          color: c.color,
+                        }))}
+                      />
+                    </div>
+                  )}
+                </EditorErrorBoundary>
+              )
             ) : (
               <div className="flex-1 flex items-center justify-center text-muted-foreground bg-[hsl(var(--code-background))]">
                 <div className="text-center">
