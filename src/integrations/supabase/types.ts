@@ -329,6 +329,195 @@ export type Database = {
         }
         Relationships: []
       }
+      companion_conversations: {
+        Row: {
+          context_summary: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          message_count: number
+          mood_at_end: string | null
+          mood_at_start: string | null
+          relationship_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          context_summary?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message_count?: number
+          mood_at_end?: string | null
+          mood_at_start?: string | null
+          relationship_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          context_summary?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message_count?: number
+          mood_at_end?: string | null
+          mood_at_start?: string | null
+          relationship_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companion_conversations_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "companion_relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companion_messages: {
+        Row: {
+          affinity_change: number | null
+          content: string
+          conversation_id: string
+          created_at: string
+          emotion_tags: Json | null
+          id: string
+          role: string
+          tokens_used: number | null
+        }
+        Insert: {
+          affinity_change?: number | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          emotion_tags?: Json | null
+          id?: string
+          role: string
+          tokens_used?: number | null
+        }
+        Update: {
+          affinity_change?: number | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          emotion_tags?: Json | null
+          id?: string
+          role?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companion_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "companion_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companion_profiles: {
+        Row: {
+          avatar_url: string | null
+          backstory: string | null
+          created_at: string
+          default_greeting: string
+          id: string
+          is_active: boolean | null
+          name: string
+          personality_traits: Json
+          personality_type: string
+          system_prompt: string
+          updated_at: string
+          voice_settings: Json | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          backstory?: string | null
+          created_at?: string
+          default_greeting?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          personality_traits?: Json
+          personality_type?: string
+          system_prompt: string
+          updated_at?: string
+          voice_settings?: Json | null
+        }
+        Update: {
+          avatar_url?: string | null
+          backstory?: string | null
+          created_at?: string
+          default_greeting?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          personality_traits?: Json
+          personality_type?: string
+          system_prompt?: string
+          updated_at?: string
+          voice_settings?: Json | null
+        }
+        Relationships: []
+      }
+      companion_relationships: {
+        Row: {
+          affinity_level: number
+          companion_id: string
+          created_at: string
+          current_mood: string | null
+          id: string
+          last_interaction: string | null
+          memory_context: Json
+          milestones: Json
+          nickname: string | null
+          total_interactions: number
+          total_messages: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affinity_level?: number
+          companion_id: string
+          created_at?: string
+          current_mood?: string | null
+          id?: string
+          last_interaction?: string | null
+          memory_context?: Json
+          milestones?: Json
+          nickname?: string | null
+          total_interactions?: number
+          total_messages?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affinity_level?: number
+          companion_id?: string
+          created_at?: string
+          current_mood?: string | null
+          id?: string
+          last_interaction?: string | null
+          memory_context?: Json
+          milestones?: Json
+          nickname?: string | null
+          total_interactions?: number
+          total_messages?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companion_relationships_companion_id_fkey"
+            columns: ["companion_id"]
+            isOneToOne: false
+            referencedRelation: "companion_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       component_installations: {
         Row: {
           component_id: string

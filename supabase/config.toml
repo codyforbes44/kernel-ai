@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.generate-image-advanced]
 verify_jwt = false
+
+[functions.companion-chat]
+verify_jwt = false
