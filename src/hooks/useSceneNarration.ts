@@ -7,6 +7,7 @@ interface SceneNarration {
 
 interface UseSceneNarrationOptions {
   narrations: SceneNarration[];
+  volume?: number;
 }
 
 interface UseSceneNarrationReturn {
@@ -19,7 +20,7 @@ interface UseSceneNarrationReturn {
   reset: () => void;
 }
 
-export function useSceneNarration({ narrations }: UseSceneNarrationOptions): UseSceneNarrationReturn {
+export function useSceneNarration({ narrations, volume = 0.8 }: UseSceneNarrationOptions): UseSceneNarrationReturn {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentNarrationId, setCurrentNarrationId] = useState<string | null>(null);
@@ -28,6 +29,13 @@ export function useSceneNarration({ narrations }: UseSceneNarrationOptions): Use
   const currentAudio = useRef<HTMLAudioElement | null>(null);
   const playedScenes = useRef<Set<string>>(new Set());
   const loadedCount = useRef(0);
+
+  // Update volume on all cached audio elements when volume prop changes
+  useEffect(() => {
+    audioCache.current.forEach(audio => {
+      audio.volume = volume;
+    });
+  }, [volume]);
 
   // Pre-load all narration audio files
   useEffect(() => {
@@ -41,7 +49,7 @@ export function useSceneNarration({ narrations }: UseSceneNarrationOptions): Use
     
     narrations.forEach(({ sceneId, audioUrl }) => {
       const audio = new Audio();
-      audio.volume = 0.8;
+      audio.volume = volume;
       audio.preload = 'auto';
       
       const handleLoad = () => {
