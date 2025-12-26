@@ -70,7 +70,8 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             variant="ghost"
             size="sm"
             className={cn(
-              'h-7 px-2 gap-1.5 text-xs font-normal relative transition-all',
+              // Mobile-first: taller touch targets, icon-only
+              'h-9 w-9 p-0 md:h-8 md:w-auto md:px-2 gap-1.5 text-xs font-normal relative transition-all touch-manipulation',
               isActive 
                 ? 'bg-primary/15 text-primary border border-primary/30' 
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -79,7 +80,7 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             onClick={() => !isDisabled && onTogglePanel(panelId)}
             disabled={isDisabled}
           >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="h-4 w-4 md:h-3.5 md:w-3.5" />
             <span className="hidden lg:inline">{panel.name}</span>
             
             {/* Agent running indicator */}
@@ -108,14 +109,14 @@ export const PanelToggleBar = memo(function PanelToggleBar({
   };
 
   return (
-    <div className="h-9 flex items-center gap-1 px-3 border-b border-border bg-muted/30 overflow-x-auto">
+    <div className="h-12 md:h-10 flex items-center gap-1 px-2 md:px-3 border-b border-border bg-muted/30 overflow-x-auto scrollbar-none">
       {/* AI Panels */}
       <div className="flex items-center gap-0.5">
         <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden xl:block">AI</span>
         {categories.ai.panels.map(renderPanelButton)}
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1" />
+      <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
 
       {/* Cloud Panels */}
       <div className="flex items-center gap-0.5">
@@ -123,7 +124,7 @@ export const PanelToggleBar = memo(function PanelToggleBar({
         {categories.cloud.panels.map(renderPanelButton)}
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1" />
+      <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
 
       {/* Project Panels */}
       <div className="flex items-center gap-0.5">
@@ -133,7 +134,7 @@ export const PanelToggleBar = memo(function PanelToggleBar({
 
       {categories.tools.panels.length > 0 && (
         <>
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
           
           {/* Tools Panels */}
           <div className="flex items-center gap-0.5">
@@ -144,7 +145,7 @@ export const PanelToggleBar = memo(function PanelToggleBar({
       )}
 
       {/* Spacer */}
-      <div className="flex-1" />
+      <div className="flex-1 min-w-2" />
 
       {/* Preview Toggle */}
       <Tooltip>
@@ -153,7 +154,7 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             variant="ghost"
             size="sm"
             className={cn(
-              'h-7 px-2 gap-1.5 text-xs font-normal',
+              'h-9 w-9 p-0 md:h-8 md:w-auto md:px-2 gap-1.5 text-xs font-normal touch-manipulation',
               showPreview 
                 ? 'text-foreground' 
                 : 'text-muted-foreground hover:text-foreground'
@@ -161,9 +162,9 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             onClick={onTogglePreview}
           >
             {showPreview ? (
-              <PanelRightClose className="h-3.5 w-3.5" />
+              <PanelRightClose className="h-4 w-4 md:h-3.5 md:w-3.5" />
             ) : (
-              <PanelRightOpen className="h-3.5 w-3.5" />
+              <PanelRightOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
             )}
             <span className="hidden lg:inline">Preview</span>
           </Button>
