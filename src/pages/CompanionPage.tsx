@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { CompanionSelector } from '@/components/companion/CompanionSelector';
 import { CompanionChat } from '@/components/companion/CompanionChat';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
