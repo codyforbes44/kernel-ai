@@ -2,7 +2,8 @@ import { useState, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { companionService } from '@/services/companionService';
 import { toast } from 'sonner';
-import type { ChatResponse, CompanionMessage, Milestone } from '@/types/companion';
+import { companionKeys } from '@/constants/companion';
+import type { ChatResponse, Milestone } from '@/types/companion';
 
 interface UseCompanionChatOptions {
   companionId: string;
@@ -29,22 +30,19 @@ export function useCompanionChat({
     onSuccess: (response: ChatResponse) => {
       setPendingMessage(null);
       
-      // Update conversation ID if new
       if (response.conversation_id !== conversationId) {
         setConversationId(response.conversation_id);
       }
 
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['companion-messages', response.conversation_id] });
-      queryClient.invalidateQueries({ queryKey: ['companion-relationship', companionId] });
-      queryClient.invalidateQueries({ queryKey: ['companion-conversations'] });
+      // Invalidate queries using centralized keys
+      queryClient.invalidateQueries({ queryKey: companionKeys.messages(response.conversation_id) });
+      queryClient.invalidateQueries({ queryKey: companionKeys.relationship(companionId) });
+      queryClient.invalidateQueries({ queryKey: companionKeys.all });
 
-      // Handle affinity change notification
       if (onAffinityChange && response.affinity.change !== 0) {
         onAffinityChange(response.affinity.level, response.affinity.change);
       }
 
-      // Handle new milestones
       if (response.milestones.length > 0 && onNewMilestone) {
         response.milestones.forEach((milestone) => {
           onNewMilestone(milestone);
@@ -57,9 +55,7 @@ export function useCompanionChat({
     },
     onError: (error: Error) => {
       setPendingMessage(null);
-      toast.error('Failed to send message', {
-        description: error.message,
-      });
+      toast.error('Failed to send message', { description: error.message });
     },
   });
 

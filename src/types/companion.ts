@@ -1,3 +1,5 @@
+// Companion system types
+
 export interface CompanionProfile {
   id: string;
   name: string;
@@ -94,39 +96,10 @@ export interface ChatResponse {
   tokens_used: number;
 }
 
-export interface AffinityLevel {
-  name: string;
-  minLevel: number;
-  maxLevel: number;
-  color: string;
-  description: string;
-}
-
-export const AFFINITY_LEVELS: AffinityLevel[] = [
-  { name: 'Stranger', minLevel: 0, maxLevel: 15, color: 'hsl(var(--muted))', description: 'Just getting to know each other' },
-  { name: 'Acquaintance', minLevel: 16, maxLevel: 35, color: 'hsl(var(--primary) / 0.4)', description: 'Building a connection' },
-  { name: 'Friend', minLevel: 36, maxLevel: 55, color: 'hsl(var(--primary) / 0.6)', description: 'A growing friendship' },
-  { name: 'Close Friend', minLevel: 56, maxLevel: 75, color: 'hsl(var(--primary) / 0.8)', description: 'A meaningful bond' },
-  { name: 'Best Friend', minLevel: 76, maxLevel: 90, color: 'hsl(var(--primary))', description: 'An incredible connection' },
-  { name: 'Soulmate', minLevel: 91, maxLevel: 100, color: 'hsl(var(--chart-1))', description: 'The deepest bond possible' },
-];
-
-export function getAffinityLevel(level: number): AffinityLevel {
-  return AFFINITY_LEVELS.find(
-    (al) => level >= al.minLevel && level <= al.maxLevel
-  ) || AFFINITY_LEVELS[0];
-}
-
-export const PERSONALITY_COLORS: Record<string, string> = {
-  mentor: 'hsl(var(--chart-1))',
-  creative: 'hsl(var(--chart-2))',
-  analytical: 'hsl(var(--chart-3))',
-  supportive: 'hsl(var(--chart-4))',
-};
-
-export const PERSONALITY_ICONS: Record<string, string> = {
-  mentor: '🌟',
-  creative: '🎨',
-  analytical: '📊',
-  supportive: '💚',
-};
+// Re-export constants for backward compatibility
+export { 
+  AFFINITY_LEVELS, 
+  getAffinityLevel, 
+  PERSONALITY_COLORS, 
+  PERSONALITY_ICONS 
+} from '@/constants/companion';
