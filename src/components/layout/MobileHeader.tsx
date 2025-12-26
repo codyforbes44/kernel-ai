@@ -45,7 +45,8 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
             variant="ghost"
             size="icon"
             onClick={handleOpenSidebar}
-            className="h-10 w-10"
+            className="h-10 w-10 touch-manipulation active:scale-95 transition-transform"
+            aria-label="Open sidebar menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -82,7 +83,8 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
               variant="default"
               size="icon"
               onClick={() => setShowCreateProject(true)}
-              className="h-10 w-10"
+              className="h-10 w-10 touch-manipulation active:scale-95 transition-transform"
+              aria-label="Create new project"
             >
               <FolderPlus className="h-5 w-5" />
             </Button>
@@ -92,7 +94,8 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
               size="icon"
               onClick={handleNewConversation}
               disabled={!currentProject || isCreatingConversation}
-              className="h-10 w-10"
+              className="h-10 w-10 touch-manipulation active:scale-95 transition-transform"
+              aria-label="New conversation"
             >
               {isCreatingConversation ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -105,7 +108,8 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
             variant="ghost"
             size="icon"
             onClick={handleOpenContext}
-            className="h-10 w-10"
+            className="h-10 w-10 touch-manipulation active:scale-95 transition-transform"
+            aria-label="Open context panel"
           >
             <PanelRight className="h-5 w-5" />
           </Button>
