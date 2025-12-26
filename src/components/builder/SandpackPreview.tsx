@@ -33,6 +33,7 @@ interface SandpackPreviewProps {
   previewFontsUrl?: string | null;
   onVisualEditorToggle?: (enabled: boolean) => void;
   onNavigateToSource?: (filePath: string, lineNumber: number) => void;
+  onClose?: () => void;
 }
 
 type ViewportSize = 'desktop' | 'tablet' | 'mobile';
@@ -457,6 +458,7 @@ export function SandpackPreview({
   previewFontsUrl,
   onVisualEditorToggle,
   onNavigateToSource,
+  onClose,
 }: SandpackPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [refreshKey, setRefreshKey] = useState(0);
@@ -519,6 +521,7 @@ export function SandpackPreview({
         currentPath="/"
         isFullscreen={isFullscreen}
         onToggleFullscreen={handleToggleFullscreen}
+        onClose={onClose}
       />
 
       {/* Preview Area - maximized to fill palette */}

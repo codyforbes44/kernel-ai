@@ -1,4 +1,4 @@
-import { RefreshCw, ExternalLink, Monitor, Tablet, Smartphone, Globe, Maximize2, Minimize2 } from 'lucide-react';
+import { RefreshCw, ExternalLink, Monitor, Tablet, Smartphone, Globe, Maximize2, Minimize2, PanelRightClose } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -48,6 +48,7 @@ interface PreviewToolbarProps {
   isBundling?: boolean;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  onClose?: () => void;
 }
 
 export function PreviewToolbar({
@@ -61,6 +62,7 @@ export function PreviewToolbar({
   isBundling = false,
   isFullscreen = false,
   onToggleFullscreen,
+  onClose,
 }: PreviewToolbarProps) {
   // In fullscreen mode, show a minimal floating bar
   if (isFullscreen) {
@@ -176,11 +178,30 @@ export function PreviewToolbar({
               className="h-7 w-7"
               onClick={onOpenExternal}
             >
-              <ExternalLink className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Open in new tab</TooltipContent>
         </Tooltip>
+
+        {onClose && (
+          <>
+            <div className="w-px h-5 bg-border mx-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={onClose}
+                >
+                  <PanelRightClose className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Hide preview</TooltipContent>
+            </Tooltip>
+          </>
+        )}
       </div>
     </div>
   );
