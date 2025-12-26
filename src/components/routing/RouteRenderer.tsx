@@ -40,6 +40,7 @@ const pageComponents = {
   HowItWorks: lazy(() => import('@/pages/HowItWorks')),
   LogoExport: lazy(() => import('@/pages/LogoExport')),
   GenerateAudio: lazy(() => import('@/pages/admin/GenerateAudio')),
+  Companion: lazy(() => import('@/pages/CompanionPage')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -94,6 +95,7 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/og-preview', component: 'OGPreview' },
   { path: '/logo-export', component: 'LogoExport' },
   { path: '/admin/generate-audio', component: 'GenerateAudio' },
+  { path: '/companion', component: 'Companion', withErrorBoundary: true, requiresAuth: true },
 ];
 
 function renderRoute(config: AppRouteConfig) {
