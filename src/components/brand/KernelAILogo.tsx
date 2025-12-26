@@ -1,11 +1,15 @@
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface KernelAILogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   isPaused?: boolean;
   interactive?: boolean;
+  onClick?: () => void;
+  to?: string;
+  ariaLabel?: string;
 }
 
 const sizeMap = {
@@ -176,6 +180,9 @@ export const KernelAILogo = memo(({
   className = '',
   isPaused = false,
   interactive = false,
+  onClick,
+  to,
+  ariaLabel = 'Kernel AI',
 }: KernelAILogoProps) => {
   const config = sizeMap[size];
   const [isHovered, setIsHovered] = useState(false);
@@ -193,18 +200,23 @@ export const KernelAILogo = memo(({
 
   // Compact version for xs size
   if (size === 'xs') {
-    return (
+    const content = (
       <motion.div
-        className={`relative inline-flex items-center cursor-pointer ${className}`}
+        className={`relative inline-flex items-center cursor-pointer min-h-[44px] min-w-[44px] justify-center touch-manipulation ${className}`}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        style={{ padding: '4px 0' }}
+        onClick={onClick}
+        role="button"
+        aria-label={ariaLabel}
+        tabIndex={0}
+        whileTap={{ scale: 0.95 }}
+        style={{ padding: '8px 4px' }}
       >
         <CompactText fontSize={config.fontSize} isHovered={isHovered || interactive} />
         
         {/* Subtle underline on hover */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-primary/0 via-primary to-primary/0"
+          className="absolute bottom-1 left-1 right-1 h-[1px] bg-gradient-to-r from-primary/0 via-primary to-primary/0"
           initial={{ scaleX: 0, opacity: 0 }}
           animate={{ 
             scaleX: isHovered ? 1 : 0, 
@@ -214,9 +226,14 @@ export const KernelAILogo = memo(({
         />
       </motion.div>
     );
+
+    if (to) {
+      return <Link to={to} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">{content}</Link>;
+    }
+    return content;
   }
   
-  return (
+  const content = (
     <motion.div 
       className={`relative inline-flex items-center justify-center ${className}`}
       style={{ 
@@ -225,6 +242,10 @@ export const KernelAILogo = memo(({
       }}
       onHoverStart={() => interactive && setIsHovered(true)}
       onHoverEnd={() => interactive && setIsHovered(false)}
+      onClick={onClick}
+      role={onClick || to ? "button" : undefined}
+      aria-label={ariaLabel}
+      tabIndex={onClick || to ? 0 : undefined}
     >
       {/* Background glow */}
       {config.showEffects && (
@@ -252,6 +273,11 @@ export const KernelAILogo = memo(({
       {config.showEffects && <AnimatedUnderline isPaused={isPaused && !isHovered} />}
     </motion.div>
   );
+
+  if (to) {
+    return <Link to={to} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">{content}</Link>;
+  }
+  return content;
 });
 
 KernelAILogo.displayName = 'KernelAILogo';

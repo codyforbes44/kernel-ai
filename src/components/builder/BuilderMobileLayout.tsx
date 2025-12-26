@@ -11,7 +11,7 @@ import {
   Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { KernelLogo } from '@/components/ui/kernel-logo';
+import { KernelAILogo } from '@/components/brand/KernelAILogo';
 import { EditorTabs } from './EditorTabs';
 
 // Lazy load heavy Monaco Editor
@@ -195,9 +195,7 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
           <Link to="/builder" className="flex items-center p-1 -ml-1 touch-manipulation">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <Link to="/" className="flex items-center touch-manipulation">
-            <KernelLogo size="sm" />
-          </Link>
+          <KernelAILogo size="xs" interactive to="/" />
         </div>
         
         <span className="text-sm font-medium truncate flex-1 text-center mx-2 max-w-[140px]">
