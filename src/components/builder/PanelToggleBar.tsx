@@ -70,8 +70,8 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             variant="ghost"
             size="sm"
             className={cn(
-              // Mobile-first: taller touch targets, icon-only
-              'h-9 w-9 p-0 md:h-8 md:w-auto md:px-2 gap-1.5 text-xs font-normal relative transition-all touch-manipulation',
+              'h-8 w-8 p-0 shrink-0 text-xs font-normal relative transition-all touch-manipulation',
+              'xl:h-7 xl:w-auto xl:px-2 xl:gap-1.5',
               isActive 
                 ? 'bg-primary/15 text-primary border border-primary/30' 
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
@@ -80,8 +80,8 @@ export const PanelToggleBar = memo(function PanelToggleBar({
             onClick={() => !isDisabled && onTogglePanel(panelId)}
             disabled={isDisabled}
           >
-            <Icon className="h-4 w-4 md:h-3.5 md:w-3.5" />
-            <span className="hidden lg:inline">{panel.name}</span>
+            <Icon className="h-4 w-4 xl:h-3.5 xl:w-3.5 shrink-0" />
+            <span className="hidden xl:inline truncate">{panel.name}</span>
             
             {/* Agent running indicator */}
             {panelId === 'agent' && isAgentRunning && (
@@ -109,70 +109,73 @@ export const PanelToggleBar = memo(function PanelToggleBar({
   };
 
   return (
-    <div className="h-12 md:h-10 flex items-center gap-1 px-2 md:px-3 border-b border-border bg-muted/30 overflow-x-auto scrollbar-none">
-      {/* AI Panels */}
-      <div className="flex items-center gap-0.5">
-        <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden xl:block">AI</span>
-        {categories.ai.panels.map(renderPanelButton)}
+    <div className="h-10 flex items-center gap-1 px-2 border-b border-border bg-muted/30 overflow-hidden">
+      {/* Scrollable content area */}
+      <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto scrollbar-none">
+        {/* AI Panels */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden 2xl:block">AI</span>
+          {categories.ai.panels.map(renderPanelButton)}
+        </div>
+
+        <Separator orientation="vertical" className="h-5 mx-1 shrink-0" />
+
+        {/* Cloud Panels */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden 2xl:block">Cloud</span>
+          {categories.cloud.panels.map(renderPanelButton)}
+        </div>
+
+        <Separator orientation="vertical" className="h-5 mx-1 shrink-0" />
+
+        {/* Project Panels */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden 2xl:block">Project</span>
+          {categories.project.panels.map(renderPanelButton)}
+        </div>
+
+        {categories.tools.panels.length > 0 && (
+          <>
+            <Separator orientation="vertical" className="h-5 mx-1 shrink-0" />
+            
+            {/* Tools Panels */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden 2xl:block">Tools</span>
+              {categories.tools.panels.map(renderPanelButton)}
+            </div>
+          </>
+        )}
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
-
-      {/* Cloud Panels */}
-      <div className="flex items-center gap-0.5">
-        <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden xl:block">Cloud</span>
-        {categories.cloud.panels.map(renderPanelButton)}
+      {/* Preview Toggle - fixed on the right */}
+      <div className="flex items-center shrink-0 ml-1">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'h-8 w-8 p-0 shrink-0 touch-manipulation',
+                'xl:h-7 xl:w-auto xl:px-2 xl:gap-1.5',
+                showPreview 
+                  ? 'text-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={onTogglePreview}
+            >
+              {showPreview ? (
+                <PanelRightClose className="h-4 w-4 xl:h-3.5 xl:w-3.5 shrink-0" />
+              ) : (
+                <PanelRightOpen className="h-4 w-4 xl:h-3.5 xl:w-3.5 shrink-0" />
+              )}
+              <span className="hidden xl:inline">Preview</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </TooltipContent>
+        </Tooltip>
       </div>
-
-      <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
-
-      {/* Project Panels */}
-      <div className="flex items-center gap-0.5">
-        <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden xl:block">Project</span>
-        {categories.project.panels.map(renderPanelButton)}
-      </div>
-
-      {categories.tools.panels.length > 0 && (
-        <>
-          <Separator orientation="vertical" className="h-5 mx-0.5 md:mx-1" />
-          
-          {/* Tools Panels */}
-          <div className="flex items-center gap-0.5">
-            <span className="text-[10px] uppercase text-muted-foreground/60 font-medium px-1 hidden xl:block">Tools</span>
-            {categories.tools.panels.map(renderPanelButton)}
-          </div>
-        </>
-      )}
-
-      {/* Spacer */}
-      <div className="flex-1 min-w-2" />
-
-      {/* Preview Toggle */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'h-9 w-9 p-0 md:h-8 md:w-auto md:px-2 gap-1.5 text-xs font-normal touch-manipulation',
-              showPreview 
-                ? 'text-foreground' 
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-            onClick={onTogglePreview}
-          >
-            {showPreview ? (
-              <PanelRightClose className="h-4 w-4 md:h-3.5 md:w-3.5" />
-            ) : (
-              <PanelRightOpen className="h-4 w-4 md:h-3.5 md:w-3.5" />
-            )}
-            <span className="hidden lg:inline">Preview</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </TooltipContent>
-      </Tooltip>
     </div>
   );
 });
