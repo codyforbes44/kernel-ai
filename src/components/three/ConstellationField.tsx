@@ -27,6 +27,8 @@ interface ShootingStar {
   maxLife: number;
   trail: THREE.Vector3[];
   trailLength: number;
+  brightness: number;
+  flickerSpeed: number;
 }
 
 interface EnergyPulse {
@@ -102,21 +104,29 @@ function generateConstellationLines(
 
 // Create a new shooting star
 function createShootingStar(): ShootingStar {
-  const startX = (Math.random() - 0.3) * 400;
-  const startY = 150 + Math.random() * 100;
-  const startZ = DEPTH_LAYERS_3D.CONSTELLATION_MID + (Math.random() - 0.5) * 100;
+  // Start from upper area, can come from either side
+  const fromLeft = Math.random() > 0.5;
+  const startX = fromLeft 
+    ? -200 - Math.random() * 100 
+    : 200 + Math.random() * 100;
+  const startY = 120 + Math.random() * 80;
+  const startZ = DEPTH_LAYERS_3D.CONSTELLATION_MID + (Math.random() - 0.5) * 50;
   
-  const angle = -Math.PI / 6 + (Math.random() - 0.5) * 0.4;
-  const speed = 250 + Math.random() * 150;
+  // Angle: steep diagonal descent (more realistic)
+  const baseAngle = fromLeft ? -Math.PI / 5 : -Math.PI + Math.PI / 5;
+  const angle = baseAngle + (Math.random() - 0.5) * 0.3;
+  const speed = 350 + Math.random() * 200; // Faster for realism
   
   return {
     active: true,
     position: new THREE.Vector3(startX, startY, startZ),
     velocity: new THREE.Vector3(Math.cos(angle) * speed, Math.sin(angle) * speed, 0),
     life: 0,
-    maxLife: 0.8 + Math.random() * 0.6,
+    maxLife: 0.6 + Math.random() * 0.5, // Shorter, more intense
     trail: [],
-    trailLength: 12 + Math.floor(Math.random() * 8),
+    trailLength: 25 + Math.floor(Math.random() * 15), // Longer trail
+    brightness: 0.8 + Math.random() * 0.2,
+    flickerSpeed: 15 + Math.random() * 10,
   };
 }
 
@@ -139,7 +149,7 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
   const groupRef = useRef<THREE.Group>(null);
   const starsRef = useRef<(THREE.Points | null)[]>([]);
   const linesRef = useRef<THREE.LineSegments | null>(null);
-  const shootingStarRef = useRef<THREE.Line | null>(null);
+  const shootingStarRef = useRef<THREE.Points | null>(null);
   const pulsesRef = useRef<THREE.Points | null>(null);
   const timeRef = useRef(0);
   const nextShootingStarTime = useRef(3 + Math.random() * 4);
@@ -200,22 +210,54 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
     return generateConstellationLines(nearLayer.positions, config.lineCount, 120);
   }, [layers, config.showLines, config.lineCount]);
 
-  // Shooting star trail geometry (pre-allocated)
+  // Shooting star geometry (using points for glowing meteor effect)
   const shootingStarGeometry = useMemo(() => {
-    const maxTrailPoints = 20;
+    const maxTrailPoints = 40; // More points for smoother trail
     const positions = new Float32Array(maxTrailPoints * 3);
     const colors = new Float32Array(maxTrailPoints * 3);
+    const sizes = new Float32Array(maxTrailPoints);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
     geometry.setDrawRange(0, 0);
     return geometry;
   }, []);
 
-  // Shooting star material
+  // Shooting star material - glowing points shader
   const shootingStarMaterial = useMemo(() => {
-    return new THREE.LineBasicMaterial({
-      vertexColors: true,
+    return new THREE.ShaderMaterial({
+      uniforms: {},
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        
+        void main() {
+          float dist = length(gl_PointCoord - vec2(0.5));
+          if (dist > 0.5) discard;
+          
+          // Intense glow with soft falloff
+          float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+          alpha = pow(alpha, 2.0);
+          
+          // Hot bright core
+          float core = 1.0 - smoothstep(0.0, 0.15, dist);
+          vec3 finalColor = mix(vColor, vec3(1.0), core);
+          
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
@@ -388,6 +430,10 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
         const star = shootingStarData.current;
         star.life += delta;
 
+        // Slight deceleration for realism (atmospheric drag)
+        const drag = 0.995;
+        star.velocity.multiplyScalar(drag);
+        
         star.position.x += star.velocity.x * delta;
         star.position.y += star.velocity.y * delta;
 
@@ -398,8 +444,19 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
 
         const posAttr = shootingStarGeometry.attributes.position as THREE.BufferAttribute;
         const colorAttr = shootingStarGeometry.attributes.color as THREE.BufferAttribute;
+        const sizeAttr = shootingStarGeometry.attributes.size as THREE.BufferAttribute;
         const positions = posAttr.array as Float32Array;
         const colors = colorAttr.array as Float32Array;
+        const sizes = sizeAttr.array as Float32Array;
+
+        // Flickering brightness
+        const flicker = 0.85 + Math.sin(timeRef.current * star.flickerSpeed) * 0.15;
+        const lifeProgress = star.life / star.maxLife;
+        const lifeFade = lifeProgress < 0.1 
+          ? lifeProgress / 0.1  // Fade in
+          : lifeProgress > 0.7 
+            ? 1 - (lifeProgress - 0.7) / 0.3  // Fade out
+            : 1;
 
         for (let i = 0; i < star.trail.length; i++) {
           const point = star.trail[i];
@@ -407,19 +464,36 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
           positions[i * 3 + 1] = point.y;
           positions[i * 3 + 2] = point.z;
 
+          // Position along trail (0 = head, 1 = tail)
           const t = i / star.trailLength;
-          const lifeAlpha = 1 - (star.life / star.maxLife);
-          const alpha = (1 - t) * lifeAlpha;
-          colors[i * 3] = 0.8 + 0.2 * (1 - t);
-          colors[i * 3 + 1] = 0.95 + 0.05 * (1 - t);
-          colors[i * 3 + 2] = 1.0 * alpha;
+          
+          // Realistic meteor colors: white-hot head → yellow → orange → red tail
+          // Head: bright white (1, 1, 1)
+          // Mid: yellow-orange (1, 0.8, 0.3)
+          // Tail: dim orange-red (0.8, 0.3, 0.1)
+          const headR = 1.0;
+          const headG = 1.0;
+          const headB = 0.95;
+          const tailR = 0.9;
+          const tailG = 0.4;
+          const tailB = 0.15;
+          
+          const intensity = (1 - t * t) * lifeFade * flicker * star.brightness;
+          colors[i * 3] = (headR + (tailR - headR) * t) * intensity;
+          colors[i * 3 + 1] = (headG + (tailG - headG) * t * t) * intensity;
+          colors[i * 3 + 2] = (headB + (tailB - headB) * t) * intensity * 0.6;
+
+          // Size: large glowing head, tapering to thin tail
+          const baseSize = i === 0 ? 5 : 4 - t * 3;
+          sizes[i] = Math.max(0.5, baseSize * (1 - t * 0.8) * lifeFade);
         }
 
         posAttr.needsUpdate = true;
         colorAttr.needsUpdate = true;
+        sizeAttr.needsUpdate = true;
         shootingStarGeometry.setDrawRange(0, star.trail.length);
 
-        if (star.life >= star.maxLife || star.position.y < -250) {
+        if (star.life >= star.maxLife || star.position.y < -250 || star.position.x > 400 || star.position.x < -400) {
           shootingStarData.current = null;
           shootingStarGeometry.setDrawRange(0, 0);
         }
@@ -560,11 +634,13 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
 
       {/* Shooting star */}
       {config.shootingStars && (
-        <primitive
-          object={new THREE.Line(shootingStarGeometry, shootingStarMaterial)}
+        <points
           ref={shootingStarRef}
           frustumCulled={false}
-        />
+        >
+          <primitive object={shootingStarGeometry} attach="geometry" />
+          <primitive object={shootingStarMaterial} attach="material" />
+        </points>
       )}
     </group>
   );
