@@ -4,6 +4,7 @@ import { GlowBadge } from '@/components/ui/glow-badge';
 import { GlowText } from '@/components/ui/glow-text';
 import { HeroEntranceGroup, HeroEntranceItem } from '@/components/landing/HeroEntrance';
 import { KernelCoreAnimation } from '@/components/brand/KernelCoreAnimation';
+import { KernelAILogo } from '@/components/brand/KernelAILogo';
 import { ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,12 +19,19 @@ export function HeroContent({ className, prefersReducedMotion = false }: HeroCon
       staggerDelay={prefersReducedMotion ? 0 : 0.1}
       className={cn("relative z-10 container mx-auto text-center max-w-4xl", className)}
     >
-      {/* Kernel Core Animation - Main Visual Element */}
-      <HeroEntranceItem className="mb-6 md:mb-8">
-        <div className="flex justify-center">
+      {/* Centerpiece: Core Animation + Kernel AI Logo */}
+      <HeroEntranceItem className="mb-8 md:mb-12">
+        <div className="flex flex-col items-center gap-4 md:gap-6">
+          {/* Main Core Animation - Enlarged */}
           <KernelCoreAnimation 
-            size="lg" 
+            size="xl" 
             showNodes={true}
+            isPaused={prefersReducedMotion}
+          />
+          
+          {/* Kernel AI Text Logo - Directly below core */}
+          <KernelAILogo 
+            size="xl"
             isPaused={prefersReducedMotion}
           />
         </div>
