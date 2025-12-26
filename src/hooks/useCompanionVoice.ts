@@ -1,13 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-
-// Map companion personality types to ElevenLabs voice IDs
-const PERSONALITY_VOICE_MAP: Record<string, string> = {
-  mentor: 'EXAVITQu4vr4xnSDxMaL', // Sarah - calm, wise
-  creative: 'pFZP5JQG7iQjIQuC4Bku', // Lily - energetic
-  analytical: 'nPczCjzI2devNBz1zQrb', // Brian - clear, precise
-  supportive: 'Xb7hH8MSUJpSbSDYk0k2', // Alice - warm, gentle
-};
+import { PERSONALITY_VOICE_MAP, DEFAULT_VOICE_SETTINGS } from '@/constants/companion';
 
 interface UseCompanionVoiceOptions {
   personalityType: string;
@@ -39,9 +32,7 @@ export function useCompanionVoice({ personalityType, voiceSettings }: UseCompani
   const speak = useCallback(async (text: string) => {
     if (!text.trim()) return;
     
-    // Stop any currently playing audio
     stop();
-    
     setIsLoading(true);
     
     try {
@@ -61,9 +52,9 @@ export function useCompanionVoice({ personalityType, voiceSettings }: UseCompani
             voiceId,
             model: 'eleven_turbo_v2_5',
             voiceSettings: {
-              stability: voiceSettings?.stability ?? 0.5,
-              similarity_boost: voiceSettings?.similarity_boost ?? 0.75,
-              style: voiceSettings?.style ?? 0.3,
+              stability: voiceSettings?.stability ?? DEFAULT_VOICE_SETTINGS.stability,
+              similarity_boost: voiceSettings?.similarity_boost ?? DEFAULT_VOICE_SETTINGS.similarity_boost,
+              style: voiceSettings?.style ?? DEFAULT_VOICE_SETTINGS.style,
             },
           }),
         }
@@ -103,10 +94,5 @@ export function useCompanionVoice({ personalityType, voiceSettings }: UseCompani
     }
   }, [personalityType, voiceSettings, stop]);
 
-  return {
-    speak,
-    stop,
-    isPlaying,
-    isLoading,
-  };
+  return { speak, stop, isPlaying, isLoading };
 }

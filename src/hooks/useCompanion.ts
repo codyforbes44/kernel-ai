@@ -1,19 +1,19 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { companionService } from '@/services/companionService';
 import { toast } from 'sonner';
-import type { CompanionProfile, CompanionRelationship } from '@/types/companion';
+import { companionKeys } from '@/constants/companion';
 
 export function useCompanions() {
   return useQuery({
-    queryKey: ['companions'],
+    queryKey: companionKeys.lists(),
     queryFn: () => companionService.getCompanions(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
 export function useCompanion(companionId: string | null) {
   return useQuery({
-    queryKey: ['companion', companionId],
+    queryKey: companionKeys.detail(companionId || ''),
     queryFn: () => companionId ? companionService.getCompanion(companionId) : null,
     enabled: !!companionId,
     staleTime: 5 * 60 * 1000,
@@ -22,7 +22,7 @@ export function useCompanion(companionId: string | null) {
 
 export function useCompanionRelationship(companionId: string | null) {
   return useQuery({
-    queryKey: ['companion-relationship', companionId],
+    queryKey: companionKeys.relationship(companionId || ''),
     queryFn: () => companionId ? companionService.getRelationship(companionId) : null,
     enabled: !!companionId,
   });
@@ -30,14 +30,14 @@ export function useCompanionRelationship(companionId: string | null) {
 
 export function useAllRelationships() {
   return useQuery({
-    queryKey: ['companion-relationships'],
+    queryKey: companionKeys.relationships(),
     queryFn: () => companionService.getAllRelationships(),
   });
 }
 
 export function useCompanionConversations(relationshipId: string | null) {
   return useQuery({
-    queryKey: ['companion-conversations', relationshipId],
+    queryKey: companionKeys.conversations(relationshipId || ''),
     queryFn: () => relationshipId ? companionService.getConversations(relationshipId) : [],
     enabled: !!relationshipId,
   });
@@ -45,7 +45,7 @@ export function useCompanionConversations(relationshipId: string | null) {
 
 export function useCompanionMessages(conversationId: string | null) {
   return useQuery({
-    queryKey: ['companion-messages', conversationId],
+    queryKey: companionKeys.messages(conversationId || ''),
     queryFn: () => conversationId ? companionService.getMessages(conversationId) : [],
     enabled: !!conversationId,
   });
@@ -57,9 +57,8 @@ export function useUpdateNickname() {
   return useMutation({
     mutationFn: ({ relationshipId, nickname }: { relationshipId: string; nickname: string }) =>
       companionService.updateNickname(relationshipId, nickname),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['companion-relationship'] });
-      queryClient.invalidateQueries({ queryKey: ['companion-relationships'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companionKeys.relationships() });
       toast.success('Nickname updated!');
     },
     onError: (error) => {
@@ -75,7 +74,7 @@ export function useDeleteConversation() {
   return useMutation({
     mutationFn: (conversationId: string) => companionService.deleteConversation(conversationId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companion-conversations'] });
+      queryClient.invalidateQueries({ queryKey: companionKeys.all });
       toast.success('Conversation deleted');
     },
     onError: (error) => {
@@ -85,7 +84,6 @@ export function useDeleteConversation() {
   });
 }
 
-// Combined hook for full companion data
 export function useCompanionWithRelationship(companionId: string | null) {
   const { data: companion, isLoading: isLoadingCompanion } = useCompanion(companionId);
   const { data: relationship, isLoading: isLoadingRelationship } = useCompanionRelationship(companionId);
