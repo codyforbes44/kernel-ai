@@ -20,6 +20,7 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
   const [isContextLost, setIsContextLost] = useState(false);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const successResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recoveryAttempts = useRef(0);
   const maxRecoveryAttempts = 3;
 
@@ -52,6 +53,14 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
     recoveryTimeoutRef.current = setTimeout(() => {
       setIsContextLost(false);
       setContextKey(prev => prev + 1); // Force Canvas re-mount
+      
+      // Reset recovery counter after 30 seconds of successful operation
+      if (successResetTimeoutRef.current) {
+        clearTimeout(successResetTimeoutRef.current);
+      }
+      successResetTimeoutRef.current = setTimeout(() => {
+        recoveryAttempts.current = 0;
+      }, 30000);
     }, delay);
   }, []);
 
@@ -91,6 +100,9 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
       }
       if (recoveryTimeoutRef.current) {
         clearTimeout(recoveryTimeoutRef.current);
+      }
+      if (successResetTimeoutRef.current) {
+        clearTimeout(successResetTimeoutRef.current);
       }
     };
   }, [handleContextLost, handleContextRestored, contextKey]);

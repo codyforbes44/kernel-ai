@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PERFORMANCE_TIERS, PerformanceTier } from '@/constants/depthLayers3D';
 
 interface PerformanceState {
@@ -14,6 +14,12 @@ export function useThreePerformance(): PerformanceState {
   const [fps, setFps] = useState(60);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const tierRef = useRef<PerformanceTier>(tier);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    tierRef.current = tier;
+  }, [tier]);
 
   // Detect device capabilities on mount
   useEffect(() => {
@@ -84,6 +90,7 @@ export function useThreePerformance(): PerformanceState {
     // Simple FPS monitor
     let frameCount = 0;
     let lastTime = performance.now();
+    let animationId: number;
     
     const measureFps = () => {
       frameCount++;
@@ -92,8 +99,8 @@ export function useThreePerformance(): PerformanceState {
       if (currentTime - lastTime >= 1000) {
         setFps(frameCount);
         
-        // Auto-adjust tier based on FPS
-        if (frameCount < 30 && tier !== 'LOW') {
+        // Auto-adjust tier based on FPS using ref to avoid dependency
+        if (frameCount < 30 && tierRef.current !== 'LOW') {
           setTier(prev => {
             const tiers: PerformanceTier[] = ['ULTRA', 'HIGH', 'MEDIUM', 'LOW'];
             const currentIndex = tiers.indexOf(prev);
@@ -105,16 +112,16 @@ export function useThreePerformance(): PerformanceState {
         lastTime = currentTime;
       }
       
-      requestAnimationFrame(measureFps);
+      animationId = requestAnimationFrame(measureFps);
     };
     
-    const animationId = requestAnimationFrame(measureFps);
+    animationId = requestAnimationFrame(measureFps);
 
     return () => {
       motionQuery.removeEventListener('change', handleMotionChange);
       cancelAnimationFrame(animationId);
     };
-  }, [tier]);
+  }, []); // Empty dependency array - runs once on mount
 
   // Override to LOW if reduced motion is preferred
   const effectiveTier = reducedMotion ? 'LOW' : tier;
