@@ -48,6 +48,9 @@ export function XAutomationPanel() {
   const [contentToSchedule, setContentToSchedule] = useState('');
   const [draftToSchedule, setDraftToSchedule] = useState<XTweetDraft | null>(null);
 
+  // State for posting
+  const [postingDraftId, setPostingDraftId] = useState<string | null>(null);
+
   const {
     generateTweet,
     isGeneratingTweet,
@@ -72,6 +75,12 @@ export function XAutomationPanel() {
     cancelScheduledTweet,
     deleteScheduledTweet,
     copyToClipboard,
+    // X Posting
+    postTweet,
+    postThread,
+    isPosting,
+    isXApiConfigured,
+    xApiAccount,
   } = useXAutomation();
 
   const handleGenerate = async () => {
@@ -126,6 +135,21 @@ export function XAutomationPanel() {
     setActiveTab('generate');
   };
 
+  const handlePostDraft = async (draft: XTweetDraft) => {
+    setPostingDraftId(draft.id);
+    try {
+      if (draft.type === 'thread') {
+        // Split content into individual tweets for thread
+        const tweets = draft.content.split('\n\n').filter(t => t.trim());
+        await postThread(tweets);
+      } else {
+        await postTweet(draft.content);
+      }
+    } finally {
+      setPostingDraftId(null);
+    }
+  };
+
   const getCharacterCount = (text: string) => text.length;
 
   const getCharacterColor = (count: number) => {
@@ -137,14 +161,22 @@ export function XAutomationPanel() {
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="border-b p-4">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold">X Automation</h2>
+              <p className="text-xs text-muted-foreground">Powered by Grok</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold">X Automation</h2>
-            <p className="text-xs text-muted-foreground">Powered by Grok</p>
-          </div>
+          {isXApiConfigured && xApiAccount && (
+            <Badge variant="outline" className="text-xs gap-1">
+              <span className="h-2 w-2 rounded-full bg-green-500" />
+              @{xApiAccount.username}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -662,6 +694,10 @@ export function XAutomationPanel() {
               onCopy={copyToClipboard}
               onToggleFavorite={(id) => toggleFavorite(id)}
               onNewDraft={handleNewDraft}
+              onPostNow={handlePostDraft}
+              isPosting={isPosting}
+              postingDraftId={postingDraftId}
+              isXApiConfigured={isXApiConfigured}
             />
 
             <Separator />

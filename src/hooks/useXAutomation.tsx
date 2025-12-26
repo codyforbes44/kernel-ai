@@ -17,10 +17,24 @@ import {
   UpdateDraftInput,
   ScheduleTweetInput,
 } from '@/services/xDatabaseService';
+import { xPostService, PostTweetResult, XApiStatus } from '@/services/xPostService';
 
 export function useXAutomation() {
   const queryClient = useQueryClient();
   const [selectedDraft, setSelectedDraft] = useState<XTweetDraft | null>(null);
+  const [lastPostResult, setLastPostResult] = useState<PostTweetResult | null>(null);
+
+  // Check X API configuration status
+  const {
+    data: xApiStatus,
+    isLoading: isCheckingXApiStatus,
+    refetch: refetchXApiStatus,
+  } = useQuery({
+    queryKey: ['x-api-status'],
+    queryFn: () => xPostService.checkStatus(),
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: false,
+  });
 
   // Fetch drafts from database
   const {
@@ -197,6 +211,66 @@ export function useXAutomation() {
     },
   });
 
+  // Post tweet to X mutation
+  const postTweetMutation = useMutation({
+    mutationFn: async (content: string) => {
+      return xPostService.postTweet(content);
+    },
+    onSuccess: (result) => {
+      setLastPostResult(result);
+      if (result.success && result.tweetUrl) {
+        toast.success(
+          <div className="flex flex-col gap-1">
+            <span>Tweet posted successfully!</span>
+            <a 
+              href={result.tweetUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline text-sm"
+            >
+              View on X →
+            </a>
+          </div>
+        );
+      } else {
+        toast.error(`Failed to post: ${result.error}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to post tweet: ${error.message}`);
+    },
+  });
+
+  // Post thread to X mutation
+  const postThreadMutation = useMutation({
+    mutationFn: async (tweets: string[]) => {
+      return xPostService.postThread(tweets);
+    },
+    onSuccess: (result) => {
+      setLastPostResult(result);
+      if (result.success && result.tweetUrl) {
+        toast.success(
+          <div className="flex flex-col gap-1">
+            <span>Thread posted successfully!</span>
+            <a 
+              href={result.tweetUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline text-sm"
+            >
+              View on X →
+            </a>
+          </div>
+        );
+      } else {
+        toast.error(`Failed to post: ${result.error}`);
+      }
+    },
+    onError: (error) => {
+      toast.error(`Failed to post thread: ${error.message}`);
+    },
+  });
+
   const copyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -207,6 +281,21 @@ export function useXAutomation() {
   }, []);
 
   return {
+    // X API Status
+    xApiStatus: xApiStatus as XApiStatus | undefined,
+    isXApiConfigured: xApiStatus?.configured ?? false,
+    xApiAccount: xApiStatus?.account,
+    isCheckingXApiStatus,
+    refetchXApiStatus,
+
+    // Post to X
+    postTweet: postTweetMutation.mutateAsync,
+    isPostingTweet: postTweetMutation.isPending,
+    postThread: postThreadMutation.mutateAsync,
+    isPostingThread: postThreadMutation.isPending,
+    isPosting: postTweetMutation.isPending || postThreadMutation.isPending,
+    lastPostResult,
+
     // AI Mutations
     generateTweet: generateTweetMutation.mutateAsync,
     isGeneratingTweet: generateTweetMutation.isPending,

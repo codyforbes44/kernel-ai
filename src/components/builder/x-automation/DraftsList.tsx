@@ -14,6 +14,10 @@ interface DraftsListProps {
   onCopy: (content: string) => void;
   onToggleFavorite: (id: string) => void;
   onNewDraft: () => void;
+  onPostNow?: (draft: XTweetDraft) => void;
+  isPosting?: boolean;
+  postingDraftId?: string | null;
+  isXApiConfigured?: boolean;
 }
 
 export function DraftsList({
@@ -25,6 +29,10 @@ export function DraftsList({
   onCopy,
   onToggleFavorite,
   onNewDraft,
+  onPostNow,
+  isPosting,
+  postingDraftId,
+  isXApiConfigured,
 }: DraftsListProps) {
   if (isLoading) {
     return (
@@ -69,6 +77,9 @@ export function DraftsList({
                 onSchedule={() => onSchedule(draft)}
                 onCopy={() => onCopy(draft.content)}
                 onToggleFavorite={() => onToggleFavorite(draft.id)}
+                onPostNow={onPostNow ? () => onPostNow(draft) : undefined}
+                isPosting={isPosting && postingDraftId === draft.id}
+                isXApiConfigured={isXApiConfigured}
               />
             ))}
           </div>
