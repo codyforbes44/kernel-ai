@@ -10,8 +10,8 @@ export function PostProcessingEffects() {
   const bloomIntensity = {
     ULTRA: 0.9,
     HIGH: 0.7,
-    MEDIUM: 0.45,
-    LOW: 0.3,
+    MEDIUM: 0.4,
+    LOW: 0.2,
   }[tier];
 
   // Disable vignette on lower tiers for performance
