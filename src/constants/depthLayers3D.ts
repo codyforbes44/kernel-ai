@@ -6,6 +6,9 @@ export const DEPTH_LAYERS_3D = {
   GRID_MID: -300,       // Mid-depth layer
   GRID_FAR: -500,       // Far horizon layer
   PARTICLES: -80,       // Ambient floating particles (closer than grid)
+  CONSTELLATION_NEAR: -200,  // Near constellation layer (high parallax)
+  CONSTELLATION_MID: -300,   // Mid constellation layer
+  CONSTELLATION_FAR: -400,   // Far constellation layer (subtle parallax)
 } as const;
 
 // Camera configuration - eye-level for forward-looking perspective
