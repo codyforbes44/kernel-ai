@@ -1,12 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Volume2, VolumeX, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useVoiceAgent, VoiceAgentStatus, VoiceAgentUserContext } from '@/hooks/useVoiceAgent';
-import { useLocation } from 'react-router-dom';
+import { useVoiceAgent, VoiceAgentStatus, VoiceAgentUserContext, ClientTools } from '@/hooks/useVoiceAgent';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { usePreAuthSession, ConversationEntry, ProjectRequirements } from '@/hooks/usePreAuthSession';
+import { useAuth } from '@/hooks/useAuth';
 
 interface VoiceAgentWidgetProps {
   agentId: string;
@@ -78,6 +80,10 @@ export function VoiceAgentWidget({
   projectName,
 }: VoiceAgentWidgetProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
@@ -86,14 +92,103 @@ export function VoiceAgentWidget({
     text: string;
   }>>([]);
 
+  // Pre-auth session management for unauthenticated users
+  const {
+    sessionId,
+    captureProjectIdea,
+    addTranscriptEntry,
+    hasPendingProject,
+  } = usePreAuthSession();
+
   // Build user context for the voice agent
   const userContext: VoiceAgentUserContext = useMemo(() => ({
-    isNewUser,
+    isNewUser: isNewUser || !isAuthenticated,
     hasActiveProject,
     projectName,
-    userName,
+    userName: userName || user?.email?.split('@')[0],
     currentPage: location.pathname,
-  }), [isNewUser, hasActiveProject, projectName, userName, location.pathname]);
+    isAuthenticated,
+    sessionId: sessionId || undefined,
+  }), [isNewUser, hasActiveProject, projectName, userName, location.pathname, isAuthenticated, sessionId, user?.email]);
+
+  // Client tools for ElevenLabs agent to call
+  const clientTools: ClientTools = useMemo(() => ({
+    capture_project_idea: async (params) => {
+      console.log('Capturing project idea:', params);
+      
+      const requirements: ProjectRequirements = {
+        projectName: params.name,
+        projectDescription: params.description,
+        features: params.features,
+        techStack: params.techStack,
+        targetAudience: params.targetAudience,
+        additionalNotes: params.additionalNotes,
+      };
+
+      const result = await captureProjectIdea(
+        params.name,
+        params.description,
+        requirements
+      );
+
+      if (result) {
+        return {
+          success: true,
+          message: `Great! I've captured your project idea "${params.name}". Let me help you get started with an account.`,
+        };
+      }
+
+      return {
+        success: false,
+        message: 'I had trouble saving your project idea. Let me try again.',
+      };
+    },
+
+    start_signup_flow: async () => {
+      console.log('Starting signup flow, navigating to auth...');
+      
+      // Navigate to auth page with voice session context
+      navigate('/auth?from=voice&session=' + sessionId);
+      
+      return {
+        success: true,
+        message: 'Opening the signup page for you. Once you create your account, I\'ll automatically start building your project!',
+      };
+    },
+
+    confirm_understanding: async (params) => {
+      console.log('Understanding confirmed:', params.confirmed);
+      
+      return {
+        success: true,
+        message: params.confirmed 
+          ? 'Perfect! I have a clear picture of what you want to build.'
+          : 'No problem, tell me more about what you\'re looking for.',
+      };
+    },
+  }), [captureProjectIdea, navigate, sessionId]);
+
+  const handleTranscript = useCallback((text: string, isFinal: boolean, role: 'user' | 'agent') => {
+    if (isFinal && text) {
+      // Add to local conversation history for display
+      setConversationHistory(prev => {
+        const lastEntry = prev[prev.length - 1];
+        // Avoid duplicates
+        if (lastEntry?.text === text && lastEntry?.role === role) return prev;
+        return [...prev, { role, text }];
+      });
+
+      // For unauthenticated users, sync to database
+      if (!isAuthenticated) {
+        const entry: ConversationEntry = {
+          role,
+          text,
+          timestamp: new Date().toISOString(),
+        };
+        addTranscriptEntry(entry);
+      }
+    }
+  }, [isAuthenticated, addTranscriptEntry]);
 
   const {
     status,
@@ -107,25 +202,14 @@ export function VoiceAgentWidget({
   } = useVoiceAgent({
     agentId,
     userContext,
-    onTranscript: (text, isFinal) => {
-      if (isFinal && text) {
-        // Determine if this is user or agent based on context
-        // Agent responses come after speaking state
-        setConversationHistory(prev => {
-          const lastEntry = prev[prev.length - 1];
-          // Avoid duplicates
-          if (lastEntry?.text === text) return prev;
-          
-          return [...prev, { 
-            role: isSpeaking ? 'agent' : 'user', 
-            text 
-          }];
-        });
-      }
-    },
+    clientTools,
+    onTranscript: handleTranscript,
     onFirstMessage: (message) => {
       // Add the first message from the agent to conversation history
       setConversationHistory([{ role: 'agent', text: message }]);
+    },
+    onClientToolCall: (toolName, params) => {
+      console.log('Client tool called:', toolName, params);
     },
   });
 
@@ -178,6 +262,11 @@ export function VoiceAgentWidget({
               <div className="flex items-center gap-2">
                 <div className={cn('w-2 h-2 rounded-full', config.color)} />
                 <span className="text-sm font-medium">{config.label}</span>
+                {!isAuthenticated && hasPendingProject && (
+                  <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
+                    Project Ready
+                  </span>
+                )}
               </div>
               <Button
                 variant="ghost"
@@ -188,6 +277,13 @@ export function VoiceAgentWidget({
                 <X className="h-4 w-4" />
               </Button>
             </div>
+
+            {/* Auth Status Banner for unauthenticated users */}
+            {!isAuthenticated && (
+              <div className="text-xs bg-muted/50 rounded-lg p-2 text-muted-foreground">
+                <p>Tell me what you want to build, and I'll help you create an account to get started!</p>
+              </div>
+            )}
 
             {/* Conversation History */}
             {conversationHistory.length > 0 && (

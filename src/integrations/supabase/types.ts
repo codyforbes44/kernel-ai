@@ -1403,6 +1403,48 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_voice_projects: {
+        Row: {
+          claimed_at: string | null
+          claimed_by: string | null
+          conversation_transcript: Json | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          project_description: string | null
+          project_name: string | null
+          project_requirements: Json | null
+          session_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          conversation_transcript?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          project_description?: string | null
+          project_name?: string | null
+          project_requirements?: Json | null
+          session_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_by?: string | null
+          conversation_transcript?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          project_description?: string | null
+          project_name?: string | null
+          project_requirements?: Json | null
+          session_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2221,6 +2263,11 @@ export type Database = {
     Functions: {
       check_account_lockout: { Args: { p_email: string }; Returns: Json }
       check_xai_rate_limit: { Args: { p_user_id: string }; Returns: Json }
+      claim_pending_voice_project: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: string
+      }
+      cleanup_expired_voice_sessions: { Args: never; Returns: number }
       generate_invite_code: { Args: { prefix?: string }; Returns: string }
       generate_subdomain: {
         Args: { project_id: string; project_name: string }
