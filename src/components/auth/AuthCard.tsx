@@ -1,9 +1,13 @@
-import { ReactNode } from "react";
+import { ReactNode, lazy, Suspense } from "react";
 import { GlassPanel, GlassPanelContent, GlassPanelHeader } from "@/components/ui/glass-panel";
 import { GlowText } from "@/components/ui/glow-text";
 import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
-import { PageBackground3D } from "@/components/three/PageBackground3D";
 import { cn } from "@/lib/utils";
+
+// Lazy load heavy Three.js component
+const PageBackground3D = lazy(() => 
+  import("@/components/three/PageBackground3D").then(m => ({ default: m.PageBackground3D }))
+);
 
 interface AuthCardProps {
   children: ReactNode;
@@ -20,8 +24,12 @@ export function AuthCard({ children, title, description, className }: AuthCardPr
       "overflow-y-auto",
       className
     )}>
-      {/* 3D Background */}
-      <PageBackground3D intensity="low" className="fixed inset-0" />
+      {/* 3D Background - lazy loaded */}
+      <Suspense fallback={
+        <div className="fixed inset-0 bg-background" aria-hidden="true" />
+      }>
+        <PageBackground3D intensity="low" className="fixed inset-0" />
+      </Suspense>
       
       {/* Radial gradient overlay */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
