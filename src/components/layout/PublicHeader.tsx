@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Command as CommandIcon } from "lucide-react";
 import { XLogo } from "@/components/ui/x-logo";
 import { Button } from "@/components/ui/button";
-import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
+import { KernelAILogo } from "@/components/brand/KernelAILogo";
 import { CommandNav } from "@/components/layout/CommandNav";
 import { useCommandNav } from "@/hooks/useCommandNav";
 import { hapticFeedback } from "@/hooks/useHaptic";
@@ -62,12 +62,11 @@ export function PublicHeader() {
         {/* Mobile-optimized: taller for better touch (56px mobile, 56px tablet, 64px desktop) */}
         <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-14 md:h-16 flex items-center justify-between">
           {/* Logo - Opens Command Nav with proper touch target */}
-          <KernelLogoAnimated
-            size="md"
-            variant="animated"
-            isActive={commandOpen}
+          <KernelAILogo
+            size="xs"
+            interactive
             onClick={handleCommandClick}
-            className="cursor-pointer touch-manipulation active:scale-95 transition-transform min-w-[44px] min-h-[44px] flex items-center justify-center -ml-1"
+            className="-ml-1"
           />
 
           {/* Desktop Navigation - Minimal with Command Trigger */}

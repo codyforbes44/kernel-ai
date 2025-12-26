@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
-import { KernelLogo } from '@/components/ui/kernel-logo';
+import { KernelAILogo } from '@/components/brand/KernelAILogo';
 import { 
   Save, Code2, Globe, MoreVertical, Settings, Copy, Home
 } from 'lucide-react';
@@ -45,9 +45,7 @@ export const BuilderHeader = memo(function BuilderHeader({
     <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-card">
       <div className="flex items-center gap-3">
         {/* Home/Logo Link */}
-        <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-          <KernelLogo size="sm" />
-        </Link>
+        <KernelAILogo size="xs" interactive to="/" />
         
         <Breadcrumb>
           <BreadcrumbList>

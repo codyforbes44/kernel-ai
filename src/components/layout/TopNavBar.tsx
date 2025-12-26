@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAICredits } from "@/hooks/useAICredits";
-import { KernelLogoAnimated } from "@/components/ui/kernel-logo-animated";
+import { KernelAILogo } from "@/components/brand/KernelAILogo";
 import { CreditsBadge } from "@/components/ui/credits-badge";
 import { CommandNav } from "@/components/layout/CommandNav";
 import { useCommandNav } from "@/hooks/useCommandNav";
@@ -50,12 +50,10 @@ export function TopNavBar() {
       <header className="h-12 border-b border-border/50 bg-sidebar flex items-center justify-between px-4">
         {/* Logo & Brand */}
         <div className="flex items-center gap-2">
-          <KernelLogoAnimated
-            size="sm"
-            variant="animated"
-            isActive={commandOpen}
+          <KernelAILogo
+            size="xs"
+            interactive
             onClick={handleCommandClick}
-            className="cursor-pointer"
           />
         </div>
 

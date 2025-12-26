@@ -1,9 +1,8 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { KernelLogo } from "@/components/ui/kernel-logo";
+import { KernelAILogo } from "@/components/brand/KernelAILogo";
 import { Menu, Plus, PanelRight, WifiOff, Loader2, FolderPlus } from "lucide-react";
 import { useState } from "react";
 import { CreateProjectDialog } from "@/components/dialogs/CreateProjectDialog";
@@ -50,9 +49,7 @@ export function MobileHeader({ onOpenSidebar, onOpenContext }: MobileHeaderProps
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <Link to="/" className="flex items-center">
-            <KernelLogo size="sm" />
-          </Link>
+          <KernelAILogo size="xs" interactive to="/" />
         </div>
 
         <div className="flex-1 min-w-0 mx-2 text-center">
