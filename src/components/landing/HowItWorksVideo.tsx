@@ -176,6 +176,7 @@ export function HowItWorksVideo({ className }: HowItWorksVideoProps) {
     reset: resetNarration,
   } = useSceneNarration({
     narrations: sceneNarrations,
+    volume,
   });
 
   const hasAudio = audioLoaded || narrationLoaded;
