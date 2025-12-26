@@ -1,14 +1,17 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Volume2, VolumeX, X, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, X, Loader2, Copy, Check, Maximize2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useVoiceAgent, VoiceAgentStatus, VoiceAgentUserContext, ClientTools } from '@/hooks/useVoiceAgent';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePreAuthSession, ConversationEntry, ProjectRequirements } from '@/hooks/usePreAuthSession';
 import { useAuth } from '@/hooks/useAuth';
+import { useClipboard } from '@/hooks/useClipboard';
+import { TranscriptEntry } from './TranscriptEntry';
 
 interface VoiceAgentWidgetProps {
   agentId: string;
@@ -85,12 +88,16 @@ export function VoiceAgentWidget({
   const isAuthenticated = !!user;
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [conversationHistory, setConversationHistory] = useState<Array<{
     role: 'user' | 'agent';
     text: string;
   }>>([]);
+
+  // Clipboard hook for copy all functionality
+  const { copied: allCopied, copy: copyAll } = useClipboard({ resetDelay: 2000 });
 
   // Pre-auth session management for unauthenticated users
   const {
@@ -230,6 +237,33 @@ export function VoiceAgentWidget({
     setConversationHistory([]);
   };
 
+  // Format transcript for copying
+  const formatTranscriptForCopy = useCallback(() => {
+    return conversationHistory
+      .map(entry => `${entry.role === 'agent' ? 'Kernel' : 'You'}: ${entry.text}`)
+      .join('\n\n');
+  }, [conversationHistory]);
+
+  // Copy all conversation
+  const handleCopyAll = useCallback(() => {
+    const transcript = formatTranscriptForCopy();
+    copyAll(transcript, 'Full conversation copied!');
+  }, [formatTranscriptForCopy, copyAll]);
+
+  // Download transcript as text file
+  const handleDownloadTranscript = useCallback(() => {
+    const transcript = formatTranscriptForCopy();
+    const blob = new Blob([transcript], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kernel-conversation-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [formatTranscriptForCopy]);
+
   const handleVolumeChange = async (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
@@ -287,28 +321,49 @@ export function VoiceAgentWidget({
 
             {/* Conversation History */}
             {conversationHistory.length > 0 && (
-              <ScrollArea className="h-32 rounded-lg border border-border bg-muted/30">
-                <div className="p-3 space-y-2">
-                  {conversationHistory.slice(-5).map((entry, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={cn(
-                        "text-xs rounded-lg p-2",
-                        entry.role === 'agent' 
-                          ? "bg-primary/10 text-foreground" 
-                          : "bg-muted text-muted-foreground ml-4"
-                      )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Conversation</span>
+                  <div className="flex items-center gap-1">
+                    {conversationHistory.length > 3 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => setIsTranscriptModalOpen(true)}
+                        title="View full transcript"
+                      >
+                        <Maximize2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={handleCopyAll}
+                      title="Copy all"
                     >
-                      <span className="font-medium text-[10px] uppercase tracking-wider opacity-60">
-                        {entry.role === 'agent' ? 'Kernel' : 'You'}
-                      </span>
-                      <p className="mt-0.5">{entry.text}</p>
-                    </motion.div>
-                  ))}
+                      {allCopied ? (
+                        <Check className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              </ScrollArea>
+                <ScrollArea className="h-36 rounded-lg border border-border bg-muted/30">
+                  <div className="p-2 space-y-2">
+                    {conversationHistory.slice(-5).map((entry, index) => (
+                      <TranscriptEntry
+                        key={index}
+                        role={entry.role}
+                        text={entry.text}
+                        compact
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             )}
 
             {/* Volume Control */}
@@ -404,6 +459,76 @@ export function VoiceAgentWidget({
           </Button>
         </motion.div>
       )}
+
+      {/* Full Transcript Modal */}
+      <Dialog open={isTranscriptModalOpen} onOpenChange={setIsTranscriptModalOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Volume2 className="h-5 w-5 text-primary" />
+              Full Conversation
+            </DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 min-h-0 max-h-[50vh] rounded-lg border border-border bg-muted/30">
+            <div className="p-4 space-y-3">
+              {conversationHistory.map((entry, index) => (
+                <TranscriptEntry
+                  key={index}
+                  role={entry.role}
+                  text={entry.text}
+                />
+              ))}
+            </div>
+          </ScrollArea>
+
+          {!isAuthenticated && (
+            <div className="text-sm bg-primary/10 rounded-lg p-3 text-center">
+              <p className="text-muted-foreground">
+                Sign up to save your conversation and project ideas
+              </p>
+              <Button
+                variant="gold"
+                size="sm"
+                className="mt-2"
+                onClick={() => navigate('/auth?from=voice&session=' + sessionId)}
+              >
+                Create Account
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter className="flex-row gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadTranscript}
+              className="flex-1"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleCopyAll}
+              className="flex-1"
+            >
+              {allCopied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy All
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
