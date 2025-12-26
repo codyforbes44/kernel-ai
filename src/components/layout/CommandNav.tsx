@@ -94,7 +94,7 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
           </kbd>
         </div>
         
-        <CommandList className="max-h-[400px] overflow-y-auto p-2">
+        <CommandList className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto p-2">
           <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
             No results found.
           </CommandEmpty>
@@ -106,7 +106,7 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
                   <CommandItem
                     key={page.path}
                     onSelect={() => navigateTo(page.path, page.title)}
-                    className="group flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground"
+                    className="group flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2.5 cursor-pointer touch-manipulation data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground"
                   >
                     <Clock className="h-4 w-4 text-muted-foreground group-data-[selected=true]:text-primary" />
                     <span>{page.title}</span>
@@ -122,13 +122,13 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
               <CommandItem
                 key={item.path}
                 onSelect={() => handleSelect(item)}
-                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer data-[selected=true]:bg-primary/10"
+                className="group flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2.5 cursor-pointer touch-manipulation data-[selected=true]:bg-primary/10"
               >
                 <item.icon className="h-4 w-4 text-muted-foreground group-data-[selected=true]:text-primary" />
                 <div className="flex flex-col">
                   <span>{item.label}</span>
                   {item.description && (
-                    <span className="text-xs text-muted-foreground">{item.description}</span>
+                    <span className="text-xs text-muted-foreground hidden sm:block">{item.description}</span>
                   )}
                 </div>
               </CommandItem>
@@ -142,13 +142,13 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
               <CommandItem
                 key={item.path}
                 onSelect={() => handleSelect(item)}
-                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer data-[selected=true]:bg-primary/10"
+                className="group flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2.5 cursor-pointer touch-manipulation data-[selected=true]:bg-primary/10"
               >
                 <item.icon className="h-4 w-4 text-muted-foreground group-data-[selected=true]:text-primary" />
                 <div className="flex flex-col">
                   <span>{item.label}</span>
                   {item.description && (
-                    <span className="text-xs text-muted-foreground">{item.description}</span>
+                    <span className="text-xs text-muted-foreground hidden sm:block">{item.description}</span>
                   )}
                 </div>
                 {item.path === "/request-invite" && (
@@ -167,7 +167,7 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
               <CommandItem
                 key={item.path}
                 onSelect={() => handleSelect(item)}
-                className="group flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer data-[selected=true]:bg-primary/10"
+                className="group flex items-center gap-3 rounded-xl px-3 py-3 sm:py-2.5 cursor-pointer touch-manipulation data-[selected=true]:bg-primary/10"
               >
                 <item.icon className="h-4 w-4 text-muted-foreground group-data-[selected=true]:text-primary" />
                 <span>{item.label}</span>
@@ -177,7 +177,7 @@ export function CommandNav({ isOpen, onClose }: CommandNavProps) {
           </CommandGroup>
         </CommandList>
 
-        <div className="border-t border-primary/10 p-3 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="border-t border-primary/10 p-3 hidden sm:flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded bg-muted/50 border border-border/50">↑↓</kbd>

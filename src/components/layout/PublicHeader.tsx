@@ -76,7 +76,8 @@ export function PublicHeader() {
               variant="ghost"
               size="sm"
               onClick={handleCommandClick}
-              className="gap-2 text-muted-foreground hover:text-foreground"
+              className="gap-2 h-9 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95 transition-transform"
+              aria-label="Open command menu"
             >
               <CommandIcon className="h-4 w-4" />
               <span className="text-sm">Menu</span>
@@ -92,17 +93,27 @@ export function PublicHeader() {
               href="https://x.com/kernel_cool"
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors"
+              className="p-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors touch-manipulation active:scale-95"
               aria-label="Follow on X"
             >
               <XLogo className="h-4 w-4" />
             </a>
 
-            <Button variant="outline" size="sm" className="border-border/60 hover:border-primary/40 hover:bg-primary/5" asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 border-border/60 hover:border-primary/40 hover:bg-primary/5 touch-manipulation active:scale-95 transition-transform" 
+              asChild
+            >
               <Link to="/redeem-invite">Have a Code?</Link>
             </Button>
 
-            <Button variant="gold" size="sm" className="shadow-sm shadow-gold/20" asChild>
+            <Button 
+              variant="gold" 
+              size="sm" 
+              className="h-9 shadow-sm shadow-gold/20 touch-manipulation active:scale-95 transition-transform" 
+              asChild
+            >
               <Link to="/request-invite">Request Access</Link>
             </Button>
           </nav>

@@ -58,7 +58,7 @@ export function TopNavBar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1.5 sm:gap-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -67,7 +67,7 @@ export function TopNavBar() {
                   variant={isActive ? "secondary" : "ghost"}
                   size="sm"
                   className={cn(
-                    "gap-2 h-8",
+                    "gap-2 h-9 sm:h-8 touch-manipulation active:scale-95 transition-transform",
                     isActive && "bg-primary/10 text-primary hover:bg-primary/15"
                   )}
                 >
@@ -83,7 +83,7 @@ export function TopNavBar() {
                 variant={location.pathname === "/admin" ? "secondary" : "ghost"}
                 size="sm"
                 className={cn(
-                  "gap-2 h-8",
+                  "gap-2 h-9 sm:h-8 touch-manipulation active:scale-95 transition-transform",
                   location.pathname === "/admin" && "bg-primary/10 text-primary hover:bg-primary/15"
                 )}
               >
@@ -98,7 +98,8 @@ export function TopNavBar() {
             variant="ghost"
             size="sm"
             onClick={handleCommandClick}
-            className="gap-1 h-8 text-muted-foreground hover:text-foreground"
+            className="gap-1 h-9 sm:h-8 text-muted-foreground hover:text-foreground touch-manipulation active:scale-95 transition-transform"
+            aria-label="Open command menu"
           >
             <CommandIcon className="h-4 w-4" />
             <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-border/50 bg-muted/30 px-1.5 font-mono text-[10px] text-muted-foreground sm:flex">
@@ -113,11 +114,16 @@ export function TopNavBar() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 h-8">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-3.5 w-3.5 text-primary" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2 h-9 sm:h-8 touch-manipulation active:scale-95 transition-transform"
+                aria-label="User menu"
+              >
+                <div className="w-7 h-7 sm:w-6 sm:h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-primary" />
                 </div>
-                <span className="hidden md:inline text-sm truncate max-w-[120px]">
+                <span className="hidden lg:inline text-sm truncate max-w-[150px]">
                   {user.email}
                 </span>
               </Button>

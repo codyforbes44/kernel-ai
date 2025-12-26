@@ -57,7 +57,7 @@ export function MobileTabBar() {
 
   return (
     <nav 
-      className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-around px-2 z-50 animate-fade-in"
+      className="shrink-0 border-t border-border/50 bg-sidebar flex items-center justify-evenly px-1 z-50 animate-fade-in"
       style={{ 
         paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
         minHeight: '72px'
@@ -75,8 +75,8 @@ export function MobileTabBar() {
             to={tab.href}
             onClick={handleTabClick}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all",
-              "min-w-[64px] min-h-[48px]",
+              "flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-xl transition-all",
+              "flex-1 max-w-[80px] min-h-[52px]",
               "active:scale-95 touch-manipulation",
               isActive 
                 ? "text-primary" 
@@ -85,7 +85,7 @@ export function MobileTabBar() {
             aria-current={isActive ? "page" : undefined}
           >
             <div className={cn(
-              "relative flex items-center justify-center w-10 h-8 rounded-full transition-all",
+              "relative flex items-center justify-center w-11 h-9 rounded-full transition-all",
               isActive && "bg-primary/15 scale-110"
             )}>
               <Icon className={cn(
@@ -108,15 +108,18 @@ export function MobileTabBar() {
         );
       })}
 
-      {/* Credits Badge */}
-      <div className="flex flex-col items-center justify-center gap-1 py-2 px-2 min-w-[56px] min-h-[48px]">
+      {/* Compact Credits Badge */}
+      <div className={cn(
+        "flex flex-col items-center justify-center gap-0.5 py-2 px-1.5 rounded-xl",
+        "flex-1 max-w-[60px] min-h-[52px] touch-manipulation"
+      )}>
         <div className={cn(
-          "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium",
+          "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold",
           isLowCredits 
             ? "bg-destructive/15 text-destructive" 
             : "bg-primary/15 text-primary"
         )}>
-          <Coins className="h-3.5 w-3.5" />
+          <Coins className="h-3 w-3" />
           <span>{credits?.balance ?? 0}</span>
         </div>
         <span className="text-[10px] text-muted-foreground">Credits</span>
