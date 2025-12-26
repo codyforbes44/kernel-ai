@@ -29,13 +29,31 @@ interface ShootingStar {
   trailLength: number;
 }
 
+interface EnergyPulse {
+  active: boolean;
+  lineIndex: number;
+  progress: number;
+  speed: number;
+  direction: 1 | -1;
+  size: number;
+  color: THREE.Color;
+}
+
+// Pulse colors
+const PULSE_COLORS = [
+  new THREE.Color(0x00ffff), // Cyan
+  new THREE.Color(0x00ffff), // Cyan (more frequent)
+  new THREE.Color(0xaa88ff), // Pale purple
+  new THREE.Color(0xffffff), // White
+];
+
 // Generate star colors with variety
 function getStarColor(): THREE.Color {
   const rand = Math.random();
-  if (rand < 0.70) return new THREE.Color(0xffffff); // White
-  if (rand < 0.85) return new THREE.Color(0xaaddff); // Pale cyan
-  if (rand < 0.95) return new THREE.Color(0xddaaff); // Pale purple
-  return new THREE.Color(0xffeedd); // Warm white
+  if (rand < 0.70) return new THREE.Color(0xffffff);
+  if (rand < 0.85) return new THREE.Color(0xaaddff);
+  if (rand < 0.95) return new THREE.Color(0xddaaff);
+  return new THREE.Color(0xffeedd);
 }
 
 // Generate constellation lines between nearby stars
@@ -43,7 +61,7 @@ function generateConstellationLines(
   positions: Float32Array,
   maxConnections: number,
   maxDistance: number
-): { linePositions: Float32Array; lineCount: number } {
+): { linePositions: Float32Array; lineCount: number; lineEndpoints: [THREE.Vector3, THREE.Vector3][] } {
   const stars: THREE.Vector3[] = [];
   for (let i = 0; i < positions.length; i += 3) {
     stars.push(new THREE.Vector3(positions[i], positions[i + 1], positions[i + 2]));
@@ -64,7 +82,7 @@ function generateConstellationLines(
       const key = [Math.min(i, idx), Math.max(i, idx)].join('-');
       if (!usedConnections.has(key) && connections.length < maxConnections) {
         usedConnections.add(key);
-        connections.push([star, neighbor]);
+        connections.push([star.clone(), neighbor.clone()]);
       }
     }
   }
@@ -79,7 +97,7 @@ function generateConstellationLines(
     linePositions[i * 6 + 5] = b.z;
   });
 
-  return { linePositions, lineCount: connections.length };
+  return { linePositions, lineCount: connections.length, lineEndpoints: connections };
 }
 
 // Create a new shooting star
@@ -88,7 +106,6 @@ function createShootingStar(): ShootingStar {
   const startY = 150 + Math.random() * 100;
   const startZ = DEPTH_LAYERS_3D.CONSTELLATION_MID + (Math.random() - 0.5) * 100;
   
-  // Angle downward and to the right (with variation)
   const angle = -Math.PI / 6 + (Math.random() - 0.5) * 0.4;
   const speed = 250 + Math.random() * 150;
   
@@ -103,23 +120,40 @@ function createShootingStar(): ShootingStar {
   };
 }
 
+// Create a new energy pulse
+function createEnergyPulse(lineIndex: number): EnergyPulse {
+  const direction = Math.random() > 0.5 ? 1 : -1;
+  return {
+    active: true,
+    lineIndex,
+    progress: direction === 1 ? 0 : 1,
+    speed: 0.3 + Math.random() * 0.4,
+    direction,
+    size: 2.5 + Math.random() * 2,
+    color: PULSE_COLORS[Math.floor(Math.random() * PULSE_COLORS.length)].clone(),
+  };
+}
+
 export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: ConstellationFieldProps) {
   const { tier, shouldAnimate } = useAdaptiveQuality();
   const groupRef = useRef<THREE.Group>(null);
   const starsRef = useRef<(THREE.Points | null)[]>([]);
   const linesRef = useRef<THREE.LineSegments | null>(null);
   const shootingStarRef = useRef<THREE.Line | null>(null);
+  const pulsesRef = useRef<THREE.Points | null>(null);
   const timeRef = useRef(0);
   const nextShootingStarTime = useRef(3 + Math.random() * 4);
   const shootingStarData = useRef<ShootingStar | null>(null);
+  const pulsesData = useRef<EnergyPulse[]>([]);
+  const nextPulseTime = useRef(0.5);
 
   // Performance-scaled configuration
   const config = useMemo(() => {
     const configs = {
-      ULTRA: { starsPerLayer: 80, lineCount: 25, showLines: true, shootingStars: true },
-      HIGH: { starsPerLayer: 60, lineCount: 18, showLines: true, shootingStars: true },
-      MEDIUM: { starsPerLayer: 35, lineCount: 10, showLines: true, shootingStars: true },
-      LOW: { starsPerLayer: 15, lineCount: 0, showLines: false, shootingStars: false },
+      ULTRA: { starsPerLayer: 80, lineCount: 25, showLines: true, shootingStars: true, maxPulses: 8 },
+      HIGH: { starsPerLayer: 60, lineCount: 18, showLines: true, shootingStars: true, maxPulses: 6 },
+      MEDIUM: { starsPerLayer: 35, lineCount: 10, showLines: true, shootingStars: true, maxPulses: 4 },
+      LOW: { starsPerLayer: 15, lineCount: 0, showLines: false, shootingStars: false, maxPulses: 0 },
     };
     return configs[tier] || configs.MEDIUM;
   }, [tier]);
@@ -140,22 +174,18 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
       const twinkleOffsets = new Float32Array(count);
 
       for (let i = 0; i < count; i++) {
-        // Spread stars across viewport
         positions[i * 3] = (Math.random() - 0.5) * 600;
         positions[i * 3 + 1] = (Math.random() - 0.5) * 400;
         positions[i * 3 + 2] = z + (Math.random() - 0.5) * 50;
 
-        // Varying sizes - farther = smaller
         const depthFactor = 1 - (Math.abs(z) - 200) / 300;
         sizes[i] = (0.8 + Math.random() * 3.5) * depthFactor;
 
-        // Star colors
         const color = getStarColor();
         colors[i * 3] = color.r;
         colors[i * 3 + 1] = color.g;
         colors[i * 3 + 2] = color.b;
 
-        // Random twinkle phase offset
         twinkleOffsets[i] = Math.random() * Math.PI * 2;
       }
 
@@ -192,6 +222,114 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
     });
   }, []);
 
+  // Energy pulse geometry (pre-allocated pool)
+  const pulseGeometry = useMemo(() => {
+    const maxPulses = 8;
+    const positions = new Float32Array(maxPulses * 3);
+    const sizes = new Float32Array(maxPulses);
+    const colors = new Float32Array(maxPulses * 3);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setDrawRange(0, 0);
+    return geometry;
+  }, []);
+
+  // Energy pulse shader material
+  const pulseMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        
+        void main() {
+          float dist = length(gl_PointCoord - vec2(0.5));
+          if (dist > 0.5) discard;
+          
+          float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+          alpha = pow(alpha, 1.5);
+          
+          float core = 1.0 - smoothstep(0.0, 0.2, dist);
+          vec3 finalColor = mix(vColor, vec3(1.0), core * 0.8);
+          
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  }, []);
+
+  // Star shader material
+  const starMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        varying float vSize;
+        
+        void main() {
+          vColor = color;
+          vSize = size;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        varying float vSize;
+        
+        void main() {
+          float dist = length(gl_PointCoord - vec2(0.5));
+          if (dist > 0.5) discard;
+          
+          float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+          alpha *= alpha;
+          
+          float core = 1.0 - smoothstep(0.0, 0.15, dist);
+          vec3 finalColor = mix(vColor, vec3(1.0), core * 0.5);
+          
+          gl_FragColor = vec4(finalColor, alpha * 0.9);
+        }
+      `,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  }, []);
+
+  // Line material
+  const lineMaterial = useMemo(() => {
+    return new THREE.LineBasicMaterial({
+      color: COLORS_3D.grid,
+      transparent: true,
+      opacity: 0.08,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  }, []);
+
   // Animation and parallax
   useFrame((_, delta) => {
     if (isPaused || !shouldAnimate) return;
@@ -223,7 +361,6 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
         sizes.needsUpdate = true;
       }
 
-      // Per-layer parallax
       points.position.x = tiltY * 15 * layer.parallaxFactor * 10;
       points.position.y = -tiltX * 12 * layer.parallaxFactor * 10;
     });
@@ -234,30 +371,31 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
       linesRef.current.position.y = -tiltX * 12 * layers[0].parallaxFactor * 10;
     }
 
+    // Apply parallax to pulses
+    if (pulsesRef.current && layers[0]) {
+      pulsesRef.current.position.x = tiltY * 15 * layers[0].parallaxFactor * 10;
+      pulsesRef.current.position.y = -tiltX * 12 * layers[0].parallaxFactor * 10;
+    }
+
     // Shooting star logic
     if (config.shootingStars) {
-      // Spawn new shooting star
       if (!shootingStarData.current && timeRef.current >= nextShootingStarTime.current) {
         shootingStarData.current = createShootingStar();
         nextShootingStarTime.current = timeRef.current + 5 + Math.random() * 8;
       }
 
-      // Update active shooting star
       if (shootingStarData.current) {
         const star = shootingStarData.current;
         star.life += delta;
 
-        // Update position
         star.position.x += star.velocity.x * delta;
         star.position.y += star.velocity.y * delta;
 
-        // Add to trail
         star.trail.unshift(star.position.clone());
         if (star.trail.length > star.trailLength) {
           star.trail.pop();
         }
 
-        // Update geometry
         const posAttr = shootingStarGeometry.attributes.position as THREE.BufferAttribute;
         const colorAttr = shootingStarGeometry.attributes.color as THREE.BufferAttribute;
         const positions = posAttr.array as Float32Array;
@@ -269,7 +407,6 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
           positions[i * 3 + 1] = point.y;
           positions[i * 3 + 2] = point.z;
 
-          // Fade color along trail (white to cyan)
           const t = i / star.trailLength;
           const lifeAlpha = 1 - (star.life / star.maxLife);
           const alpha = (1 - t) * lifeAlpha;
@@ -282,70 +419,82 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
         colorAttr.needsUpdate = true;
         shootingStarGeometry.setDrawRange(0, star.trail.length);
 
-        // End shooting star
         if (star.life >= star.maxLife || star.position.y < -250) {
           shootingStarData.current = null;
           shootingStarGeometry.setDrawRange(0, 0);
         }
       }
     }
+
+    // Energy pulse logic
+    if (config.maxPulses > 0 && lineData && lineData.lineCount > 0) {
+      // Spawn new pulses
+      const activePulses = pulsesData.current.filter(p => p.active).length;
+      if (activePulses < config.maxPulses && timeRef.current >= nextPulseTime.current) {
+        const randomLineIndex = Math.floor(Math.random() * lineData.lineCount);
+        pulsesData.current.push(createEnergyPulse(randomLineIndex));
+        nextPulseTime.current = timeRef.current + 0.5 + Math.random() * 1.5;
+      }
+
+      // Update pulses
+      const posAttr = pulseGeometry.attributes.position as THREE.BufferAttribute;
+      const sizeAttr = pulseGeometry.attributes.size as THREE.BufferAttribute;
+      const colorAttr = pulseGeometry.attributes.color as THREE.BufferAttribute;
+      const positions = posAttr.array as Float32Array;
+      const sizes = sizeAttr.array as Float32Array;
+      const colors = colorAttr.array as Float32Array;
+
+      let activeCount = 0;
+
+      for (let i = 0; i < pulsesData.current.length; i++) {
+        const pulse = pulsesData.current[i];
+        if (!pulse.active) continue;
+
+        // Update progress
+        pulse.progress += pulse.speed * pulse.direction * delta;
+
+        // Check if pulse completed
+        if (pulse.progress >= 1 || pulse.progress <= 0) {
+          pulse.active = false;
+          continue;
+        }
+
+        // Get line endpoints
+        const endpoints = lineData.lineEndpoints[pulse.lineIndex];
+        if (!endpoints) {
+          pulse.active = false;
+          continue;
+        }
+
+        // Interpolate position along line
+        const [start, end] = endpoints;
+        const x = start.x + (end.x - start.x) * pulse.progress;
+        const y = start.y + (end.y - start.y) * pulse.progress;
+        const z = start.z + (end.z - start.z) * pulse.progress;
+
+        // Pulse size with breathing effect
+        const breathe = 1 + Math.sin(timeRef.current * 8 + i) * 0.2;
+        
+        positions[activeCount * 3] = x;
+        positions[activeCount * 3 + 1] = y;
+        positions[activeCount * 3 + 2] = z;
+        sizes[activeCount] = pulse.size * breathe;
+        colors[activeCount * 3] = pulse.color.r;
+        colors[activeCount * 3 + 1] = pulse.color.g;
+        colors[activeCount * 3 + 2] = pulse.color.b;
+
+        activeCount++;
+      }
+
+      // Clean up inactive pulses
+      pulsesData.current = pulsesData.current.filter(p => p.active);
+
+      posAttr.needsUpdate = true;
+      sizeAttr.needsUpdate = true;
+      colorAttr.needsUpdate = true;
+      pulseGeometry.setDrawRange(0, activeCount);
+    }
   });
-
-  // Star shader material
-  const starMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: 0 },
-      },
-      vertexShader: `
-        attribute float size;
-        attribute vec3 color;
-        varying vec3 vColor;
-        varying float vSize;
-        
-        void main() {
-          vColor = color;
-          vSize = size;
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPosition.z);
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        varying vec3 vColor;
-        varying float vSize;
-        
-        void main() {
-          float dist = length(gl_PointCoord - vec2(0.5));
-          if (dist > 0.5) discard;
-          
-          // Soft glow falloff
-          float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-          alpha *= alpha;
-          
-          // Core brightness
-          float core = 1.0 - smoothstep(0.0, 0.15, dist);
-          vec3 finalColor = mix(vColor, vec3(1.0), core * 0.5);
-          
-          gl_FragColor = vec4(finalColor, alpha * 0.9);
-        }
-      `,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-  }, []);
-
-  // Line material
-  const lineMaterial = useMemo(() => {
-    return new THREE.LineBasicMaterial({
-      color: COLORS_3D.grid,
-      transparent: true,
-      opacity: 0.08,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-  }, []);
 
   return (
     <group ref={groupRef}>
@@ -396,6 +545,17 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
           </bufferGeometry>
           <primitive object={lineMaterial} attach="material" />
         </lineSegments>
+      )}
+
+      {/* Energy pulses */}
+      {config.maxPulses > 0 && (
+        <points
+          ref={pulsesRef}
+          frustumCulled={false}
+        >
+          <primitive object={pulseGeometry} attach="geometry" />
+          <primitive object={pulseMaterial} attach="material" />
+        </points>
       )}
 
       {/* Shooting star */}
