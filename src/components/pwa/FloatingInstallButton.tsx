@@ -23,7 +23,8 @@ export function FloatingInstallButton() {
   }, []);
 
   useEffect(() => {
-    if (!isMobile || !isInstallable || isInstalled || isDismissed) {
+    // Show on both mobile and desktop
+    if (!isInstallable || isInstalled || isDismissed) {
       setIsVisible(false);
       return;
     }
@@ -37,7 +38,7 @@ export function FloatingInstallButton() {
     handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMobile, isInstallable, isInstalled, isDismissed]);
+  }, [isInstallable, isInstalled, isDismissed]);
 
   const handleInstall = async () => {
     setIsInstalling(true);
