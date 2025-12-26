@@ -2,17 +2,18 @@ import { motion } from 'framer-motion';
 import { memo, useMemo } from 'react';
 
 interface KernelCoreAnimationProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showNodes?: boolean;
   isPaused?: boolean;
 }
 
 const sizeMap = {
-  sm: { container: 120, core: 24, ring: 40, nodes: 6 },
-  md: { container: 200, core: 36, ring: 60, nodes: 8 },
-  lg: { container: 320, core: 48, ring: 90, nodes: 10 },
-  xl: { container: 480, core: 64, ring: 120, nodes: 12 },
+  xs: { container: 100, core: 20, ring: 32, nodes: 4 },
+  sm: { container: 140, core: 28, ring: 48, nodes: 5 },
+  md: { container: 200, core: 36, ring: 60, nodes: 6 },
+  lg: { container: 280, core: 44, ring: 80, nodes: 8 },
+  xl: { container: 380, core: 56, ring: 100, nodes: 10 },
 };
 
 // Outer service nodes that receive power from the core
