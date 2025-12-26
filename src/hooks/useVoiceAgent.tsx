@@ -11,14 +11,37 @@ export interface VoiceAgentUserContext {
   projectName?: string;
   userName?: string;
   currentPage?: string;
+  isAuthenticated?: boolean;
+  sessionId?: string;
+}
+
+export interface ClientToolResult {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+export interface ClientTools {
+  capture_project_idea?: (params: {
+    name: string;
+    description: string;
+    features?: string[];
+    techStack?: string[];
+    targetAudience?: string;
+    additionalNotes?: string;
+  }) => Promise<ClientToolResult> | ClientToolResult;
+  start_signup_flow?: () => Promise<ClientToolResult> | ClientToolResult;
+  confirm_understanding?: (params: { confirmed: boolean }) => Promise<ClientToolResult> | ClientToolResult;
 }
 
 interface UseVoiceAgentOptions {
   agentId: string;
   userContext?: VoiceAgentUserContext;
-  onMessage?: (message: any) => void;
-  onTranscript?: (text: string, isFinal: boolean) => void;
+  clientTools?: ClientTools;
+  onMessage?: (message: unknown) => void;
+  onTranscript?: (text: string, isFinal: boolean, role: 'user' | 'agent') => void;
   onFirstMessage?: (message: string) => void;
+  onClientToolCall?: (toolName: string, params: unknown) => void;
 }
 
 interface UseVoiceAgentReturn {
@@ -36,16 +59,60 @@ interface UseVoiceAgentReturn {
 export function useVoiceAgent({ 
   agentId, 
   userContext,
+  clientTools,
   onMessage, 
   onTranscript,
   onFirstMessage,
+  onClientToolCall,
 }: UseVoiceAgentOptions): UseVoiceAgentReturn {
   const { toast } = useToast();
   const [status, setStatus] = useState<VoiceAgentStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const isConnectingRef = useRef(false);
 
+  // Build client tools configuration for ElevenLabs
+  const elevenLabsClientTools = clientTools ? {
+    capture_project_idea: async (params: {
+      name: string;
+      description: string;
+      features?: string[];
+      techStack?: string[];
+      targetAudience?: string;
+      additionalNotes?: string;
+    }) => {
+      console.log('Client tool called: capture_project_idea', params);
+      onClientToolCall?.('capture_project_idea', params);
+      
+      if (clientTools.capture_project_idea) {
+        const result = await clientTools.capture_project_idea(params);
+        return result.message || 'Project idea captured successfully';
+      }
+      return 'Project idea captured';
+    },
+    start_signup_flow: async () => {
+      console.log('Client tool called: start_signup_flow');
+      onClientToolCall?.('start_signup_flow', {});
+      
+      if (clientTools.start_signup_flow) {
+        const result = await clientTools.start_signup_flow();
+        return result.message || 'Signup flow initiated';
+      }
+      return 'Signup flow started';
+    },
+    confirm_understanding: async (params: { confirmed: boolean }) => {
+      console.log('Client tool called: confirm_understanding', params);
+      onClientToolCall?.('confirm_understanding', params);
+      
+      if (clientTools.confirm_understanding) {
+        const result = await clientTools.confirm_understanding(params);
+        return result.message || 'Understanding confirmed';
+      }
+      return params.confirmed ? 'Great! I understand what you want to build.' : 'Let me know if you have any changes.';
+    },
+  } : undefined;
+
   const conversation = useConversation({
+    clientTools: elevenLabsClientTools,
     onConnect: () => {
       console.log('Voice agent connected');
       setStatus('connected');
@@ -71,7 +138,7 @@ export function useVoiceAgent({
         const event = msg.user_transcription_event as Record<string, unknown> | undefined;
         const transcript = event?.user_transcript as string | undefined;
         if (transcript && onTranscript) {
-          onTranscript(transcript, true);
+          onTranscript(transcript, true, 'user');
         }
       }
       
@@ -80,7 +147,16 @@ export function useVoiceAgent({
         const event = msg.agent_response_event as Record<string, unknown> | undefined;
         const response = event?.agent_response as string | undefined;
         if (response && onTranscript) {
-          onTranscript(response, true);
+          onTranscript(response, true, 'agent');
+        }
+      }
+
+      // Handle client tool calls
+      if (msg.type === 'client_tool_call') {
+        const toolName = msg.tool_name as string | undefined;
+        const parameters = msg.parameters as Record<string, unknown> | undefined;
+        if (toolName) {
+          onClientToolCall?.(toolName, parameters);
         }
       }
       
@@ -211,7 +287,7 @@ export function useVoiceAgent({
         variant: 'destructive',
       });
     }
-  }, [agentId, isConnected, conversation, toast]);
+  }, [agentId, isConnected, conversation, toast, userContext, onFirstMessage]);
 
   const retry = useCallback(async () => {
     setError(null);
