@@ -15,10 +15,12 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useState } from 'react';
 
 interface StorageToolbarProps {
@@ -139,6 +141,11 @@ export function StorageToolbar({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New Folder</DialogTitle>
+              <VisuallyHidden>
+                <DialogDescription>
+                  Enter a name for the new folder.
+                </DialogDescription>
+              </VisuallyHidden>
             </DialogHeader>
             <div className="flex flex-col gap-4 pt-4">
               <Input

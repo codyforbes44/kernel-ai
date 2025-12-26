@@ -20,6 +20,8 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
   const [isContextLost, setIsContextLost] = useState(false);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const recoveryAttempts = useRef(0);
+  const maxRecoveryAttempts = 3;
 
   // Handle WebGL context loss
   const handleContextLost = useCallback((event: Event) => {
@@ -35,13 +37,22 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
 
   // Handle WebGL context restoration
   const handleContextRestored = useCallback(() => {
-    console.log('WebGL context restored, re-mounting scene...');
+    recoveryAttempts.current += 1;
     
-    // Delay slightly to ensure GPU is ready
+    if (recoveryAttempts.current > maxRecoveryAttempts) {
+      console.warn(`WebGL recovery exceeded ${maxRecoveryAttempts} attempts, falling back to static view`);
+      return; // Stay in fallback mode
+    }
+    
+    console.log(`WebGL context restored (attempt ${recoveryAttempts.current}), re-mounting scene...`);
+    
+    // Exponential backoff delay for recovery
+    const delay = Math.min(100 * Math.pow(2, recoveryAttempts.current - 1), 2000);
+    
     recoveryTimeoutRef.current = setTimeout(() => {
       setIsContextLost(false);
       setContextKey(prev => prev + 1); // Force Canvas re-mount
-    }, 100);
+    }, delay);
   }, []);
 
   // Set up context loss listeners on the actual canvas element

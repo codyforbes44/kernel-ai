@@ -1,11 +1,13 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Keyboard } from 'lucide-react';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface KeyboardShortcutsModalProps {
   open: boolean;
@@ -60,6 +62,11 @@ export function KeyboardShortcutsModal({
             <Keyboard className="h-5 w-5" />
             Keyboard Shortcuts
           </DialogTitle>
+          <VisuallyHidden>
+            <DialogDescription>
+              A list of keyboard shortcuts for navigation, conversations, preview, and editor actions.
+            </DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
         <div className="space-y-6 py-4">
           {shortcuts.map((section, i) => (

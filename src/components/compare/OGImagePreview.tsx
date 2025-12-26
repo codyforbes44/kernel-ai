@@ -5,10 +5,12 @@ import { CompareOGImage } from "@/components/marketing/CompareOGImage";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export const OGImagePreview = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +33,11 @@ export const OGImagePreview = () => {
           <DialogContent className="max-w-[95vw] w-full p-2 sm:p-4">
             <DialogHeader>
               <DialogTitle className="text-sm">OG Image Preview</DialogTitle>
+              <VisuallyHidden>
+                <DialogDescription>
+                  Preview of the Open Graph image used for social media sharing.
+                </DialogDescription>
+              </VisuallyHidden>
             </DialogHeader>
             <div className="overflow-auto">
               <div className="min-w-[600px]">
