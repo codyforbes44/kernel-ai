@@ -73,7 +73,7 @@ export function PreviewToolbar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9 touch-manipulation"
               onClick={onToggleFullscreen}
             >
               <Minimize2 className="h-4 w-4" />
@@ -86,10 +86,11 @@ export function PreviewToolbar({
   }
 
   return (
-    <div className="h-11 flex items-center justify-between px-2 border-b border-border bg-muted/40 backdrop-blur-sm">
+    <div className="h-12 sm:h-11 flex items-center justify-between px-2 border-b border-border bg-muted/40 backdrop-blur-sm">
       {/* Left side - URL bar style preview indicator */}
       <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="flex items-center gap-1 px-2 py-1 bg-background/80 border border-border/50 rounded-md min-w-0 max-w-[200px]">
+        {/* Hide URL bar on very small screens */}
+        <div className="hidden xs:flex items-center gap-1 px-2 py-1 bg-background/80 border border-border/50 rounded-md min-w-0 max-w-[200px]">
           <Globe className="h-3 w-3 text-muted-foreground flex-shrink-0" />
           <span className="text-xs text-muted-foreground truncate font-mono">
             {currentPath}
@@ -113,7 +114,7 @@ export function PreviewToolbar({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'h-7 w-7 rounded-md transition-all',
+                  'h-9 w-9 sm:h-8 sm:w-8 rounded-md transition-all touch-manipulation',
                   viewport === key && [
                     'bg-primary text-primary-foreground shadow-sm',
                     'hover:bg-primary hover:text-primary-foreground',
@@ -135,19 +136,22 @@ export function PreviewToolbar({
 
       {/* Right side - Actions */}
       <div className="flex items-center gap-1 flex-1 justify-end">
-        <VisualEditsButton
-          isActive={isVisualEditorActive}
-          onClick={onToggleVisualEditor}
-        />
+        {/* Hide visual edits button on very small screens */}
+        <div className="hidden xs:block">
+          <VisualEditsButton
+            isActive={isVisualEditorActive}
+            onClick={onToggleVisualEditor}
+          />
+        </div>
         
-        <div className="w-px h-5 bg-border mx-1" />
+        <div className="w-px h-5 bg-border mx-1 hidden xs:block" />
         
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9 sm:h-8 sm:w-8 touch-manipulation"
               onClick={onRefresh}
             >
               <RefreshCw className={cn("h-4 w-4", isBundling && "animate-spin")} />
@@ -161,7 +165,7 @@ export function PreviewToolbar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9 sm:h-8 sm:w-8 touch-manipulation"
               onClick={onToggleFullscreen}
             >
               <Maximize2 className="h-4 w-4" />
@@ -175,10 +179,10 @@ export function PreviewToolbar({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9 sm:h-8 sm:w-8 touch-manipulation"
               onClick={onOpenExternal}
             >
-            <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Open in new tab</TooltipContent>
@@ -192,7 +196,7 @@ export function PreviewToolbar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-9 w-9 sm:h-8 sm:w-8 touch-manipulation"
                   onClick={onClose}
                 >
                   <PanelRightClose className="h-4 w-4" />
