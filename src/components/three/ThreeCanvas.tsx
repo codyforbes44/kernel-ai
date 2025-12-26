@@ -17,6 +17,21 @@ export function ThreeCanvas({ children, className = '', isPaused = false, showPe
   const { tier, reducedMotion } = useThreePerformance();
   const isMobile = useIsMobile();
   
+  // Performance indicator toggle state (Ctrl+Shift+P)
+  const [showIndicator, setShowIndicator] = useState(showPerformanceIndicator);
+  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setShowIndicator(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
   // Context loss recovery state
   const [contextKey, setContextKey] = useState(0);
   const [isContextLost, setIsContextLost] = useState(false);
@@ -185,7 +200,7 @@ export function ThreeCanvas({ children, className = '', isPaused = false, showPe
           <Preload all />
         </Suspense>
       </Canvas>
-      <PerformanceTierIndicator visible={showPerformanceIndicator} />
+      <PerformanceTierIndicator visible={showIndicator} />
     </div>
   );
 }
