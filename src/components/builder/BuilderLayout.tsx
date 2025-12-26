@@ -12,6 +12,7 @@ import { SandpackPreview } from './SandpackPreview';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { PanelRenderer } from './PanelRenderer';
+import { PanelToggleBar } from './PanelToggleBar';
 import { TypingIndicator } from './TypingIndicator';
 import { RemixProjectDialog } from '@/components/dialogs/RemixProjectDialog';
 import { DeleteConfirmDialog } from '@/components/dialogs/DeleteConfirmDialog';
@@ -264,16 +265,20 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
         projectId={projectId}
         projectName={project?.name}
         isPublic={project?.is_public}
-        activeTabId={activeTabId}
-        isAgentRunning={isAgentRunning}
-        isPanelActive={isPanelActive}
-        togglePanel={togglePanel}
         onSave={handleSave}
         onOpenSettings={() => setShowSettingsDialog(true)}
         onOpenRemix={() => setShowRemixDialog(true)}
       />
 
-      {/* Main Content */}
+      {/* Panel Toggle Bar */}
+      <PanelToggleBar
+        activePanel={activePanel}
+        activeTabId={activeTabId}
+        isAgentRunning={isAgentRunning}
+        showPreview={showPreview}
+        onTogglePanel={togglePanel}
+        onTogglePreview={togglePreview}
+      />
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         {/* File Explorer */}
         {showExplorer && (
