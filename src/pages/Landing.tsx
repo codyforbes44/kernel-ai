@@ -55,11 +55,11 @@ export default function Landing() {
         ]}
       />
 
-      {/* Hero Section - Simplified hierarchy with accessibility support */}
+      {/* Hero Section - Mobile-first with safe viewport height */}
       <section 
         ref={heroRef}
         id="hero" 
-        className="relative min-h-[100dvh] flex flex-col items-center justify-center px-4 scroll-mt-16 pt-16 md:pt-20"
+        className="relative min-h-[100svh] flex flex-col items-center justify-center scroll-mt-16 pt-20 pb-16 sm:pt-24 sm:pb-20"
       >
         {/* 3D Background or CSS Fallback */}
         {show3DEffects ? (
@@ -103,7 +103,7 @@ export default function Landing() {
         )}
         
         {/* Visual Effects Toggle - positioned in top right of hero */}
-        <div className="absolute top-20 md:top-24 right-4 md:right-6 z-20">
+        <div className="absolute top-20 sm:top-24 right-3 sm:right-4 md:right-6 z-20">
           <VisualEffectsToggle 
             enabled={effectsEnabled} 
             onToggle={toggleEffects} 
@@ -116,7 +116,7 @@ export default function Landing() {
         {/* Scroll Indicator - visible on all devices */}
         <ScrollIndicator 
           targetId="social-proof" 
-          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10"
+          className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-10"
           prefersReducedMotion={prefersReducedMotion || !effectsEnabled}
         />
       </section>
