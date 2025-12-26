@@ -64,7 +64,7 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
         .from('github_connections')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       return isGitHubConnection(data) ? data : null;
     },
@@ -78,7 +78,7 @@ export function useGitHub({ projectId }: UseGitHubOptions) {
         .from('project_repos')
         .select('*')
         .eq('project_id', projectId)
-        .single();
+        .maybeSingle();
 
       return isProjectRepo(data) ? data : null;
     },
