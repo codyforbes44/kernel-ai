@@ -19,6 +19,16 @@ interface StarLayer {
   parallaxFactor: number;
 }
 
+interface ShootingStar {
+  active: boolean;
+  position: THREE.Vector3;
+  velocity: THREE.Vector3;
+  life: number;
+  maxLife: number;
+  trail: THREE.Vector3[];
+  trailLength: number;
+}
+
 // Generate star colors with variety
 function getStarColor(): THREE.Color {
   const rand = Math.random();
@@ -72,20 +82,44 @@ function generateConstellationLines(
   return { linePositions, lineCount: connections.length };
 }
 
+// Create a new shooting star
+function createShootingStar(): ShootingStar {
+  const startX = (Math.random() - 0.3) * 400;
+  const startY = 150 + Math.random() * 100;
+  const startZ = DEPTH_LAYERS_3D.CONSTELLATION_MID + (Math.random() - 0.5) * 100;
+  
+  // Angle downward and to the right (with variation)
+  const angle = -Math.PI / 6 + (Math.random() - 0.5) * 0.4;
+  const speed = 250 + Math.random() * 150;
+  
+  return {
+    active: true,
+    position: new THREE.Vector3(startX, startY, startZ),
+    velocity: new THREE.Vector3(Math.cos(angle) * speed, Math.sin(angle) * speed, 0),
+    life: 0,
+    maxLife: 0.8 + Math.random() * 0.6,
+    trail: [],
+    trailLength: 12 + Math.floor(Math.random() * 8),
+  };
+}
+
 export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: ConstellationFieldProps) {
   const { tier, shouldAnimate } = useAdaptiveQuality();
   const groupRef = useRef<THREE.Group>(null);
   const starsRef = useRef<(THREE.Points | null)[]>([]);
   const linesRef = useRef<THREE.LineSegments | null>(null);
+  const shootingStarRef = useRef<THREE.Line | null>(null);
   const timeRef = useRef(0);
+  const nextShootingStarTime = useRef(3 + Math.random() * 4);
+  const shootingStarData = useRef<ShootingStar | null>(null);
 
   // Performance-scaled configuration
   const config = useMemo(() => {
     const configs = {
-      ULTRA: { starsPerLayer: 80, lineCount: 25, showLines: true },
-      HIGH: { starsPerLayer: 60, lineCount: 18, showLines: true },
-      MEDIUM: { starsPerLayer: 35, lineCount: 10, showLines: true },
-      LOW: { starsPerLayer: 15, lineCount: 0, showLines: false },
+      ULTRA: { starsPerLayer: 80, lineCount: 25, showLines: true, shootingStars: true },
+      HIGH: { starsPerLayer: 60, lineCount: 18, showLines: true, shootingStars: true },
+      MEDIUM: { starsPerLayer: 35, lineCount: 10, showLines: true, shootingStars: true },
+      LOW: { starsPerLayer: 15, lineCount: 0, showLines: false, shootingStars: false },
     };
     return configs[tier] || configs.MEDIUM;
   }, [tier]);
@@ -136,6 +170,28 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
     return generateConstellationLines(nearLayer.positions, config.lineCount, 120);
   }, [layers, config.showLines, config.lineCount]);
 
+  // Shooting star trail geometry (pre-allocated)
+  const shootingStarGeometry = useMemo(() => {
+    const maxTrailPoints = 20;
+    const positions = new Float32Array(maxTrailPoints * 3);
+    const colors = new Float32Array(maxTrailPoints * 3);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setDrawRange(0, 0);
+    return geometry;
+  }, []);
+
+  // Shooting star material
+  const shootingStarMaterial = useMemo(() => {
+    return new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+  }, []);
+
   // Animation and parallax
   useFrame((_, delta) => {
     if (isPaused || !shouldAnimate) return;
@@ -144,7 +200,7 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
 
     // Apply parallax based on device tilt
     if (groupRef.current) {
-      const targetX = tiltY * 15; // Inverted for natural feel
+      const targetX = tiltY * 15;
       const targetY = -tiltX * 12;
       groupRef.current.position.x += (targetX - groupRef.current.position.x) * 0.05;
       groupRef.current.position.y += (targetY - groupRef.current.position.y) * 0.05;
@@ -176,6 +232,62 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
     if (linesRef.current && layers[0]) {
       linesRef.current.position.x = tiltY * 15 * layers[0].parallaxFactor * 10;
       linesRef.current.position.y = -tiltX * 12 * layers[0].parallaxFactor * 10;
+    }
+
+    // Shooting star logic
+    if (config.shootingStars) {
+      // Spawn new shooting star
+      if (!shootingStarData.current && timeRef.current >= nextShootingStarTime.current) {
+        shootingStarData.current = createShootingStar();
+        nextShootingStarTime.current = timeRef.current + 5 + Math.random() * 8;
+      }
+
+      // Update active shooting star
+      if (shootingStarData.current) {
+        const star = shootingStarData.current;
+        star.life += delta;
+
+        // Update position
+        star.position.x += star.velocity.x * delta;
+        star.position.y += star.velocity.y * delta;
+
+        // Add to trail
+        star.trail.unshift(star.position.clone());
+        if (star.trail.length > star.trailLength) {
+          star.trail.pop();
+        }
+
+        // Update geometry
+        const posAttr = shootingStarGeometry.attributes.position as THREE.BufferAttribute;
+        const colorAttr = shootingStarGeometry.attributes.color as THREE.BufferAttribute;
+        const positions = posAttr.array as Float32Array;
+        const colors = colorAttr.array as Float32Array;
+
+        for (let i = 0; i < star.trail.length; i++) {
+          const point = star.trail[i];
+          positions[i * 3] = point.x;
+          positions[i * 3 + 1] = point.y;
+          positions[i * 3 + 2] = point.z;
+
+          // Fade color along trail (white to cyan)
+          const t = i / star.trailLength;
+          const lifeAlpha = 1 - (star.life / star.maxLife);
+          const alpha = (1 - t) * lifeAlpha;
+          colors[i * 3] = 0.8 + 0.2 * (1 - t);
+          colors[i * 3 + 1] = 0.95 + 0.05 * (1 - t);
+          colors[i * 3 + 2] = 1.0 * alpha;
+        }
+
+        posAttr.needsUpdate = true;
+        colorAttr.needsUpdate = true;
+        shootingStarGeometry.setDrawRange(0, star.trail.length);
+
+        // End shooting star
+        if (star.life >= star.maxLife || star.position.y < -250) {
+          shootingStarData.current = null;
+          shootingStarGeometry.setDrawRange(0, 0);
+        }
+      }
     }
   });
 
@@ -209,7 +321,7 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
           
           // Soft glow falloff
           float alpha = 1.0 - smoothstep(0.0, 0.5, dist);
-          alpha *= alpha; // Squared for softer edges
+          alpha *= alpha;
           
           // Core brightness
           float core = 1.0 - smoothstep(0.0, 0.15, dist);
@@ -284,6 +396,15 @@ export function ConstellationField({ isPaused = false, tiltX = 0, tiltY = 0 }: C
           </bufferGeometry>
           <primitive object={lineMaterial} attach="material" />
         </lineSegments>
+      )}
+
+      {/* Shooting star */}
+      {config.shootingStars && (
+        <primitive
+          object={new THREE.Line(shootingStarGeometry, shootingStarMaterial)}
+          ref={shootingStarRef}
+          frustumCulled={false}
+        />
       )}
     </group>
   );
