@@ -98,12 +98,12 @@ export default function RedeemInvite() {
             )}
           </div>
           
-          <Button className="w-full gap-2" size="lg" onClick={handleContinue}>
+          <Button className="w-full gap-2 min-h-[48px] touch-manipulation active:scale-[0.98] transition-transform" size="lg" onClick={handleContinue}>
             Create Account
             <ArrowRight className="h-4 w-4" />
           </Button>
           
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-4">
             The code will be redeemed when you complete signup
           </p>
         </GlassPanel>
@@ -124,19 +124,19 @@ export default function RedeemInvite() {
         noIndex
       />
 
-      <div className="relative z-10 w-full max-w-md space-y-8">
+      <div className="relative z-10 w-full max-w-md space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-3 sm:space-y-4">
           <div className="flex justify-center">
             <KernelLogo size="xl" glow />
           </div>
           <div className="flex items-center justify-center gap-2">
-            <GlowText as="h1" variant="gradient" intensity="medium" className="text-3xl font-bold">
+            <GlowText as="h1" variant="gradient" intensity="medium" className="text-2xl sm:text-3xl font-bold">
               Enter Invite Code
             </GlowText>
             <HoloBadge variant="glow">Beta</HoloBadge>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground px-2">
             Kernel is currently invite-only. Enter your code below to get started.
           </p>
         </div>
@@ -158,13 +158,13 @@ export default function RedeemInvite() {
                   placeholder="KERNEL-XXXX-XXXX"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  className="font-mono text-center text-lg tracking-wider bg-background/50"
+                  className="font-mono text-center text-base sm:text-lg tracking-wider bg-background/50 h-12 touch-manipulation"
                   autoComplete="off"
                   autoFocus
                 />
               </div>
 
-              <Button type="submit" className="w-full gap-2" size="lg" disabled={validating}>
+              <Button type="submit" className="w-full gap-2 min-h-[48px] touch-manipulation active:scale-[0.98] transition-transform" size="lg" disabled={validating}>
                 {validating ? (
                   <>
                     <LoadingSpinner />
@@ -182,7 +182,7 @@ export default function RedeemInvite() {
         </GlassPanel>
 
         {/* Footer */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-3 sm:space-y-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border/50" />
@@ -195,13 +195,13 @@ export default function RedeemInvite() {
           </div>
 
           <div className="space-y-3">
-            <Button variant="outline" className="w-full gap-2" asChild>
+            <Button variant="outline" className="w-full gap-2 min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform" asChild>
               <Link to="/request-invite">
                 <Sparkles className="h-4 w-4" />
                 Request Early Access
               </Link>
             </Button>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               Or follow us on{' '}
               <a 
                 href="https://x.com/kernel" 
@@ -218,7 +218,7 @@ export default function RedeemInvite() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="gap-2"
+            className="gap-2 min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Home

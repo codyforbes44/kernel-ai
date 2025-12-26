@@ -100,12 +100,12 @@ export default function RequestInvite() {
             Thank you for your interest in Kernel. We'll review your application and be in touch if you're selected for early access.
           </p>
           <div className="flex flex-col gap-3">
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild className="min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform">
               <a href="https://x.com/kernel" target="_blank" rel="noopener noreferrer">
                 Follow on X for updates
               </a>
             </Button>
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button variant="ghost" onClick={() => navigate("/")} className="min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
@@ -127,22 +127,22 @@ export default function RequestInvite() {
         description="Request exclusive early access to Kernel - the AI-powered development platform"
       />
 
-      <HoloSection variant="gradient" className="relative z-10 min-h-screen py-8 px-4">
+      <HoloSection variant="gradient" className="relative z-10 min-h-screen py-6 sm:py-8 px-4">
         {/* Header */}
         <div className="container max-w-6xl mx-auto">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="mb-8 gap-2 text-muted-foreground hover:text-foreground"
+            className="mb-6 sm:mb-8 gap-2 text-muted-foreground hover:text-foreground min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
 
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-start">
             {/* Left: Info */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-3">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="flex flex-wrap items-center gap-3">
                 <KernelLogo size="lg" glow />
                 <HoloBadge variant="glow">
                   <Sparkles className="h-3 w-3 mr-1" />
@@ -150,42 +150,42 @@ export default function RequestInvite() {
                 </HoloBadge>
               </div>
               
-              <div className="space-y-4">
-                <GlowText as="h1" variant="gradient" intensity="medium" className="text-4xl sm:text-5xl font-bold tracking-tight">
+              <div className="space-y-3 sm:space-y-4">
+                <GlowText as="h1" variant="gradient" intensity="medium" className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
                   Get Early Access to Kernel
                 </GlowText>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-base sm:text-lg text-muted-foreground">
                   We're opening up Kernel to a select group of early adopters. 
                   Tell us about yourself and how you plan to use Kernel.
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {features.map((feature) => (
                   <div 
                     key={feature.label}
-                    className="flex items-start gap-4 p-4 rounded-lg bg-card/30 border border-border/30 backdrop-blur-sm"
+                    className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-card/30 border border-border/30 backdrop-blur-sm"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <feature.icon className="h-5 w-5 text-primary" />
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <feature.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium">{feature.label}</h3>
-                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      <h3 className="font-medium text-sm sm:text-base">{feature.label}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{feature.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-4 bg-card/30 rounded-lg border border-border/30 backdrop-blur-sm">
+              <div className="p-3 sm:p-4 bg-card/30 rounded-lg border border-border/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-2">
                   <Ticket className="h-4 w-4 text-primary" />
                   <span className="font-medium">Have an invite code?</span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                   If you already have an invite code, you can sign up directly.
                 </p>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="min-h-[40px] touch-manipulation active:scale-[0.98] transition-transform">
                   <Link to="/redeem">
                     Enter Invite Code
                     <ArrowRight className="h-4 w-4 ml-2" />
@@ -248,7 +248,7 @@ export default function RequestInvite() {
                     </p>
                   </div>
 
-                  <Button type="submit" className="w-full gap-2" disabled={submitting}>
+                  <Button type="submit" className="w-full gap-2 min-h-[48px] touch-manipulation active:scale-[0.98] transition-transform" disabled={submitting}>
                     {submitting ? (
                       <>
                         <LoadingSpinner className="mr-2" />
@@ -262,7 +262,7 @@ export default function RequestInvite() {
                     )}
                   </Button>
 
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
                     By submitting, you agree to our{' '}
                     <Link to="/privacy" className="underline hover:text-primary">
                       Privacy Policy

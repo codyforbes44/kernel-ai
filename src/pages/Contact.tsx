@@ -132,20 +132,20 @@ export default function Contact() {
       </section>
 
       {/* Contact Options */}
-      <section className="pb-12 px-4">
+      <section className="pb-8 sm:pb-10 md:pb-12 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {contactOptions.map((option) => (
-              <HoloCard key={option.title} className="text-center" hover>
-                <HoloCardContent className="pt-6">
-                  <div className="mx-auto mb-3 p-3 rounded-xl bg-primary/10 w-fit shadow-[0_0_15px_hsl(var(--primary)/0.2)]">
-                    <option.icon className="h-5 w-5 text-primary" />
+              <HoloCard key={option.title} className="text-center touch-manipulation" hover>
+                <HoloCardContent className="pt-5 sm:pt-6 px-4 pb-4">
+                  <div className="mx-auto mb-2 sm:mb-3 p-2.5 sm:p-3 rounded-xl bg-primary/10 w-fit shadow-[0_0_15px_hsl(var(--primary)/0.2)]">
+                    <option.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-1">{option.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{option.description}</p>
+                  <h3 className="font-semibold text-sm sm:text-base mb-1">{option.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-2">{option.description}</p>
                   <a
                     href={option.href}
-                    className="text-sm text-primary hover:underline font-medium"
+                    className="text-xs sm:text-sm text-primary hover:underline font-medium touch-manipulation"
                   >
                     {option.action}
                   </a>
@@ -157,40 +157,40 @@ export default function Contact() {
       </section>
 
       {/* Main Content Grid */}
-      <section className="pb-20 px-4">
+      <section className="pb-12 sm:pb-16 md:pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12">
             {/* Contact Form */}
             <div>
               <HoloCard variant="glow">
                 <HoloCardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <div>
-                      <HoloCardTitle>Send us a message</HoloCardTitle>
-                      <HoloCardDescription>
+                      <HoloCardTitle className="text-lg sm:text-xl">Send us a message</HoloCardTitle>
+                      <HoloCardDescription className="text-xs sm:text-sm">
                         Fill out the form below and we'll get back to you as soon as possible.
                       </HoloCardDescription>
                     </div>
                     <HoloBadge variant="default" className="flex items-center gap-1 shrink-0">
                       <Clock className="h-3 w-3" />
-                      <span className="text-xs">~24h response</span>
+                      <span className="text-[10px] sm:text-xs">~24h response</span>
                     </HoloBadge>
                   </div>
                 </HoloCardHeader>
                 <HoloCardContent>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <FormField
                           control={form.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel className="text-sm">Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Your name" {...field} />
+                                <Input placeholder="Your name" {...field} className="h-11 touch-manipulation" />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs" />
                             </FormItem>
                           )}
                         />
@@ -199,11 +199,11 @@ export default function Contact() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email</FormLabel>
+                              <FormLabel className="text-sm">Email</FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="you@example.com" {...field} />
+                                <Input type="email" placeholder="you@example.com" {...field} className="h-11 touch-manipulation" />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="text-xs" />
                             </FormItem>
                           )}
                         />
@@ -213,22 +213,22 @@ export default function Contact() {
                         name="subject"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Subject</FormLabel>
+                            <FormLabel className="text-sm">Subject</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <SelectTrigger>
+                                <SelectTrigger className="h-11 touch-manipulation">
                                   <SelectValue placeholder="Select a topic" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 {subjectOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
+                                  <SelectItem key={option.value} value={option.value} className="touch-manipulation">
                                     {option.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
-                            <FormMessage />
+                            <FormMessage className="text-xs" />
                           </FormItem>
                         )}
                       />
@@ -237,19 +237,19 @@ export default function Contact() {
                         name="message"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Message</FormLabel>
+                            <FormLabel className="text-sm">Message</FormLabel>
                             <FormControl>
                               <Textarea 
                                 placeholder="How can we help you?"
-                                className="min-h-[120px] resize-none"
+                                className="min-h-[100px] sm:min-h-[120px] resize-none touch-manipulation"
                                 {...field} 
                               />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-xs" />
                           </FormItem>
                         )}
                       />
-                      <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      <Button type="submit" className="w-full min-h-[48px] touch-manipulation active:scale-[0.98] transition-transform" disabled={isSubmitting}>
                         {isSubmitting ? (
                           <>Sending...</>
                         ) : (
@@ -267,7 +267,7 @@ export default function Contact() {
 
             {/* FAQ Accordion */}
             <div>
-              <GlowText as="h2" variant="primary" intensity="low" className="text-2xl font-bold mb-6">
+              <GlowText as="h2" variant="primary" intensity="low" className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
                 Frequently Asked Questions
               </GlowText>
               <Accordion type="single" collapsible className="space-y-2">
@@ -275,21 +275,21 @@ export default function Contact() {
                   <AccordionItem 
                     key={index} 
                     value={`faq-${index}`}
-                    className="border border-border rounded-lg px-4 data-[state=open]:border-primary/30"
+                    className="border border-border rounded-lg px-3 sm:px-4 data-[state=open]:border-primary/30"
                   >
-                    <AccordionTrigger className="text-left hover:no-underline py-4">
-                      <span className="font-medium text-sm">{faq.question}</span>
+                    <AccordionTrigger className="text-left hover:no-underline py-3 sm:py-4 touch-manipulation">
+                      <span className="font-medium text-xs sm:text-sm">{faq.question}</span>
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    <AccordionContent className="text-xs sm:text-sm text-muted-foreground pb-3 sm:pb-4">
                       {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
               
-              <p className="text-sm text-muted-foreground mt-6">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-4 sm:mt-6">
                 Can't find what you're looking for?{" "}
-                <a href="mailto:support@kernel.cool" className="text-primary hover:underline">
+                <a href="mailto:support@kernel.cool" className="text-primary hover:underline touch-manipulation">
                   Email us directly
                 </a>
               </p>

@@ -193,14 +193,14 @@ const Auth = () => {
             <div className="mt-4 pt-4 border-t border-border space-y-3">
               <Button
                 variant="ghost"
-                className="w-full"
+                className="w-full min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
                 onClick={() => setMode('signup')}
               >
                 Don't have an account? Sign up
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform"
                 onClick={() => setMode('team')}
               >
                 <Users className="mr-2 h-4 w-4" />

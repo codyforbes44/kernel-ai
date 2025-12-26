@@ -218,15 +218,15 @@ export default function Pricing() {
       />
 
       {/* Hero Section */}
-      <HoloSection variant="gradient" className="pt-16 pb-8 px-4">
+      <HoloSection variant="gradient" className="pt-12 sm:pt-16 pb-6 sm:pb-8 px-4">
         <div className="container mx-auto text-center max-w-3xl">
-          <HoloBadge variant="glow" className="mb-4">
+          <HoloBadge variant="glow" className="mb-3 sm:mb-4">
             Simple, transparent pricing
           </HoloBadge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
             Choose your <GlowText variant="primary" intensity="medium">Kernel</GlowText> plan
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
             Start for free, upgrade as you grow. All plans include our core AI-powered 
             development features with no hidden fees.
           </p>
@@ -234,10 +234,10 @@ export default function Pricing() {
       </HoloSection>
 
       {/* Billing Toggle */}
-      <section className="pb-8 px-4">
+      <section className="pb-6 sm:pb-8 px-4">
         <div className="container mx-auto flex justify-center">
-          <div className="inline-flex items-center gap-4 p-2 rounded-full bg-muted/50 border border-border">
-            <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors ${
+          <div className="inline-flex items-center gap-2 sm:gap-4 p-1.5 sm:p-2 rounded-full bg-muted/50 border border-border">
+            <span className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full transition-colors ${
               !isYearly ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
               Monthly
@@ -246,12 +246,13 @@ export default function Pricing() {
               checked={isYearly}
               onCheckedChange={setIsYearly}
               aria-label="Toggle annual billing"
+              className="touch-manipulation"
             />
-            <span className={`text-sm font-medium px-3 py-1 rounded-full transition-colors flex items-center gap-2 ${
+            <span className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-full transition-colors flex items-center gap-1 sm:gap-2 ${
               isYearly ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
             }`}>
               Yearly
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-xs">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-0 text-[10px] sm:text-xs">
                 Save 17%
               </Badge>
             </span>
@@ -260,9 +261,9 @@ export default function Pricing() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="pb-20 px-4">
+      <section className="pb-12 sm:pb-16 md:pb-20 px-4">
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
             {plans.map((plan) => {
               const buttonContent = getButtonContent(plan);
               const isCurrentPlan = (plan.name === "Free" && !subscribed) || 
@@ -311,9 +312,9 @@ export default function Pricing() {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-4">
                     {plan.name === "Enterprise" ? (
-                      <Button variant="outline" className="w-full" asChild>
+                      <Button variant="outline" className="w-full min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform" asChild>
                         <Link to="/contact">
                           {plan.cta}
                           <ArrowRight className="ml-2 h-4 w-4" />
@@ -322,7 +323,7 @@ export default function Pricing() {
                     ) : plan.name === "Free" ? (
                       <Button 
                         variant={buttonContent.variant} 
-                        className="w-full" 
+                        className="w-full min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform" 
                         disabled={buttonContent.disabled}
                         asChild={!buttonContent.disabled}
                       >
@@ -338,7 +339,7 @@ export default function Pricing() {
                     ) : (
                       <Button 
                         variant={plan.name === "Pro" ? "gold" : buttonContent.variant}
-                        className="w-full" 
+                        className="w-full min-h-[44px] touch-manipulation active:scale-[0.98] transition-transform" 
                         disabled={buttonContent.disabled || isLoading === plan.name}
                         onClick={() => handleSubscribe(plan.name)}
                       >
@@ -364,14 +365,14 @@ export default function Pricing() {
       </section>
 
       {/* Pro Features Showcase */}
-      <section className="pb-20 px-4">
+      <section className="pb-12 sm:pb-16 md:pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 bg-gold/10 text-gold border-gold/30">Pro Features</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <Badge className="mb-3 sm:mb-4 bg-gold/10 text-gold border-gold/30">Pro Features</Badge>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
               Unlock your full potential
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto px-2">
               Pro members get access to advanced features that supercharge their development workflow.
             </p>
           </div>
