@@ -11,6 +11,7 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOLEDSuggestion } from '@/hooks/useOLEDSuggestion';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import { useSessionRefresh } from '@/hooks/useSessionRefresh';
+import { useLocation } from 'react-router-dom';
 
 /**
  * Global preference loaders that need to run on app mount.
@@ -26,14 +27,24 @@ function PreferenceLoaders() {
 
 /**
  * Voice agent widget that uses config from context
+ * Hidden on builder pages where inline voice is used instead
  */
 function VoiceAgentContainer() {
+  const location = useLocation();
   const { config } = useVoiceAgentConfig();
   const { settings } = useElevenLabsSettings();
   
   const agentId = config.agentId || settings.voiceAgent.agentId || 'agent_3601kdbjwad7fnys6r2ye64jmpa9';
   
+  // Hide on builder pages - inline voice is used there
+  const isBuilderPage = location.pathname.startsWith('/builder');
+  
   if (!config.enabled && !settings.voiceAgent.enabled) {
+    return null;
+  }
+  
+  // Don't show global widget on builder - inline voice button is available there
+  if (isBuilderPage) {
     return null;
   }
   
