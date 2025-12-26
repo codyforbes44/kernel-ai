@@ -212,9 +212,8 @@ export function useBuilderProject(projectId?: string) {
     setOpenTabs(prev => [...prev, newTab]);
     setActiveTabId(file.id);
     
-    if (file.content !== null) {
-      setFileContents(prev => ({ ...prev, [file.id]: file.content! }));
-    }
+    // Always set file content - use empty string as fallback for null content
+    setFileContents(prev => ({ ...prev, [file.id]: file.content ?? '' }));
   }, [openTabs]);
 
   // Close a tab
@@ -293,14 +292,26 @@ export function useBuilderProject(projectId?: string) {
     }
   }, [fileContents, updateFileContent]);
 
-  // Get current file content
-  const getFileContent = useCallback((fileId: string): string => {
+  // Get current file content - returns undefined if not yet loaded
+  const getFileContent = useCallback((fileId: string): string | undefined => {
+    // Check local state first (has edits or was opened)
     if (fileContents[fileId] !== undefined) {
       return fileContents[fileId];
     }
+    // Check if file exists in fetched files
     const file = files.find(f => f.id === fileId);
-    return file?.content || '';
+    if (file) {
+      // File exists - return content or empty string for null content
+      return file.content ?? '';
+    }
+    // File not found - return undefined to indicate loading
+    return undefined;
   }, [fileContents, files]);
+
+  // Check if file content is loading
+  const isFileContentLoading = useCallback((fileId: string): boolean => {
+    return filesLoading || getFileContent(fileId) === undefined;
+  }, [filesLoading, getFileContent]);
 
   // Apply AI operations (create, update, delete files)
   const applyAIOperations = useCallback(async (operations: Array<{
@@ -376,6 +387,7 @@ export function useBuilderProject(projectId?: string) {
     
     // Loading states
     isLoading: projectLoading || filesLoading || projectsLoading,
+    isFileContentLoading,
     
     // Actions
     createProject: createProject.mutate,
