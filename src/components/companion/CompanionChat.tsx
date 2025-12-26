@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCompanionChat } from '@/hooks/useCompanionChat';
 import { useCompanionMessages, useCompanion, useCompanionRelationship } from '@/hooks/useCompanion';
+import { useCompanionVoice } from '@/hooks/useCompanionVoice';
 import { AffinityMeter } from './AffinityMeter';
 import { PERSONALITY_ICONS } from '@/types/companion';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CompanionChatProps {
@@ -15,6 +16,7 @@ interface CompanionChatProps {
 
 export function CompanionChat({ companionId }: CompanionChatProps) {
   const [input, setInput] = useState('');
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: companion } = useCompanion(companionId);
   const { data: relationship } = useCompanionRelationship(companionId);
@@ -28,14 +30,36 @@ export function CompanionChat({ companionId }: CompanionChatProps) {
 
   const { data: messages = [] } = useCompanionMessages(conversationId ?? null);
 
+  const { speak, stop, isPlaying, isLoading: isVoiceLoading } = useCompanionVoice({
+    personalityType: companion?.personality_type || 'mentor',
+    voiceSettings: companion?.voice_settings as { stability?: number; similarity_boost?: number; style?: number } | undefined,
+  });
+
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, pendingMessage]);
+
+  // Reset playing state when voice stops
+  useEffect(() => {
+    if (!isPlaying && playingMessageId) {
+      setPlayingMessageId(null);
+    }
+  }, [isPlaying, playingMessageId]);
 
   const handleSend = () => {
     if (!input.trim() || isLoading) return;
     sendMessage(input);
     setInput('');
+  };
+
+  const handleVoiceClick = (messageId: string, content: string) => {
+    if (playingMessageId === messageId && isPlaying) {
+      stop();
+      setPlayingMessageId(null);
+    } else {
+      setPlayingMessageId(messageId);
+      speak(content);
+    }
   };
 
   if (!companion) return null;
@@ -65,10 +89,30 @@ export function CompanionChat({ companionId }: CompanionChatProps) {
           {messages.map((msg) => (
             <div key={msg.id} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
               <div className={cn(
-                'max-w-[80%] rounded-2xl px-4 py-2',
+                'max-w-[80%] rounded-2xl px-4 py-2 group relative',
                 msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
               )}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                {msg.role === 'companion' && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      'absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity',
+                      (playingMessageId === msg.id || isVoiceLoading) && 'opacity-100'
+                    )}
+                    onClick={() => handleVoiceClick(msg.id, msg.content)}
+                    disabled={isVoiceLoading && playingMessageId !== msg.id}
+                  >
+                    {isVoiceLoading && playingMessageId === msg.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : playingMessageId === msg.id && isPlaying ? (
+                      <VolumeX className="h-4 w-4" />
+                    ) : (
+                      <Volume2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

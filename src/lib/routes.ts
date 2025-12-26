@@ -268,6 +268,16 @@ export const routes: RouteConfig[] = [
     requiresAuth: false,
     robots: 'disallow', // Internal tool, don't index
   },
+  {
+    path: '/companion',
+    title: 'AI Companion',
+    description: 'Chat with your AI companion and build a meaningful connection',
+    changefreq: 'daily',
+    priority: 0.7,
+    includeInSitemap: false,
+    requiresAuth: true,
+    robots: 'disallow',
+  },
 ];
 
 // Get routes for sitemap generation
