@@ -1,9 +1,10 @@
 import { format } from 'date-fns';
-import { Star, Edit2, Trash2, Clock, Calendar, Copy, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Star, Edit2, Trash2, Clock, Calendar, Copy, AlertCircle, CheckCircle, XCircle, Send, Loader2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TweetCardProps {
   content: string;
@@ -13,12 +14,16 @@ interface TweetCardProps {
   status?: 'pending' | 'posted' | 'failed' | 'cancelled';
   isFavorite?: boolean;
   hashtags?: string[];
+  postedUrl?: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onSchedule?: () => void;
   onCopy?: () => void;
   onToggleFavorite?: () => void;
   onCancel?: () => void;
+  onPostNow?: () => void;
+  isPosting?: boolean;
+  isXApiConfigured?: boolean;
 }
 
 const statusConfig = {
@@ -36,12 +41,16 @@ export function TweetCard({
   status,
   isFavorite,
   hashtags,
+  postedUrl,
   onEdit,
   onDelete,
   onSchedule,
   onCopy,
   onToggleFavorite,
   onCancel,
+  onPostNow,
+  isPosting,
+  isXApiConfigured,
 }: TweetCardProps) {
   const StatusIcon = status ? statusConfig[status].icon : null;
   const truncatedContent = content.length > 140 ? content.slice(0, 140) + '...' : content;
@@ -99,10 +108,44 @@ export function TweetCard({
                 </span>
               )}
               <span>{content.length}/280</span>
+              {postedUrl && (
+                <a 
+                  href={postedUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  View on X
+                </a>
+              )}
             </div>
           </div>
           
           <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Post Now button - show for drafts and pending scheduled tweets */}
+            {onPostNow && isXApiConfigured && !status && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                      onClick={onPostNow}
+                      disabled={isPosting}
+                    >
+                      {isPosting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Post to X now</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             {onToggleFavorite && (
               <Button
                 variant="ghost"

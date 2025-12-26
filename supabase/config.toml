@@ -75,6 +75,9 @@ verify_jwt = false
 [functions.x-automation]
 verify_jwt = false
 
+[functions.x-post-tweet]
+verify_jwt = false
+
 [functions.verify-team-passcode]
 verify_jwt = false
 
