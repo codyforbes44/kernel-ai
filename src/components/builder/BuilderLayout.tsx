@@ -373,6 +373,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                     previewCSS={previewCSS}
                     previewSystemName={previewSystemName}
                     previewFontsUrl={previewFontsUrl}
+                    onClose={togglePreview}
                   />
                 </EditorErrorBoundary>
                 <ErrorCapture
