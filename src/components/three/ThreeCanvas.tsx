@@ -4,14 +4,16 @@ import { Preload } from '@react-three/drei';
 import { CAMERA_CONFIG } from '@/constants/depthLayers3D';
 import { useThreePerformance } from '@/hooks/useThreePerformance';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PerformanceTierIndicator } from './PerformanceTierIndicator';
 
 interface ThreeCanvasProps {
   children: ReactNode;
   className?: string;
   isPaused?: boolean;
+  showPerformanceIndicator?: boolean;
 }
 
-export function ThreeCanvas({ children, className = '', isPaused = false }: ThreeCanvasProps) {
+export function ThreeCanvas({ children, className = '', isPaused = false, showPerformanceIndicator = false }: ThreeCanvasProps) {
   const { tier, reducedMotion } = useThreePerformance();
   const isMobile = useIsMobile();
   
@@ -183,6 +185,7 @@ export function ThreeCanvas({ children, className = '', isPaused = false }: Thre
           <Preload all />
         </Suspense>
       </Canvas>
+      <PerformanceTierIndicator visible={showPerformanceIndicator} />
     </div>
   );
 }
