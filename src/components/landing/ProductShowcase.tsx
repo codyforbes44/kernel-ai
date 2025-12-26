@@ -30,23 +30,23 @@ const features = [
 
 export function ProductShowcase() {
   return (
-    <HoloSection variant="default" className="py-20 px-4 overflow-hidden bg-muted/20">
+    <HoloSection variant="default" className="py-12 sm:py-16 md:py-20 px-4 overflow-hidden bg-muted/20">
       <div className="container mx-auto max-w-6xl preserve-3d">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-10 md:mb-12"
         >
-          <GlowText as="h2" variant="gradient" className="text-3xl md:text-4xl font-bold mb-4">
+          <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             Powerful Development Environment
           </GlowText>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-2">
             Everything you need to build modern web applications in 2026
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-center">
           {/* Mock IDE Screenshot with 3D perspective */}
           <motion.div
             initial={{ opacity: 0, x: -30, rotateY: -10 }}
@@ -82,7 +82,7 @@ export function ProductShowcase() {
               </div>
               
               {/* Mock Content */}
-              <div className="grid grid-cols-3 min-h-[300px] relative">
+              <div className="grid grid-cols-3 min-h-[200px] sm:min-h-[250px] md:min-h-[300px] relative">
                 {/* Scanline overlay */}
                 <div 
                   className="absolute inset-0 pointer-events-none opacity-20 z-10"
@@ -120,7 +120,7 @@ export function ProductShowcase() {
           </motion.div>
 
           {/* Feature Cards with staggered depth */}
-          <div className="grid sm:grid-cols-2 gap-4 preserve-3d">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 preserve-3d">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -139,19 +139,19 @@ export function ProductShowcase() {
                   transform: `translateZ(${index * 10}px)`,
                 }}
               >
-                <GlassPanel variant="glow" className="p-4 h-full">
-                  <div className="flex items-start gap-3">
+                <GlassPanel variant="glow" className="p-3 sm:p-4 h-full touch-manipulation">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
                     <div 
-                      className="p-2 rounded-lg bg-primary/10 border border-primary/20"
+                      className="p-2 rounded-lg bg-primary/10 border border-primary/20 shrink-0"
                       style={{
                         boxShadow: '0 0 15px hsl(var(--primary) / 0.2)',
                       }}
                     >
-                      <feature.icon className="h-5 w-5 text-primary" />
+                      <feature.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-sm mb-1">{feature.title}</h3>
-                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                      <h3 className="font-medium text-xs sm:text-sm mb-0.5 sm:mb-1">{feature.title}</h3>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">{feature.description}</p>
                     </div>
                   </div>
                 </GlassPanel>
