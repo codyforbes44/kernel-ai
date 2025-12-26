@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Loader2, Sparkles, CheckCircle, FileCode, Trash2, FilePlus, RotateCcw, MessageSquarePlus, Database, Wand2, Camera, ListPlus } from 'lucide-react';
+import { InlineVoiceButton } from './InlineVoiceButton';
 import { AnimatePresence } from 'framer-motion';
 import { KernelThinkingIndicator } from './KernelThinkingIndicator';
 import { Button } from '@/components/ui/button';
@@ -777,10 +778,17 @@ export function BuilderChat({ files, onApplyOperations, projectId, errors = [], 
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Describe what you want to build..."
-            className="min-h-[60px] max-h-[120px] resize-none pr-20 text-sm"
+            className="min-h-[60px] max-h-[120px] resize-none pr-28 text-sm"
             disabled={isLoading}
           />
           <div className="absolute right-2 bottom-2 flex items-center gap-1">
+            {/* Voice input button */}
+            <InlineVoiceButton
+              projectId={projectId}
+              disabled={isLoading}
+              onTranscript={(text) => setInput(prev => prev ? `${prev} ${text}` : text)}
+            />
+            
             {/* Add to queue button */}
             <TooltipProvider>
               <Tooltip>
