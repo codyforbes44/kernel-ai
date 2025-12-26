@@ -16,46 +16,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
 import { KernelLogo } from '@/components/ui/kernel-logo';
 import { 
-  Save, Code2, Globe, MoreVertical, Settings, Copy,
-  Sparkles, History, Rocket, Github, Palette, Package, 
-  BookMarked, HardDrive, Database, Bot, Shield, Wand2, Home
+  Save, Code2, Globe, MoreVertical, Settings, Copy, Home
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { PanelType } from '@/hooks/usePanelManager';
-
-// Panel toolbar button configuration
-export const PANEL_BUTTONS: Array<{
-  panel: PanelType;
-  icon: typeof Sparkles;
-  label: string;
-  requiresActiveFile?: boolean;
-}> = [
-  { panel: 'database', icon: Database, label: 'Database' },
-  { panel: 'security', icon: Shield, label: 'Security Scanner' },
-  { panel: 'design-system', icon: Palette, label: 'Design System' },
-  { panel: 'marketplace', icon: Package, label: 'Component Marketplace' },
-  { panel: 'github', icon: Github, label: 'GitHub' },
-  { panel: 'deployments', icon: Rocket, label: 'Deployments' },
-  { panel: 'history', icon: History, label: 'Version History', requiresActiveFile: true },
-  { panel: 'knowledge-base', icon: BookMarked, label: 'Knowledge Base' },
-  { panel: 'storage', icon: HardDrive, label: 'File Storage' },
-  { panel: 'ai-assets', icon: Wand2, label: 'AI Studio' },
-  { panel: 'agent', icon: Bot, label: 'AI Agent (Autonomous)' },
-  { panel: 'ai-chat', icon: Sparkles, label: 'AI Assistant' },
-];
 
 interface BuilderHeaderProps {
   projectId: string;
   projectName?: string;
   isPublic?: boolean;
-  activeTabId: string | null;
-  isAgentRunning: boolean;
-  isPanelActive: (panel: PanelType) => boolean;
-  togglePanel: (panel: PanelType) => void;
   onSave: () => void;
   onOpenSettings: () => void;
   onOpenRemix: () => void;
@@ -65,10 +35,6 @@ export const BuilderHeader = memo(function BuilderHeader({
   projectId,
   projectName,
   isPublic,
-  activeTabId,
-  isAgentRunning,
-  isPanelActive,
-  togglePanel,
   onSave,
   onOpenSettings,
   onOpenRemix,
@@ -112,33 +78,6 @@ export const BuilderHeader = memo(function BuilderHeader({
       <div className="flex items-center gap-2">
         {/* Collaborator Avatars */}
         <CollaboratorAvatars projectId={projectId} />
-        
-        {/* Panel toggle buttons */}
-        {PANEL_BUTTONS.map(({ panel, icon: Icon, label, requiresActiveFile }) => (
-          <Tooltip key={panel}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn('h-8 w-8 relative', isPanelActive(panel) && 'bg-primary/10 text-primary')}
-                onClick={() => togglePanel(panel)}
-                disabled={requiresActiveFile && !activeTabId}
-              >
-                <Icon className="h-4 w-4" />
-                {/* Agent running indicator */}
-                {panel === 'agent' && isAgentRunning && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
-                  </span>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {panel === 'agent' && isAgentRunning ? `${label} (Running...)` : label}
-            </TooltipContent>
-          </Tooltip>
-        ))}
         
         <Button
           variant="ghost"
