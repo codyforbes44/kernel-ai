@@ -1,8 +1,12 @@
-import { Component, ReactNode, Suspense, useState, useEffect } from 'react';
-import { Hero3DScene } from '../three/Hero3DScene';
+import { Component, ReactNode, Suspense, useState, useEffect, lazy } from 'react';
 import { HeroSkeleton } from './HeroSkeleton';
 import { cn } from '@/lib/utils';
 import { useDeviceOrientation } from '@/hooks/useDeviceOrientation';
+
+// Lazy load heavy Three.js component
+const Hero3DScene = lazy(() => 
+  import('../three/Hero3DScene').then(m => ({ default: m.Hero3DScene }))
+);
 
 interface HeroBackgroundProps {
   isVisible?: boolean;

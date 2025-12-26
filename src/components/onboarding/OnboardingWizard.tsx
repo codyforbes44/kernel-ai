@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,10 +7,14 @@ import { Progress } from '@/components/ui/progress';
 import { KernelLogo } from '@/components/ui/kernel-logo';
 import { GlassPanel, GlassPanelContent, GlassPanelHeader } from '@/components/ui/glass-panel';
 import { GlowText } from '@/components/ui/glow-text';
-import { PageBackground3D } from '@/components/three/PageBackground3D';
 import { Sparkles, User, Palette, CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+// Lazy load heavy Three.js component
+const PageBackground3D = lazy(() => 
+  import('@/components/three/PageBackground3D').then(m => ({ default: m.PageBackground3D }))
+);
 
 interface OnboardingData {
   displayName: string;
@@ -66,8 +70,10 @@ export function OnboardingWizard({ initialDisplayName = '', onComplete, isSubmit
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
-      {/* 2100-era 3D background */}
-      <PageBackground3D intensity="low" />
+      {/* 2100-era 3D background - lazy loaded */}
+      <Suspense fallback={<div className="fixed inset-0 bg-background" />}>
+        <PageBackground3D intensity="low" />
+      </Suspense>
       
       <GlassPanel variant="glow" blur="lg" className="w-full max-w-lg relative z-10">
         <GlassPanelHeader className="text-center pb-2">

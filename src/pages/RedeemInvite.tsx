@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from '@/components/seo/SEO';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { GlassPanel, GlassPanelContent, GlassPanelHeader, GlassPanelTitle } from '@/components/ui/glass-panel';
 import { GlowText } from '@/components/ui/glow-text';
 import { HoloBadge } from '@/components/ui/holo-badge';
-import { PageBackground3D } from '@/components/three/PageBackground3D';
 import { KernelLogo } from '@/components/ui/kernel-logo';
 import { useInviteCode } from '@/hooks/useInviteCode';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -20,6 +19,11 @@ import {
   Sparkles,
   ExternalLink
 } from 'lucide-react';
+
+// Lazy load heavy Three.js component
+const PageBackground3D = lazy(() => 
+  import('@/components/three/PageBackground3D').then(m => ({ default: m.PageBackground3D }))
+);
 
 export default function RedeemInvite() {
   const navigate = useNavigate();
@@ -61,7 +65,9 @@ export default function RedeemInvite() {
   if (validated && validationResult) {
     return (
       <div className="relative min-h-screen flex items-center justify-center">
-        <PageBackground3D intensity="low" className="fixed inset-0" />
+        <Suspense fallback={<div className="fixed inset-0 bg-background" />}>
+          <PageBackground3D intensity="low" className="fixed inset-0" />
+        </Suspense>
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
         
         <SEO
@@ -107,7 +113,9 @@ export default function RedeemInvite() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4">
-      <PageBackground3D intensity="low" className="fixed inset-0" />
+      <Suspense fallback={<div className="fixed inset-0 bg-background" />}>
+        <PageBackground3D intensity="low" className="fixed inset-0" />
+      </Suspense>
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
       
       <SEO

@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useRef } from 'react';
+import { memo, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -13,7 +13,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { KernelLogo } from '@/components/ui/kernel-logo';
 import { EditorTabs } from './EditorTabs';
-import { MonacoEditor } from './MonacoEditor';
+
+// Lazy load heavy Monaco Editor
+const MonacoEditor = lazy(() => 
+  import('./MonacoEditor').then(m => ({ default: m.MonacoEditor }))
+);
 import { SandpackPreview } from './SandpackPreview';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { MobileFileBrowser } from './MobileFileBrowser';
@@ -267,13 +271,19 @@ export const BuilderMobileLayout = memo(function BuilderMobileLayout({
                 fallbackTitle="Editor Error" 
                 fallbackMessage="Failed to load the code editor."
               >
-                <MonacoEditor
-                  value={getFileContent(activeFile.id)}
-                  language={activeFile.language || 'plaintext'}
-                  onChange={(value) => updateLocalContent(activeFile.id, value)}
-                  onSave={onSave}
-                  path={activeFile.path}
-                />
+                <Suspense fallback={
+                  <div className="flex-1 flex items-center justify-center bg-[hsl(var(--code-background))]">
+                    <div className="h-6 w-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  </div>
+                }>
+                  <MonacoEditor
+                    value={getFileContent(activeFile.id)}
+                    language={activeFile.language || 'plaintext'}
+                    onChange={(value) => updateLocalContent(activeFile.id, value)}
+                    onSave={onSave}
+                    path={activeFile.path}
+                  />
+                </Suspense>
               </EditorErrorBoundary>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3 p-4">

@@ -6,7 +6,7 @@ import {
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
 import { FileExplorer } from './FileExplorer';
-import { CollaborativeMonacoEditor, CollaborativeMonacoEditorRef } from './CollaborativeMonacoEditor';
+import { LazyMonacoEditor, CollaborativeMonacoEditorRef } from './LazyMonacoEditor';
 import { EditorTabs } from './EditorTabs';
 import { SandpackPreview } from './SandpackPreview';
 import { ErrorCapture, type CapturedError } from './ErrorCapture';
@@ -322,7 +322,7 @@ export function BuilderLayout({ projectId }: BuilderLayoutProps) {
                 </div>
               ) : (
                 <EditorErrorBoundary fallbackTitle="Editor Error" fallbackMessage="Failed to load the code editor.">
-                  <CollaborativeMonacoEditor
+                  <LazyMonacoEditor
                     ref={editorRef}
                     value={getFileContent(activeFile.id) ?? ''}
                     language={activeFile.language || 'plaintext'}
