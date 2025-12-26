@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { 
   buildVoiceAgentSystemPrompt, 
   buildFirstMessage,
+  buildOnboardingFirstMessage,
   VoiceAgentContext 
 } from "../_shared/voice-agent-prompts.ts";
 
@@ -36,21 +37,32 @@ serve(async (req) => {
       );
     }
 
+    // Determine authentication state
+    const isAuthenticated = userContext?.isAuthenticated ?? false;
+    const sessionId = userContext?.sessionId;
+
     // Build context for the voice agent
     const context: VoiceAgentContext = {
       isNewUser: userContext?.isNewUser ?? true,
+      isAuthenticated: isAuthenticated,
       hasActiveProject: userContext?.hasActiveProject ?? false,
       projectName: userContext?.projectName,
       userName: userContext?.userName,
       currentPage: userContext?.currentPage,
+      sessionId: sessionId,
     };
 
     // Generate dynamic system prompt and first message
     const systemPrompt = buildVoiceAgentSystemPrompt(context);
-    const firstMessage = buildFirstMessage(context);
+    
+    // Use onboarding-specific first message for unauthenticated users
+    const firstMessage = isAuthenticated 
+      ? buildFirstMessage(context)
+      : buildOnboardingFirstMessage();
 
     console.log('Requesting signed URL for agent:', agentId);
     console.log('User context:', JSON.stringify(context));
+    console.log('Is authenticated:', isAuthenticated);
     console.log('First message:', firstMessage);
 
     // Request a signed URL from ElevenLabs with conversation overrides
@@ -80,13 +92,12 @@ serve(async (req) => {
       throw new Error('Invalid response from ElevenLabs: missing signed_url');
     }
 
-    // Return signed URL along with first message for display purposes
-    // Note: Overrides for prompt/firstMessage require enabling in ElevenLabs dashboard
-    // Since they're not enabled, we just return the signed URL
+    // Return signed URL along with context information
     return new Response(JSON.stringify({ 
       signedUrl: data.signed_url,
-      // firstMessage is for client display only - the actual first message comes from ElevenLabs agent config
       firstMessage: firstMessage,
+      isAuthenticated: isAuthenticated,
+      sessionId: sessionId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -6,10 +6,12 @@ import { AGENT_COORDINATION_PROTOCOL, TEAM_COMMITMENT } from './agent-coordinati
 
 export interface VoiceAgentContext {
   isNewUser?: boolean;
+  isAuthenticated?: boolean;
   hasActiveProject?: boolean;
   projectName?: string;
   userName?: string;
   currentPage?: string;
+  sessionId?: string;
 }
 
 // Complete platform knowledge for the voice agent
@@ -273,6 +275,11 @@ export function buildFirstMessage(context: VoiceAgentContext): string {
   }
   
   return `${greeting} Welcome back to Kernel! Ready to build something amazing? Tell me what you'd like to create, or ask about our AI Studio for generating images and videos.`;
+}
+
+// Build first message specifically for unauthenticated onboarding flow
+export function buildOnboardingFirstMessage(): string {
+  return `Hey there! Welcome to Kernel! I'm so excited to help you build something amazing today. Before we get started, tell me - what kind of app or website are you dreaming of creating? Don't worry if it's just a rough idea, we can figure out the details together!`;
 }
 
 // Build the complete system prompt for the voice agent
