@@ -39,6 +39,7 @@ const shortcuts = [
       { keys: ['1'], description: 'Desktop view' },
       { keys: ['2'], description: 'Tablet view' },
       { keys: ['3'], description: 'Mobile view' },
+      { keys: ['Ctrl', '⇧', 'P'], description: 'Toggle performance indicator' },
     ],
   },
   {
