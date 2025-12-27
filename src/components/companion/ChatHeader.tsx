@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { AffinityMeter } from './AffinityMeter';
-import { CompanionAvatar } from './CompanionAvatar';
+import { EvolvedAvatar } from './evolution/EvolvedAvatar';
+import { EvolutionBadge } from './evolution/EvolutionBadge';
 import { MoodIndicator } from './MoodIndicator';
 import { CompanionProfile } from './CompanionProfile';
 import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashboard';
@@ -28,17 +29,22 @@ export function ChatHeader({
   return (
     <div className="p-4 border-b bg-muted/30">
       <div className="flex items-center gap-3">
-        <CompanionAvatar 
+        <EvolvedAvatar 
           personalityType={companion.personality_type} 
           avatarUrl={companion.avatar_url}
+          affinity={relationship?.affinity_level || 0}
           size="md"
+          showBadge
         />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h2 className="font-semibold">{relationship?.nickname || companion.name}</h2>
             {relationship && <MoodIndicator mood={relationship.current_mood} size="sm" />}
           </div>
-          {relationship && <AffinityMeter level={relationship.affinity_level} size="sm" />}
+          <div className="flex items-center gap-2">
+            {relationship && <AffinityMeter level={relationship.affinity_level} size="sm" />}
+            {relationship && <EvolutionBadge affinity={relationship.affinity_level} size="sm" />}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           {relationship && (
