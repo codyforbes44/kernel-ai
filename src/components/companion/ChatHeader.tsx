@@ -92,9 +92,3 @@ export function ChatHeader({
     </div>
   );
 }
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
