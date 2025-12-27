@@ -8,6 +8,7 @@ interface UseCompanionVoiceOptions {
     stability?: number;
     similarity_boost?: number;
     style?: number;
+    speed?: number;
   };
 }
 
@@ -55,6 +56,7 @@ export function useCompanionVoice({ personalityType, voiceSettings }: UseCompani
               stability: voiceSettings?.stability ?? DEFAULT_VOICE_SETTINGS.stability,
               similarity_boost: voiceSettings?.similarity_boost ?? DEFAULT_VOICE_SETTINGS.similarity_boost,
               style: voiceSettings?.style ?? DEFAULT_VOICE_SETTINGS.style,
+              speed: voiceSettings?.speed ?? 1.0,
             },
           }),
         }
@@ -70,6 +72,12 @@ export function useCompanionVoice({ personalityType, voiceSettings }: UseCompani
       
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
+      
+      // Apply playback rate for speed (in addition to API speed parameter)
+      const speed = voiceSettings?.speed ?? 1.0;
+      if (speed !== 1.0) {
+        audio.playbackRate = speed;
+      }
       
       audio.onended = () => {
         setIsPlaying(false);
