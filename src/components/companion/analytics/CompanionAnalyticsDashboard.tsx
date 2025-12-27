@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { BarChart3, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BarChart3 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ConversationStats } from './ConversationStats';
 import { AffinityChart } from './AffinityChart';
 import { MoodHistory } from './MoodHistory';
 import { MemoryVisualization } from './MemoryVisualization';
+import { RelationshipTrends } from './RelationshipTrends';
+import { TopicAnalysis } from './TopicAnalysis';
 import type { CompanionProfile, CompanionRelationship, CompanionConversation } from '@/types/companion';
 
 interface CompanionAnalyticsDashboardProps {
@@ -38,6 +39,19 @@ export function CompanionAnalyticsDashboard({
 
         {/* Affinity Progress */}
         <AffinityChart relationship={relationship} />
+
+        {/* Relationship Trends - NEW */}
+        <RelationshipTrends
+          companion={companion}
+          relationship={relationship}
+          conversations={conversations}
+        />
+
+        {/* Topic Analysis - NEW */}
+        <TopicAnalysis
+          companion={companion}
+          conversations={conversations}
+        />
 
         {/* Mood Patterns */}
         <MoodHistory 

@@ -4,7 +4,8 @@ import { CompanionAvatar } from './CompanionAvatar';
 import { MoodIndicator } from './MoodIndicator';
 import { CompanionProfile } from './CompanionProfile';
 import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashboard';
-import { User, BarChart3 } from 'lucide-react';
+import { CompanionSettingsSheet } from './settings/CompanionSettingsSheet';
+import { User, BarChart3, Settings } from 'lucide-react';
 import type { CompanionProfile as CompanionProfileType, CompanionRelationship, CompanionConversation } from '@/types/companion';
 
 interface ChatHeaderProps {
@@ -31,16 +32,28 @@ export function ChatHeader({ companion, relationship, conversations = [] }: Chat
         </div>
         <div className="flex items-center gap-1">
           {relationship && (
-            <CompanionAnalyticsDashboard
-              companion={companion}
-              relationship={relationship}
-              conversations={conversations}
-              trigger={
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <BarChart3 className="h-4 w-4" />
-                </Button>
-              }
-            />
+            <>
+              <CompanionAnalyticsDashboard
+                companion={companion}
+                relationship={relationship}
+                conversations={conversations}
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <BarChart3 className="h-4 w-4" />
+                  </Button>
+                }
+              />
+              <CompanionSettingsSheet
+                companion={companion}
+                relationship={relationship}
+                conversations={conversations}
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                }
+              />
+            </>
           )}
           <CompanionProfile 
             companion={companion} 
