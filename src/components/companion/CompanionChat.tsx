@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCompanionChat } from '@/hooks/useCompanionChat';
-import { useCompanionMessages, useCompanion, useCompanionRelationship } from '@/hooks/useCompanion';
+import { useCompanionMessages, useCompanion, useCompanionRelationship, useCompanionConversations } from '@/hooks/useCompanion';
 import { useCompanionVoice } from '@/hooks/useCompanionVoice';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessage } from './ChatMessage';
@@ -26,6 +26,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
   
   const { data: companion, isLoading: isLoadingCompanion } = useCompanion(companionId);
   const { data: relationship } = useCompanionRelationship(companionId);
+  const { data: conversations = [] } = useCompanionConversations(relationship?.id ?? null);
 
   const { 
     sendMessage, 
@@ -91,7 +92,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
 
   return (
     <div className="flex flex-col h-[600px] border rounded-xl overflow-hidden bg-card">
-      <ChatHeader companion={companion} relationship={relationship ?? null} />
+      <ChatHeader companion={companion} relationship={relationship ?? null} conversations={conversations} />
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">

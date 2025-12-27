@@ -3,15 +3,17 @@ import { AffinityMeter } from './AffinityMeter';
 import { CompanionAvatar } from './CompanionAvatar';
 import { MoodIndicator } from './MoodIndicator';
 import { CompanionProfile } from './CompanionProfile';
-import { User } from 'lucide-react';
-import type { CompanionProfile as CompanionProfileType, CompanionRelationship } from '@/types/companion';
+import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashboard';
+import { User, BarChart3 } from 'lucide-react';
+import type { CompanionProfile as CompanionProfileType, CompanionRelationship, CompanionConversation } from '@/types/companion';
 
 interface ChatHeaderProps {
   companion: CompanionProfileType;
   relationship: CompanionRelationship | null;
+  conversations?: CompanionConversation[];
 }
 
-export function ChatHeader({ companion, relationship }: ChatHeaderProps) {
+export function ChatHeader({ companion, relationship, conversations = [] }: ChatHeaderProps) {
   return (
     <div className="p-4 border-b bg-muted/30">
       <div className="flex items-center gap-3">
@@ -27,15 +29,29 @@ export function ChatHeader({ companion, relationship }: ChatHeaderProps) {
           </div>
           {relationship && <AffinityMeter level={relationship.affinity_level} size="sm" />}
         </div>
-        <CompanionProfile 
-          companion={companion} 
-          relationship={relationship}
-          trigger={
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <User className="h-4 w-4" />
-            </Button>
-          }
-        />
+        <div className="flex items-center gap-1">
+          {relationship && (
+            <CompanionAnalyticsDashboard
+              companion={companion}
+              relationship={relationship}
+              conversations={conversations}
+              trigger={
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <BarChart3 className="h-4 w-4" />
+                </Button>
+              }
+            />
+          )}
+          <CompanionProfile 
+            companion={companion} 
+            relationship={relationship}
+            trigger={
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <User className="h-4 w-4" />
+              </Button>
+            }
+          />
+        </div>
       </div>
     </div>
   );
