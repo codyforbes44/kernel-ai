@@ -5,7 +5,8 @@ import { MoodIndicator } from './MoodIndicator';
 import { CompanionProfile } from './CompanionProfile';
 import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashboard';
 import { CompanionSettingsSheet } from './settings/CompanionSettingsSheet';
-import { User, BarChart3, Settings } from 'lucide-react';
+import { ActivitiesHub } from './activities/ActivitiesHub';
+import { User, BarChart3, Settings, Gamepad2 } from 'lucide-react';
 import type { CompanionProfile as CompanionProfileType, CompanionRelationship, CompanionConversation } from '@/types/companion';
 import type { VoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 
@@ -40,8 +41,17 @@ export function ChatHeader({
           {relationship && <AffinityMeter level={relationship.affinity_level} size="sm" />}
         </div>
         <div className="flex items-center gap-1">
-          {relationship && voiceSettings && onVoiceSettingsChange && (
+          {relationship && (
             <>
+              <ActivitiesHub
+                companion={companion}
+                relationship={relationship}
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Gamepad2 className="h-4 w-4" />
+                  </Button>
+                }
+              />
               <CompanionAnalyticsDashboard
                 companion={companion}
                 relationship={relationship}
@@ -52,18 +62,20 @@ export function ChatHeader({
                   </Button>
                 }
               />
-              <CompanionSettingsSheet
-                companion={companion}
-                relationship={relationship}
-                conversations={conversations}
-                voiceSettings={voiceSettings}
-                onVoiceSettingsChange={onVoiceSettingsChange}
-                trigger={
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                }
-              />
+              {voiceSettings && onVoiceSettingsChange && (
+                <CompanionSettingsSheet
+                  companion={companion}
+                  relationship={relationship}
+                  conversations={conversations}
+                  voiceSettings={voiceSettings}
+                  onVoiceSettingsChange={onVoiceSettingsChange}
+                  trigger={
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  }
+                />
+              )}
             </>
           )}
           <CompanionProfile 
@@ -74,6 +86,12 @@ export function ChatHeader({
                 <User className="h-4 w-4" />
               </Button>
             }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
           />
         </div>
       </div>
