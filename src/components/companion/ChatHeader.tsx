@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AffinityMeter } from './AffinityMeter';
 import { EvolvedAvatar } from './evolution/EvolvedAvatar';
@@ -7,7 +8,8 @@ import { CompanionProfile } from './CompanionProfile';
 import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashboard';
 import { CompanionSettingsSheet } from './settings/CompanionSettingsSheet';
 import { ActivitiesHub } from './activities/ActivitiesHub';
-import { User, BarChart3, Settings, Gamepad2 } from 'lucide-react';
+import { VoiceConversationDialog } from './VoiceConversationDialog';
+import { User, BarChart3, Settings, Gamepad2, Phone } from 'lucide-react';
 import type { CompanionProfile as CompanionProfileType, CompanionRelationship, CompanionConversation } from '@/types/companion';
 import type { VoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 
@@ -47,6 +49,15 @@ export function ChatHeader({
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* Voice Conversation Button */}
+          <VoiceConversationDialog
+            companion={companion}
+            trigger={
+              <Button variant="ghost" size="icon" className="h-8 w-8" title="Voice Conversation">
+                <Phone className="h-4 w-4" />
+              </Button>
+            }
+          />
           {relationship && (
             <>
               <ActivitiesHub

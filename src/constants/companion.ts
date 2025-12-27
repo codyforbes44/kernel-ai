@@ -8,6 +8,17 @@ export const PERSONALITY_VOICE_MAP: Record<string, string> = {
   supportive: 'Xb7hH8MSUJpSbSDYk0k2', // Alice - warm, gentle
 };
 
+// xAI Grok Voice Agent voice mappings
+// Available voices: Charon (default), Sol, Celeste, Iris, Jasper
+export const XAI_PERSONALITY_VOICE_MAP: Record<string, string> = {
+  mentor: 'Sol',      // Calm, wise, guiding
+  creative: 'Iris',   // Expressive, dynamic
+  analytical: 'Charon', // Clear, precise, thoughtful
+  supportive: 'Celeste', // Warm, nurturing
+};
+
+export type XAIVoice = 'Charon' | 'Sol' | 'Celeste' | 'Iris' | 'Jasper';
+
 // Personality visual configuration
 export const PERSONALITY_ICONS: Record<string, string> = {
   mentor: '🌟',
