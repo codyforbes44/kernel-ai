@@ -12,22 +12,33 @@ import { Loader2 } from 'lucide-react';
 
 interface CompanionChatProps {
   companionId: string;
+  conversationId?: string;
+  onConversationChange?: (conversationId: string) => void;
 }
 
-export function CompanionChat({ companionId }: CompanionChatProps) {
+export function CompanionChat({ companionId, conversationId: externalConversationId, onConversationChange }: CompanionChatProps) {
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const { data: companion, isLoading: isLoadingCompanion } = useCompanion(companionId);
   const { data: relationship } = useCompanionRelationship(companionId);
 
-  const { sendMessage, isLoading, conversationId, pendingMessage } = useCompanionChat({
+  const { sendMessage, isLoading, conversationId: activeConversationId, pendingMessage } = useCompanionChat({
     companionId,
+    conversationId: externalConversationId,
     onAffinityChange: (level, change) => {
       console.log(`Affinity changed: ${change > 0 ? '+' : ''}${change} → ${level}`);
     },
   });
 
+  // Sync conversation ID changes back to parent
+  useEffect(() => {
+    if (activeConversationId && onConversationChange && activeConversationId !== externalConversationId) {
+      onConversationChange(activeConversationId);
+    }
+  }, [activeConversationId, externalConversationId, onConversationChange]);
+
+  const conversationId = externalConversationId || activeConversationId;
   const { data: messages = [] } = useCompanionMessages(conversationId ?? null);
 
   const { speak, stop, isPlaying, isLoading: isVoiceLoading } = useCompanionVoice({
