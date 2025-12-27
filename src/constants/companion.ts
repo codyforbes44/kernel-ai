@@ -19,6 +19,10 @@ export const XAI_PERSONALITY_VOICE_MAP: Record<string, string> = {
 
 export type XAIVoice = 'Charon' | 'Sol' | 'Celeste' | 'Iris' | 'Jasper';
 
+// Voice mode types for companion voice system
+export type VoiceMode = 'read-aloud' | 'conversation';
+export type VoiceInputMode = 'vad' | 'push-to-talk';
+
 // Personality visual configuration
 export const PERSONALITY_ICONS: Record<string, string> = {
   mentor: '🌟',

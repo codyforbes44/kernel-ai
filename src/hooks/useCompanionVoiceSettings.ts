@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DEFAULT_VOICE_SETTINGS } from '@/constants/companion';
+import { DEFAULT_VOICE_SETTINGS, VoiceMode, VoiceInputMode } from '@/constants/companion';
 
 export interface VoiceSettings {
   enabled: boolean;
@@ -8,6 +8,8 @@ export interface VoiceSettings {
   similarity_boost: number;
   style: number;
   speed: number;
+  voiceMode: VoiceMode;
+  inputMode: VoiceInputMode;
 }
 
 const STORAGE_KEY_PREFIX = 'companion_voice_settings_';
@@ -19,6 +21,8 @@ const DEFAULT_SETTINGS: VoiceSettings = {
   similarity_boost: DEFAULT_VOICE_SETTINGS.similarity_boost,
   style: DEFAULT_VOICE_SETTINGS.style,
   speed: 1.0,
+  voiceMode: 'read-aloud',
+  inputMode: 'vad',
 };
 
 function loadSettings(companionId: string): VoiceSettings {

@@ -33,6 +33,7 @@ serve(async (req) => {
   const url = new URL(req.url);
   const voice = url.searchParams.get('voice') || 'Charon';
   const systemPrompt = url.searchParams.get('systemPrompt') || 'You are a helpful companion.';
+  const inputMode = url.searchParams.get('inputMode') || 'vad';
 
   console.log(`Starting xAI voice relay - Voice: ${voice}`);
 
@@ -70,7 +71,7 @@ serve(async (req) => {
             input_audio_transcription: {
               model: "whisper-large-v3-turbo"
             },
-            turn_detection: {
+            turn_detection: inputMode === 'push-to-talk' ? null : {
               type: "server_vad",
               threshold: 0.5,
               prefix_padding_ms: 300,
