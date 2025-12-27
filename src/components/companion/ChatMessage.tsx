@@ -17,6 +17,7 @@ export function ChatMessage({
   onVoiceClick,
   voiceEnabled = true,
 }: ChatMessageProps) {
+  // Support both 'user' role and 'companion'/'assistant' roles
   const isUser = message.role === 'user';
   
   return (

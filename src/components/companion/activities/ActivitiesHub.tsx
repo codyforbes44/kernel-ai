@@ -11,6 +11,7 @@ import { WordGame } from './WordGame';
 import { TriviaGame } from './TriviaGame';
 import { EmojiGame } from './EmojiGame';
 import { StoryGame } from './StoryGame';
+import { MemoryGame } from './MemoryGame';
 import { ACTIVITIES, getAvailableActivities, calculateActivityReward, type ActivityType } from '@/constants/activities';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -74,6 +75,15 @@ export function ActivitiesHub({ companion, relationship, onAffinityChange, trigg
         return <EmojiGame {...props} onComplete={(s, m) => handleGameComplete('emoji_guess', s, m)} />;
       case 'story_collab':
         return <StoryGame {...props} onComplete={(s, m) => handleGameComplete('story_collab', s, m)} />;
+      case 'memory_quiz':
+        return (
+          <MemoryGame 
+            companion={companion}
+            relationshipId={relationship.id}
+            onComplete={(s, m) => handleGameComplete('memory_quiz', s, m)}
+            onCancel={() => setActiveGame(null)}
+          />
+        );
       default:
         return null;
     }

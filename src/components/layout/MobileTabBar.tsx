@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { MessageSquare, Code2, Settings, Sparkles, Shield, Coins } from "lucide-react";
+import { MessageSquare, Code2, Settings, Sparkles, Shield, Coins, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHaptic } from "@/hooks/useHaptic";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAICredits } from "@/hooks/useAICredits";
 
-type TabKey = "chat" | "builder" | "settings" | "admin";
+type TabKey = "chat" | "builder" | "companion" | "settings" | "admin";
 
 interface Tab {
   href: string;
@@ -18,6 +18,7 @@ interface Tab {
 const baseTabs: Tab[] = [
   { href: "/assistant", label: "Assistant", icon: MessageSquare, key: "chat" },
   { href: "/builder", label: "Builder", icon: Code2, key: "builder" },
+  { href: "/companion", label: "Companion", icon: Users, key: "companion" },
 ];
 
 const settingsTab: Tab = { href: "/settings", label: "Settings", icon: Settings, key: "settings" };

@@ -39,6 +39,7 @@ import {
   Loader2,
   Trash2,
   Code2,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectTree } from "./ProjectTree";
@@ -154,6 +155,21 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Templates</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                onClick={() => navigate('/companion')}
+                aria-label="AI Companions"
+              >
+                <Users className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">AI Companions</TooltipContent>
           </Tooltip>
         </div>
 
@@ -401,6 +417,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             <DropdownMenuItem onClick={() => navigate('/builder')}>
               <Code2 className="h-4 w-4 mr-2" />
               Builder
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/companion')}>
+              <Users className="h-4 w-4 mr-2" />
+              AI Companions
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/settings')}>
               <Settings className="h-4 w-4 mr-2" />
