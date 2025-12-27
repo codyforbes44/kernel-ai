@@ -11,6 +11,7 @@ import { hapticFeedback } from "@/hooks/useHaptic";
 import {
   MessageSquare,
   Code2,
+  Users,
   Settings,
   Shield,
   User,
@@ -29,6 +30,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/assistant", label: "Assistant", icon: MessageSquare },
   { href: "/builder", label: "Builder", icon: Code2 },
+  { href: "/companion", label: "Companions", icon: Users },
 ];
 
 export function TopNavBar() {
