@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { CompanionSelector } from '@/components/companion/CompanionSelector';
 import { CompanionChat } from '@/components/companion/CompanionChat';
 import { ConversationHistory } from '@/components/companion/ConversationHistory';
@@ -6,6 +6,8 @@ import { DailyCheckIn } from '@/components/companion/DailyCheckIn';
 import { CompanionThoughts } from '@/components/companion/CompanionThoughts';
 import { StreakDisplay } from '@/components/companion/StreakDisplay';
 import { MilestoneCelebration } from '@/components/companion/MilestoneCelebration';
+import { MobileCompanionSheet } from '@/components/companion/MobileCompanionSheet';
+import { CompanionPageSkeleton } from '@/components/companion/CompanionPageSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanionRelationship, useCompanion } from '@/hooks/useCompanion';
 import { Navigate } from 'react-router-dom';
@@ -20,42 +22,49 @@ export default function CompanionPage() {
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
   const [celebratingMilestone, setCelebratingMilestone] = useState<Milestone | null>(null);
   
-  const { data: relationship } = useCompanionRelationship(selectedCompanionId);
-  const { data: companion } = useCompanion(selectedCompanionId);
+  const { data: relationship, isLoading: relationshipLoading } = useCompanionRelationship(selectedCompanionId);
+  const { data: companion, isLoading: companionLoading } = useCompanion(selectedCompanionId);
 
-  if (loading) return null;
+  if (loading) return <CompanionPageSkeleton />;
   if (!user) return <Navigate to="/auth" replace />;
 
-  const handleSelectCompanion = (id: string) => {
+  const handleSelectCompanion = useCallback((id: string) => {
     setSelectedCompanionId(id);
     setActiveConversationId(undefined);
-  };
+  }, []);
 
-  const handleSelectConversation = (conversationId: string) => {
+  const handleSelectConversation = useCallback((conversationId: string) => {
     setActiveConversationId(conversationId);
-  };
+  }, []);
 
-  const handleNewConversation = () => {
+  const handleNewConversation = useCallback(() => {
     setActiveConversationId(undefined);
-  };
+  }, []);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = useCallback(() => {
     // Just scroll to chat - the chat component handles sending messages
-  };
+  }, []);
 
-  const handleNewMilestone = (milestone: Milestone) => {
+  const handleNewMilestone = useCallback((milestone: Milestone) => {
     setCelebratingMilestone(milestone);
-  };
+  }, []);
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const hasCheckedInToday = relationship?.last_check_in_date === today;
 
   return (
-    <div className="container max-w-6xl py-8">
-      <div className="text-center space-y-2 mb-6">
+    <main className="container max-w-6xl py-8" role="main" aria-label="AI Companions">
+      <header className="text-center space-y-2 mb-6">
         <h1 className="text-3xl font-bold">AI Companions</h1>
         <p className="text-muted-foreground">Choose a companion to chat with and build your connection</p>
-      </div>
+        {/* Mobile companion selector */}
+        <div className="lg:hidden pt-2">
+          <MobileCompanionSheet 
+            selectedId={selectedCompanionId} 
+            onSelect={handleSelectCompanion} 
+          />
+        </div>
+      </header>
 
       <div className="grid lg:grid-cols-[280px_1fr] gap-6">
         {/* Left Sidebar - Companion Selection & History */}
@@ -162,6 +171,6 @@ export default function CompanionPage() {
         milestone={celebratingMilestone}
         onClose={() => setCelebratingMilestone(null)}
       />
-    </div>
+    </main>
   );
 }

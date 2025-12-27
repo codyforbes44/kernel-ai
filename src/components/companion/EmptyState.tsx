@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CompanionAvatar } from './CompanionAvatar';
 
 interface EmptyStateProps {
@@ -7,9 +8,18 @@ interface EmptyStateProps {
   greeting: string;
 }
 
-export function EmptyState({ companionName, personalityType, avatarUrl, greeting }: EmptyStateProps) {
+export const EmptyState = memo(function EmptyState({ 
+  companionName, 
+  personalityType, 
+  avatarUrl, 
+  greeting 
+}: EmptyStateProps) {
   return (
-    <div className="text-center py-12 px-4">
+    <div 
+      className="text-center py-12 px-4"
+      role="status"
+      aria-label={`Start a conversation with ${companionName}`}
+    >
       <div className="flex justify-center mb-4">
         <CompanionAvatar 
           personalityType={personalityType} 
@@ -24,4 +34,4 @@ export function EmptyState({ companionName, personalityType, avatarUrl, greeting
       </p>
     </div>
   );
-}
+});

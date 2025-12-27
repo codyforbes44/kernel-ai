@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,18 +12,21 @@ interface VoicePlaybackButtonProps {
   size?: 'sm' | 'default';
   showWaveform?: boolean;
   className?: string;
+  'aria-label'?: string;
 }
 
-export function VoicePlaybackButton({
+export const VoicePlaybackButton = memo(function VoicePlaybackButton({
   isPlaying,
   isLoading,
   onClick,
   size = 'default',
   showWaveform = true,
   className,
+  'aria-label': ariaLabel,
 }: VoicePlaybackButtonProps) {
   const iconSize = size === 'sm' ? 'h-3 w-3' : 'h-4 w-4';
   const buttonSize = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
+  const label = ariaLabel || (isPlaying ? 'Stop' : isLoading ? 'Loading...' : 'Play voice');
 
   return (
     <TooltipProvider>
@@ -98,4 +102,4 @@ export function VoicePlaybackButton({
       </Tooltip>
     </TooltipProvider>
   );
-}
+});

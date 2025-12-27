@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { VoicePlaybackButton } from './voice/VoicePlaybackButton';
 import type { CompanionMessage } from '@/types/companion';
@@ -10,18 +11,25 @@ interface ChatMessageProps {
   voiceEnabled?: boolean;
 }
 
-export function ChatMessage({ 
+export const ChatMessage = memo(function ChatMessage({ 
   message, 
   isPlaying, 
   isVoiceLoading, 
   onVoiceClick,
   voiceEnabled = true,
 }: ChatMessageProps) {
-  // Support both 'user' role and 'companion'/'assistant' roles
   const isUser = message.role === 'user';
   
+  const handleVoiceClick = useCallback(() => {
+    onVoiceClick(message.id, message.content);
+  }, [message.id, message.content, onVoiceClick]);
+  
   return (
-    <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
+    <div 
+      className={cn('flex', isUser ? 'justify-end' : 'justify-start')}
+      role="listitem"
+      aria-label={`${isUser ? 'You' : 'Companion'} said: ${message.content.slice(0, 50)}${message.content.length > 50 ? '...' : ''}`}
+    >
       <div className={cn(
         'max-w-[80%] rounded-2xl px-4 py-2 group relative',
         isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
@@ -36,12 +44,13 @@ export function ChatMessage({
             <VoicePlaybackButton
               isPlaying={isPlaying}
               isLoading={isVoiceLoading}
-              onClick={() => onVoiceClick(message.id, message.content)}
+              onClick={handleVoiceClick}
               size="sm"
+              aria-label={isPlaying ? 'Stop voice playback' : 'Play message aloud'}
             />
           </div>
         )}
       </div>
     </div>
   );
-}
+});
