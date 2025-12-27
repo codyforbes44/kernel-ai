@@ -3,6 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCompanionChat } from '@/hooks/useCompanionChat';
 import { useCompanionMessages, useCompanion, useCompanionRelationship, useCompanionConversations } from '@/hooks/useCompanion';
 import { useCompanionVoice } from '@/hooks/useCompanionVoice';
+import { useCompanionVoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
@@ -22,11 +23,15 @@ interface CompanionChatProps {
 
 export function CompanionChat({ companionId, conversationId: externalConversationId, onConversationChange, onNewMilestone }: CompanionChatProps) {
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  const [lastAutoPlayedId, setLastAutoPlayedId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const { data: companion, isLoading: isLoadingCompanion } = useCompanion(companionId);
   const { data: relationship } = useCompanionRelationship(companionId);
   const { data: conversations = [] } = useCompanionConversations(relationship?.id ?? null);
+  
+  // Voice settings per companion
+  const { settings: voiceSettings, updateSettings: updateVoiceSettings } = useCompanionVoiceSettings(companionId);
 
   const { 
     sendMessage, 
@@ -57,7 +62,11 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
 
   const { speak, stop, isPlaying, isLoading: isVoiceLoading } = useCompanionVoice({
     personalityType: companion?.personality_type || 'mentor',
-    voiceSettings: companion?.voice_settings as { stability?: number; similarity_boost?: number; style?: number } | undefined,
+    voiceSettings: {
+      stability: voiceSettings.stability,
+      similarity_boost: voiceSettings.similarity_boost,
+      style: voiceSettings.style,
+    },
   });
 
   useEffect(() => {
@@ -69,6 +78,29 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
       setPlayingMessageId(null);
     }
   }, [isPlaying, playingMessageId]);
+
+  // Auto-play latest companion message when enabled
+  useEffect(() => {
+    if (
+      voiceSettings.enabled &&
+      voiceSettings.autoPlay &&
+      messages.length > 0 &&
+      !isStreaming &&
+      !isLoading &&
+      !isPlaying &&
+      !isVoiceLoading
+    ) {
+      const latestMessage = messages[messages.length - 1];
+      if (
+        latestMessage.role === 'assistant' &&
+        latestMessage.id !== lastAutoPlayedId
+      ) {
+        setLastAutoPlayedId(latestMessage.id);
+        setPlayingMessageId(latestMessage.id);
+        speak(latestMessage.content);
+      }
+    }
+  }, [messages, voiceSettings, isStreaming, isLoading, isPlaying, isVoiceLoading, lastAutoPlayedId, speak]);
 
   const handleVoiceClick = (messageId: string, content: string) => {
     if (playingMessageId === messageId && isPlaying) {
@@ -92,7 +124,13 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
 
   return (
     <div className="flex flex-col h-[600px] border rounded-xl overflow-hidden bg-card">
-      <ChatHeader companion={companion} relationship={relationship ?? null} conversations={conversations} />
+      <ChatHeader 
+        companion={companion} 
+        relationship={relationship ?? null} 
+        conversations={conversations}
+        voiceSettings={voiceSettings}
+        onVoiceSettingsChange={updateVoiceSettings}
+      />
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
@@ -112,6 +150,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
               isPlaying={playingMessageId === msg.id && isPlaying}
               isVoiceLoading={playingMessageId === msg.id && isVoiceLoading}
               onVoiceClick={handleVoiceClick}
+              voiceEnabled={voiceSettings.enabled}
             />
           ))}
           

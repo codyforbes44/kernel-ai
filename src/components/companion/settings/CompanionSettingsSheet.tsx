@@ -1,22 +1,25 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, ChevronRight } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { PersonalityCustomizer } from './PersonalityCustomizer';
 import { ConversationExporter } from './ConversationExporter';
+import { VoiceSettingsPanel } from '../voice/VoiceSettingsPanel';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { PERSONALITY_COLORS, PERSONALITY_ICONS } from '@/constants/companion';
 import type { CompanionProfile, CompanionRelationship, CompanionConversation } from '@/types/companion';
+import type { VoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 
 interface CompanionSettingsSheetProps {
   companion: CompanionProfile;
   relationship: CompanionRelationship;
   conversations: CompanionConversation[];
+  voiceSettings: VoiceSettings;
+  onVoiceSettingsChange: (settings: VoiceSettings) => void;
   trigger?: React.ReactNode;
 }
 
@@ -24,6 +27,8 @@ export function CompanionSettingsSheet({
   companion,
   relationship,
   conversations,
+  voiceSettings,
+  onVoiceSettingsChange,
   trigger,
 }: CompanionSettingsSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +36,6 @@ export function CompanionSettingsSheet({
   const icon = PERSONALITY_ICONS[companion.personality_type] || PERSONALITY_ICONS.mentor;
 
   const handleSaveTraits = async (traits: Record<string, number>) => {
-    // Update the relationship with custom trait overrides
     const { error } = await supabase
       .from('companion_relationships')
       .update({
@@ -70,15 +74,24 @@ export function CompanionSettingsSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <Tabs defaultValue="personality" className="flex-1 flex flex-col">
+        <Tabs defaultValue="voice" className="flex-1 flex flex-col">
           <div className="px-6 pt-4">
             <TabsList className="w-full">
+              <TabsTrigger value="voice" className="flex-1">Voice</TabsTrigger>
               <TabsTrigger value="personality" className="flex-1">Personality</TabsTrigger>
               <TabsTrigger value="export" className="flex-1">Export</TabsTrigger>
             </TabsList>
           </div>
 
           <ScrollArea className="flex-1 px-6 py-4">
+            <TabsContent value="voice" className="m-0">
+              <VoiceSettingsPanel
+                companion={companion}
+                settings={voiceSettings}
+                onSettingsChange={onVoiceSettingsChange}
+              />
+            </TabsContent>
+
             <TabsContent value="personality" className="m-0">
               <PersonalityCustomizer
                 companion={companion}
@@ -97,7 +110,7 @@ export function CompanionSettingsSheet({
           </ScrollArea>
         </Tabs>
 
-        {/* Footer with relationship info */}
+        {/* Footer */}
         <div className="p-4 border-t bg-muted/30">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Relationship Level</span>

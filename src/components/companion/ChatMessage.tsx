@@ -1,6 +1,5 @@
-import { Button } from '@/components/ui/button';
-import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VoicePlaybackButton } from './voice/VoicePlaybackButton';
 import type { CompanionMessage } from '@/types/companion';
 
 interface ChatMessageProps {
@@ -8,9 +7,16 @@ interface ChatMessageProps {
   isPlaying: boolean;
   isVoiceLoading: boolean;
   onVoiceClick: (messageId: string, content: string) => void;
+  voiceEnabled?: boolean;
 }
 
-export function ChatMessage({ message, isPlaying, isVoiceLoading, onVoiceClick }: ChatMessageProps) {
+export function ChatMessage({ 
+  message, 
+  isPlaying, 
+  isVoiceLoading, 
+  onVoiceClick,
+  voiceEnabled = true,
+}: ChatMessageProps) {
   const isUser = message.role === 'user';
   
   return (
@@ -21,25 +27,18 @@ export function ChatMessage({ message, isPlaying, isVoiceLoading, onVoiceClick }
       )}>
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         
-        {!isUser && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              'absolute -right-10 top-1/2 -translate-y-1/2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity',
-              (isPlaying || isVoiceLoading) && 'opacity-100'
-            )}
-            onClick={() => onVoiceClick(message.id, message.content)}
-            disabled={isVoiceLoading && !isPlaying}
-          >
-            {isVoiceLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isPlaying ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
-            )}
-          </Button>
+        {!isUser && voiceEnabled && (
+          <div className={cn(
+            'absolute -right-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity',
+            (isPlaying || isVoiceLoading) && 'opacity-100'
+          )}>
+            <VoicePlaybackButton
+              isPlaying={isPlaying}
+              isLoading={isVoiceLoading}
+              onClick={() => onVoiceClick(message.id, message.content)}
+              size="sm"
+            />
+          </div>
         )}
       </div>
     </div>

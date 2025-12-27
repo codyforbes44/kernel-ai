@@ -7,14 +7,23 @@ import { CompanionAnalyticsDashboard } from './analytics/CompanionAnalyticsDashb
 import { CompanionSettingsSheet } from './settings/CompanionSettingsSheet';
 import { User, BarChart3, Settings } from 'lucide-react';
 import type { CompanionProfile as CompanionProfileType, CompanionRelationship, CompanionConversation } from '@/types/companion';
+import type { VoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 
 interface ChatHeaderProps {
   companion: CompanionProfileType;
   relationship: CompanionRelationship | null;
   conversations?: CompanionConversation[];
+  voiceSettings?: VoiceSettings;
+  onVoiceSettingsChange?: (settings: VoiceSettings) => void;
 }
 
-export function ChatHeader({ companion, relationship, conversations = [] }: ChatHeaderProps) {
+export function ChatHeader({ 
+  companion, 
+  relationship, 
+  conversations = [],
+  voiceSettings,
+  onVoiceSettingsChange,
+}: ChatHeaderProps) {
   return (
     <div className="p-4 border-b bg-muted/30">
       <div className="flex items-center gap-3">
@@ -31,7 +40,7 @@ export function ChatHeader({ companion, relationship, conversations = [] }: Chat
           {relationship && <AffinityMeter level={relationship.affinity_level} size="sm" />}
         </div>
         <div className="flex items-center gap-1">
-          {relationship && (
+          {relationship && voiceSettings && onVoiceSettingsChange && (
             <>
               <CompanionAnalyticsDashboard
                 companion={companion}
@@ -47,6 +56,8 @@ export function ChatHeader({ companion, relationship, conversations = [] }: Chat
                 companion={companion}
                 relationship={relationship}
                 conversations={conversations}
+                voiceSettings={voiceSettings}
+                onVoiceSettingsChange={onVoiceSettingsChange}
                 trigger={
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Settings className="h-4 w-4" />
