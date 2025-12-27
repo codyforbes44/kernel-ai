@@ -8,6 +8,7 @@ import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { EmptyState } from './EmptyState';
+import { StreamingMessage } from './StreamingMessage';
 import { Loader2 } from 'lucide-react';
 
 interface CompanionChatProps {
@@ -23,9 +24,17 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
   const { data: companion, isLoading: isLoadingCompanion } = useCompanion(companionId);
   const { data: relationship } = useCompanionRelationship(companionId);
 
-  const { sendMessage, isLoading, conversationId: activeConversationId, pendingMessage } = useCompanionChat({
+  const { 
+    sendMessage, 
+    isLoading, 
+    isStreaming,
+    conversationId: activeConversationId, 
+    pendingMessage,
+    streamingContent 
+  } = useCompanionChat({
     companionId,
     conversationId: externalConversationId,
+    enableStreaming: true,
     onAffinityChange: (level, change) => {
       console.log(`Affinity changed: ${change > 0 ? '+' : ''}${change} → ${level}`);
     },
@@ -48,7 +57,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, pendingMessage]);
+  }, [messages, pendingMessage, streamingContent]);
 
   useEffect(() => {
     if (!isPlaying && playingMessageId) {
@@ -82,7 +91,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.length === 0 && !pendingMessage && (
+          {messages.length === 0 && !pendingMessage && !streamingContent && (
             <EmptyState
               companionName={companion.name}
               personalityType={companion.personality_type}
@@ -101,16 +110,24 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
             />
           ))}
           
+          {/* Pending user message */}
           {pendingMessage && (
-            <>
-              <div className="flex justify-end">
-                <div className="max-w-[80%] rounded-2xl px-4 py-2 bg-primary text-primary-foreground">
-                  <p className="text-sm">{pendingMessage}</p>
-                </div>
+            <div className="flex justify-end">
+              <div className="max-w-[80%] rounded-2xl px-4 py-2 bg-primary text-primary-foreground">
+                <p className="text-sm">{pendingMessage}</p>
               </div>
-              <TypingIndicator personalityType={companion.personality_type} />
-            </>
+            </div>
           )}
+
+          {/* Streaming response or typing indicator */}
+          {isStreaming && streamingContent ? (
+            <StreamingMessage 
+              content={streamingContent} 
+              personalityType={companion.personality_type}
+            />
+          ) : pendingMessage && !streamingContent ? (
+            <TypingIndicator personalityType={companion.personality_type} />
+          ) : null}
           
           <div ref={scrollRef} />
         </div>
