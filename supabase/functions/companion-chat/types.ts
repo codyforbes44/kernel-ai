@@ -24,6 +24,9 @@ export interface Relationship {
   current_mood: string;
   total_messages: number;
   total_interactions: number;
+  current_streak?: number;
+  longest_streak?: number;
+  last_check_in_date?: string;
 }
 
 export interface Message {
