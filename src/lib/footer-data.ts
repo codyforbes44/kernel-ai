@@ -24,6 +24,7 @@ export const footerSections: FooterSection[] = [
     links: [
       { label: "How It Works", href: "/how-it-works" },
       { label: "Features", href: "/#features" },
+      { label: "Compare", href: "/compare" },
       { label: "Changelog", href: "/changelog" },
       { label: "Install App", href: "/install" },
     ],
@@ -33,6 +34,7 @@ export const footerSections: FooterSection[] = [
     links: [
       { label: "Request Access", href: "/request-invite" },
       { label: "Redeem Code", href: "/redeem-invite" },
+      { label: "Pricing", href: "/pricing" },
     ],
   },
   {
