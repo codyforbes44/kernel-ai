@@ -2,12 +2,15 @@ import { useState, useRef, useCallback, type ReactNode } from "react";
 import { Loader2, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { hapticFeedback } from "@/hooks/useHaptic";
+import { forceRefresh } from "@/lib/forceRefresh";
 
 interface PullToRefreshProps {
-  onRefresh: () => Promise<void>;
+  onRefresh?: () => Promise<void>;
   children: ReactNode;
   className?: string;
   threshold?: number;
+  /** When true, performs a full page reload (clears caches + service worker) instead of calling onRefresh */
+  hardRefresh?: boolean;
 }
 
 export function PullToRefresh({
@@ -15,6 +18,7 @@ export function PullToRefresh({
   children,
   className,
   threshold = 80,
+  hardRefresh = false,
 }: PullToRefreshProps) {
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -66,7 +70,13 @@ export function PullToRefresh({
       setPullDistance(threshold * 0.5); // Show spinner at half height
       
       try {
-        await onRefresh();
+        if (hardRefresh) {
+          // Full page reload - clears caches and service worker
+          await forceRefresh();
+          // Note: forceRefresh calls window.location.reload(), so code below won't execute
+        } else if (onRefresh) {
+          await onRefresh();
+        }
         hapticFeedback("success");
       } finally {
         setIsRefreshing(false);
@@ -75,7 +85,7 @@ export function PullToRefresh({
     } else {
       setPullDistance(0);
     }
-  }, [isPulling, pullDistance, threshold, isRefreshing, onRefresh]);
+  }, [isPulling, pullDistance, threshold, isRefreshing, onRefresh, hardRefresh]);
 
   const progress = Math.min(pullDistance / threshold, 1);
   const shouldTrigger = pullDistance >= threshold;
