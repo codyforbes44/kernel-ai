@@ -6,14 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { CompanionAvatar } from './CompanionAvatar';
+import { EvolvedAvatar } from './evolution/EvolvedAvatar';
+import { EvolutionProgress } from './evolution/EvolutionProgress';
 import { AffinityMeter } from './AffinityMeter';
 import { MilestonesBadges } from './MilestonesBadges';
 import { MoodIndicator } from './MoodIndicator';
 import { useUpdateNickname } from '@/hooks/useCompanion';
 import { PERSONALITY_ICONS, getAffinityLevel } from '@/constants/companion';
 import { formatDistanceToNow } from 'date-fns';
-import { Edit2, Check, X, Calendar, MessageSquare, Heart, Brain } from 'lucide-react';
+import { Edit2, Check, X, Calendar, MessageSquare, Heart, Brain, Sparkles } from 'lucide-react';
 import type { CompanionProfile as CompanionProfileType, CompanionRelationship, MemoryContext } from '@/types/companion';
 
 interface CompanionProfileProps {
@@ -42,10 +43,12 @@ export function CompanionProfile({ companion, relationship, trigger }: Companion
       <div className="space-y-6 p-1">
         {/* Header Section */}
         <div className="text-center space-y-4">
-          <CompanionAvatar 
+          <EvolvedAvatar 
             personalityType={companion.personality_type} 
             avatarUrl={companion.avatar_url}
-            size="lg"
+            affinity={relationship?.affinity_level || 0}
+            size="xl"
+            showTooltip={false}
           />
           <div>
             <div className="flex items-center justify-center gap-2">
@@ -108,7 +111,20 @@ export function CompanionProfile({ companion, relationship, trigger }: Companion
           </Card>
         )}
 
-        {/* Stats */}
+        {/* Evolution Progress */}
+        {relationship && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Evolution Journey
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EvolutionProgress affinity={relationship.affinity_level} showAllTiers />
+            </CardContent>
+          </Card>
+        )}
         {relationship && (
           <div className="grid grid-cols-3 gap-3">
             <Card>
