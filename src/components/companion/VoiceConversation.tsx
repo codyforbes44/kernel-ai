@@ -1,8 +1,21 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Phone, PhoneOff, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Volume2, MessageSquare } from 'lucide-react';
 import { useXAIVoice } from '@/hooks/useXAIVoice';
 import { cn } from '@/lib/utils';
+import { AudioWaveformVisualizer } from './voice/AudioWaveformVisualizer';
+import { PushToTalkButton } from './voice/PushToTalkButton';
+import { LiveTranscript } from './voice/LiveTranscript';
+
+interface TranscriptEntry {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: Date;
+  isStreaming?: boolean;
+}
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface VoiceConversationProps {
   companionName: string;
@@ -18,6 +31,18 @@ export function VoiceConversation({
   onTranscript,
 }: VoiceConversationProps) {
   const [showTranscript, setShowTranscript] = useState(true);
+  const [transcriptEntries, setTranscriptEntries] = useState<TranscriptEntry[]>([]);
+  
+  const handleTranscript = useCallback((text: string, role: 'user' | 'assistant') => {
+    const entry: TranscriptEntry = {
+      id: `${role}-${Date.now()}`,
+      role,
+      text,
+      timestamp: new Date(),
+    };
+    setTranscriptEntries(prev => [...prev, entry]);
+    onTranscript?.(text, role);
+  }, [onTranscript]);
   
   const {
     connect,
@@ -27,20 +52,30 @@ export function VoiceConversation({
     isSpeaking,
     userTranscript,
     agentTranscript,
+    inputMode,
+    setInputMode,
+    isMuted,
+    toggleMute,
+    audioLevel,
+    startSpeaking,
+    stopSpeaking,
   } = useXAIVoice({
     personalityType,
     companionName,
     systemPrompt,
-    onTranscript,
+    onTranscript: handleTranscript,
   });
 
   const handleToggleConnection = () => {
     if (isConnected) {
       disconnect();
+      setTranscriptEntries([]);
     } else {
       connect();
     }
   };
+
+  const isListening = isConnected && !isSpeaking && !isMuted;
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
@@ -57,45 +92,86 @@ export function VoiceConversation({
 
       {/* Voice Visualization */}
       {isConnected && (
-        <div className="relative flex items-center justify-center w-24 h-24">
-          {/* Outer ring animation when speaking */}
-          <div className={cn(
-            "absolute inset-0 rounded-full border-4 transition-all duration-300",
-            isSpeaking 
-              ? "border-primary animate-pulse scale-110" 
-              : "border-muted scale-100"
-          )} />
+        <div className="relative flex flex-col items-center justify-center gap-4 w-full max-w-md">
+          {/* Audio Waveform */}
+          <AudioWaveformVisualizer
+            audioLevel={isSpeaking ? 0.6 : audioLevel}
+            isActive={isSpeaking || isListening}
+            variant="bars"
+            barCount={24}
+            className="w-full"
+          />
           
-          {/* Inner circle */}
+          {/* Speaking/Listening Indicator */}
           <div className={cn(
-            "w-16 h-16 rounded-full flex items-center justify-center transition-colors",
-            isSpeaking ? "bg-primary/20" : "bg-muted"
+            "text-sm font-medium transition-colors",
+            isSpeaking ? "text-primary" : isListening ? "text-green-500" : "text-muted-foreground"
           )}>
             {isSpeaking ? (
-              <Volume2 className="h-6 w-6 text-primary animate-pulse" />
+              <span className="flex items-center gap-2">
+                <Volume2 className="h-4 w-4 animate-pulse" />
+                {companionName} is speaking...
+              </span>
+            ) : isListening ? (
+              <span className="flex items-center gap-2">
+                <Mic className="h-4 w-4" />
+                Listening...
+              </span>
             ) : (
-              <Mic className="h-6 w-6 text-muted-foreground" />
+              <span className="flex items-center gap-2">
+                <MicOff className="h-4 w-4" />
+                Muted
+              </span>
             )}
           </div>
         </div>
       )}
 
+      {/* Input Mode Toggle */}
+      {isConnected && (
+        <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 w-full max-w-md">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="input-mode"
+              checked={inputMode === 'push-to-talk'}
+              onCheckedChange={(checked) => setInputMode(checked ? 'push-to-talk' : 'vad')}
+            />
+            <Label htmlFor="input-mode" className="text-sm">
+              {inputMode === 'push-to-talk' ? 'Push-to-Talk' : 'Auto-detect (VAD)'}
+            </Label>
+          </div>
+          <Button
+            variant={isMuted ? "destructive" : "outline"}
+            size="sm"
+            onClick={toggleMute}
+            className="ml-auto"
+          >
+            {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </Button>
+        </div>
+      )}
+
+      {/* Push-to-Talk Button */}
+      {isConnected && inputMode === 'push-to-talk' && (
+        <PushToTalkButton
+          isActive={false}
+          audioLevel={audioLevel}
+          onStart={startSpeaking}
+          onStop={stopSpeaking}
+          disabled={isMuted}
+          className="w-full max-w-md"
+        />
+      )}
+
       {/* Transcripts */}
       {isConnected && showTranscript && (
-        <div className="w-full max-w-md space-y-2">
-          {userTranscript && (
-            <div className="p-3 rounded-lg bg-primary/10 text-sm">
-              <span className="text-xs text-muted-foreground block mb-1">You said:</span>
-              {userTranscript}
-            </div>
-          )}
-          {agentTranscript && (
-            <div className="p-3 rounded-lg bg-muted text-sm">
-              <span className="text-xs text-muted-foreground block mb-1">{companionName}:</span>
-              {agentTranscript}
-            </div>
-          )}
-        </div>
+        <LiveTranscript
+          entries={transcriptEntries}
+          isListening={isListening}
+          companionName={companionName}
+          className="w-full max-w-md"
+          maxHeight={200}
+        />
       )}
 
       {/* Controls */}
@@ -125,8 +201,9 @@ export function VoiceConversation({
             variant="outline"
             size="sm"
             onClick={() => setShowTranscript(!showTranscript)}
+            title={showTranscript ? 'Hide transcript' : 'Show transcript'}
           >
-            {showTranscript ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            <MessageSquare className="h-4 w-4" />
           </Button>
         )}
       </div>

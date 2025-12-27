@@ -53,10 +53,10 @@ export default function CompanionPage() {
   const hasCheckedInToday = relationship?.last_check_in_date === today;
 
   return (
-    <main className="container max-w-6xl py-8" role="main" aria-label="AI Companions">
-      <header className="text-center space-y-2 mb-6">
-        <h1 className="text-3xl font-bold">AI Companions</h1>
-        <p className="text-muted-foreground">Choose a companion to chat with and build your connection</p>
+    <main className="container max-w-6xl py-4 px-4 sm:py-6 sm:px-6 md:py-8" role="main" aria-label="AI Companions">
+      <header className="text-center space-y-2 mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">AI Companions</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Choose a companion to chat with and build your connection</p>
         {/* Mobile companion selector */}
         <div className="lg:hidden pt-2">
           <MobileCompanionSheet 
@@ -66,9 +66,34 @@ export default function CompanionPage() {
         </div>
       </header>
 
-      <div className="grid lg:grid-cols-[280px_1fr] gap-6">
-        {/* Left Sidebar - Companion Selection & History */}
-        <div className="space-y-4">
+      {/* Mobile-only: Streak and Thoughts above chat */}
+      <div className="lg:hidden space-y-3 mb-4">
+        {relationship && relationship.current_streak > 0 && (
+          <Card>
+            <CardContent className="py-3 px-4">
+              <StreakDisplay
+                currentStreak={relationship.current_streak}
+                longestStreak={relationship.longest_streak}
+                lastCheckIn={relationship.last_check_in_date}
+              />
+            </CardContent>
+          </Card>
+        )}
+        
+        {companion && relationship && !hasCheckedInToday && (
+          <DailyCheckIn
+            companionName={companion.name}
+            personalityType={companion.personality_type}
+            hasCheckedInToday={hasCheckedInToday}
+            currentStreak={relationship.current_streak}
+            onCheckIn={handleCheckIn}
+          />
+        )}
+      </div>
+
+      <div className="grid lg:grid-cols-[280px_1fr] gap-4 sm:gap-6">
+        {/* Left Sidebar - Companion Selection & History (hidden on mobile) */}
+        <div className="hidden lg:block space-y-4">
           {/* Daily Check-in Card */}
           {companion && relationship && !hasCheckedInToday && (
             <DailyCheckIn
@@ -144,7 +169,7 @@ export default function CompanionPage() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="lg:min-h-[600px]">
+        <div className="min-h-[400px] sm:min-h-[500px] lg:min-h-[600px]">
           {selectedCompanionId ? (
             <CompanionChat 
               companionId={selectedCompanionId}
@@ -153,10 +178,10 @@ export default function CompanionPage() {
               onNewMilestone={handleNewMilestone}
             />
           ) : (
-            <Card className="h-[600px] flex items-center justify-center">
-              <CardContent className="text-center">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="font-semibold text-lg mb-2">No Companion Selected</h3>
+            <Card className="h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center">
+              <CardContent className="text-center px-6">
+                <Users className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="font-semibold text-base sm:text-lg mb-2">No Companion Selected</h3>
                 <p className="text-muted-foreground text-sm">
                   Choose a companion from the left panel to start chatting
                 </p>
@@ -165,6 +190,21 @@ export default function CompanionPage() {
           )}
         </div>
       </div>
+
+      {/* Mobile: Companion Thoughts below chat */}
+      {companion && relationship && (
+        <div className="lg:hidden mt-4">
+          <Card>
+            <CardContent className="py-3 px-4">
+              <CompanionThoughts
+                companionName={companion.name}
+                personalityType={companion.personality_type}
+                affinityLevel={relationship.affinity_level}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Milestone Celebration Modal */}
       <MilestoneCelebration

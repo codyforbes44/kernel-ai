@@ -107,7 +107,6 @@ export class AudioRecorder {
       this.audioContext.close();
       this.audioContext = null;
     }
-    this.dataArray = null;
   }
 }
 

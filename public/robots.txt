@@ -1,5 +1,5 @@
 # Robots.txt for kernel.cool
-# Generated to align with routes.ts directives
+# Updated 2025-12-27
 
 # Major search engines with crawl delay
 User-agent: Googlebot
@@ -31,6 +31,9 @@ Allow: /
 # Default rules for all other bots
 User-agent: *
 Allow: /
+Allow: /pricing
+Allow: /how-it-works
+Allow: /compare
 Allow: /contact
 Allow: /about
 Allow: /auth
@@ -44,13 +47,13 @@ Allow: /security
 Allow: /request-invite
 Allow: /redeem-invite
 
-# Hidden routes - disallow crawling
-Disallow: /pricing
+# Protected app routes - disallow crawling
 Disallow: /assistant
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /settings
 Disallow: /builder/
+Disallow: /companion
 Disallow: /seo
 Disallow: /onboarding
 Disallow: /performance

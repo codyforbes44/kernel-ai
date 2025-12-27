@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Play, Square, Settings2 } from 'lucide-react';
+import { Volume2, Play, Square, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -9,17 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTTS } from '@/hooks/useTTS';
 import { PERSONALITY_VOICE_MAP, DEFAULT_VOICE_SETTINGS } from '@/constants/companion';
-import { cn } from '@/lib/utils';
+import { VoiceModeSelector } from './VoiceModeSelector';
 import type { CompanionProfile } from '@/types/companion';
-
-interface VoiceSettings {
-  enabled: boolean;
-  autoPlay: boolean;
-  stability: number;
-  similarity_boost: number;
-  style: number;
-  speed: number;
-}
+import type { VoiceSettings } from '@/hooks/useCompanionVoiceSettings';
 
 interface VoiceSettingsPanelProps {
   companion: CompanionProfile;
@@ -78,6 +70,14 @@ export function VoiceSettingsPanel({
       </CardHeader>
 
       <CardContent className="px-0 space-y-6">
+        {/* Voice Mode Selector */}
+        <VoiceModeSelector
+          voiceMode={settings.voiceMode}
+          inputMode={settings.inputMode}
+          onVoiceModeChange={(mode) => updateSetting('voiceMode', mode)}
+          onInputModeChange={(mode) => updateSetting('inputMode', mode)}
+        />
+
         {/* Enable Voice */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
