@@ -2,26 +2,33 @@ import { useState } from 'react';
 import { CompanionSelector } from '@/components/companion/CompanionSelector';
 import { CompanionChat } from '@/components/companion/CompanionChat';
 import { ConversationHistory } from '@/components/companion/ConversationHistory';
+import { DailyCheckIn } from '@/components/companion/DailyCheckIn';
+import { CompanionThoughts } from '@/components/companion/CompanionThoughts';
+import { StreakDisplay } from '@/components/companion/StreakDisplay';
+import { MilestoneCelebration } from '@/components/companion/MilestoneCelebration';
 import { useAuth } from '@/hooks/useAuth';
-import { useCompanionRelationship } from '@/hooks/useCompanion';
+import { useCompanionRelationship, useCompanion } from '@/hooks/useCompanion';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, MessageSquare } from 'lucide-react';
+import type { Milestone } from '@/types/companion';
 
 export default function CompanionPage() {
   const { user, loading } = useAuth();
   const [selectedCompanionId, setSelectedCompanionId] = useState<string | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+  const [celebratingMilestone, setCelebratingMilestone] = useState<Milestone | null>(null);
   
   const { data: relationship } = useCompanionRelationship(selectedCompanionId);
+  const { data: companion } = useCompanion(selectedCompanionId);
 
   if (loading) return null;
   if (!user) return <Navigate to="/auth" replace />;
 
   const handleSelectCompanion = (id: string) => {
     setSelectedCompanionId(id);
-    setActiveConversationId(undefined); // Start fresh conversation when switching companions
+    setActiveConversationId(undefined);
   };
 
   const handleSelectConversation = (conversationId: string) => {
@@ -31,6 +38,17 @@ export default function CompanionPage() {
   const handleNewConversation = () => {
     setActiveConversationId(undefined);
   };
+
+  const handleCheckIn = () => {
+    // Just scroll to chat - the chat component handles sending messages
+  };
+
+  const handleNewMilestone = (milestone: Milestone) => {
+    setCelebratingMilestone(milestone);
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+  const hasCheckedInToday = relationship?.last_check_in_date === today;
 
   return (
     <div className="container max-w-6xl py-8">
@@ -42,6 +60,30 @@ export default function CompanionPage() {
       <div className="grid lg:grid-cols-[280px_1fr] gap-6">
         {/* Left Sidebar - Companion Selection & History */}
         <div className="space-y-4">
+          {/* Daily Check-in Card */}
+          {companion && relationship && !hasCheckedInToday && (
+            <DailyCheckIn
+              companionName={companion.name}
+              personalityType={companion.personality_type}
+              hasCheckedInToday={hasCheckedInToday}
+              currentStreak={relationship.current_streak}
+              onCheckIn={handleCheckIn}
+            />
+          )}
+
+          {/* Streak Display */}
+          {relationship && relationship.current_streak > 0 && (
+            <Card>
+              <CardContent className="pt-4">
+                <StreakDisplay
+                  currentStreak={relationship.current_streak}
+                  longestStreak={relationship.longest_streak}
+                  lastCheckIn={relationship.last_check_in_date}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           <Tabs defaultValue="companions" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="companions" className="gap-1.5">
@@ -77,6 +119,19 @@ export default function CompanionPage() {
               />
             </TabsContent>
           </Tabs>
+
+          {/* Companion Thoughts */}
+          {companion && relationship && (
+            <Card>
+              <CardContent className="pt-4">
+                <CompanionThoughts
+                  companionName={companion.name}
+                  personalityType={companion.personality_type}
+                  affinityLevel={relationship.affinity_level}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Main Chat Area */}
@@ -86,6 +141,7 @@ export default function CompanionPage() {
               companionId={selectedCompanionId}
               conversationId={activeConversationId}
               onConversationChange={setActiveConversationId}
+              onNewMilestone={handleNewMilestone}
             />
           ) : (
             <Card className="h-[600px] flex items-center justify-center">
@@ -100,6 +156,12 @@ export default function CompanionPage() {
           )}
         </div>
       </div>
+
+      {/* Milestone Celebration Modal */}
+      <MilestoneCelebration
+        milestone={celebratingMilestone}
+        onClose={() => setCelebratingMilestone(null)}
+      />
     </div>
   );
 }

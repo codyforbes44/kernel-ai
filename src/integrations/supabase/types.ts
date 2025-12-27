@@ -468,8 +468,11 @@ export type Database = {
           companion_id: string
           created_at: string
           current_mood: string | null
+          current_streak: number
           id: string
+          last_check_in_date: string | null
           last_interaction: string | null
+          longest_streak: number
           memory_context: Json
           milestones: Json
           nickname: string | null
@@ -483,8 +486,11 @@ export type Database = {
           companion_id: string
           created_at?: string
           current_mood?: string | null
+          current_streak?: number
           id?: string
+          last_check_in_date?: string | null
           last_interaction?: string | null
+          longest_streak?: number
           memory_context?: Json
           milestones?: Json
           nickname?: string | null
@@ -498,8 +504,11 @@ export type Database = {
           companion_id?: string
           created_at?: string
           current_mood?: string | null
+          current_streak?: number
           id?: string
+          last_check_in_date?: string | null
           last_interaction?: string | null
+          longest_streak?: number
           memory_context?: Json
           milestones?: Json
           nickname?: string | null

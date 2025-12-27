@@ -207,6 +207,28 @@ serve(async (req) => {
                   tokens_used: tokensUsed
                 });
 
+                // Calculate streak
+                const today = new Date().toISOString().split('T')[0];
+                const lastCheckIn = relationship.last_check_in_date;
+                let newStreak = relationship.current_streak || 0;
+                let longestStreak = relationship.longest_streak || 0;
+
+                if (lastCheckIn !== today) {
+                  const yesterday = new Date();
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  const yesterdayStr = yesterday.toISOString().split('T')[0];
+                  
+                  if (lastCheckIn === yesterdayStr) {
+                    newStreak += 1;
+                  } else if (!lastCheckIn) {
+                    newStreak = 1;
+                  } else {
+                    newStreak = 1; // Reset streak if gap > 1 day
+                  }
+                  
+                  longestStreak = Math.max(longestStreak, newStreak);
+                }
+
                 // Update relationship
                 await supabase
                   .from('companion_relationships')
@@ -217,7 +239,10 @@ serve(async (req) => {
                     memory_context: memoryUpdates,
                     milestones: newMilestones,
                     current_mood: emotionTags[0] || 'neutral',
-                    last_interaction: new Date().toISOString()
+                    last_interaction: new Date().toISOString(),
+                    current_streak: newStreak,
+                    longest_streak: longestStreak,
+                    last_check_in_date: today
                   })
                   .eq('id', relationship.id);
 
@@ -327,6 +352,28 @@ serve(async (req) => {
       tokens_used: tokensUsed
     });
 
+    // Calculate streak
+    const today = new Date().toISOString().split('T')[0];
+    const lastCheckIn = relationship.last_check_in_date;
+    let newStreak = relationship.current_streak || 0;
+    let longestStreak = relationship.longest_streak || 0;
+
+    if (lastCheckIn !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      if (lastCheckIn === yesterdayStr) {
+        newStreak += 1;
+      } else if (!lastCheckIn) {
+        newStreak = 1;
+      } else {
+        newStreak = 1; // Reset streak if gap > 1 day
+      }
+      
+      longestStreak = Math.max(longestStreak, newStreak);
+    }
+
     // Update relationship
     await supabase
       .from('companion_relationships')
@@ -337,7 +384,10 @@ serve(async (req) => {
         memory_context: memoryUpdates,
         milestones: newMilestones,
         current_mood: emotionTags[0] || 'neutral',
-        last_interaction: new Date().toISOString()
+        last_interaction: new Date().toISOString(),
+        current_streak: newStreak,
+        longest_streak: longestStreak,
+        last_check_in_date: today
       })
       .eq('id', relationship.id);
 
