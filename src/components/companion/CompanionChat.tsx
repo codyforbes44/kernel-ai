@@ -11,13 +11,16 @@ import { EmptyState } from './EmptyState';
 import { StreamingMessage } from './StreamingMessage';
 import { Loader2 } from 'lucide-react';
 
+import type { Milestone } from '@/types/companion';
+
 interface CompanionChatProps {
   companionId: string;
   conversationId?: string;
   onConversationChange?: (conversationId: string) => void;
+  onNewMilestone?: (milestone: Milestone) => void;
 }
 
-export function CompanionChat({ companionId, conversationId: externalConversationId, onConversationChange }: CompanionChatProps) {
+export function CompanionChat({ companionId, conversationId: externalConversationId, onConversationChange, onNewMilestone }: CompanionChatProps) {
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   
@@ -35,6 +38,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
     companionId,
     conversationId: externalConversationId,
     enableStreaming: true,
+    onNewMilestone,
     onAffinityChange: (level, change) => {
       console.log(`Affinity changed: ${change > 0 ? '+' : ''}${change} → ${level}`);
     },

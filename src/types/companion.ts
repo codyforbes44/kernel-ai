@@ -37,6 +37,9 @@ export interface CompanionRelationship {
   current_mood: string;
   nickname: string | null;
   last_interaction: string | null;
+  current_streak: number;
+  longest_streak: number;
+  last_check_in_date: string | null;
   created_at: string;
   updated_at: string;
 }

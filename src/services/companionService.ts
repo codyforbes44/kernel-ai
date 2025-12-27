@@ -213,6 +213,9 @@ export const companionService = {
       current_mood: data.current_mood || 'neutral',
       nickname: data.nickname,
       last_interaction: data.last_interaction,
+      current_streak: data.current_streak || 0,
+      longest_streak: data.longest_streak || 0,
+      last_check_in_date: data.last_check_in_date,
       created_at: data.created_at,
       updated_at: data.updated_at,
     };
