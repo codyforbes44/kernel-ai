@@ -66,6 +66,7 @@ export function CompanionChat({ companionId, conversationId: externalConversatio
       stability: voiceSettings.stability,
       similarity_boost: voiceSettings.similarity_boost,
       style: voiceSettings.style,
+      speed: voiceSettings.speed,
     },
   });
 
