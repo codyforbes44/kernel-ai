@@ -46,6 +46,30 @@ interface Relationship {
   constraintName: string;
 }
 
+// Input sanitization to prevent SQL injection
+function sanitizeIdentifier(identifier: string): string {
+  // Only allow alphanumeric characters, underscores, and schema prefix (dot)
+  // Maximum length of 128 (PostgreSQL identifier limit)
+  if (!identifier || typeof identifier !== 'string') {
+    throw new Error('Invalid identifier: must be a non-empty string');
+  }
+  
+  const trimmed = identifier.trim();
+  
+  // Check length
+  if (trimmed.length > 128) {
+    throw new Error('Invalid identifier: exceeds maximum length');
+  }
+  
+  // Only allow safe characters: letters, numbers, underscores
+  // Also allow dots for schema-qualified names like "public.users"
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/.test(trimmed)) {
+    throw new Error('Invalid identifier: contains disallowed characters');
+  }
+  
+  return trimmed;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -206,6 +230,9 @@ async function getExternalTables(supabase: any, url: string, key: string) {
 // deno-lint-ignore no-explicit-any
 async function getExternalSchema(supabase: any, url: string, key: string, tableName: string) {
   try {
+    // Sanitize table name to prevent SQL injection
+    const safeTableName = sanitizeIdentifier(tableName);
+    
     // Try RPC for column info
     const { data: colResult, error: colError } = await supabase.rpc('execute_sql', {
       query: `
@@ -224,7 +251,7 @@ async function getExternalSchema(supabase: any, url: string, key: string, tableN
           FROM information_schema.table_constraints tc
           JOIN information_schema.key_column_usage kcu 
             ON tc.constraint_name = kcu.constraint_name
-          WHERE tc.table_name = '${tableName}' 
+          WHERE tc.table_name = '${safeTableName}' 
           AND tc.constraint_type = 'PRIMARY KEY'
         ) pk ON c.column_name = pk.column_name
         LEFT JOIN (
@@ -237,10 +264,10 @@ async function getExternalSchema(supabase: any, url: string, key: string, tableN
             ON tc.constraint_name = kcu.constraint_name
           JOIN information_schema.constraint_column_usage ccu 
             ON tc.constraint_name = ccu.constraint_name
-          WHERE tc.table_name = '${tableName}' 
+          WHERE tc.table_name = '${safeTableName}' 
           AND tc.constraint_type = 'FOREIGN KEY'
         ) fk ON c.column_name = fk.column_name
-        WHERE c.table_name = '${tableName}' 
+        WHERE c.table_name = '${safeTableName}' 
         AND c.table_schema = 'public'
         ORDER BY c.ordinal_position
       `
@@ -268,7 +295,7 @@ async function getExternalSchema(supabase: any, url: string, key: string, tableN
       foreignColumn: row.foreign_column,
     }));
 
-    // Get RLS policies
+    // Get RLS policies (using already sanitized table name)
     const { data: polResult } = await supabase.rpc('execute_sql', {
       query: `
         SELECT 
@@ -283,7 +310,7 @@ async function getExternalSchema(supabase: any, url: string, key: string, tableN
           pg_get_expr(polqual, polrelid) as definition
         FROM pg_policy p
         JOIN pg_class c ON p.polrelid = c.oid
-        WHERE c.relname = '${tableName}'
+        WHERE c.relname = '${safeTableName}'
       `
     });
 
