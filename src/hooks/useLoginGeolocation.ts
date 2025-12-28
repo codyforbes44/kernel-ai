@@ -37,7 +37,7 @@ export function useLoginGeolocation() {
   const getGeolocation = useCallback(async (): Promise<GeoLocation | null> => {
     try {
       // Using ip-api.com (free, no API key required, 45 requests/minute limit)
-      const response = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,lat,lon,isp,query');
+      const response = await fetch('https://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,lat,lon,isp,query');
       
       if (!response.ok) {
         // Fallback to ipify for just IP
