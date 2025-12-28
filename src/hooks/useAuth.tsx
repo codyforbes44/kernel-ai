@@ -1,12 +1,12 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { setUserContext, clearUserContext, addBreadcrumb } from '@/lib/sentry';
-import { logger } from '@/lib/logger';
-import type { Profile } from '@/types/database';
-import type { Json } from '@/integrations/supabase/types';
+import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { setUserContext, clearUserContext, addBreadcrumb } from "@/lib/sentry";
+import { logger } from "@/lib/logger";
+import type { Profile } from "@/types/database";
+import type { Json } from "@/integrations/supabase/types";
 
-type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
+type OAuthProvider = "google";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -30,19 +30,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       // Update Sentry user context
       if (session?.user) {
         setUserContext({ id: session.user.id, email: session.user.email });
-        addBreadcrumb('User authenticated', 'auth', 'info', { event });
+        addBreadcrumb("User authenticated", "auth", "info", { event });
       } else {
         clearUserContext();
-        addBreadcrumb('User signed out', 'auth', 'info', { event });
+        addBreadcrumb("User signed out", "auth", "info", { event });
       }
-      
+
       // Defer profile fetch with setTimeout to avoid deadlock
       if (session?.user) {
         setTimeout(() => {
@@ -70,16 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
       if (error) throw error;
       setProfile(data as Profile);
     } catch (error) {
-      logger.error('Error fetching profile:', error);
+      logger.error("Error fetching profile:", error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: { display_name: displayName },
           emailRedirectTo: `${window.location.origin}/`,
-        }
+        },
       });
       return { error };
     } catch (error) {
@@ -101,16 +99,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = true): Promise<{ error: Error | null; userId?: string }> => {
+  const signIn = async (
+    email: string,
+    password: string,
+    rememberMe: boolean = true,
+  ): Promise<{ error: Error | null; userId?: string }> => {
     try {
       // Note: Supabase handles session persistence automatically via localStorage
       // The rememberMe flag could be used to set a shorter session expiry in the future
       // For now, we store the preference for potential future use
       if (!rememberMe) {
         // Clear any existing session on sign out to not persist
-        localStorage.setItem('auth_remember_me', 'false');
+        localStorage.setItem("auth_remember_me", "false");
       } else {
-        localStorage.removeItem('auth_remember_me');
+        localStorage.removeItem("auth_remember_me");
       }
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       return { error, userId: data?.user?.id };
@@ -130,12 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...updates,
       preferences: updates.preferences as Json | undefined,
     };
-    const { error } = await supabase
-      .from('profiles')
-      .update(supabaseUpdates)
-      .eq('id', user.id);
+    const { error } = await supabase.from("profiles").update(supabaseUpdates).eq("id", user.id);
     if (error) throw error;
-    setProfile(prev => prev ? { ...prev, ...updates } : null);
+    setProfile((prev) => (prev ? { ...prev, ...updates } : null));
   };
 
   const resetPassword = async (email: string) => {
@@ -164,18 +163,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      session, 
-      profile, 
-      loading, 
-      signUp, 
-      signIn, 
-      signInWithOAuth,
-      signOut, 
-      updateProfile,
-      resetPassword,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        profile,
+        loading,
+        signUp,
+        signIn,
+        signInWithOAuth,
+        signOut,
+        updateProfile,
+        resetPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -184,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
