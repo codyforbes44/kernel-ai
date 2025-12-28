@@ -5,13 +5,98 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Simple hash function for passcode verification (using Web Crypto API)
-async function hashPasscode(passcode: string): Promise<string> {
+// PBKDF2 iterations - OWASP 2023 recommendation
+const PBKDF2_ITERATIONS = 600000
+
+// Check if stored hash is in new PBKDF2 format (contains colon separator)
+function isNewHashFormat(hash: string): boolean {
+  return hash.includes(':')
+}
+
+// Legacy hash function for backward compatibility (will be migrated on next passcode update)
+async function legacyHashPasscode(passcode: string): Promise<string> {
   const encoder = new TextEncoder()
   const data = encoder.encode(passcode + 'team_access_salt_v1')
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+// Secure PBKDF2 hash function with unique random salt per passcode
+async function hashPasscodePBKDF2(passcode: string, existingSalt?: Uint8Array): Promise<string> {
+  const salt = existingSalt || crypto.getRandomValues(new Uint8Array(16))
+  const encoder = new TextEncoder()
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(passcode),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  )
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt.buffer as ArrayBuffer,
+      iterations: PBKDF2_ITERATIONS,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256
+  )
+  
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const saltArray = Array.from(salt)
+  
+  // Store as salt:hash format
+  return `${saltArray.map(b => b.toString(16).padStart(2, '0')).join('')}:${hashArray.map(b => b.toString(16).padStart(2, '0')).join('')}`
+}
+
+// Verify passcode against PBKDF2 hash
+async function verifyPasscodePBKDF2(input: string, stored: string): Promise<boolean> {
+  const [saltHex, storedHash] = stored.split(':')
+  const salt = new Uint8Array(
+    saltHex.match(/.{2}/g)!.map(byte => parseInt(byte, 16))
+  )
+  
+  const encoder = new TextEncoder()
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(input),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  )
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt.buffer as ArrayBuffer,
+      iterations: PBKDF2_ITERATIONS,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256
+  )
+  
+  const inputHash = Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+  
+  return inputHash === storedHash
+}
+
+// Verify passcode - supports both legacy and new PBKDF2 format
+async function verifyPasscode(input: string, storedHash: string): Promise<boolean> {
+  if (isNewHashFormat(storedHash)) {
+    // New PBKDF2 format
+    return verifyPasscodePBKDF2(input, storedHash)
+  } else {
+    // Legacy SHA-256 format - verify using old method
+    const legacyHash = await legacyHashPasscode(input)
+    return legacyHash === storedHash
+  }
 }
 
 // Generate secure session token
@@ -122,10 +207,10 @@ Deno.serve(async (req) => {
       )
     }
     
-    // Hash and compare
-    const hashedInput = await hashPasscode(passcode)
+    // Verify passcode using appropriate method (supports legacy + PBKDF2)
+    const isValid = await verifyPasscode(passcode, config.passcode_hash)
     
-    if (hashedInput !== config.passcode_hash) {
+    if (!isValid) {
       // Log failed attempt
       await supabase.from('team_access_attempts').insert({
         ip_address: ipAddress,

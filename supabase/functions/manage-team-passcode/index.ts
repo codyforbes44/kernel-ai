@@ -5,13 +5,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Simple hash function for passcode
+// PBKDF2 iterations - OWASP 2023 recommendation
+const PBKDF2_ITERATIONS = 600000
+
+// Secure PBKDF2 hash function with unique random salt per passcode
 async function hashPasscode(passcode: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16))
   const encoder = new TextEncoder()
-  const data = encoder.encode(passcode + 'team_access_salt_v1')
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(passcode),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  )
+  
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt.buffer as ArrayBuffer,
+      iterations: PBKDF2_ITERATIONS,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256
+  )
+  
   const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  const saltArray = Array.from(salt)
+  
+  // Store as salt:hash format
+  return `${saltArray.map(b => b.toString(16).padStart(2, '0')).join('')}:${hashArray.map(b => b.toString(16).padStart(2, '0')).join('')}`
 }
 
 // Generate random 6-digit passcode
