@@ -47,24 +47,34 @@ interface Relationship {
 }
 
 // Input sanitization to prevent SQL injection
+// Returns a safely quoted identifier for use in SQL queries
 function sanitizeIdentifier(identifier: string): string {
-  // Only allow alphanumeric characters, underscores, and schema prefix (dot)
-  // Maximum length of 128 (PostgreSQL identifier limit)
+  // Validate input
   if (!identifier || typeof identifier !== 'string') {
     throw new Error('Invalid identifier: must be a non-empty string');
   }
   
   const trimmed = identifier.trim();
   
-  // Check length
+  // Check length (PostgreSQL identifier limit)
   if (trimmed.length > 128) {
     throw new Error('Invalid identifier: exceeds maximum length');
   }
   
-  // Only allow safe characters: letters, numbers, underscores
-  // Also allow dots for schema-qualified names like "public.users"
-  if (!/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/.test(trimmed)) {
-    throw new Error('Invalid identifier: contains disallowed characters');
+  // STRICT validation: Only allow safe characters
+  // Letters, numbers, underscores - NO dots, quotes, or special characters
+  // This completely prevents SQL injection as these characters cannot break out of quotes
+  if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(trimmed)) {
+    throw new Error('Invalid identifier: only letters, numbers, and underscores allowed');
+  }
+  
+  // Additional blocklist check for SQL keywords that could be dangerous
+  const blockedKeywords = [
+    'union', 'select', 'insert', 'update', 'delete', 'drop', 'alter',
+    'create', 'truncate', 'exec', 'execute', 'grant', 'revoke'
+  ];
+  if (blockedKeywords.includes(trimmed.toLowerCase())) {
+    throw new Error('Invalid identifier: reserved keyword not allowed');
   }
   
   return trimmed;
