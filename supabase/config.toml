@@ -1,118 +1,127 @@
 project_id = "ggistvtwgeokhvfagocs"
 
+# ===== FUNCTIONS WITH JWT VERIFICATION ENABLED =====
+# These functions require authenticated users
+
 [functions.chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-title]
-verify_jwt = false
+verify_jwt = true
 
 [functions.builder-ai-enhanced]
-verify_jwt = false
+verify_jwt = true
 
 [functions.deploy-project]
-verify_jwt = false
+verify_jwt = true
 
 [functions.rollback-deployment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.verify-domain]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-schema]
-verify_jwt = false
+verify_jwt = true
 
 [functions.github-auth]
-verify_jwt = false
+verify_jwt = true
 
 [functions.github-sync]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-design-system]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-account]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-checkout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-subscription]
-verify_jwt = false
+verify_jwt = true
 
 [functions.customer-portal]
-verify_jwt = false
-
-[functions.stripe-webhook]
-verify_jwt = false
+verify_jwt = true
 
 [functions.database-introspect]
+verify_jwt = true
+
+[functions.create-credit-purchase]
+verify_jwt = true
+
+[functions.security-scan]
+verify_jwt = true
+
+[functions.agent-ai]
+verify_jwt = true
+
+[functions.generate-image]
+verify_jwt = true
+
+[functions.screenshot-to-code]
+verify_jwt = true
+
+[functions.execute-migration]
+verify_jwt = true
+
+[functions.x-automation]
+verify_jwt = true
+
+[functions.x-post-tweet]
+verify_jwt = true
+
+[functions.manage-team-passcode]
+verify_jwt = true
+
+[functions.firecrawl-scrape]
+verify_jwt = true
+
+[functions.analyze-competitor-url]
+verify_jwt = true
+
+[functions.elevenlabs-conversation-token]
+verify_jwt = true
+
+[functions.elevenlabs-tts]
+verify_jwt = true
+
+[functions.elevenlabs-music]
+verify_jwt = true
+
+[functions.generate-video]
+verify_jwt = true
+
+[functions.generate-image-advanced]
+verify_jwt = true
+
+[functions.companion-chat]
+verify_jwt = true
+
+[functions.xai-voice-token]
+verify_jwt = true
+
+[functions.xai-voice-relay]
+verify_jwt = true
+
+# ===== WEBHOOK ENDPOINTS - JWT DISABLED =====
+# These are called by external services with their own authentication
+
+[functions.stripe-webhook]
 verify_jwt = false
 
 [functions.github-webhook]
 verify_jwt = false
 
-[functions.create-credit-purchase]
-verify_jwt = false
-
-[functions.send-contact]
-verify_jwt = false
-
-[functions.security-scan]
-verify_jwt = false
-
-[functions.agent-ai]
-verify_jwt = false
-
-[functions.generate-image]
-verify_jwt = false
-
-[functions.screenshot-to-code]
-verify_jwt = false
-
-[functions.execute-migration]
-verify_jwt = false
-
-[functions.x-automation]
-verify_jwt = false
-
-[functions.x-post-tweet]
-verify_jwt = false
+# ===== PUBLIC/TEAM ACCESS ENDPOINTS =====
+# These handle their own authentication or are intentionally public
 
 [functions.verify-team-passcode]
-verify_jwt = false
-
-[functions.manage-team-passcode]
 verify_jwt = false
 
 [functions.validate-team-session]
 verify_jwt = false
 
-[functions.firecrawl-scrape]
-verify_jwt = false
-
-[functions.analyze-competitor-url]
-verify_jwt = false
-
-[functions.elevenlabs-conversation-token]
-verify_jwt = false
-
-[functions.elevenlabs-tts]
-verify_jwt = false
-
-[functions.elevenlabs-music]
-verify_jwt = false
-
-[functions.generate-video]
-verify_jwt = false
-
-[functions.generate-image-advanced]
-verify_jwt = false
-
-[functions.companion-chat]
-verify_jwt = false
-
-[functions.xai-voice-token]
-verify_jwt = false
-
-[functions.xai-voice-relay]
+[functions.send-contact]
 verify_jwt = false
