@@ -50,19 +50,27 @@ serve(async (req) => {
       });
     }
 
-    // Basic SQL injection prevention - block dangerous statements
+    // Enhanced SQL injection prevention - block dangerous statements
     const dangerousPatterns = [
       /DROP\s+DATABASE/i,
       /DROP\s+SCHEMA\s+public/i,
       /TRUNCATE\s+pg_/i,
       /DELETE\s+FROM\s+pg_/i,
       /ALTER\s+SYSTEM/i,
+      /COPY\s+.*\s+(FROM|TO)\s+PROGRAM/i,  // Block COPY with PROGRAM
+      /CREATE\s+EXTENSION\s+.*\s+SUPERUSER/i,  // Block superuser extensions
+      /SET\s+ROLE\s+postgres/i,  // Block role escalation to postgres
+      /SECURITY\s+LABEL/i,  // Block security label changes
+      /ALTER\s+USER\s+.*\s+SUPERUSER/i,  // Block superuser grants
+      /pg_execute_server_program/i,  // Block server program execution
+      /pg_read_server_files/i,  // Block reading server files
+      /pg_write_server_files/i,  // Block writing server files
     ];
 
     for (const pattern of dangerousPatterns) {
       if (pattern.test(sql)) {
         return new Response(JSON.stringify({ 
-          error: 'SQL contains potentially dangerous statements' 
+          error: 'SQL contains potentially dangerous statements that could compromise database security' 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -110,12 +118,14 @@ serve(async (req) => {
     });
 
     if (checkError) {
-      // The execute_sql function doesn't exist, provide guidance
+      // The execute_sql function doesn't exist, provide guidance with security warnings
       return new Response(JSON.stringify({
         error: 'External database requires setup',
-        details: 'To execute migrations, create this function in your external Supabase project:',
+        details: 'To execute migrations, create this function in your external Supabase project. IMPORTANT: This function bypasses RLS - consider removing it after operations are complete.',
+        security_warning: 'WARNING: The execute_sql function uses SECURITY DEFINER which bypasses RLS policies. After completing your migrations, consider: 1) Dropping the function with DROP FUNCTION execute_sql(text), 2) Or restricting it to service_role only.',
         setup_sql: `
 -- Run this in your Supabase SQL editor:
+-- ⚠️ SECURITY WARNING: This function bypasses RLS. Remove after use!
 CREATE OR REPLACE FUNCTION execute_sql(query text)
 RETURNS jsonb
 LANGUAGE plpgsql
@@ -125,6 +135,11 @@ AS $$
 DECLARE
   result jsonb;
 BEGIN
+  -- Block dangerous operations even in this context
+  IF query ~* '(DROP\\s+DATABASE|DROP\\s+SCHEMA\\s+public|ALTER\\s+SYSTEM|TRUNCATE\\s+pg_)' THEN
+    RAISE EXCEPTION 'Dangerous operation blocked';
+  END IF;
+  
   EXECUTE query;
   RETURN jsonb_build_object('success', true);
 EXCEPTION WHEN OTHERS THEN
@@ -132,10 +147,14 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- Grant access to authenticated and service role
-GRANT EXECUTE ON FUNCTION execute_sql(text) TO authenticated;
+-- Only grant to service role (not authenticated users)
+REVOKE EXECUTE ON FUNCTION execute_sql(text) FROM public;
 GRANT EXECUTE ON FUNCTION execute_sql(text) TO service_role;
+
+-- After completing migrations, run this to remove the function:
+-- DROP FUNCTION IF EXISTS execute_sql(text);
 `,
+        cleanup_sql: 'DROP FUNCTION IF EXISTS execute_sql(text);',
       }), {
         status: 422,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
