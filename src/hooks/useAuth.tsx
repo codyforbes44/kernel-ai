@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger";
 import type { Profile } from "@/types/database";
 import type { Json } from "@/integrations/supabase/types";
 
-type OAuthProvider = "google";
+type OAuthProvider = 'google' | 'github' | 'apple' | 'linkedin_oidc' | 'azure' | 'twitter';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
