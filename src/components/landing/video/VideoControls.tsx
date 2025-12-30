@@ -1,4 +1,4 @@
-import { Play, Pause, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Minimize, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -18,6 +18,13 @@ interface VideoControlsProps {
   onToggleMute?: () => void;
   onVolumeChange?: (volume: number) => void;
   hasAudio?: boolean;
+  // Fullscreen controls
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
+  showFullscreenButton?: boolean;
+  // Share controls
+  onShare?: () => void;
+  showShareButton?: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -40,6 +47,11 @@ export function VideoControls({
   onToggleMute,
   onVolumeChange,
   hasAudio = false,
+  isFullscreen = false,
+  onToggleFullscreen,
+  showFullscreenButton = true,
+  onShare,
+  showShareButton = true,
 }: VideoControlsProps) {
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
@@ -59,24 +71,34 @@ export function VideoControls({
   };
 
   return (
-    <div className={cn("flex items-center gap-3 px-4 py-3 bg-background/80 backdrop-blur-sm rounded-lg border border-border/50", className)}>
+    <div className={cn(
+      "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-background/80 backdrop-blur-sm rounded-lg border border-border/50",
+      isFullscreen && "bg-background/95 rounded-none border-0 py-4 px-6",
+      className
+    )}>
       {/* Play/Pause Button */}
       <Button
         variant="ghost"
         size="icon-sm"
         onClick={onToggle}
-        className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+        className={cn(
+          "h-8 w-8 text-primary hover:text-primary hover:bg-primary/10",
+          isFullscreen && "h-10 w-10"
+        )}
       >
         {isPlaying ? (
-          <Pause className="h-4 w-4" />
+          <Pause className={cn("h-4 w-4", isFullscreen && "h-5 w-5")} />
         ) : (
-          <Play className="h-4 w-4 ml-0.5" />
+          <Play className={cn("h-4 w-4 ml-0.5", isFullscreen && "h-5 w-5")} />
         )}
       </Button>
 
       {/* Progress Bar */}
       <div 
-        className="flex-1 h-1.5 bg-muted rounded-full cursor-pointer group relative"
+        className={cn(
+          "flex-1 h-1.5 bg-muted rounded-full cursor-pointer group relative",
+          isFullscreen && "h-2"
+        )}
         onClick={handleProgressClick}
       >
         {/* Background track */}
@@ -90,13 +112,19 @@ export function VideoControls({
         
         {/* Thumb */}
         <div 
-          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ left: `calc(${progress * 100}% - 6px)` }}
+          className={cn(
+            "absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity",
+            isFullscreen && "w-4 h-4"
+          )}
+          style={{ left: `calc(${progress * 100}% - ${isFullscreen ? 8 : 6}px)` }}
         />
       </div>
 
       {/* Time Display */}
-      <span className="text-xs text-muted-foreground font-mono min-w-[70px] text-right">
+      <span className={cn(
+        "text-xs text-muted-foreground font-mono min-w-[60px] sm:min-w-[70px] text-right",
+        isFullscreen && "text-sm min-w-[90px]"
+      )}>
         {formatTime(currentTime)} / {formatTime(duration)}
       </span>
 
@@ -111,12 +139,15 @@ export function VideoControls({
             variant="ghost"
             size="icon-sm"
             onClick={onToggleMute}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className={cn(
+              "h-8 w-8 text-muted-foreground hover:text-foreground",
+              isFullscreen && "h-10 w-10"
+            )}
           >
             {isMuted || volume === 0 ? (
-              <VolumeX className="h-3.5 w-3.5" />
+              <VolumeX className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
             ) : (
-              <Volume2 className="h-3.5 w-3.5" />
+              <Volume2 className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
             )}
           </Button>
 
@@ -144,14 +175,53 @@ export function VideoControls({
         </div>
       )}
 
+      {/* Fullscreen Button */}
+      {showFullscreenButton && onToggleFullscreen && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onToggleFullscreen}
+          className={cn(
+            "h-8 w-8 text-muted-foreground hover:text-foreground hidden sm:flex",
+            isFullscreen && "h-10 w-10"
+          )}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        >
+          {isFullscreen ? (
+            <Minimize className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
+          ) : (
+            <Maximize className="h-3.5 w-3.5" />
+          )}
+        </Button>
+      )}
+
+      {/* Share Button */}
+      {showShareButton && onShare && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onShare}
+          className={cn(
+            "h-8 w-8 text-muted-foreground hover:text-foreground",
+            isFullscreen && "h-10 w-10"
+          )}
+          aria-label="Share video"
+        >
+          <Share2 className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
+        </Button>
+      )}
+
       {/* Reset Button */}
       <Button
         variant="ghost"
         size="icon-sm"
         onClick={onReset}
-        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+        className={cn(
+          "h-8 w-8 text-muted-foreground hover:text-foreground",
+          isFullscreen && "h-10 w-10"
+        )}
       >
-        <RotateCcw className="h-3.5 w-3.5" />
+        <RotateCcw className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
       </Button>
     </div>
   );
