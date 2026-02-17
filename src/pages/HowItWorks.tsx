@@ -4,10 +4,8 @@ import {
   Wand2, 
   Rocket, 
   Eye,
-  Layers,
   Zap,
   ArrowRight,
-  Play,
   CheckCircle2,
   Clock,
   Users,
@@ -25,6 +23,7 @@ import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/seo/SEO";
+import { HowItWorksVideo } from "@/components/landing/HowItWorksVideo";
 
 const mainSteps = [
   {
@@ -147,16 +146,56 @@ export default function HowItWorks() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="h-12 px-8 min-w-[180px] touch-manipulation active:scale-95 transition-transform">
-                  <Link to="/#features">
-                    <Play className="mr-2 h-4 w-4" />
-                    Watch Demo
-                  </Link>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-8 min-w-[180px] touch-manipulation active:scale-95 transition-transform"
+                  onClick={() => document.getElementById('demo-video')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <Zap className="mr-2 h-4 w-4" />
+                  Watch Demo
                 </Button>
               </div>
             </motion.div>
           </div>
         </HoloSection>
+
+        {/* Video Player Demo Section */}
+        <section className="py-12 sm:py-16 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
+            >
+              <GlowText as="h2" variant="gradient" className="text-2xl sm:text-3xl font-bold mb-3">
+                See It in Action
+              </GlowText>
+              <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto">
+                Watch Kernel build an app from a simple conversation
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <HowItWorksVideo />
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Dive Deeper Transition */}
+        <div className="flex items-center justify-center py-4">
+          <div className="flex items-center gap-3 text-muted-foreground text-sm">
+            <div className="h-px w-12 bg-border" />
+            <span>Dive deeper</span>
+            <div className="h-px w-12 bg-border" />
+          </div>
+        </div>
 
         {/* Main Steps Section */}
         <section className="py-16 sm:py-20 px-4">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, Twitter, Linkedin, Facebook, QrCode, Link2 } from "lucide-react";
+import { Copy, Check, Twitter, Linkedin, Facebook, QrCode, Link2, Mail, Share2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -78,6 +78,12 @@ export function VideoShareDialog({
       icon: Facebook,
       url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
       color: "hover:bg-[#1877F2]/10 hover:text-[#1877F2]",
+    },
+    {
+      name: "Email",
+      icon: Mail,
+      url: `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check this out: ${shareUrl}`)}`,
+      color: "hover:bg-primary/10 hover:text-primary",
     },
   ];
 
@@ -165,11 +171,10 @@ export function VideoShareDialog({
           {/* Native Share (Mobile) */}
           {typeof navigator !== 'undefined' && 'share' in navigator && (
             <Button
-              variant="outline"
               className="w-full"
               onClick={handleNativeShare}
             >
-              <Link2 className="h-4 w-4 mr-2" />
+              <Share2 className="h-4 w-4 mr-2" />
               Share via device
             </Button>
           )}

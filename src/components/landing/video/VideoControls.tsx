@@ -82,14 +82,14 @@ export function VideoControls({
         size="icon-sm"
         onClick={onToggle}
         className={cn(
-          "h-8 w-8 text-primary hover:text-primary hover:bg-primary/10",
-          isFullscreen && "h-10 w-10"
+          "h-10 w-10 text-primary hover:text-primary hover:bg-primary/10 touch-manipulation",
+          isFullscreen && "h-12 w-12"
         )}
       >
         {isPlaying ? (
-          <Pause className={cn("h-4 w-4", isFullscreen && "h-5 w-5")} />
+          <Pause className={cn("h-5 w-5", isFullscreen && "h-6 w-6")} />
         ) : (
-          <Play className={cn("h-4 w-4 ml-0.5", isFullscreen && "h-5 w-5")} />
+          <Play className={cn("h-5 w-5 ml-0.5", isFullscreen && "h-6 w-6")} />
         )}
       </Button>
 
@@ -140,8 +140,8 @@ export function VideoControls({
             size="icon-sm"
             onClick={onToggleMute}
             className={cn(
-              "h-8 w-8 text-muted-foreground hover:text-foreground",
-              isFullscreen && "h-10 w-10"
+              "h-10 w-10 text-muted-foreground hover:text-foreground touch-manipulation",
+              isFullscreen && "h-12 w-12"
             )}
           >
             {isMuted || volume === 0 ? (
@@ -182,8 +182,8 @@ export function VideoControls({
           size="icon-sm"
           onClick={onToggleFullscreen}
           className={cn(
-            "h-8 w-8 text-muted-foreground hover:text-foreground hidden sm:flex",
-            isFullscreen && "h-10 w-10"
+            "h-10 w-10 text-muted-foreground hover:text-foreground",
+            isFullscreen && "h-12 w-12"
           )}
           aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >
@@ -202,12 +202,12 @@ export function VideoControls({
           size="icon-sm"
           onClick={onShare}
           className={cn(
-            "h-8 w-8 text-muted-foreground hover:text-foreground",
-            isFullscreen && "h-10 w-10"
+            "h-10 w-10 text-muted-foreground hover:text-foreground touch-manipulation",
+            isFullscreen && "h-12 w-12"
           )}
           aria-label="Share video"
         >
-          <Share2 className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
+          <Share2 className={cn("h-4 w-4", isFullscreen && "h-5 w-5")} />
         </Button>
       )}
 
@@ -217,11 +217,11 @@ export function VideoControls({
         size="icon-sm"
         onClick={onReset}
         className={cn(
-          "h-8 w-8 text-muted-foreground hover:text-foreground",
-          isFullscreen && "h-10 w-10"
+          "h-10 w-10 text-muted-foreground hover:text-foreground touch-manipulation",
+          isFullscreen && "h-12 w-12"
         )}
       >
-        <RotateCcw className={cn("h-3.5 w-3.5", isFullscreen && "h-5 w-5")} />
+        <RotateCcw className={cn("h-4 w-4", isFullscreen && "h-5 w-5")} />
       </Button>
     </div>
   );

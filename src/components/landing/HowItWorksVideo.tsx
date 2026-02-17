@@ -246,6 +246,59 @@ export function HowItWorksVideo({ className, shareUrl }: HowItWorksVideoProps) {
     }
   }, [isPlaying, stopNarration]);
 
+  // Auto-play when navigating via deep-link (#demo-video)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash === '#demo-video' && !hasStarted && isInView) {
+      const timeout = setTimeout(() => play(), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [isInView]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      // Only handle when video is in view
+      if (!isInView) return;
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          toggle();
+          break;
+        case 'f':
+        case 'F':
+          if (fullscreenSupported) toggleFullscreen();
+          break;
+        case 'm':
+        case 'M':
+          handleToggleMute();
+          break;
+        case 'r':
+        case 'R':
+          handleReset();
+          break;
+        case 'ArrowRight':
+          {
+            const nextScene = scenes.find(s => s.start > currentTime);
+            if (nextScene) seek(nextScene.start);
+          }
+          break;
+        case 'ArrowLeft':
+          {
+            const prevScene = [...scenes].reverse().find(s => s.start < currentTime - 1);
+            if (prevScene) seek(prevScene.start);
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isInView, toggle, toggleFullscreen, fullscreenSupported, handleToggleMute, handleReset, currentTime, seek]);
+
   // Generate share URL
   const actualShareUrl = shareUrl || (typeof window !== 'undefined' 
     ? `${window.location.origin}/#demo-video` 
@@ -287,7 +340,8 @@ export function HowItWorksVideo({ className, shareUrl }: HowItWorksVideoProps) {
           <GlassPanel 
             variant="glow" 
             className={cn(
-              "overflow-hidden",
+              "overflow-hidden transition-shadow duration-500",
+              isPlaying && "shadow-[0_0_40px_hsl(var(--primary)/0.15)]",
               isFullscreen && "rounded-none border-0 flex-1 flex flex-col"
             )}
           >
