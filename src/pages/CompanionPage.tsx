@@ -54,7 +54,14 @@ export default function CompanionPage() {
   const hasCheckedInToday = relationship?.last_check_in_date === today;
 
   return (
-    <main className="container max-w-6xl py-4 px-4 sm:py-6 sm:px-6 md:py-8" role="main" aria-label="AI Companions">
+    <>
+      <SEOHead
+        title="AI Companions | Kernel"
+        description="Chat with AI companions, build meaningful connections, and track your interaction streaks on Kernel."
+        canonical="/companion"
+        noIndex
+      />
+      <main className="container max-w-6xl py-4 px-4 sm:py-6 sm:px-6 md:py-8" role="main" aria-label="AI Companions">
       <header className="text-center space-y-2 mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">AI Companions</h1>
         <p className="text-sm sm:text-base text-muted-foreground">Choose a companion to chat with and build your connection</p>
