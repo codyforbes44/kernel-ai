@@ -8,8 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { FAQSection } from "@/components/faq/FAQSection";
-import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getServiceSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getServiceSchema } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { PlatformComparisonChart } from "@/components/pricing/PlatformComparisonChart";
 import { usePricingFAQs } from "@/hooks/useStaticData";
@@ -204,17 +204,17 @@ export default function Pricing() {
 
   return (
     <PublicLayout>
-      <SEO 
-        title={PAGE_SEO.pricing.title}
-        description={PAGE_SEO.pricing.description}
+      <SEOHead
+        title="Pricing — Simple Plans for Every Team"
+        description="Start free, scale as you grow. Kernel offers transparent pricing with a generous free tier, Pro for power users, and Enterprise for teams."
         ogImage={PAGE_SEO.pricing.ogImage}
         keywords={PAGE_SEO.pricing.keywords as unknown as string[]}
         canonical="/pricing"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl),
-          BREADCRUMBS.pricing(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Pricing', url: `${SEO_CONFIG.siteUrl}/pricing` },
         ]}
+        structuredData={getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl)}
       />
 
       {/* Hero Section */}

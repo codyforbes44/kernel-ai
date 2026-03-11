@@ -22,7 +22,8 @@ import { HoloSection } from "@/components/ui/holo-section";
 import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Button } from "@/components/ui/button";
-import { SEO } from "@/components/seo/SEO";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { SEO_CONFIG, PAGE_SEO, getHowToSchema, BREADCRUMBS, getOrganizationSchema } from "@/lib/seo";
 import { HowItWorksVideo } from "@/components/landing/HowItWorksVideo";
 
 const mainSteps = [
@@ -108,10 +109,25 @@ const comparisonPoints = [
 export default function HowItWorks() {
   return (
     <>
-      <SEO 
-        title="How It Works - Kernel"
-        description="Learn how Kernel transforms your ideas into production-ready applications through AI-powered development in four simple steps."
-        keywords={["AI development", "how it works", "code generation", "no-code", "low-code", "app builder"]}
+      <SEOHead
+        title="How Kernel Works — Build Apps in 4 Steps"
+        description="Transform ideas into deployed apps in minutes. Describe your vision, watch AI generate code, refine visually, and deploy instantly."
+        canonical="/how-it-works"
+        keywords={['AI development', 'how it works', 'code generation', 'no-code', 'app builder', 'deploy']}
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'How It Works', url: `${SEO_CONFIG.siteUrl}/how-it-works` },
+        ]}
+        speakable={{ cssSelectors: ['h1', '.step-description'] }}
+        structuredData={[
+          getOrganizationSchema(SEO_CONFIG.siteUrl),
+          getHowToSchema({
+            name: 'How to Build an App with Kernel AI',
+            description: 'Build production-ready web applications using AI-powered development in four simple steps.',
+            totalTime: 'PT10M',
+            steps: mainSteps.map(s => ({ name: s.title, text: s.description })),
+          }, SEO_CONFIG.siteUrl),
+        ]}
       />
       
       <PublicHeader />

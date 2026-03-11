@@ -5,8 +5,8 @@ import { AnimatedFeatureCard } from '@/components/landing/AnimatedFeatureCard';
 import { GlowBadge } from '@/components/ui/glow-badge';
 import { GlowText } from '@/components/ui/glow-text';
 import { HoloSection } from '@/components/ui/holo-section';
-import { SEO } from '@/components/seo/SEO';
-import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, BREADCRUMBS, getOrganizationSchema, getProductSchema } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { PAGE_SEO, getWebsiteSchema, SEO_CONFIG, getOrganizationSchema, getProductSchema } from '@/lib/seo';
 import { HeroBackground } from '@/components/landing/HeroBackground';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { BackToTopButton } from '@/components/ui/back-to-top-button';
@@ -42,16 +42,17 @@ export default function Landing() {
       <div className="fixed left-[-9999px] top-0 pointer-events-none">
         <HomepageOGImage ref={ogImageRef} />
       </div>
-      <SEO
-        title={PAGE_SEO.landing.title}
-        description={PAGE_SEO.landing.description}
+      <SEOHead
+        title="Kernel — Your AI Development OS"
+        description="The operating system for AI-powered development. Build production-ready apps in minutes with intelligent chat, visual builder, and instant deploy."
         ogImage={PAGE_SEO.landing.ogImage}
-        keywords={PAGE_SEO.landing.keywords}
+        keywords={PAGE_SEO.landing.keywords as unknown as string[]}
+        canonical="/"
+        speakable={{ cssSelectors: ['h1', '#hero p'] }}
         structuredData={[
           getWebsiteSchema(SEO_CONFIG.siteUrl),
           getOrganizationSchema(SEO_CONFIG.siteUrl),
           getProductSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.home(SEO_CONFIG.siteUrl)
         ]}
       />
 

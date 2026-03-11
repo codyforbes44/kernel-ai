@@ -190,6 +190,16 @@ export const routes: RouteConfig[] = [
     robots: 'allow',
   },
   {
+    path: '/install',
+    title: 'Install App',
+    description: 'Install Kernel as a native app on any device',
+    changefreq: 'monthly',
+    priority: 0.6,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
+  {
     path: '/request-invite',
     title: 'Request Early Access',
     description: 'Request an invite code to join the Kernel early access program',

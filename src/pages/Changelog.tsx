@@ -1,5 +1,5 @@
-import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getBreadcrumbSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -97,16 +97,18 @@ const getChangeBadge = (type: 'feature' | 'improvement' | 'fix') => {
 const Changelog = () => {
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.changelog.title}
-        description={PAGE_SEO.changelog.description}
+      <SEOHead
+        title="Changelog — Latest Kernel Updates & Fixes"
+        description="Track Kernel's latest features, improvements, and bug fixes. Stay updated on every release and what's new."
         ogImage={PAGE_SEO.changelog.ogImage}
         keywords={PAGE_SEO.changelog.keywords as unknown as string[]}
         canonical="/changelog"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.changelog(SEO_CONFIG.siteUrl),
+        ogType="article"
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Changelog', url: `${SEO_CONFIG.siteUrl}/changelog` },
         ]}
+        structuredData={getOrganizationSchema(SEO_CONFIG.siteUrl)}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-4xl">

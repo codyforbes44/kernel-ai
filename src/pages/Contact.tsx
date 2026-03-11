@@ -31,8 +31,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PublicLayout } from "@/components/layout/PublicLayout";
-import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getContactPointSchema, getFAQSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getContactPointSchema, getFAQSchema } from '@/lib/seo';
 import { contactOptions, subjectOptions } from "@/lib/contact-data";
 import { useContactFAQs } from "@/hooks/useStaticData";
 import { toast } from "@/hooks/use-toast";
@@ -96,17 +96,19 @@ export default function Contact() {
 
   return (
     <PublicLayout backgroundIntensity="medium">
-      <SEO 
-        title={PAGE_SEO.contact.title}
-        description={PAGE_SEO.contact.description}
+      <SEOHead
+        title="Contact Kernel — Get Help & Support"
+        description="Have a question or need support? Reach out to the Kernel team. We typically respond within 24 hours."
         ogImage={PAGE_SEO.contact.ogImage}
         keywords={PAGE_SEO.contact.keywords as unknown as string[]}
         canonical="/contact"
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Contact', url: `${SEO_CONFIG.siteUrl}/contact` },
+        ]}
         structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
           getContactPointSchema(SEO_CONFIG.siteUrl),
           getFAQSchema(faqItems),
-          BREADCRUMBS.contact(SEO_CONFIG.siteUrl),
         ]}
       />
 

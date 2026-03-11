@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SEO } from '@/components/seo/SEO';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,7 +70,7 @@ export default function RedeemInvite() {
         </Suspense>
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
         
-        <SEO
+        <SEOHead
           title="Code Validated | Kernel"
           description="Your invite code has been validated"
           noIndex
@@ -118,10 +118,15 @@ export default function RedeemInvite() {
       </Suspense>
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
       
-      <SEO
-        title="Enter Invite Code | Kernel"
-        description="Enter your invite code to access Kernel"
+      <SEOHead
+        title="Redeem Invite Code — Access Kernel"
+        description="Enter your invite code to unlock Kernel. Start building production-ready apps with AI-powered development today."
+        canonical="/redeem-invite"
         noIndex
+        breadcrumbs={[
+          { name: 'Home', url: 'https://kernel.cool' },
+          { name: 'Redeem Invite', url: 'https://kernel.cool/redeem-invite' },
+        ]}
       />
 
       <div className="relative z-10 w-full max-w-md space-y-6 sm:space-y-8">

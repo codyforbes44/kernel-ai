@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getFAQSchema, COMMON_FAQS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,15 +51,19 @@ const Documentation = () => {
 
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.documentation.title}
-        description={PAGE_SEO.documentation.description}
+      <SEOHead
+        title="Documentation — Kernel Developer Guides"
+        description="Comprehensive Kernel docs: quick-start guides, API references, and tutorials to build faster with AI-powered development."
         ogImage={PAGE_SEO.documentation.ogImage}
         keywords={PAGE_SEO.documentation.keywords as unknown as string[]}
         canonical="/docs"
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Documentation', url: `${SEO_CONFIG.siteUrl}/docs` },
+        ]}
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.docs(SEO_CONFIG.siteUrl),
+          getFAQSchema(COMMON_FAQS.general),
         ]}
       />
       

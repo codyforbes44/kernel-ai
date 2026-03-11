@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { SEO } from "@/components/seo/SEO";
+import { SEOHead } from "@/components/seo/SEOHead";
 import { CompareOGImage } from "@/components/marketing/CompareOGImage";
 import { CompetitiveAnalysisPDF } from "@/components/marketing/CompetitiveAnalysisPDF";
 import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
@@ -27,11 +27,16 @@ const Compare = () => {
 
   return (
     <>
-      <SEO
-        title={compareSeo.title}
-        description={compareSeo.description}
+      <SEOHead
+        title="Kernel vs Lovable, Bolt, v0 — AI Platform Comparison"
+        description="Compare Kernel to Lovable, Bolt, v0, Replit, and Cursor. See why Kernel leads with 23+ features for AI-powered development."
         ogImage={compareSeo.ogImage}
         keywords={[...compareSeo.keywords]}
+        canonical="/compare"
+        breadcrumbs={[
+          { name: 'Home', url: siteUrl },
+          { name: 'Compare', url: `${siteUrl}/compare` },
+        ]}
         structuredData={getBreadcrumbSchema([
           { name: 'Home', url: siteUrl },
           { name: 'Compare', url: `${siteUrl}/compare` }

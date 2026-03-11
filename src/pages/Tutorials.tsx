@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -138,16 +138,19 @@ const Tutorials = () => {
 
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.tutorials.title}
-        description={PAGE_SEO.tutorials.description}
+      <SEOHead
+        title="Tutorials — Learn to Build with Kernel AI"
+        description="Step-by-step tutorials from beginner to advanced. Master AI-powered development and build production apps faster."
         ogImage={PAGE_SEO.tutorials.ogImage}
         keywords={PAGE_SEO.tutorials.keywords as unknown as string[]}
         canonical="/tutorials"
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Tutorials', url: `${SEO_CONFIG.siteUrl}/tutorials` },
+        ]}
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
           ...(howToSchema ? [howToSchema] : []),
-          BREADCRUMBS.tutorials(SEO_CONFIG.siteUrl),
         ]}
       />
       
