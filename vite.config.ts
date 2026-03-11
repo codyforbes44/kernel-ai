@@ -20,6 +20,15 @@ function seoFilesPlugin(): Plugin {
     { path: '/builder', changefreq: 'weekly', priority: 0.9, includeInSitemap: true, robots: 'allow' },
     { path: '/privacy', changefreq: 'monthly', priority: 0.5, includeInSitemap: true, robots: 'allow' },
     { path: '/terms', changefreq: 'monthly', priority: 0.5, includeInSitemap: true, robots: 'allow' },
+    { path: '/docs', changefreq: 'weekly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
+    { path: '/tutorials', changefreq: 'weekly', priority: 0.7, includeInSitemap: true, robots: 'allow' },
+    { path: '/changelog', changefreq: 'weekly', priority: 0.7, includeInSitemap: true, robots: 'allow' },
+    { path: '/security', changefreq: 'monthly', priority: 0.6, includeInSitemap: true, robots: 'allow' },
+    { path: '/compare', changefreq: 'monthly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
+    { path: '/migrate', changefreq: 'monthly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
+    { path: '/install', changefreq: 'monthly', priority: 0.6, includeInSitemap: true, robots: 'allow' },
+    { path: '/request-invite', changefreq: 'monthly', priority: 0.7, includeInSitemap: true, robots: 'allow' },
+    { path: '/redeem-invite', changefreq: 'monthly', priority: 0.7, includeInSitemap: true, robots: 'allow' },
     // Protected routes
     { path: '/assistant', includeInSitemap: false, robots: 'disallow' },
     { path: '/dashboard', includeInSitemap: false, robots: 'disallow' }, // Legacy redirect
