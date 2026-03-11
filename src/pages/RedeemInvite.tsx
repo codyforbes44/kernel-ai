@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SEO } from '@/components/seo/SEO';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
