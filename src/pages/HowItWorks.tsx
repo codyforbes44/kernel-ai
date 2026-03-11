@@ -127,6 +127,11 @@ export default function HowItWorks() {
             totalTime: 'PT10M',
             steps: mainSteps.map(s => ({ name: s.title, text: s.description })),
           }, SEO_CONFIG.siteUrl),
+          getFAQSchema([
+            { question: "How long does it take to build an app?", answer: "Most apps go from idea to deployed prototype in under 10 minutes. Complex applications can be fully built in hours instead of weeks." },
+            { question: "Do I need to write code?", answer: "No. Describe what you want in plain language and Kernel generates production-ready code. Developers can edit code directly if needed." },
+            { question: "What happens after I deploy?", answer: "Your app is live on Kernel's global CDN with an instant URL and SSL. You can connect a custom domain, iterate with AI, and scale as needed." },
+          ]),
         ]}
       />
       
