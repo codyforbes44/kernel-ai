@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getFAQSchema, COMMON_FAQS } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
