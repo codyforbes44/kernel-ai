@@ -42,16 +42,17 @@ export default function Landing() {
       <div className="fixed left-[-9999px] top-0 pointer-events-none">
         <HomepageOGImage ref={ogImageRef} />
       </div>
-      <SEO
-        title={PAGE_SEO.landing.title}
-        description={PAGE_SEO.landing.description}
+      <SEOHead
+        title="Kernel — Your AI Development OS"
+        description="The operating system for AI-powered development. Build production-ready apps in minutes with intelligent chat, visual builder, and instant deploy."
         ogImage={PAGE_SEO.landing.ogImage}
-        keywords={PAGE_SEO.landing.keywords}
+        keywords={PAGE_SEO.landing.keywords as unknown as string[]}
+        canonical="/"
+        speakable={{ cssSelectors: ['h1', '#hero p'] }}
         structuredData={[
           getWebsiteSchema(SEO_CONFIG.siteUrl),
           getOrganizationSchema(SEO_CONFIG.siteUrl),
           getProductSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.home(SEO_CONFIG.siteUrl)
         ]}
       />
 
