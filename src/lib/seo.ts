@@ -136,6 +136,36 @@ export const PAGE_SEO = {
     ogImage: '/og-images/compare.png',
     keywords: ['platform comparison', 'AI development', 'Kernel vs Lovable', 'Kernel vs Bolt', 'Kernel vs v0', 'best AI IDE', 'AI code editor comparison'],
   },
+  howItWorks: {
+    title: 'How It Works - Build Apps in 4 Steps',
+    description: 'See how Kernel transforms ideas into production-ready apps in minutes. Describe, generate, refine, and deploy with AI.',
+    ogImage: '/og-images/default.png',
+    keywords: ['how it works', 'AI development', 'code generation', 'app builder', 'no-code'],
+  },
+  requestInvite: {
+    title: 'Request Early Access - Join Kernel',
+    description: 'Request an invite code to join Kernel early access. Be among the first to build with AI-powered development.',
+    ogImage: '/og-images/default.png',
+    keywords: ['early access', 'invite', 'beta', 'AI development'],
+  },
+  redeemInvite: {
+    title: 'Redeem Invite Code - Kernel',
+    description: 'Enter your invite code to unlock Kernel. Start building production-ready apps with AI assistance today.',
+    ogImage: '/og-images/default.png',
+    keywords: ['invite code', 'redeem', 'access', 'kernel'],
+  },
+  install: {
+    title: 'Install Kernel App - PWA Setup',
+    description: 'Install Kernel as a native-like app on any device. Works on iOS, Android, and desktop for instant access.',
+    ogImage: '/og-images/default.png',
+    keywords: ['install', 'PWA', 'app', 'mobile', 'desktop'],
+  },
+  migrate: {
+    title: 'Migrate to Kernel - Import Projects',
+    description: 'Import projects from Bolt, v0, Replit, Lovable, and Cursor. Switch to Kernel with zero downtime.',
+    ogImage: '/og-images/default.png',
+    keywords: ['migrate', 'import', 'switch', 'Bolt', 'v0', 'Replit', 'Lovable', 'Cursor'],
+  },
 } as const;
 
 // Organization Schema
