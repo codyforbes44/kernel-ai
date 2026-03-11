@@ -8,6 +8,7 @@ import { StreakDisplay } from '@/components/companion/StreakDisplay';
 import { MilestoneCelebration } from '@/components/companion/MilestoneCelebration';
 import { MobileCompanionSheet } from '@/components/companion/MobileCompanionSheet';
 import { CompanionPageSkeleton } from '@/components/companion/CompanionPageSkeleton';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanionRelationship, useCompanion } from '@/hooks/useCompanion';
 import { Navigate } from 'react-router-dom';
