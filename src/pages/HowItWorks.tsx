@@ -23,7 +23,7 @@ import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/seo/SEOHead";
-import { SEO_CONFIG, PAGE_SEO, getHowToSchema, BREADCRUMBS, getOrganizationSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getHowToSchema, BREADCRUMBS, getOrganizationSchema, getFAQSchema } from "@/lib/seo";
 import { HowItWorksVideo } from "@/components/landing/HowItWorksVideo";
 
 const mainSteps = [
