@@ -62,6 +62,7 @@ export default function CompanionPage() {
         canonical="/companion"
         noIndex
       />
+      <TopNavBar />
       <main className="container max-w-6xl py-4 px-4 sm:py-6 sm:px-6 md:py-8" role="main" aria-label="AI Companions">
       <header className="text-center space-y-2 mb-4 sm:mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">AI Companions</h1>

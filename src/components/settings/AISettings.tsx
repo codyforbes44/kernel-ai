@@ -232,7 +232,9 @@ export function AISettings() {
         </CardContent>
       </Card>
 
-      <VoiceAgentSettingsCard />
+      <ElevenLabsSettingsProvider>
+        <VoiceAgentSettingsCard />
+      </ElevenLabsSettingsProvider>
     </>
   );
 }
