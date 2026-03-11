@@ -122,9 +122,14 @@ export default function RequestInvite() {
       </Suspense>
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
       
-      <SEO
-        title="Request Early Access | Kernel"
-        description="Request exclusive early access to Kernel - the AI-powered development platform"
+      <SEOHead
+        title="Request Early Access — Join Kernel Beta"
+        description="Request an invite to Kernel early access. Be among the first to build production-ready apps with AI-powered development."
+        canonical="/request-invite"
+        breadcrumbs={[
+          { name: 'Home', url: 'https://kernel.cool' },
+          { name: 'Request Invite', url: 'https://kernel.cool/request-invite' },
+        ]}
       />
 
       <HoloSection variant="gradient" className="relative z-10 min-h-screen py-6 sm:py-8 px-4">

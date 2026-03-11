@@ -120,11 +120,16 @@ export default function Install() {
 
   return (
     <PublicLayout>
-      <SEO
-        title="Install Kernel App"
-        description="Install Kernel on your device for the best experience. Works offline, loads instantly, and feels like a native app."
+      <SEOHead
+        title="Install Kernel App — PWA for Any Device"
+        description="Install Kernel as a native-like app on iOS, Android, or desktop. Instant access, offline support, and fast performance."
         keywords={['install', 'pwa', 'app', 'mobile', 'download']}
         ogImage="/og-images/default.png"
+        canonical="/install"
+        breadcrumbs={[
+          { name: 'Home', url: 'https://kernel.cool' },
+          { name: 'Install', url: 'https://kernel.cool/install' },
+        ]}
       />
 
       <div className="min-h-screen bg-background">

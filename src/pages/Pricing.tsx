@@ -204,17 +204,17 @@ export default function Pricing() {
 
   return (
     <PublicLayout>
-      <SEO 
-        title={PAGE_SEO.pricing.title}
-        description={PAGE_SEO.pricing.description}
+      <SEOHead
+        title="Pricing — Simple Plans for Every Team"
+        description="Start free, scale as you grow. Kernel offers transparent pricing with a generous free tier, Pro for power users, and Enterprise for teams."
         ogImage={PAGE_SEO.pricing.ogImage}
         keywords={PAGE_SEO.pricing.keywords as unknown as string[]}
         canonical="/pricing"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl),
-          BREADCRUMBS.pricing(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Pricing', url: `${SEO_CONFIG.siteUrl}/pricing` },
         ]}
+        structuredData={getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl)}
       />
 
       {/* Hero Section */}

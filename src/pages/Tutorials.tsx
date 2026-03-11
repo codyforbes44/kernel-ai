@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { SEO } from '@/components/seo/SEO';
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema, BREADCRUMBS } from '@/lib/seo';
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getHowToSchema } from '@/lib/seo';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
