@@ -66,16 +66,17 @@ const securityPractices = [
 const Security = () => {
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.security.title}
-        description={PAGE_SEO.security.description}
+      <SEOHead
+        title="Security Practices — Enterprise Protection | Kernel"
+        description="Kernel uses AES-256 encryption, TLS 1.3, and SOC 2 compliance to protect your data. Your security is our priority."
         ogImage={PAGE_SEO.security.ogImage}
         keywords={PAGE_SEO.security.keywords as unknown as string[]}
         canonical="/security"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.security(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Security', url: `${SEO_CONFIG.siteUrl}/security` },
         ]}
+        structuredData={getOrganizationSchema(SEO_CONFIG.siteUrl)}
       />
       
       <div className="container mx-auto px-4 py-16 max-w-6xl">

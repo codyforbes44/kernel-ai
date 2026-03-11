@@ -9,16 +9,17 @@ export default function Privacy() {
 
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.privacy.title}
-        description={PAGE_SEO.privacy.description}
+      <SEOHead
+        title="Privacy Policy | Kernel"
+        description="Learn how Kernel collects, uses, and protects your data. We respect your privacy and follow GDPR best practices."
         ogImage={PAGE_SEO.privacy.ogImage}
         keywords={PAGE_SEO.privacy.keywords as unknown as string[]}
         canonical="/privacy"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.privacy(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Privacy Policy', url: `${SEO_CONFIG.siteUrl}/privacy` },
         ]}
+        structuredData={getOrganizationSchema(SEO_CONFIG.siteUrl)}
       />
 
       <HoloSection variant="gradient" className="py-16 sm:py-24">

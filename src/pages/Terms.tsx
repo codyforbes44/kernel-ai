@@ -9,16 +9,17 @@ export default function Terms() {
 
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.terms.title}
-        description={PAGE_SEO.terms.description}
+      <SEOHead
+        title="Terms of Service | Kernel"
+        description="Read Kernel's terms of service. Understand the conditions for using our AI-powered development platform."
         ogImage={PAGE_SEO.terms.ogImage}
         keywords={PAGE_SEO.terms.keywords as unknown as string[]}
         canonical="/terms"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.terms(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Terms of Service', url: `${SEO_CONFIG.siteUrl}/terms` },
         ]}
+        structuredData={getOrganizationSchema(SEO_CONFIG.siteUrl)}
       />
 
       <HoloSection variant="gradient" className="py-16 sm:py-24">
