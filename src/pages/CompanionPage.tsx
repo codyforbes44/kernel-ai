@@ -220,5 +220,6 @@ export default function CompanionPage() {
         onClose={() => setCelebratingMilestone(null)}
       />
     </main>
+    </>
   );
 }
