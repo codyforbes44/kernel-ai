@@ -5,7 +5,7 @@ export const SEO_CONFIG = {
   defaultTitle: 'Kernel - Your AI Development OS',
   defaultDescription: 'The operating system for AI-powered development. Kernel is the core that powers your vision — from idea to production in minutes.',
   defaultOgImage: '/og-images/default.png',
-  twitterHandle: '@KernelDev',
+  twitterHandle: '@kernel_cool',
   locale: 'en_US',
   ogImageDimensions: {
     width: 1200,
