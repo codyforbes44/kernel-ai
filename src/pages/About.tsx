@@ -45,16 +45,18 @@ const MotionCard = motion(Card);
 export default function About() {
   return (
     <PublicLayout backgroundIntensity="medium">
-      <SEO 
-        title={PAGE_SEO.about.title}
-        description={PAGE_SEO.about.description}
+      <SEOHead
+        title="About Kernel — Our Mission & Team"
+        description="Kernel empowers creators to build production-ready apps with AI. Meet the team behind the AI Development OS."
         ogImage={PAGE_SEO.about.ogImage}
         keywords={PAGE_SEO.about.keywords as unknown as string[]}
         canonical="/about"
-        structuredData={[
-          getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.about(SEO_CONFIG.siteUrl),
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'About', url: `${SEO_CONFIG.siteUrl}/about` },
         ]}
+        speakable={{ cssSelectors: ['h1', '.mission-text'] }}
+        structuredData={getOrganizationSchema(SEO_CONFIG.siteUrl)}
       />
 
       {/* Hero - Mission Statement */}

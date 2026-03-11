@@ -31,8 +31,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PublicLayout } from "@/components/layout/PublicLayout";
-import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getContactPointSchema, getFAQSchema, getBreadcrumbSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getContactPointSchema, getFAQSchema } from '@/lib/seo';
 import { contactOptions, subjectOptions } from "@/lib/contact-data";
 import { useContactFAQs } from "@/hooks/useStaticData";
 import { toast } from "@/hooks/use-toast";

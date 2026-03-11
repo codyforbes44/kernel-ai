@@ -51,15 +51,19 @@ const Documentation = () => {
 
   return (
     <PublicLayout>
-      <SEO
-        title={PAGE_SEO.documentation.title}
-        description={PAGE_SEO.documentation.description}
+      <SEOHead
+        title="Documentation — Kernel Developer Guides"
+        description="Comprehensive Kernel docs: quick-start guides, API references, and tutorials to build faster with AI-powered development."
         ogImage={PAGE_SEO.documentation.ogImage}
         keywords={PAGE_SEO.documentation.keywords as unknown as string[]}
         canonical="/docs"
+        breadcrumbs={[
+          { name: 'Home', url: SEO_CONFIG.siteUrl },
+          { name: 'Documentation', url: `${SEO_CONFIG.siteUrl}/docs` },
+        ]}
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
-          BREADCRUMBS.docs(SEO_CONFIG.siteUrl),
+          getFAQSchema(COMMON_FAQS.general),
         ]}
       />
       

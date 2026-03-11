@@ -1,8 +1,8 @@
 import { PublicLayout } from "@/components/layout/PublicLayout";
-import { SEO } from "@/components/seo/SEO";
+import { SEOHead } from '@/components/seo/SEOHead';
 import { HoloSection } from "@/components/ui/holo-section";
 import { GlowText } from "@/components/ui/glow-text";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema } from "@/lib/seo";
 
 export default function Terms() {
   const lastUpdated = "December 20, 2025";
