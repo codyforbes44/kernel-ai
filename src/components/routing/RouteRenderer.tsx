@@ -83,6 +83,8 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/request-invite', component: 'RequestInvite' },
   { path: '/redeem-invite', component: 'RedeemInvite' },
   { path: '/auth', component: 'Auth' },
+  { path: '/faq', component: 'FAQ' },
+  { path: '/blog', component: 'Blog' },
   
   // Protected routes (with extra error boundary protection)
   { path: '/assistant', component: 'Index', requiresAuth: true },
