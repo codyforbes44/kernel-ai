@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PublicLayout } from "@/components/layout/PublicLayout";
-import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema } from '@/lib/seo';
 import { values, milestones } from "@/lib/about-data";
 
 // Animation variants
