@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { SEO } from "@/components/seo/SEO";
+import { SEOHead } from "@/components/seo/SEOHead";
 import { CompareOGImage } from "@/components/marketing/CompareOGImage";
 import { CompetitiveAnalysisPDF } from "@/components/marketing/CompetitiveAnalysisPDF";
 import { PAGE_SEO, SEO_CONFIG, getBreadcrumbSchema } from "@/lib/seo";
