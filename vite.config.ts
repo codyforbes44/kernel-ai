@@ -14,6 +14,8 @@ function seoFilesPlugin(): Plugin {
     { path: '/', changefreq: 'daily', priority: 1.0, includeInSitemap: true, robots: 'allow' },
     { path: '/pricing', changefreq: 'monthly', priority: 0.9, includeInSitemap: true, robots: 'allow' },
     { path: '/contact', changefreq: 'monthly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
+    { path: '/about', changefreq: 'monthly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
+    { path: '/how-it-works', changefreq: 'monthly', priority: 0.9, includeInSitemap: true, robots: 'allow' },
     { path: '/auth', changefreq: 'monthly', priority: 0.8, includeInSitemap: true, robots: 'allow' },
     { path: '/builder', changefreq: 'weekly', priority: 0.9, includeInSitemap: true, robots: 'allow' },
     { path: '/privacy', changefreq: 'monthly', priority: 0.5, includeInSitemap: true, robots: 'allow' },
