@@ -9,6 +9,7 @@ import { MilestoneCelebration } from '@/components/companion/MilestoneCelebratio
 import { MobileCompanionSheet } from '@/components/companion/MobileCompanionSheet';
 import { CompanionPageSkeleton } from '@/components/companion/CompanionPageSkeleton';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { TopNavBar } from '@/components/layout/TopNavBar';
 import { useAuth } from '@/hooks/useAuth';
 import { useCompanionRelationship, useCompanion } from '@/hooks/useCompanion';
 import { Navigate } from 'react-router-dom';
