@@ -41,6 +41,8 @@ const pageComponents = {
   LogoExport: lazy(() => import('@/pages/LogoExport')),
   GenerateAudio: lazy(() => import('@/pages/admin/GenerateAudio')),
   Companion: lazy(() => import('@/pages/CompanionPage')),
+  FAQ: lazy(() => import('@/pages/FAQ')),
+  Blog: lazy(() => import('@/pages/Blog')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
