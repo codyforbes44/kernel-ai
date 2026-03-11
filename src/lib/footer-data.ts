@@ -42,6 +42,8 @@ export const footerSections: FooterSection[] = [
     links: [
       { label: "Documentation", href: "/docs" },
       { label: "Tutorials", href: "/tutorials" },
+      { label: "Blog", href: "/blog" },
+      { label: "FAQ", href: "/faq" },
     ],
   },
   {
@@ -49,6 +51,7 @@ export const footerSections: FooterSection[] = [
     links: [
       { label: "About", href: "/about" },
       { label: "Contact", href: "/contact" },
+      { label: "Security", href: "/security" },
     ],
   },
   {

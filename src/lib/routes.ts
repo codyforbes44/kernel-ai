@@ -219,6 +219,26 @@ export const routes: RouteConfig[] = [
     requiresAuth: false,
     robots: 'allow',
   },
+  {
+    path: '/faq',
+    title: 'FAQ',
+    description: 'Frequently asked questions about Kernel',
+    changefreq: 'monthly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
+  {
+    path: '/blog',
+    title: 'Blog',
+    description: 'Insights, tutorials, and updates from the Kernel team',
+    changefreq: 'weekly',
+    priority: 0.8,
+    includeInSitemap: true,
+    requiresAuth: false,
+    robots: 'allow',
+  },
   // Protected routes - not included in sitemap, blocked from crawlers
   {
     path: '/assistant',

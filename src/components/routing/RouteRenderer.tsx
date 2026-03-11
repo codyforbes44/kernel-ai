@@ -41,6 +41,8 @@ const pageComponents = {
   LogoExport: lazy(() => import('@/pages/LogoExport')),
   GenerateAudio: lazy(() => import('@/pages/admin/GenerateAudio')),
   Companion: lazy(() => import('@/pages/CompanionPage')),
+  FAQ: lazy(() => import('@/pages/FAQ')),
+  Blog: lazy(() => import('@/pages/Blog')),
 } as const;
 
 type PageComponentKey = keyof typeof pageComponents;
@@ -81,6 +83,8 @@ const routeConfig: AppRouteConfig[] = [
   { path: '/request-invite', component: 'RequestInvite' },
   { path: '/redeem-invite', component: 'RedeemInvite' },
   { path: '/auth', component: 'Auth' },
+  { path: '/faq', component: 'FAQ' },
+  { path: '/blog', component: 'Blog' },
   
   // Protected routes (with extra error boundary protection)
   { path: '/assistant', component: 'Index', requiresAuth: true },

@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Bot, Sparkles, Bell, Volume2, Monitor, Type, Clock, Code, FileText } from 'lucide-react';
 import { VoiceAgentSettingsCard } from './VoiceAgentSettingsCard';
+import { ElevenLabsSettingsProvider } from '@/contexts/ElevenLabsSettingsContext';
 
 export function AISettings() {
   const { preferences, updatePreference, loading: preferencesLoading } = useUserPreferences();
@@ -231,7 +232,9 @@ export function AISettings() {
         </CardContent>
       </Card>
 
-      <VoiceAgentSettingsCard />
+      <ElevenLabsSettingsProvider>
+        <VoiceAgentSettingsCard />
+      </ElevenLabsSettingsProvider>
     </>
   );
 }

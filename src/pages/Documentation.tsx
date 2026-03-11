@@ -63,7 +63,11 @@ const Documentation = () => {
         ]}
         structuredData={[
           getOrganizationSchema(SEO_CONFIG.siteUrl),
-          getFAQSchema(COMMON_FAQS.general),
+          getFAQSchema([
+            ...COMMON_FAQS.general,
+            { question: "How do I get started with Kernel?", answer: "Sign up, describe your app idea in natural language, and Kernel generates a production-ready application. Follow our Quick Start guide for a step-by-step walkthrough." },
+            { question: "Where can I find API documentation?", answer: "Our documentation covers all Kernel APIs, including database, auth, storage, and edge functions. Browse categories or use the search bar above." },
+          ]),
         ]}
       />
       

@@ -166,6 +166,18 @@ export const PAGE_SEO = {
     ogImage: '/og-images/default.png',
     keywords: ['migrate', 'import', 'switch', 'Bolt', 'v0', 'Replit', 'Lovable', 'Cursor'],
   },
+  faq: {
+    title: 'FAQ - Frequently Asked Questions',
+    description: 'Find answers to common questions about Kernel — features, pricing, security, and getting started with AI development.',
+    ogImage: '/og-images/default.png',
+    keywords: ['FAQ', 'frequently asked questions', 'help', 'support'],
+  },
+  blog: {
+    title: 'Blog - Insights & Updates',
+    description: 'Insights, tutorials, and updates from the Kernel team on AI-powered development.',
+    ogImage: '/og-images/default.png',
+    keywords: ['blog', 'articles', 'AI development', 'tutorials', 'updates'],
+  },
 } as const;
 
 // Organization Schema
@@ -538,6 +550,14 @@ export const BREADCRUMBS = {
   migrate: (siteUrl: string) => getBreadcrumbSchema([
     { name: 'Home', url: siteUrl },
     { name: 'Migrate', url: `${siteUrl}/migrate` }
+  ]),
+  faq: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'FAQ', url: `${siteUrl}/faq` }
+  ]),
+  blog: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Blog', url: `${siteUrl}/blog` }
   ]),
 };
 

@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { FAQSection } from "@/components/faq/FAQSection";
 import { SEOHead } from '@/components/seo/SEOHead';
-import { SEO_CONFIG, PAGE_SEO, getServiceSchema } from "@/lib/seo";
+import { SEO_CONFIG, PAGE_SEO, getServiceSchema, getFAQSchema } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { PlatformComparisonChart } from "@/components/pricing/PlatformComparisonChart";
 import { usePricingFAQs } from "@/hooks/useStaticData";
@@ -214,7 +214,15 @@ export default function Pricing() {
           { name: 'Home', url: SEO_CONFIG.siteUrl },
           { name: 'Pricing', url: `${SEO_CONFIG.siteUrl}/pricing` },
         ]}
-        structuredData={getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl)}
+        structuredData={[
+          getServiceSchema(pricingPlans, SEO_CONFIG.siteUrl),
+          getFAQSchema([
+            { question: "Is Kernel free to use?", answer: "Yes. The free plan includes AI chat, visual builder, templates, and deployment to a kernel.cool subdomain. No credit card required." },
+            { question: "What's included in the Pro plan?", answer: "Unlimited AI messages, priority model access, custom domains, advanced analytics, team collaboration, and priority support." },
+            { question: "Can I cancel anytime?", answer: "Yes. Upgrade instantly or downgrade at the end of your billing period. 14-day money-back guarantee on all paid plans." },
+            { question: "Do you offer enterprise pricing?", answer: "Yes. Enterprise plans include SSO, dedicated support, SLA guarantees, custom integrations, and volume discounts. Contact sales for details." },
+          ]),
+        ]}
       />
 
       {/* Hero Section */}

@@ -41,7 +41,7 @@ export const CompanionSelector = memo(function CompanionSelector({
 
   return (
     <div 
-      className="grid grid-cols-2 gap-3" 
+      className="grid grid-cols-1 gap-3" 
       role="listbox"
       aria-label="Select a companion"
     >
@@ -61,14 +61,14 @@ export const CompanionSelector = memo(function CompanionSelector({
               isSelected ? 'ring-2 ring-primary' : ''
             }`}
           >
-            <CardContent className="p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl" aria-hidden="true">
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xl flex-shrink-0" aria-hidden="true">
                   {PERSONALITY_ICONS[companion.personality_type]}
                 </span>
-                <div>
-                  <h3 className="font-semibold">{companion.name}</h3>
-                  <p className="text-xs text-muted-foreground capitalize">
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm truncate">{companion.name}</h3>
+                  <p className="text-xs text-muted-foreground capitalize whitespace-nowrap">
                     {companion.personality_type}
                   </p>
                 </div>
