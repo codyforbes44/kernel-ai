@@ -22,7 +22,8 @@ import { HoloSection } from "@/components/ui/holo-section";
 import { GlowText } from "@/components/ui/glow-text";
 import { GlassPanel } from "@/components/ui/glass-panel";
 import { Button } from "@/components/ui/button";
-import { SEO } from "@/components/seo/SEO";
+import { SEOHead } from "@/components/seo/SEOHead";
+import { SEO_CONFIG, PAGE_SEO, getHowToSchema, BREADCRUMBS, getOrganizationSchema } from "@/lib/seo";
 import { HowItWorksVideo } from "@/components/landing/HowItWorksVideo";
 
 const mainSteps = [
