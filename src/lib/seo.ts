@@ -515,6 +515,30 @@ export const BREADCRUMBS = {
     { name: 'Home', url: siteUrl },
     { name: 'Terms of Service', url: `${siteUrl}/terms` }
   ]),
+  howItWorks: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'How It Works', url: `${siteUrl}/how-it-works` }
+  ]),
+  compare: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Compare', url: `${siteUrl}/compare` }
+  ]),
+  requestInvite: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Request Invite', url: `${siteUrl}/request-invite` }
+  ]),
+  redeemInvite: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Redeem Invite', url: `${siteUrl}/redeem-invite` }
+  ]),
+  install: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Install', url: `${siteUrl}/install` }
+  ]),
+  migrate: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Migrate', url: `${siteUrl}/migrate` }
+  ]),
 };
 
 // OG Image URL helper with dimensions
