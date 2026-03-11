@@ -30,7 +30,7 @@ export const CompareHero = ({ exports }: CompareHeroProps) => {
           <div className="flex justify-center items-center gap-3 mb-4 md:mb-6">
             <KernelLogo size="lg" glow className="md:hidden" />
             <KernelLogo size="xl" glow className="hidden md:block" />
-            <HoloBadge variant="glow">2024</HoloBadge>
+            <HoloBadge variant="glow">2026</HoloBadge>
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3 md:mb-4">
             <GlowText variant="gradient" intensity="medium" className="inline">
