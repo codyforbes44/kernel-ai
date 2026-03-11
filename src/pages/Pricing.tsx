@@ -8,8 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { FAQSection } from "@/components/faq/FAQSection";
-import { SEO } from "@/components/seo/SEO";
-import { SEO_CONFIG, PAGE_SEO, getOrganizationSchema, getServiceSchema, BREADCRUMBS } from "@/lib/seo";
+import { SEOHead } from '@/components/seo/SEOHead';
+import { SEO_CONFIG, PAGE_SEO, getServiceSchema } from "@/lib/seo";
 import { plans, comparisonFeatures } from "@/lib/pricing-data";
 import { PlatformComparisonChart } from "@/components/pricing/PlatformComparisonChart";
 import { usePricingFAQs } from "@/hooks/useStaticData";
