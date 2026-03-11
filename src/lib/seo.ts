@@ -166,6 +166,18 @@ export const PAGE_SEO = {
     ogImage: '/og-images/default.png',
     keywords: ['migrate', 'import', 'switch', 'Bolt', 'v0', 'Replit', 'Lovable', 'Cursor'],
   },
+  faq: {
+    title: 'FAQ - Frequently Asked Questions',
+    description: 'Find answers to common questions about Kernel — features, pricing, security, and getting started with AI development.',
+    ogImage: '/og-images/default.png',
+    keywords: ['FAQ', 'frequently asked questions', 'help', 'support'],
+  },
+  blog: {
+    title: 'Blog - Insights & Updates',
+    description: 'Insights, tutorials, and updates from the Kernel team on AI-powered development.',
+    ogImage: '/og-images/default.png',
+    keywords: ['blog', 'articles', 'AI development', 'tutorials', 'updates'],
+  },
 } as const;
 
 // Organization Schema
