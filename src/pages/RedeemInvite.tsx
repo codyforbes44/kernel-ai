@@ -70,7 +70,7 @@ export default function RedeemInvite() {
         </Suspense>
         <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.08),transparent_60%)]" />
         
-        <SEO
+        <SEOHead
           title="Code Validated | Kernel"
           description="Your invite code has been validated"
           noIndex
