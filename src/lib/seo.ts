@@ -551,6 +551,14 @@ export const BREADCRUMBS = {
     { name: 'Home', url: siteUrl },
     { name: 'Migrate', url: `${siteUrl}/migrate` }
   ]),
+  faq: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'FAQ', url: `${siteUrl}/faq` }
+  ]),
+  blog: (siteUrl: string) => getBreadcrumbSchema([
+    { name: 'Home', url: siteUrl },
+    { name: 'Blog', url: `${siteUrl}/blog` }
+  ]),
 };
 
 // OG Image URL helper with dimensions
